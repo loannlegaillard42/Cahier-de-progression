@@ -97,6 +97,11 @@ const seedData = () => ({
   ],
   fiches: [],
   schedule: { url: "", slots: [] },
+  driveFolders: {
+    "5e": "https://drive.google.com/drive/folders/1UuWvnBc0gaTQNZfMAoYuYH3_TlpBDzPv",
+    "2nde": "https://drive.google.com/drive/folders/18XfyvbduCZ9fSIc3yVGKY8ZyLtKBffRo",
+    "1ere": "https://drive.google.com/drive/folders/1uxQd8v3FA8oefI6Gpg-ehH74PNoKBdS0",
+  },
   evaluations: [],
   classes: {
     "5e": { id: "5e", name: "5e", annualHours: 108, themes: [
@@ -131,6 +136,7 @@ function withDefaults(raw) {
   if (!Array.isArray(data.todos)) data.todos = [];
   if (!Array.isArray(data.fiches)) data.fiches = [];
   if (!Array.isArray(data.evaluations)) data.evaluations = [];
+  if (!data.driveFolders || typeof data.driveFolders !== "object") data.driveFolders = {};
   if (!data.schedule || typeof data.schedule !== "object") data.schedule = { url: "", slots: [] };
   if (!Array.isArray(data.schedule.slots)) data.schedule.slots = [];
   if (typeof data.schedule.url !== "string") data.schedule.url = "";
@@ -553,15 +559,50 @@ function AddFicheForm({ classOrder, classes, onAdd, onCancel }) {
   );
 }
 
-function FichesView({ data, onAdd, onDelete }) {
+function DriveFolderRow({ cid, name, color, url, onSet }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(url);
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0" }}>
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: color, flexShrink: 0 }} />
+      <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, width: 64, flexShrink: 0 }}>{name}</span>
+      {editing ? (
+        <div style={{ display: "flex", gap: 6, flex: 1 }}>
+          <input value={draft} onChange={(e) => setDraft(e.target.value)} style={{ ...inputStyle, padding: "4px 8px" }} placeholder="https://drive.google.com/…" autoFocus />
+          <button onClick={() => { onSet(cid, draft.trim()); setEditing(false); }} style={{ ...btnCircle, width: 22, height: 22, color: COLORS.done, flexShrink: 0 }}><IconCheck size={11} /></button>
+        </div>
+      ) : url ? (
+        <>
+          <a href={url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.accent, textDecoration: "none" }}>
+            <IconExternal size={11} /> Ouvrir
+          </a>
+          <button onClick={() => { setDraft(url); setEditing(true); }} style={{ background: "none", border: "none", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 11.5, cursor: "pointer", marginLeft: 4 }}>modifier</button>
+        </>
+      ) : (
+        <button onClick={() => setEditing(true)} style={{ background: "none", border: "none", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 12, cursor: "pointer" }}>+ lier un dossier Drive</button>
+      )}
+    </div>
+  );
+}
+
+function FichesView({ data, onAdd, onDelete, onSetDriveFolder }) {
   const [adding, setAdding] = useState(false);
   const totalBytes = data.fiches.reduce((s, f) => s + (f.fileData ? f.fileData.length : 0), 0);
   const approxKB = Math.round(totalBytes / 1024);
 
   return (
     <div>
+      <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: "10px 14px", marginBottom: 16 }}>
+        <SectionTitle icon={<IconLink size={14} />} title="Dossiers Drive par classe" />
+        {data.order.map((cid) => (
+          <DriveFolderRow key={cid} cid={cid} name={data.classes[cid].name} color={classColor(data, cid)}
+            url={data.driveFolders[cid] || ""} onSet={onSetDriveFolder} />
+        ))}
+      </div>
+
       <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, marginBottom: 14 }}>
-        Les fichiers joints sont stockés directement sur cet appareil ({approxKB} Ko utilisés). Pour des documents volumineux, préfère un lien externe.
+        Les fichiers joints ci-dessous sont stockés directement sur cet appareil ({approxKB} Ko utilisés). Pour des documents volumineux, dépose-les plutôt dans le dossier Drive de la classe ci-dessus.
       </p>
 
       {data.fiches.length === 0 && !adding && (
@@ -1117,6 +1158,7 @@ function App() {
   const deleteTodo = (id) => persist({ ...data, todos: data.todos.filter((t) => t.id !== id) });
   const addFiche = (f) => persist({ ...data, fiches: [...data.fiches, { id: uid(), ...f }] });
   const deleteFiche = (id) => persist({ ...data, fiches: data.fiches.filter((f) => f.id !== id) });
+  const setDriveFolder = (cid, url) => persist({ ...data, driveFolders: { ...data.driveFolders, [cid]: url } });
   const setScheduleUrl = (url) => persist({ ...data, schedule: { ...data.schedule, url } });
   const addSlot = (s) => persist({ ...data, schedule: { ...data.schedule, slots: [...data.schedule.slots, { id: uid(), ...s }] } });
   const deleteSlot = (id) => persist({ ...data, schedule: { ...data.schedule, slots: data.schedule.slots.filter((s) => s.id !== id) } });
@@ -1198,7 +1240,7 @@ function App() {
         {view === "home" ? (
           <HomeView data={data} onAddTodo={addTodo} onToggleTodo={toggleTodo} onDeleteTodo={deleteTodo} onSetAnnualHours={setAnnualHours} />
         ) : view === "fiches" ? (
-          <FichesView data={data} onAdd={addFiche} onDelete={deleteFiche} />
+          <FichesView data={data} onAdd={addFiche} onDelete={deleteFiche} onSetDriveFolder={setDriveFolder} />
         ) : view === "schedule" ? (
           <ScheduleView data={data} onSetUrl={setScheduleUrl} onAddSlot={addSlot} onDeleteSlot={deleteSlot} />
         ) : view === "evaluations" ? (
