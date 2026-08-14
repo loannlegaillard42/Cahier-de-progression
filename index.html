@@ -44,6 +44,14 @@ const COLORS = {
 const uid = () => Math.random().toString(36).slice(2, 10);
 const STORAGE_KEY = "progtracker-data-v1";
 
+// Palette assignée automatiquement à chaque classe (par ordre de création),
+// pour distinguer les classes d'un coup d'œil dans toutes les vues.
+const CLASS_PALETTE = ["#1F4E5F", "#6B4C6B", "#4C6B4F", "#8C5E3C", "#3D5A80", "#7A5068"];
+function classColor(data, cid) {
+  const i = data.order.indexOf(cid);
+  return CLASS_PALETTE[i >= 0 ? i % CLASS_PALETTE.length : 0];
+}
+
 /* ---------- minimal icon set (no external dependency) ---------- */
 function Icon({ children, size = 15, color = "currentColor", strokeWidth = 1.8 }) {
   return (
@@ -72,6 +80,7 @@ const IconPaperclip = (p) => <Icon {...p}><path d="M21.44 11.05l-9.19 9.19a6 6 0
 const IconLink = (p) => <Icon {...p}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></Icon>;
 const IconFileText = (p) => <Icon {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></Icon>;
 const IconUpload = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></Icon>;
+const IconClipboard = (p) => <Icon {...p}><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/><path d="M9 12l2 2 4-4"/></Icon>;
 
 const RESOURCE_LINKS = [
   { label: "Éduscol — Histoire-géographie collège", url: "https://eduscol.education.gouv.fr/31218/domaines-enseignement/histoire-geographie-college" },
@@ -87,6 +96,8 @@ const seedData = () => ({
     { id: uid(), text: "Imprimer les fiches d'objectifs pour les premiers chapitres", done: false },
   ],
   fiches: [],
+  schedule: { url: "", slots: [] },
+  evaluations: [],
   classes: {
     "5e": { id: "5e", name: "5e", annualHours: 108, themes: [
       { id: uid(), title: "Chrétientés et Islam, des mondes en contact (VIe-XIIIe s.)", discipline: "histoire", chapters: [
@@ -119,12 +130,23 @@ function withDefaults(raw) {
   const data = { ...raw };
   if (!Array.isArray(data.todos)) data.todos = [];
   if (!Array.isArray(data.fiches)) data.fiches = [];
+  if (!Array.isArray(data.evaluations)) data.evaluations = [];
+  if (!data.schedule || typeof data.schedule !== "object") data.schedule = { url: "", slots: [] };
+  if (!Array.isArray(data.schedule.slots)) data.schedule.slots = [];
+  if (typeof data.schedule.url !== "string") data.schedule.url = "";
   data.order.forEach((cid) => {
     const c = data.classes[cid];
     if (c && c.annualHours === undefined) c.annualHours = null;
   });
   return data;
 }
+
+const DAYS_FR = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+const EVAL_TYPES = ["Contrôle", "DST", "Oral", "DM", "Autre"];
+const EVAL_STATUS = { a_faire: "À venir", a_corriger: "À corriger", termine: "Terminée" };
+const EVAL_STATUS_COLOR = { a_faire: COLORS.todo, a_corriger: COLORS.wip, termine: COLORS.done };
+const EVAL_STATUS_SOFT = { a_faire: COLORS.todoSoft, a_corriger: COLORS.wipSoft, termine: COLORS.doneSoft };
+const EVAL_STATUS_ORDER = ["a_faire", "a_corriger", "termine"];
 
 function useDebouncedSave(saveFn, delay = 500) {
   const timer = useRef(null);
@@ -328,7 +350,7 @@ function PlanningView({ data }) {
     const cls = data.classes[cid];
     cls.themes.forEach((th) => {
       th.chapters.forEach((ch) => {
-        if (ch.start || ch.end) rows.push({ className: cls.name, discipline: th.discipline, theme: th.title, ...ch });
+        if (ch.start || ch.end) rows.push({ className: cls.name, classId: cid, discipline: th.discipline, theme: th.title, ...ch });
       });
     });
   });
@@ -351,7 +373,7 @@ function PlanningView({ data }) {
             <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub, width: 150, flexShrink: 0 }}>
               {r.start ? formatDate(r.start) : "—"}{r.end ? ` → ${formatDate(r.end)}` : ""}
             </div>
-            <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: COLORS.accent, borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>{r.className}</span>
+            <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, r.classId), borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>{r.className}</span>
             <DisciplineBadge d={r.discipline} />
             <div style={{ flex: 1, minWidth: 120 }}>
               <div style={{ fontFamily: "Fraunces, serif", fontSize: 14.5, color: COLORS.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</div>
@@ -563,7 +585,7 @@ function FichesView({ data, onAdd, onDelete }) {
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontFamily: "Fraunces, serif", fontSize: 14.5, color: COLORS.ink, wordBreak: "break-word" }}>{f.title}</div>
                     {cls && (
-                      <span style={{ fontFamily: "Inter, sans-serif", fontSize: 10.5, fontWeight: 700, color: "#fff", background: COLORS.accent, borderRadius: 4, padding: "1px 6px", marginTop: 3, display: "inline-block" }}>
+                      <span style={{ fontFamily: "Inter, sans-serif", fontSize: 10.5, fontWeight: 700, color: "#fff", background: classColor(data, f.classId), borderRadius: 4, padding: "1px 6px", marginTop: 3, display: "inline-block" }}>
                         {cls.name}
                       </span>
                     )}
@@ -597,6 +619,228 @@ function FichesView({ data, onAdd, onDelete }) {
   );
 }
 
+function AddSlotForm({ classOrder, classes, onAdd, onCancel }) {
+  const [day, setDay] = useState(0);
+  const [start, setStart] = useState("08:00");
+  const [end, setEnd] = useState("09:00");
+  const [classId, setClassId] = useState(classOrder[0] || "");
+  const [room, setRoom] = useState("");
+
+  const submit = () => {
+    if (!classId) return;
+    onAdd({ day: Number(day), start, end, classId, room: room.trim() });
+  };
+
+  return (
+    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 16 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 10 }}>
+        <div>
+          <label style={labelStyle}>Jour</label>
+          <select value={day} onChange={(e) => setDay(e.target.value)} style={inputStyle}>
+            {DAYS_FR.map((d, i) => <option key={i} value={i}>{d}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Début</label>
+          <input type="time" value={start} onChange={(e) => setStart(e.target.value)} style={{ ...inputStyle, fontFamily: "IBM Plex Mono, monospace" }} />
+        </div>
+        <div>
+          <label style={labelStyle}>Fin</label>
+          <input type="time" value={end} onChange={(e) => setEnd(e.target.value)} style={{ ...inputStyle, fontFamily: "IBM Plex Mono, monospace" }} />
+        </div>
+      </div>
+      <label style={labelStyle}>Classe</label>
+      <select value={classId} onChange={(e) => setClassId(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}>
+        {classOrder.map((cid) => <option key={cid} value={cid}>{classes[cid].name}</option>)}
+      </select>
+      <label style={labelStyle}>Salle (optionnel)</label>
+      <input value={room} onChange={(e) => setRoom(e.target.value)} style={{ ...inputStyle, marginBottom: 12 }} placeholder="Ex. : B12" />
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={submit} style={primaryBtn}>Ajouter</button>
+        <button onClick={onCancel} style={ghostBtn}>Annuler</button>
+      </div>
+    </div>
+  );
+}
+
+function ScheduleView({ data, onSetUrl, onAddSlot, onDeleteSlot }) {
+  const [adding, setAdding] = useState(false);
+  const [urlDraft, setUrlDraft] = useState(data.schedule.url);
+  const [editingUrl, setEditingUrl] = useState(false);
+
+  const byDay = DAYS_FR.map((_, i) =>
+    data.schedule.slots.filter((s) => s.day === i).sort((a, b) => a.start.localeCompare(b.start))
+  );
+
+  return (
+    <div>
+      <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: 14, marginBottom: 18 }}>
+        <label style={labelStyle}>Lien vers ton emploi du temps en ligne (Pronote, ADE…)</label>
+        {editingUrl ? (
+          <div style={{ display: "flex", gap: 8 }}>
+            <input value={urlDraft} onChange={(e) => setUrlDraft(e.target.value)} style={inputStyle} placeholder="https://…" autoFocus />
+            <button onClick={() => { onSetUrl(urlDraft.trim()); setEditingUrl(false); }} style={{ ...btnCircle, color: COLORS.done, flexShrink: 0 }}><IconCheck size={13} /></button>
+          </div>
+        ) : data.schedule.url ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <a href={data.schedule.url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.accent, textDecoration: "none" }}>
+              <IconExternal size={13} /> Ouvrir mon emploi du temps
+            </a>
+            <button onClick={() => { setUrlDraft(data.schedule.url); setEditingUrl(true); }} style={{ background: "none", border: "none", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 12, cursor: "pointer" }}>modifier</button>
+          </div>
+        ) : (
+          <button onClick={() => setEditingUrl(true)} style={{ ...ghostBtn, fontSize: 12.5, padding: "6px 12px" }}>+ Ajouter le lien</button>
+        )}
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint, marginTop: 8, marginBottom: 0 }}>
+          Ce lien s'ouvre dans ton application habituelle (Pronote, ADE…) — il n'est pas affiché automatiquement ici.
+        </p>
+      </div>
+
+      {data.schedule.slots.length === 0 && !adding && (
+        <div style={{ textAlign: "center", padding: "40px 20px", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 14 }}>
+          <IconClock size={26} style={{ marginBottom: 10, opacity: 0.6 }} />
+          <p>Aucun créneau renseigné pour l'instant.</p>
+        </div>
+      )}
+
+      {DAYS_FR.map((day, i) => (
+        byDay[i].length > 0 && (
+          <div key={i} style={{ marginBottom: 16 }}>
+            <h3 style={{ fontFamily: "Fraunces, serif", fontSize: 15, fontWeight: 600, color: COLORS.ink, margin: "0 0 8px" }}>{day}</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {byDay[i].map((s) => {
+                const cls = data.classes[s.classId];
+                return (
+                  <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: COLORS.panel,
+                    border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${classColor(data, s.classId)}`, borderRadius: 7, flexWrap: "wrap" }}>
+                    <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub, width: 90, flexShrink: 0 }}>{s.start}–{s.end}</span>
+                    <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, s.classId), borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>
+                      {cls ? cls.name : "?"}
+                    </span>
+                    {s.room && <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, flex: 1 }}>Salle {s.room}</span>}
+                    <button onClick={() => onDeleteSlot(s.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", marginLeft: "auto" }}>
+                      <IconX size={13} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )
+      ))}
+
+      {adding ? (
+        <AddSlotForm classOrder={data.order} classes={data.classes}
+          onAdd={(s) => { onAddSlot(s); setAdding(false); }} onCancel={() => setAdding(false)} />
+      ) : (
+        data.order.length > 0 && (
+          <button onClick={() => setAdding(true)} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 6 }}>
+            <IconPlus size={14} /> Ajouter un créneau
+          </button>
+        )
+      )}
+    </div>
+  );
+}
+
+function AddEvalForm({ classOrder, classes, onAdd, onCancel }) {
+  const [title, setTitle] = useState("");
+  const [classId, setClassId] = useState(classOrder[0] || "");
+  const [type, setType] = useState(EVAL_TYPES[0]);
+  const [date, setDate] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const submit = () => {
+    if (!title.trim()) return;
+    onAdd({ title: title.trim(), classId, type, date, notes: notes.trim(), status: "a_faire" });
+  };
+
+  return (
+    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 16 }}>
+      <label style={labelStyle}>Titre</label>
+      <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }} placeholder="Ex. : Contrôle chapitre 2" autoFocus />
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 10 }}>
+        <div>
+          <label style={labelStyle}>Classe</label>
+          <select value={classId} onChange={(e) => setClassId(e.target.value)} style={inputStyle}>
+            {classOrder.map((cid) => <option key={cid} value={cid}>{classes[cid].name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Type</label>
+          <select value={type} onChange={(e) => setType(e.target.value)} style={inputStyle}>
+            {EVAL_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Date</label>
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ ...inputStyle, fontFamily: "IBM Plex Mono, monospace" }} />
+        </div>
+      </div>
+      <label style={labelStyle}>Notes (optionnel)</label>
+      <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} style={{ ...inputStyle, marginBottom: 12, resize: "vertical" }} />
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={submit} style={primaryBtn}>Ajouter</button>
+        <button onClick={onCancel} style={ghostBtn}>Annuler</button>
+      </div>
+    </div>
+  );
+}
+
+function EvaluationsView({ data, onAdd, onCycleStatus, onDelete }) {
+  const [adding, setAdding] = useState(false);
+  const rows = [...data.evaluations].sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
+
+  return (
+    <div>
+      {rows.length === 0 && !adding && (
+        <div style={{ textAlign: "center", padding: "40px 20px", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 14 }}>
+          <IconClipboard size={26} style={{ marginBottom: 10, opacity: 0.6 }} />
+          <p>Aucune évaluation enregistrée pour l'instant.</p>
+        </div>
+      )}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+        {rows.map((ev) => {
+          const cls = data.classes[ev.classId];
+          return (
+            <div key={ev.id} style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`,
+              borderLeft: `4px solid ${classColor(data, ev.classId)}`, borderRadius: 8, padding: "10px 14px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  {ev.date && <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub }}>{formatDate(ev.date)}</span>}
+                  {cls && <span style={{ fontFamily: "Inter, sans-serif", fontSize: 10.5, fontWeight: 700, color: "#fff", background: classColor(data, ev.classId), borderRadius: 4, padding: "1px 6px" }}>{cls.name}</span>}
+                  <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint }}>{ev.type}</span>
+                </div>
+                <button onClick={() => onDelete(ev.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer" }}>
+                  <IconX size={13} />
+                </button>
+              </div>
+              <div style={{ fontFamily: "Fraunces, serif", fontSize: 15, color: COLORS.ink, margin: "6px 0 2px" }}>{ev.title}</div>
+              {ev.notes && <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, margin: "2px 0 8px" }}>{ev.notes}</p>}
+              <button onClick={() => onCycleStatus(ev.id)} style={{
+                fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: EVAL_STATUS_COLOR[ev.status],
+                background: EVAL_STATUS_SOFT[ev.status], border: "none", borderRadius: 5, padding: "4px 10px", cursor: "pointer", marginTop: 6,
+              }}>
+                {EVAL_STATUS[ev.status]} — changer
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      {adding ? (
+        <AddEvalForm classOrder={data.order} classes={data.classes}
+          onAdd={(ev) => { onAdd(ev); setAdding(false); }} onCancel={() => setAdding(false)} />
+      ) : (
+        data.order.length > 0 && (
+          <button onClick={() => setAdding(true)} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 6 }}>
+            <IconPlus size={14} /> Ajouter une évaluation
+          </button>
+        )
+      )}
+    </div>
+  );
+}
+
 function SectionTitle({ icon, title }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
@@ -617,9 +861,9 @@ function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHour
     cls.themes.forEach((th) => {
       th.chapters.forEach((ch) => {
         const st = chapterStatus(ch);
-        if (st === "wip") inProgress.push({ className: cls.name, theme: th.title, discipline: th.discipline, ...ch });
-        if (ch.start && ch.start >= fmt(today) && ch.start <= fmt(in7)) upcoming.push({ className: cls.name, kind: "début", date: ch.start, ...ch });
-        if (ch.end && ch.end >= fmt(today) && ch.end <= fmt(in7)) upcoming.push({ className: cls.name, kind: "fin", date: ch.end, ...ch });
+        if (st === "wip") inProgress.push({ className: cls.name, classId: cid, theme: th.title, discipline: th.discipline, ...ch });
+        if (ch.start && ch.start >= fmt(today) && ch.start <= fmt(in7)) upcoming.push({ className: cls.name, classId: cid, kind: "début", date: ch.start, ...ch });
+        if (ch.end && ch.end >= fmt(today) && ch.end <= fmt(in7)) upcoming.push({ className: cls.name, classId: cid, kind: "fin", date: ch.end, ...ch });
       });
     });
   });
@@ -636,7 +880,7 @@ function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHour
             {upcoming.map((r, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 7, flexWrap: "wrap" }}>
                 <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, width: 60, flexShrink: 0 }}>{formatDate(r.date)}</span>
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: COLORS.accent, borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{r.className}</span>
+                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, r.classId), borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{r.className}</span>
                 <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</span>
                 <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, flexShrink: 0 }}>{r.kind}</span>
               </div>
@@ -652,13 +896,36 @@ function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHour
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {inProgress.map((r) => (
               <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: COLORS.accent, borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{r.className}</span>
+                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, r.classId), borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{r.className}</span>
                 <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{r.title}</span>
                 <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, flexShrink: 0 }}>{r.done}/{r.total}</span>
               </div>
             ))}
           </div>
         )}
+      </section>
+      <section>
+        <SectionTitle icon={<IconClipboard size={15} />} title="Copies à corriger" />
+        {(() => {
+          const toCorrect = data.evaluations.filter((ev) => ev.status === "a_corriger");
+          if (toCorrect.length === 0) {
+            return <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Rien à corriger pour l'instant.</p>;
+          }
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {toCorrect.map((ev) => {
+                const cls = data.classes[ev.classId];
+                return (
+                  <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
+                    {cls && <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, ev.classId), borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{cls.name}</span>}
+                    <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{ev.title}</span>
+                    <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, flexShrink: 0 }}>{ev.type}</span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </section>
       <section>
         <SectionTitle icon={<IconList size={15} />} title="Pense-bête" />
@@ -789,6 +1056,21 @@ function App() {
   const deleteTodo = (id) => persist({ ...data, todos: data.todos.filter((t) => t.id !== id) });
   const addFiche = (f) => persist({ ...data, fiches: [...data.fiches, { id: uid(), ...f }] });
   const deleteFiche = (id) => persist({ ...data, fiches: data.fiches.filter((f) => f.id !== id) });
+  const setScheduleUrl = (url) => persist({ ...data, schedule: { ...data.schedule, url } });
+  const addSlot = (s) => persist({ ...data, schedule: { ...data.schedule, slots: [...data.schedule.slots, { id: uid(), ...s }] } });
+  const deleteSlot = (id) => persist({ ...data, schedule: { ...data.schedule, slots: data.schedule.slots.filter((s) => s.id !== id) } });
+  const addEvaluation = (ev) => persist({ ...data, evaluations: [...data.evaluations, { id: uid(), ...ev }] });
+  const deleteEvaluation = (id) => persist({ ...data, evaluations: data.evaluations.filter((ev) => ev.id !== id) });
+  const cycleEvalStatus = (id) => {
+    const next = { ...data };
+    next.evaluations = next.evaluations.map((ev) => {
+      if (ev.id !== id) return ev;
+      const idx = EVAL_STATUS_ORDER.indexOf(ev.status);
+      const nextStatus = EVAL_STATUS_ORDER[(idx + 1) % EVAL_STATUS_ORDER.length];
+      return { ...ev, status: nextStatus };
+    });
+    persist(next);
+  };
   const setAnnualHours = (cid, hours) => {
     const next = { ...data };
     next.classes[cid] = { ...next.classes[cid], annualHours: hours };
@@ -807,12 +1089,16 @@ function App() {
             {data.order.map((cid) => {
               const c = data.classes[cid];
               const isActive = cid === activeClass;
+              const cColor = classColor(data, cid);
               return (
                 <div key={cid} style={{ position: "relative", display: "flex", alignItems: "center" }}>
                   <button onClick={() => setActiveClass(cid)} style={{ fontFamily: "Fraunces, serif", fontSize: 15, fontWeight: isActive ? 600 : 400,
-                    color: isActive ? COLORS.accent : COLORS.sub, background: isActive ? COLORS.panel : "transparent",
-                    border: `1px solid ${isActive ? COLORS.line : "transparent"}`, borderBottom: isActive ? `1px solid ${COLORS.panel}` : "1px solid transparent",
-                    borderRadius: "8px 8px 0 0", padding: "8px 16px", cursor: "pointer", marginBottom: -1 }}>{c.name}</button>
+                    color: isActive ? cColor : COLORS.sub, background: isActive ? COLORS.panel : "transparent",
+                    border: `1px solid ${isActive ? COLORS.line : "transparent"}`, borderBottom: isActive ? `2px solid ${cColor}` : "1px solid transparent",
+                    borderRadius: "8px 8px 0 0", padding: "8px 16px", cursor: "pointer", marginBottom: -1, display: "flex", alignItems: "center", gap: 7 }}>
+                    <span style={{ width: 7, height: 7, borderRadius: "50%", background: cColor, flexShrink: 0 }} />
+                    {c.name}
+                  </button>
                   {isActive && data.order.length > 1 && (
                     <button onClick={() => deleteClass(cid)} title="Supprimer cette classe" style={{ position: "absolute", right: 4, top: 6, background: "none", border: "none", color: COLORS.faint, cursor: "pointer", padding: 2 }}>
                       <IconX size={11} />
@@ -844,12 +1130,18 @@ function App() {
           <button onClick={() => setView("progression")} style={tabBtn(view === "progression")}><IconGrid size={13} /> Progression</button>
           <button onClick={() => setView("planning")} style={tabBtn(view === "planning")}><IconCalendar size={13} /> Planning de l'année</button>
           <button onClick={() => setView("fiches")} style={tabBtn(view === "fiches")}><IconPaperclip size={13} /> Fiches</button>
+          <button onClick={() => setView("schedule")} style={tabBtn(view === "schedule")}><IconClock size={13} /> Emploi du temps</button>
+          <button onClick={() => setView("evaluations")} style={tabBtn(view === "evaluations")}><IconClipboard size={13} /> Évaluations</button>
         </div>
 
         {view === "home" ? (
           <HomeView data={data} onAddTodo={addTodo} onToggleTodo={toggleTodo} onDeleteTodo={deleteTodo} onSetAnnualHours={setAnnualHours} />
         ) : view === "fiches" ? (
           <FichesView data={data} onAdd={addFiche} onDelete={deleteFiche} />
+        ) : view === "schedule" ? (
+          <ScheduleView data={data} onSetUrl={setScheduleUrl} onAddSlot={addSlot} onDeleteSlot={deleteSlot} />
+        ) : view === "evaluations" ? (
+          <EvaluationsView data={data} onAdd={addEvaluation} onCycleStatus={cycleEvalStatus} onDelete={deleteEvaluation} />
         ) : view === "progression" ? (
           cls ? (
             <>
