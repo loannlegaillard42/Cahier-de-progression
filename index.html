@@ -68,6 +68,10 @@ const IconAlert = (p) => <Icon {...p}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.7
 const IconGrad = (p) => <Icon {...p}><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></Icon>;
 const IconClock = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Icon>;
 const IconGrid = (p) => <Icon {...p}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></Icon>;
+const IconPaperclip = (p) => <Icon {...p}><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></Icon>;
+const IconLink = (p) => <Icon {...p}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></Icon>;
+const IconFileText = (p) => <Icon {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></Icon>;
+const IconUpload = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></Icon>;
 
 const RESOURCE_LINKS = [
   { label: "Éduscol — Histoire-géographie collège", url: "https://eduscol.education.gouv.fr/31218/domaines-enseignement/histoire-geographie-college" },
@@ -82,6 +86,7 @@ const seedData = () => ({
     { id: uid(), text: "Repérer les élèves à PAP/PAI dans chaque classe", done: false },
     { id: uid(), text: "Imprimer les fiches d'objectifs pour les premiers chapitres", done: false },
   ],
+  fiches: [],
   classes: {
     "5e": { id: "5e", name: "5e", annualHours: 108, themes: [
       { id: uid(), title: "Chrétientés et Islam, des mondes en contact (VIe-XIIIe s.)", discipline: "histoire", chapters: [
@@ -113,6 +118,7 @@ const seedData = () => ({
 function withDefaults(raw) {
   const data = { ...raw };
   if (!Array.isArray(data.todos)) data.todos = [];
+  if (!Array.isArray(data.fiches)) data.fiches = [];
   data.order.forEach((cid) => {
     const c = data.classes[cid];
     if (c && c.annualHours === undefined) c.annualHours = null;
@@ -440,6 +446,157 @@ function HourBar({ label, planned, annual, onEditAnnual }) {
   );
 }
 
+const MAX_FILE_BYTES = 2 * 1024 * 1024; // 2 Mo par fichier — au-delà, utiliser un lien externe
+
+function fileToDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function AddFicheForm({ classOrder, classes, onAdd, onCancel }) {
+  const [title, setTitle] = useState("");
+  const [classId, setClassId] = useState("");
+  const [url, setUrl] = useState("");
+  const [notes, setNotes] = useState("");
+  const [file, setFile] = useState(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const handleFile = (e) => {
+    const f = e.target.files && e.target.files[0];
+    setError("");
+    if (!f) { setFile(null); return; }
+    if (f.size > MAX_FILE_BYTES) {
+      setError("Fichier trop volumineux (max 2 Mo) — utilise plutôt un lien externe (Drive, Canva…) ci-dessous.");
+      setFile(null);
+      e.target.value = "";
+      return;
+    }
+    setFile(f);
+  };
+
+  const submit = async () => {
+    if (!title.trim()) { setError("Donne un titre à la fiche."); return; }
+    if (!file && !url.trim()) { setError("Joins un fichier ou renseigne un lien."); return; }
+    setBusy(true);
+    try {
+      let fileData = null, fileName = null, fileType = null;
+      if (file) {
+        fileData = await fileToDataURL(file);
+        fileName = file.name;
+        fileType = file.type;
+      }
+      onAdd({ title: title.trim(), classId: classId || null, url: url.trim(), notes: notes.trim(), fileData, fileName, fileType });
+    } catch (e) {
+      setError("Échec de la lecture du fichier — réessaie ou utilise un lien externe.");
+    }
+    setBusy(false);
+  };
+
+  return (
+    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 16 }}>
+      <label style={labelStyle}>Titre de la fiche</label>
+      <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}
+        placeholder="Ex. : Fiche activité — L'Empire byzantin" autoFocus />
+
+      <label style={labelStyle}>Classe associée (optionnel)</label>
+      <select value={classId} onChange={(e) => setClassId(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}>
+        <option value="">Aucune</option>
+        {classOrder.map((cid) => <option key={cid} value={cid}>{classes[cid].name}</option>)}
+      </select>
+
+      <label style={labelStyle}>Fichier (PDF, image… 2 Mo max)</label>
+      <input type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp" onChange={handleFile}
+        style={{ ...inputStyle, marginBottom: 10, padding: "6px" }} />
+
+      <label style={labelStyle}>ou lien externe (Drive, Canva…)</label>
+      <input value={url} onChange={(e) => setUrl(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}
+        placeholder="https://…" />
+
+      <label style={labelStyle}>Notes (optionnel)</label>
+      <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
+        style={{ ...inputStyle, marginBottom: 10, resize: "vertical" }} placeholder="Contenu, usage, remarques…" />
+
+      {error && <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.histoire, marginBottom: 10 }}>{error}</p>}
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={submit} disabled={busy} style={primaryBtn}>{busy ? "Ajout…" : "Ajouter"}</button>
+        <button onClick={onCancel} style={ghostBtn}>Annuler</button>
+      </div>
+    </div>
+  );
+}
+
+function FichesView({ data, onAdd, onDelete }) {
+  const [adding, setAdding] = useState(false);
+  const totalBytes = data.fiches.reduce((s, f) => s + (f.fileData ? f.fileData.length : 0), 0);
+  const approxKB = Math.round(totalBytes / 1024);
+
+  return (
+    <div>
+      <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, marginBottom: 14 }}>
+        Les fichiers joints sont stockés directement sur cet appareil ({approxKB} Ko utilisés). Pour des documents volumineux, préfère un lien externe.
+      </p>
+
+      {data.fiches.length === 0 && !adding && (
+        <div style={{ textAlign: "center", padding: "40px 20px", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 14 }}>
+          <IconPaperclip size={26} style={{ marginBottom: 10, opacity: 0.6 }} />
+          <p>Aucune fiche stockée pour l'instant.</p>
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+        {data.fiches.map((f) => {
+          const cls = f.classId ? data.classes[f.classId] : null;
+          const href = f.fileData || f.url;
+          return (
+            <div key={f.id} style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: "12px 14px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, minWidth: 0 }}>
+                  <span style={{ color: COLORS.accent, marginTop: 2, flexShrink: 0 }}>
+                    {f.fileData ? <IconFileText size={16} /> : <IconLink size={16} />}
+                  </span>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontFamily: "Fraunces, serif", fontSize: 14.5, color: COLORS.ink, wordBreak: "break-word" }}>{f.title}</div>
+                    {cls && (
+                      <span style={{ fontFamily: "Inter, sans-serif", fontSize: 10.5, fontWeight: 700, color: "#fff", background: COLORS.accent, borderRadius: 4, padding: "1px 6px", marginTop: 3, display: "inline-block" }}>
+                        {cls.name}
+                      </span>
+                    )}
+                    {f.notes && <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub, marginTop: 4 }}>{f.notes}</p>}
+                  </div>
+                </div>
+                <button onClick={() => onDelete(f.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", flexShrink: 0 }} aria-label="Supprimer">
+                  <IconX size={14} />
+                </button>
+              </div>
+              {href && (
+                <a href={href} target="_blank" rel="noreferrer" download={f.fileName || undefined}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 8, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.accent, textDecoration: "none" }}>
+                  <IconExternal size={12} /> {f.fileData ? "Ouvrir le fichier" : "Ouvrir le lien"}
+                </a>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {adding ? (
+        <AddFicheForm classOrder={data.order} classes={data.classes}
+          onAdd={(f) => { onAdd(f); setAdding(false); }} onCancel={() => setAdding(false)} />
+      ) : (
+        <button onClick={() => setAdding(true)} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 6 }}>
+          <IconUpload size={14} /> Ajouter une fiche
+        </button>
+      )}
+    </div>
+  );
+}
+
 function SectionTitle({ icon, title }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
@@ -630,6 +787,8 @@ function App() {
   const addTodo = (text) => persist({ ...data, todos: [...data.todos, { id: uid(), text, done: false }] });
   const toggleTodo = (id) => persist({ ...data, todos: data.todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) });
   const deleteTodo = (id) => persist({ ...data, todos: data.todos.filter((t) => t.id !== id) });
+  const addFiche = (f) => persist({ ...data, fiches: [...data.fiches, { id: uid(), ...f }] });
+  const deleteFiche = (id) => persist({ ...data, fiches: data.fiches.filter((f) => f.id !== id) });
   const setAnnualHours = (cid, hours) => {
     const next = { ...data };
     next.classes[cid] = { ...next.classes[cid], annualHours: hours };
@@ -684,10 +843,13 @@ function App() {
           <button onClick={() => setView("home")} style={tabBtn(view === "home")}><IconHome size={13} /> Accueil</button>
           <button onClick={() => setView("progression")} style={tabBtn(view === "progression")}><IconGrid size={13} /> Progression</button>
           <button onClick={() => setView("planning")} style={tabBtn(view === "planning")}><IconCalendar size={13} /> Planning de l'année</button>
+          <button onClick={() => setView("fiches")} style={tabBtn(view === "fiches")}><IconPaperclip size={13} /> Fiches</button>
         </div>
 
         {view === "home" ? (
           <HomeView data={data} onAddTodo={addTodo} onToggleTodo={toggleTodo} onDeleteTodo={deleteTodo} onSetAnnualHours={setAnnualHours} />
+        ) : view === "fiches" ? (
+          <FichesView data={data} onAdd={addFiche} onDelete={deleteFiche} />
         ) : view === "progression" ? (
           cls ? (
             <>
