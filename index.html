@@ -29,7 +29,7 @@
 <body>
 <div id="root"></div>
 
-<script type="text/babel" data-presets="react">
+<script type="text/plain" id="app-source">
 const { useState, useEffect, useRef, useCallback } = React;
 
 /* ---------- design tokens ---------- */
@@ -726,6 +726,19 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   });
 }
+</script>
+
+<script>
+  // Transformation manuelle du JSX en JS classique (runtime "classic"),
+  // pour éviter que Babel n'insère un `import` automatique (qui casse
+  // l'exécution puisque ce n'est pas un vrai module JavaScript).
+  var source = document.getElementById("app-source").textContent;
+  var output = Babel.transform(source, {
+    presets: [["react", { runtime: "classic" }]],
+  }).code;
+  var runner = document.createElement("script");
+  runner.textContent = output;
+  document.body.appendChild(runner);
 </script>
 </body>
 </html>
