@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Cahier de progression — Histoire-Géographie</title>
+<meta name="description" content="Progression, planning et pense-bête pour un enseignant d'histoire-géographie" />
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#1F4E5F" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Cahier HG" />
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  * { box-sizing: border-box; }
+  body { margin: 0; -webkit-tap-highlight-color: transparent; }
+  input, textarea, button { font: inherit; }
+</style>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ---------- design tokens ---------- */
+const COLORS = {
+  bg: "#FAF8F3", panel: "#FFFFFF", ink: "#2B2B2B", sub: "#555555", faint: "#8A8478",
+  line: "#E4DFD4", encadre: "#EFEFEF", accent: "#1F4E5F", accentSoft: "#E7EEF0",
+  histoire: "#7A3B2E", histoireSoft: "#F4E9E5", geo: "#1F4E5F", geoSoft: "#E7EEF0",
+  todo: "#B7AF9E", todoSoft: "#F1EFE8", wip: "#B98328", wipSoft: "#F7EBD6",
+  done: "#5C7A5E", doneSoft: "#E7EDE4",
+};
+
+const uid = () => Math.random().toString(36).slice(2, 10);
+const STORAGE_KEY = "progtracker-data-v1";
+
+/* ---------- minimal icon set (no external dependency) ---------- */
+function Icon({ children, size = 15, color = "currentColor", strokeWidth = 1.8 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  );
+}
+const IconPlus = (p) => <Icon {...p}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Icon>;
+const IconX = (p) => <Icon {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Icon>;
+const IconCheck = (p) => <Icon {...p}><polyline points="20 6 9 17 4 12"/></Icon>;
+const IconChevronDown = (p) => <Icon {...p}><polyline points="6 9 12 15 18 9"/></Icon>;
+const IconChevronRight = (p) => <Icon {...p}><polyline points="9 18 15 12 9 6"/></Icon>;
+const IconTrash = (p) => <Icon {...p}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></Icon>;
+const IconCalendar = (p) => <Icon {...p}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></Icon>;
+const IconBook = (p) => <Icon {...p}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></Icon>;
+const IconHome = (p) => <Icon {...p}><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></Icon>;
+const IconList = (p) => <Icon {...p}><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5"/><circle cx="4" cy="12" r="1.5"/><circle cx="4" cy="18" r="1.5"/></Icon>;
+const IconExternal = (p) => <Icon {...p}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></Icon>;
+const IconAlert = (p) => <Icon {...p}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></Icon>;
+const IconGrad = (p) => <Icon {...p}><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></Icon>;
+const IconClock = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Icon>;
+const IconGrid = (p) => <Icon {...p}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></Icon>;
+
+const RESOURCE_LINKS = [
+  { label: "Éduscol — Histoire-géographie collège", url: "https://eduscol.education.gouv.fr/31218/domaines-enseignement/histoire-geographie-college" },
+  { label: "Éduscol — Programmes et ressources lycée (voie GT)", url: "https://eduscol.education.gouv.fr/5799/programmes-et-ressources-en-histoire-geographie-voie-gt" },
+  { label: "Éduscol — Ressources d'accompagnement cycle 4", url: "https://eduscol.education.gouv.fr/5730/ressources-d-accompagnement-du-programme-d-histoire-geographie-au-cycle-4" },
+];
+
+const seedData = () => ({
+  order: ["5e", "2nde", "1ere"],
+  todos: [
+    { id: uid(), text: "Préparer le trousseau de rentrée (cahier de textes, listes, règlement)", done: false },
+    { id: uid(), text: "Repérer les élèves à PAP/PAI dans chaque classe", done: false },
+    { id: uid(), text: "Imprimer les fiches d'objectifs pour les premiers chapitres", done: false },
+  ],
+  classes: {
+    "5e": { id: "5e", name: "5e", annualHours: 108, themes: [
+      { id: uid(), title: "Chrétientés et Islam, des mondes en contact (VIe-XIIIe s.)", discipline: "histoire", chapters: [
+        { id: uid(), title: "L'Empire byzantin", total: 4, done: 0, start: "", end: "", notes: "" },
+        { id: uid(), title: "La naissance et la diffusion de l'Islam", total: 4, done: 0, start: "", end: "", notes: "" },
+        { id: uid(), title: "L'Empire carolingien", total: 4, done: 0, start: "", end: "", notes: "" },
+      ]},
+      { id: uid(), title: "La question démographique et l'inégal développement", discipline: "geo", chapters: [
+        { id: uid(), title: "La croissance démographique et ses effets", total: 4, done: 0, start: "", end: "", notes: "" },
+        { id: uid(), title: "Répartition de la richesse et de la pauvreté dans le monde", total: 5, done: 0, start: "", end: "", notes: "Dossier complet déjà prêt (diaporama, activités échelles, IDH/PIB, croquis São Paulo, éval)." },
+      ]},
+      { id: uid(), title: "Des ressources limitées, à gérer et à renouveler", discipline: "geo", chapters: [
+        { id: uid(), title: "L'énergie, l'eau : des ressources à ménager et à mieux utiliser", total: 6, done: 0, start: "", end: "", notes: "Études de cas : eau au Moyen-Orient / énergie aux États-Unis." },
+      ]},
+    ]},
+    "2nde": { id: "2nde", name: "Seconde", annualHours: 108, themes: [
+      { id: uid(), title: "Le monde méditerranéen : empreintes de l'Antiquité et du Moyen Âge", discipline: "histoire", chapters: [
+        { id: uid(), title: "La Méditerranée grecque et romaine (Antiquité)", total: 6, done: 0, start: "", end: "", notes: "" },
+        { id: uid(), title: "La Méditerranée médiévale : espace d'échanges et de conflits", total: 6, done: 0, start: "", end: "", notes: "PPO : Bernard de Clairvaux / Venise." },
+      ]},
+      { id: uid(), title: "Sociétés et environnements : des équilibres fragiles", discipline: "geo", chapters: [
+        { id: uid(), title: "Risques et tensions sur les ressources", total: 5, done: 5, start: "", end: "", notes: "Étude de cas Arctique, fiches Japon/Turquie." },
+      ]},
+    ]},
+    "1ere": { id: "1ere", name: "Première", annualHours: null, themes: [] },
+  },
+});
+
+function withDefaults(raw) {
+  const data = { ...raw };
+  if (!Array.isArray(data.todos)) data.todos = [];
+  data.order.forEach((cid) => {
+    const c = data.classes[cid];
+    if (c && c.annualHours === undefined) c.annualHours = null;
+  });
+  return data;
+}
+
+function useDebouncedSave(saveFn, delay = 500) {
+  const timer = useRef(null);
+  return useCallback((value) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => saveFn(value), delay);
+  }, [saveFn, delay]);
+}
+
+function chapterStatus(ch) {
+  const total = Math.max(1, Number(ch.total) || 1);
+  const done = Math.min(Number(ch.done) || 0, total);
+  if (done <= 0) return "todo";
+  if (done >= total) return "done";
+  return "wip";
+}
+
+const STATUS_LABEL = { todo: "À faire", wip: "En cours", done: "Terminé" };
+const STATUS_COLOR = { todo: COLORS.todo, wip: COLORS.wip, done: COLORS.done };
+const STATUS_SOFT = { todo: COLORS.todoSoft, wip: COLORS.wipSoft, done: COLORS.doneSoft };
+
+function DisciplineBadge({ d }) {
+  const isHist = d === "histoire";
+  return (
+    <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em",
+      textTransform: "uppercase", color: isHist ? COLORS.histoire : COLORS.geo,
+      background: isHist ? COLORS.histoireSoft : COLORS.geoSoft, padding: "3px 8px", borderRadius: 4 }}>
+      {isHist ? "Histoire" : "Géographie"}
+    </span>
+  );
+}
+
+const btnCircle = { width: 24, height: 24, borderRadius: "50%", border: `1px solid ${COLORS.line}`, background: "#fff",
+  color: COLORS.accent, fontSize: 14, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" };
+
+function Stepper({ done, total, onChange }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "IBM Plex Mono, monospace" }}>
+      <button onClick={() => onChange(Math.max(0, done - 1))} style={btnCircle} aria-label="Retirer une séance">−</button>
+      <span style={{ fontSize: 14, color: COLORS.ink, minWidth: 46, textAlign: "center" }}>{done} / {total}</span>
+      <button onClick={() => onChange(Math.min(total, done + 1))} style={btnCircle} aria-label="Ajouter une séance">+</button>
+    </div>
+  );
+}
+
+const inputStyle = { fontFamily: "Inter, sans-serif", fontSize: 13.5, color: COLORS.ink, background: "#fff",
+  border: `1px solid ${COLORS.line}`, borderRadius: 5, padding: "6px 9px", width: "100%", outline: "none" };
+const labelStyle = { display: "block", fontFamily: "Inter, sans-serif", fontSize: 10.5, fontWeight: 600,
+  letterSpacing: "0.03em", textTransform: "uppercase", color: COLORS.faint, marginBottom: 3 };
+const primaryBtn = { background: COLORS.accent, color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px",
+  fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" };
+const ghostBtn = { background: "none", border: `1px solid ${COLORS.line}`, color: COLORS.sub, borderRadius: 6,
+  padding: "8px 16px", fontFamily: "Inter, sans-serif", fontSize: 13, cursor: "pointer" };
+
+function ChapterRow({ chapter, isLast, onUpdate, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const [local, setLocal] = useState(chapter);
+  const debouncedSave = useDebouncedSave((v) => onUpdate(v));
+  useEffect(() => setLocal(chapter), [chapter.id]);
+  const status = chapterStatus(local);
+  const patch = (fields, saveNow = true) => {
+    const next = { ...local, ...fields };
+    setLocal(next);
+    if (saveNow) onUpdate(next); else debouncedSave(next);
+  };
+  return (
+    <div style={{ display: "flex", gap: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 20 }}>
+        <div style={{ width: 14, height: 14, borderRadius: "50%", background: status === "done" ? STATUS_COLOR.done : "#fff",
+          border: `2px solid ${STATUS_COLOR[status]}`, marginTop: 6, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {status === "done" && <IconCheck size={9} color="#fff" strokeWidth={3} />}
+        </div>
+        {!isLast && <div style={{ flex: 1, width: 2, background: COLORS.line, marginTop: 2 }} />}
+      </div>
+      <div style={{ flex: 1, paddingBottom: 18 }}>
+        <button onClick={() => setOpen((o) => !o)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+          width: "100%", background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+            {open ? <IconChevronDown size={15} color={COLORS.faint} /> : <IconChevronRight size={15} color={COLORS.faint} />}
+            <span style={{ fontFamily: "Fraunces, serif", fontSize: 15.5, color: COLORS.ink, fontWeight: 500,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{local.title}</span>
+          </div>
+          <span style={{ flexShrink: 0, fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: STATUS_COLOR[status],
+            background: STATUS_SOFT[status], padding: "2px 8px", borderRadius: 4, marginLeft: 8 }}>{STATUS_LABEL[status]}</span>
+        </button>
+        {open && (
+          <div style={{ marginTop: 12, paddingLeft: 23, display: "flex", flexDirection: "column", gap: 10 }}>
+            <input value={local.title} onChange={(e) => patch({ title: e.target.value }, false)} onBlur={() => onUpdate(local)}
+              style={inputStyle} placeholder="Titre du chapitre" />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center" }}>
+              <div>
+                <label style={labelStyle}>Séances</label>
+                <Stepper done={local.done} total={local.total} onChange={(d) => patch({ done: d })} />
+              </div>
+              <div>
+                <label style={labelStyle}>Total séances</label>
+                <input type="number" min={1} value={local.total}
+                  onChange={(e) => patch({ total: Math.max(1, Number(e.target.value) || 1) })}
+                  style={{ ...inputStyle, width: 64, fontFamily: "IBM Plex Mono, monospace" }} />
+              </div>
+              <div>
+                <label style={labelStyle}>Début prévu</label>
+                <input type="date" value={local.start} onChange={(e) => patch({ start: e.target.value })}
+                  style={{ ...inputStyle, fontFamily: "IBM Plex Mono, monospace" }} />
+              </div>
+              <div>
+                <label style={labelStyle}>Fin prévue</label>
+                <input type="date" value={local.end} onChange={(e) => patch({ end: e.target.value })}
+                  style={{ ...inputStyle, fontFamily: "IBM Plex Mono, monospace" }} />
+              </div>
+            </div>
+            <div>
+              <label style={labelStyle}>Notes de cours</label>
+              <textarea value={local.notes} onChange={(e) => patch({ notes: e.target.value }, false)} onBlur={() => onUpdate(local)}
+                rows={3} placeholder="Déroulé, ajustements, ce qui a fonctionné ou non…"
+                style={{ ...inputStyle, resize: "vertical", fontFamily: "Inter, sans-serif" }} />
+            </div>
+            <button onClick={() => onDelete(local.id)} style={{ alignSelf: "flex-start", display: "flex", alignItems: "center",
+              gap: 5, background: "none", border: "none", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 12,
+              cursor: "pointer", padding: "4px 0" }}>
+              <IconTrash size={12} /> Supprimer ce chapitre
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ThemeCard({ theme, onUpdateChapter, onDeleteChapter, onAddChapter, onDeleteTheme }) {
+  const total = theme.chapters.reduce((s, c) => s + (Number(c.total) || 0), 0);
+  const done = theme.chapters.reduce((s, c) => s + Math.min(Number(c.done) || 0, Number(c.total) || 0), 0);
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  return (
+    <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: "18px 20px", marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 4 }}>
+        <div>
+          <DisciplineBadge d={theme.discipline} />
+          <h3 style={{ fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 600, color: COLORS.ink, margin: "7px 0 0", lineHeight: 1.25 }}>
+            {theme.title}
+          </h3>
+        </div>
+        <button onClick={() => onDeleteTheme(theme.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", flexShrink: 0 }} aria-label="Supprimer le thème">
+          <IconX size={16} />
+        </button>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "10px 0 18px" }}>
+        <div style={{ flex: 1, height: 5, background: COLORS.encadre, borderRadius: 3, overflow: "hidden" }}>
+          <div style={{ width: `${pct}%`, height: "100%", background: COLORS.accent, transition: "width .3s" }} />
+        </div>
+        <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, flexShrink: 0 }}>{done}/{total} séances</span>
+      </div>
+      <div>
+        {theme.chapters.map((c, i) => (
+          <ChapterRow key={c.id} chapter={c} isLast={i === theme.chapters.length - 1}
+            onUpdate={(v) => onUpdateChapter(theme.id, v)} onDelete={(id) => onDeleteChapter(theme.id, id)} />
+        ))}
+      </div>
+      <button onClick={() => onAddChapter(theme.id)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none",
+        border: "none", color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500, cursor: "pointer", marginLeft: 32, padding: "4px 0" }}>
+        <IconPlus size={14} /> Ajouter un chapitre
+      </button>
+    </div>
+  );
+}
+
+function AddThemeForm({ onAdd, onCancel }) {
+  const [title, setTitle] = useState("");
+  const [discipline, setDiscipline] = useState("histoire");
+  return (
+    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 16 }}>
+      <label style={labelStyle}>Titre du thème</label>
+      <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}
+        placeholder="Ex. : Le monde méditerranéen…" autoFocus />
+      <label style={labelStyle}>Discipline</label>
+      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        {["histoire", "geo"].map((d) => (
+          <button key={d} onClick={() => setDiscipline(d)} style={{ padding: "6px 14px", borderRadius: 6,
+            border: `1px solid ${discipline === d ? COLORS.accent : COLORS.line}`, background: discipline === d ? COLORS.accentSoft : "#fff",
+            color: discipline === d ? COLORS.accent : COLORS.sub, fontFamily: "Inter, sans-serif", fontSize: 13, cursor: "pointer" }}>
+            {d === "histoire" ? "Histoire" : "Géographie"}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={() => title.trim() && onAdd(title.trim(), discipline)} style={primaryBtn}>Ajouter</button>
+        <button onClick={onCancel} style={ghostBtn}>Annuler</button>
+      </div>
+    </div>
+  );
+}
+
+function formatDate(d) {
+  const [y, m, day] = d.split("-");
+  return `${day}/${m}/${y.slice(2)}`;
+}
+
+function PlanningView({ data }) {
+  const rows = [];
+  data.order.forEach((cid) => {
+    const cls = data.classes[cid];
+    cls.themes.forEach((th) => {
+      th.chapters.forEach((ch) => {
+        if (ch.start || ch.end) rows.push({ className: cls.name, discipline: th.discipline, theme: th.title, ...ch });
+      });
+    });
+  });
+  rows.sort((a, b) => (a.start || "9999").localeCompare(b.start || "9999"));
+  if (!rows.length) {
+    return (
+      <div style={{ textAlign: "center", padding: "60px 20px", color: COLORS.faint, fontFamily: "Inter, sans-serif" }}>
+        <IconCalendar size={28} style={{ marginBottom: 10, opacity: 0.6 }} />
+        <p style={{ fontSize: 14 }}>Aucune date planifiée pour l'instant.<br/>Ouvre un chapitre et renseigne une date de début pour le voir apparaître ici.</p>
+      </div>
+    );
+  }
+  return (
+    <div>
+      {rows.map((r) => {
+        const status = chapterStatus(r);
+        return (
+          <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: COLORS.panel,
+            border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${STATUS_COLOR[status]}`, borderRadius: 8, marginBottom: 8, flexWrap: "wrap" }}>
+            <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub, width: 150, flexShrink: 0 }}>
+              {r.start ? formatDate(r.start) : "—"}{r.end ? ` → ${formatDate(r.end)}` : ""}
+            </div>
+            <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: COLORS.accent, borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>{r.className}</span>
+            <DisciplineBadge d={r.discipline} />
+            <div style={{ flex: 1, minWidth: 120 }}>
+              <div style={{ fontFamily: "Fraunces, serif", fontSize: 14.5, color: COLORS.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</div>
+              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint }}>{r.theme}</div>
+            </div>
+            <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: STATUS_COLOR[status], background: STATUS_SOFT[status], padding: "3px 9px", borderRadius: 4, flexShrink: 0 }}>{STATUS_LABEL[status]}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function TodoList({ todos, onAdd, onToggle, onDelete }) {
+  const [text, setText] = useState("");
+  const submit = () => { if (!text.trim()) return; onAdd(text.trim()); setText(""); };
+  const remaining = todos.filter((t) => !t.done).length;
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()}
+          placeholder="Ex. : photocopier la fiche pour jeudi…" style={inputStyle} />
+        <button onClick={submit} style={{ ...primaryBtn, flexShrink: 0, display: "flex", alignItems: "center", gap: 5 }}>
+          <IconPlus size={14} /> Ajouter
+        </button>
+      </div>
+      {todos.length === 0 ? (
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Rien à faire pour l'instant — profite-en.</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {todos.map((t) => (
+            <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
+              background: t.done ? COLORS.doneSoft : COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 7 }}>
+              <button onClick={() => onToggle(t.id)} style={{ width: 18, height: 18, borderRadius: 5,
+                border: `1.5px solid ${t.done ? COLORS.done : COLORS.faint}`, background: t.done ? COLORS.done : "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }} aria-label="Marquer comme fait">
+                {t.done && <IconCheck size={12} color="#fff" strokeWidth={3} />}
+              </button>
+              <span style={{ flex: 1, fontFamily: "Inter, sans-serif", fontSize: 13.5, color: t.done ? COLORS.faint : COLORS.ink,
+                textDecoration: t.done ? "line-through" : "none" }}>{t.text}</span>
+              <button onClick={() => onDelete(t.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", flexShrink: 0 }} aria-label="Supprimer">
+                <IconX size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {todos.length > 0 && (
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint, marginTop: 8 }}>
+          {remaining} tâche{remaining !== 1 ? "s" : ""} restante{remaining !== 1 ? "s" : ""}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function HourBar({ label, planned, annual, onEditAnnual }) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(annual ?? "");
+  const pct = annual ? Math.min(100, Math.round((planned / annual) * 100)) : null;
+  const over = annual && planned > annual;
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, flexWrap: "wrap", gap: 4 }}>
+        <span style={{ fontFamily: "Fraunces, serif", fontSize: 14.5, color: COLORS.ink }}>{label}</span>
+        {editing ? (
+          <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <input type="number" autoFocus value={val} onChange={(e) => setVal(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { onEditAnnual(Number(val) || null); setEditing(false); } }}
+              style={{ ...inputStyle, width: 60, padding: "3px 6px", fontFamily: "IBM Plex Mono, monospace" }} />
+            <button onClick={() => { onEditAnnual(Number(val) || null); setEditing(false); }} style={{ ...btnCircle, width: 20, height: 20 }}>
+              <IconCheck size={11} />
+            </button>
+          </span>
+        ) : (
+          <button onClick={() => setEditing(true)} style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.faint, background: "none", border: "none", cursor: "pointer" }}>
+            {planned}h prévues {annual ? `/ ${annual}h au programme` : "· horaire annuel non renseigné (cliquer)"}
+          </button>
+        )}
+      </div>
+      {annual ? (
+        <div style={{ height: 5, background: COLORS.encadre, borderRadius: 3, overflow: "hidden" }}>
+          <div style={{ width: `${pct}%`, height: "100%", background: over ? COLORS.wip : COLORS.accent, transition: "width .3s" }} />
+        </div>
+      ) : null}
+      {over && (
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.wip, marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+          <IconAlert size={11} /> Volume prévu au-delà de l'horaire annuel — le programme risque d'être serré.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function SectionTitle({ icon, title }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
+      <span style={{ color: COLORS.accent }}>{icon}</span>
+      <h2 style={{ fontFamily: "Fraunces, serif", fontSize: 16.5, fontWeight: 600, color: COLORS.ink, margin: 0 }}>{title}</h2>
+    </div>
+  );
+}
+
+function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHours }) {
+  const today = new Date();
+  const in7 = new Date(today); in7.setDate(in7.getDate() + 7);
+  const fmt = (d) => d.toISOString().slice(0, 10);
+  const upcoming = [];
+  const inProgress = [];
+  data.order.forEach((cid) => {
+    const cls = data.classes[cid];
+    cls.themes.forEach((th) => {
+      th.chapters.forEach((ch) => {
+        const st = chapterStatus(ch);
+        if (st === "wip") inProgress.push({ className: cls.name, theme: th.title, discipline: th.discipline, ...ch });
+        if (ch.start && ch.start >= fmt(today) && ch.start <= fmt(in7)) upcoming.push({ className: cls.name, kind: "début", date: ch.start, ...ch });
+        if (ch.end && ch.end >= fmt(today) && ch.end <= fmt(in7)) upcoming.push({ className: cls.name, kind: "fin", date: ch.end, ...ch });
+      });
+    });
+  });
+  upcoming.sort((a, b) => a.date.localeCompare(b.date));
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+      <section>
+        <SectionTitle icon={<IconClock size={15} />} title="Dans les 7 prochains jours" />
+        {upcoming.length === 0 ? (
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Aucune échéance renseignée cette semaine.</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {upcoming.map((r, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 7, flexWrap: "wrap" }}>
+                <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, width: 60, flexShrink: 0 }}>{formatDate(r.date)}</span>
+                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: COLORS.accent, borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{r.className}</span>
+                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</span>
+                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, flexShrink: 0 }}>{r.kind}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+      <section>
+        <SectionTitle icon={<IconBook size={15} />} title="Chapitres en cours" />
+        {inProgress.length === 0 ? (
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Aucun chapitre en cours actuellement.</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {inProgress.map((r) => (
+              <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
+                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: COLORS.accent, borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{r.className}</span>
+                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{r.title}</span>
+                <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, flexShrink: 0 }}>{r.done}/{r.total}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+      <section>
+        <SectionTitle icon={<IconList size={15} />} title="Pense-bête" />
+        <TodoList todos={data.todos} onAdd={onAddTodo} onToggle={onToggleTodo} onDelete={onDeleteTodo} />
+      </section>
+      <section>
+        <SectionTitle icon={<IconAlert size={15} />} title="Volume horaire par classe" />
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, marginTop: -6, marginBottom: 12 }}>
+          Indicatif (1 séance ≈ 1h) — clique sur l'horaire annuel pour l'ajuster à ta dotation réelle.
+        </p>
+        {data.order.map((cid) => {
+          const c = data.classes[cid];
+          const planned = c.themes.reduce((s, th) => s + th.chapters.reduce((s2, ch) => s2 + (Number(ch.total) || 0), 0), 0);
+          return <HourBar key={cid} label={c.name} planned={planned} annual={c.annualHours} onEditAnnual={(v) => onSetAnnualHours(cid, v)} />;
+        })}
+      </section>
+      <section>
+        <SectionTitle icon={<IconGrad size={15} />} title="Ressources utiles" />
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {RESOURCE_LINKS.map((r) => (
+            <a key={r.url} href={r.url} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 8,
+              fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.accent, textDecoration: "none", padding: "7px 10px",
+              background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 7 }}>
+              <IconExternal size={13} style={{ flexShrink: 0 }} />{r.label}
+            </a>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function tabBtn(active) {
+  return { display: "flex", alignItems: "center", gap: 6, fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 600,
+    color: active ? "#fff" : COLORS.sub, background: active ? COLORS.accent : COLORS.panel,
+    border: `1px solid ${active ? COLORS.accent : COLORS.line}`, borderRadius: 7, padding: "7px 13px", cursor: "pointer" };
+}
+
+function App() {
+  const [data, setData] = useState(null);
+  const [activeClass, setActiveClass] = useState(null);
+  const [view, setView] = useState("home");
+  const [addingTheme, setAddingTheme] = useState(false);
+  const [addingClass, setAddingClass] = useState(false);
+  const [newClassName, setNewClassName] = useState("");
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = withDefaults(JSON.parse(raw));
+        setData(parsed);
+        setActiveClass(parsed.order[0] || null);
+      } else {
+        const seed = seedData();
+        setData(seed);
+        setActiveClass(seed.order[0]);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
+      }
+    } catch (e) {
+      console.error(e);
+      const seed = seedData();
+      setData(seed);
+      setActiveClass(seed.order[0]);
+    }
+  }, []);
+
+  const persist = useCallback((next) => {
+    setData(next);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.error("Échec de sauvegarde", e); }
+  }, []);
+
+  if (!data) {
+    return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: COLORS.bg, fontFamily: "Inter, sans-serif", color: COLORS.faint }}>Chargement du cahier…</div>;
+  }
+
+  const cls = activeClass ? data.classes[activeClass] : null;
+
+  const updateChapter = (themeId, chapterVal) => {
+    const next = { ...data };
+    const t = next.classes[activeClass].themes.find((t) => t.id === themeId);
+    t.chapters = t.chapters.map((c) => (c.id === chapterVal.id ? chapterVal : c));
+    persist(next);
+  };
+  const deleteChapter = (themeId, chapterId) => {
+    const next = { ...data };
+    const t = next.classes[activeClass].themes.find((t) => t.id === themeId);
+    t.chapters = t.chapters.filter((c) => c.id !== chapterId);
+    persist(next);
+  };
+  const addChapter = (themeId) => {
+    const next = { ...data };
+    const t = next.classes[activeClass].themes.find((t) => t.id === themeId);
+    t.chapters.push({ id: uid(), title: "Nouveau chapitre", total: 4, done: 0, start: "", end: "", notes: "" });
+    persist(next);
+  };
+  const deleteTheme = (themeId) => {
+    const next = { ...data };
+    next.classes[activeClass].themes = next.classes[activeClass].themes.filter((t) => t.id !== themeId);
+    persist(next);
+  };
+  const addTheme = (title, discipline) => {
+    const next = { ...data };
+    next.classes[activeClass].themes.push({ id: uid(), title, discipline, chapters: [] });
+    persist(next);
+    setAddingTheme(false);
+  };
+  const addClass = () => {
+    const name = newClassName.trim();
+    if (!name) return;
+    const id = uid();
+    const next = { ...data };
+    next.order = [...next.order, id];
+    next.classes[id] = { id, name, annualHours: null, themes: [] };
+    setNewClassName(""); setAddingClass(false);
+    persist(next);
+    setActiveClass(id);
+  };
+  const deleteClass = (id) => {
+    const next = { ...data };
+    next.order = next.order.filter((cid) => cid !== id);
+    delete next.classes[id];
+    persist(next);
+    if (activeClass === id) setActiveClass(next.order[0] || null);
+  };
+  const addTodo = (text) => persist({ ...data, todos: [...data.todos, { id: uid(), text, done: false }] });
+  const toggleTodo = (id) => persist({ ...data, todos: data.todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) });
+  const deleteTodo = (id) => persist({ ...data, todos: data.todos.filter((t) => t.id !== id) });
+  const setAnnualHours = (cid, hours) => {
+    const next = { ...data };
+    next.classes[cid] = { ...next.classes[cid], annualHours: hours };
+    persist(next);
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: COLORS.bg }}>
+      <header style={{ borderBottom: `1px solid ${COLORS.line}`, padding: "20px 20px 0", background: COLORS.bg, position: "sticky", top: 0, zIndex: 10 }}>
+        <div style={{ maxWidth: 880, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
+            <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 24, fontWeight: 600, color: COLORS.accent, margin: 0 }}>Cahier de progression</h1>
+            <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.faint }}>Histoire-Géographie</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 4, marginTop: 14, flexWrap: "wrap" }}>
+            {data.order.map((cid) => {
+              const c = data.classes[cid];
+              const isActive = cid === activeClass;
+              return (
+                <div key={cid} style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                  <button onClick={() => setActiveClass(cid)} style={{ fontFamily: "Fraunces, serif", fontSize: 15, fontWeight: isActive ? 600 : 400,
+                    color: isActive ? COLORS.accent : COLORS.sub, background: isActive ? COLORS.panel : "transparent",
+                    border: `1px solid ${isActive ? COLORS.line : "transparent"}`, borderBottom: isActive ? `1px solid ${COLORS.panel}` : "1px solid transparent",
+                    borderRadius: "8px 8px 0 0", padding: "8px 16px", cursor: "pointer", marginBottom: -1 }}>{c.name}</button>
+                  {isActive && data.order.length > 1 && (
+                    <button onClick={() => deleteClass(cid)} title="Supprimer cette classe" style={{ position: "absolute", right: 4, top: 6, background: "none", border: "none", color: COLORS.faint, cursor: "pointer", padding: 2 }}>
+                      <IconX size={11} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            {addingClass ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                <input autoFocus value={newClassName} onChange={(e) => setNewClassName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addClass()}
+                  placeholder="Ex. : 4e" style={{ ...inputStyle, width: 100, padding: "5px 8px" }} />
+                <button onClick={addClass} style={{ ...btnCircle, color: COLORS.done }}><IconCheck size={13} /></button>
+                <button onClick={() => setAddingClass(false)} style={btnCircle}><IconX size={13} /></button>
+              </div>
+            ) : (
+              <button onClick={() => setAddingClass(true)} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none",
+                color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 13, cursor: "pointer", padding: "8px 10px", marginBottom: 4 }}>
+                <IconPlus size={13} /> classe
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main style={{ maxWidth: 880, margin: "0 auto", padding: "22px 20px 60px" }}>
+        <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
+          <button onClick={() => setView("home")} style={tabBtn(view === "home")}><IconHome size={13} /> Accueil</button>
+          <button onClick={() => setView("progression")} style={tabBtn(view === "progression")}><IconGrid size={13} /> Progression</button>
+          <button onClick={() => setView("planning")} style={tabBtn(view === "planning")}><IconCalendar size={13} /> Planning de l'année</button>
+        </div>
+
+        {view === "home" ? (
+          <HomeView data={data} onAddTodo={addTodo} onToggleTodo={toggleTodo} onDeleteTodo={deleteTodo} onSetAnnualHours={setAnnualHours} />
+        ) : view === "progression" ? (
+          cls ? (
+            <>
+              {cls.themes.length === 0 && !addingTheme && (
+                <div style={{ textAlign: "center", padding: "50px 20px", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 14 }}>
+                  <IconBook size={26} style={{ marginBottom: 10, opacity: 0.6 }} />
+                  <p>Aucun thème pour {cls.name} pour l'instant.</p>
+                </div>
+              )}
+              {cls.themes.map((th) => (
+                <ThemeCard key={th.id} theme={th} onUpdateChapter={updateChapter} onDeleteChapter={deleteChapter} onAddChapter={addChapter} onDeleteTheme={deleteTheme} />
+              ))}
+              {addingTheme ? (
+                <AddThemeForm onAdd={addTheme} onCancel={() => setAddingTheme(false)} />
+              ) : (
+                <button onClick={() => setAddingTheme(true)} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 6 }}>
+                  <IconPlus size={14} /> Ajouter un thème pour {cls.name}
+                </button>
+              )}
+            </>
+          ) : (
+            <div style={{ textAlign: "center", padding: 60, color: COLORS.faint, fontFamily: "Inter, sans-serif" }}>Ajoute une classe pour commencer.</div>
+          )
+        ) : (
+          <PlanningView data={data} />
+        )}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
