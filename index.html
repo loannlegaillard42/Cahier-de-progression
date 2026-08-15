@@ -292,7 +292,7 @@ function ThemeCard({ theme, onUpdateChapter, onDeleteChapter, onAddChapter, onDe
   const done = theme.chapters.reduce((s, c) => s + Math.min(Number(c.done) || 0, Number(c.total) || 0), 0);
   const pct = total ? Math.round((done / total) * 100) : 0;
   return (
-    <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: "18px 20px", marginBottom: 16 }}>
+    <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: "20px 22px", marginBottom: 22 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 4 }}>
         <div>
           <DisciplineBadge d={theme.discipline} />
@@ -328,7 +328,7 @@ function AddThemeForm({ onAdd, onCancel }) {
   const [title, setTitle] = useState("");
   const [discipline, setDiscipline] = useState("histoire");
   return (
-    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 16 }}>
+    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 22 }}>
       <label style={labelStyle}>Titre du thème</label>
       <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}
         placeholder="Ex. : Le monde méditerranéen…" autoFocus />
@@ -414,7 +414,7 @@ function TodoList({ todos, onAdd, onToggle, onDelete }) {
       {todos.length === 0 ? (
         <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Rien à faire pour l'instant — profite-en.</p>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           {todos.map((t) => (
             <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
               background: t.done ? COLORS.doneSoft : COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 7 }}>
@@ -531,7 +531,7 @@ function AddFicheForm({ classOrder, classes, onAdd, onCancel }) {
   };
 
   return (
-    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 16 }}>
+    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 22 }}>
       <label style={labelStyle}>Titre de la fiche</label>
       <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}
         placeholder="Ex. : Fiche activité — L'Empire byzantin" autoFocus />
@@ -598,7 +598,7 @@ function FichesView({ data, onAdd, onDelete, onSetDriveFolder }) {
 
   return (
     <div>
-      <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: "10px 14px", marginBottom: 16 }}>
+      <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: "13px 16px", marginBottom: 22 }}>
         <SectionTitle icon={<IconLink size={14} />} title="Dossiers Drive par classe" />
         {data.order.map((cid) => (
           <DriveFolderRow key={cid} cid={cid} name={data.classes[cid].name} color={classColor(data, cid)}
@@ -617,7 +617,7 @@ function FichesView({ data, onAdd, onDelete, onSetDriveFolder }) {
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
         {data.fiches.map((f) => {
           const cls = f.classId ? data.classes[f.classId] : null;
           const href = f.fileData || f.url;
@@ -678,7 +678,7 @@ function AddSlotForm({ classOrder, classes, onAdd, onCancel }) {
   };
 
   return (
-    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 16 }}>
+    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 22 }}>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 10 }}>
         <div>
           <label style={labelStyle}>Jour</label>
@@ -751,13 +751,13 @@ function ScheduleView({ data, onSetUrl, onAddSlot, onDeleteSlot }) {
 
       {DAYS_FR.map((day, i) => (
         byDay[i].length > 0 && (
-          <div key={i} style={{ marginBottom: 16 }}>
+          <div key={i} style={{ marginBottom: 22 }}>
             <h3 style={{ fontFamily: "Fraunces, serif", fontSize: 15, fontWeight: 600, color: COLORS.ink, margin: "0 0 8px" }}>{day}</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
               {byDay[i].map((s) => {
                 const cls = data.classes[s.classId];
                 return (
-                  <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: COLORS.panel,
+                  <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.panel,
                     border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${classColor(data, s.classId)}`, borderRadius: 7, flexWrap: "wrap" }}>
                     <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub, width: 90, flexShrink: 0 }}>{s.start}–{s.end}</span>
                     <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, s.classId), borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>
@@ -802,7 +802,7 @@ function AddEvalForm({ classOrder, classes, onAdd, onCancel }) {
   };
 
   return (
-    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 16 }}>
+    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 22 }}>
       <label style={labelStyle}>Titre</label>
       <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }} placeholder="Ex. : Contrôle chapitre 2" autoFocus />
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 10 }}>
@@ -880,13 +880,13 @@ function EvaluationsView({ data, onAdd, onCycleStatus, onDelete, onSetGrade }) {
           <p>Aucune évaluation enregistrée pour l'instant.</p>
         </div>
       )}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
         {rows.map((ev) => {
           const cls = data.classes[ev.classId];
           const isOpen = openId === ev.id;
           return (
             <div key={ev.id} style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`,
-              borderLeft: `4px solid ${classColor(data, ev.classId)}`, borderRadius: 8, padding: "10px 14px" }}>
+              borderLeft: `4px solid ${classColor(data, ev.classId)}`, borderRadius: 8, padding: "13px 16px" }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   {ev.date && <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub }}>{formatDate(ev.date)}</span>}
@@ -962,7 +962,7 @@ function StudentsView({ data, activeClass, onAddStudent, onUpdateStudent, onDele
           <p>Aucun élève renseigné pour {cls.name}.</p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           {students.map((s) => (
             <StudentRow key={s.id} classId={activeClass} student={s} onUpdate={onUpdateStudent} onDelete={onDeleteStudent} />
           ))}
@@ -1001,9 +1001,9 @@ function StudentRow({ classId, student, onUpdate, onDelete }) {
 
 function SectionTitle({ icon, title }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
       <span style={{ color: COLORS.accent }}>{icon}</span>
-      <h2 style={{ fontFamily: "Fraunces, serif", fontSize: 16.5, fontWeight: 600, color: COLORS.ink, margin: 0 }}>{title}</h2>
+      <h2 style={{ fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 600, color: COLORS.ink, margin: 0, letterSpacing: "-0.005em" }}>{title}</h2>
     </div>
   );
 }
@@ -1088,16 +1088,16 @@ function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHour
   upcoming.sort((a, b) => a.date.localeCompare(b.date));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
       <MiniSchedule data={data} />
       <section>
         <SectionTitle icon={<IconClock size={15} />} title="Dans les 7 prochains jours" />
         {upcoming.length === 0 ? (
           <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Aucune échéance renseignée cette semaine.</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
             {upcoming.map((r, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 7, flexWrap: "wrap" }}>
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 7, flexWrap: "wrap" }}>
                 <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, width: 60, flexShrink: 0 }}>{formatDate(r.date)}</span>
                 <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, r.classId), borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{r.className}</span>
                 <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</span>
@@ -1112,9 +1112,9 @@ function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHour
         {inProgress.length === 0 ? (
           <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Aucun chapitre en cours actuellement.</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
             {inProgress.map((r) => (
-              <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
+              <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
                 <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, r.classId), borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{r.className}</span>
                 <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{r.title}</span>
                 <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, flexShrink: 0 }}>{r.done}/{r.total}</span>
@@ -1131,11 +1131,11 @@ function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHour
             return <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Rien à corriger pour l'instant.</p>;
           }
           return (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
               {toCorrect.map((ev) => {
                 const cls = data.classes[ev.classId];
                 return (
-                  <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
+                  <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
                     {cls && <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, ev.classId), borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{cls.name}</span>}
                     <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{ev.title}</span>
                     <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, flexShrink: 0 }}>{ev.type}</span>
@@ -1163,7 +1163,7 @@ function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHour
       </section>
       <section>
         <SectionTitle icon={<IconGrad size={15} />} title="Ressources utiles" />
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           {RESOURCE_LINKS.map((r) => (
             <a key={r.url} href={r.url} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 8,
               fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.accent, textDecoration: "none", padding: "7px 10px",
@@ -1181,6 +1181,47 @@ function tabBtn(active) {
   return { display: "flex", alignItems: "center", gap: 6, fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 600,
     color: active ? "#fff" : COLORS.sub, background: active ? COLORS.accent : COLORS.panel,
     border: `1px solid ${active ? COLORS.accent : COLORS.line}`, borderRadius: 7, padding: "7px 13px", cursor: "pointer" };
+}
+
+const NAV_ITEMS = [
+  { id: "home", label: "Accueil", icon: IconHome },
+  { id: "progression", label: "Progression", icon: IconGrid },
+  { id: "planning", label: "Planning", icon: IconCalendar },
+  { id: "schedule", label: "Emploi", icon: IconClock },
+  { id: "evaluations", label: "Évals", icon: IconClipboard },
+  { id: "students", label: "Élèves", icon: IconUsers },
+  { id: "fiches", label: "Fiches", icon: IconPaperclip },
+];
+
+function BottomNav({ view, setView }) {
+  return (
+    <nav style={{
+      position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 20,
+      background: "rgba(250,248,243,0.92)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
+      borderTop: `1px solid ${COLORS.line}`,
+      paddingBottom: "env(safe-area-inset-bottom, 0px)",
+    }}>
+      <div style={{ maxWidth: 640, margin: "0 auto", display: "flex" }}>
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const active = view === item.id;
+          return (
+            <button key={item.id} onClick={() => setView(item.id)} style={{
+              flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+              background: "none", border: "none", cursor: "pointer", padding: "9px 2px 8px",
+              color: active ? COLORS.accent : COLORS.faint,
+            }}>
+              <Icon size={19} strokeWidth={active ? 2.1 : 1.7} />
+              <span style={{ fontFamily: "Inter, sans-serif", fontSize: 9.5, fontWeight: active ? 700 : 500, letterSpacing: "0.01em" }}>
+                {item.label}
+              </span>
+              <span style={{ width: 3, height: 3, borderRadius: "50%", background: active ? COLORS.accent : "transparent" }} />
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
 }
 
 function App() {
@@ -1321,28 +1362,28 @@ function App() {
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg }}>
-      <header style={{ borderBottom: `1px solid ${COLORS.line}`, padding: "20px 20px 0", background: COLORS.bg, position: "sticky", top: 0, zIndex: 10 }}>
-        <div style={{ maxWidth: 880, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
-            <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 24, fontWeight: 600, color: COLORS.accent, margin: 0 }}>Cahier de progression</h1>
-            <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.faint }}>Histoire-Géographie</span>
+      <header style={{ borderBottom: "none", padding: "26px 20px 0", background: COLORS.bg, position: "sticky", top: 0, zIndex: 10 }}>
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 2 }}>
+            <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600, color: COLORS.accent, margin: 0, letterSpacing: "-0.01em" }}>Cahier de progression</h1>
           </div>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 4, marginTop: 14, flexWrap: "wrap" }}>
+          <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint }}>Histoire-Géographie</span>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 18, marginTop: 18, flexWrap: "wrap" }}>
             {data.order.map((cid) => {
               const c = data.classes[cid];
               const isActive = cid === activeClass;
               const cColor = classColor(data, cid);
               return (
                 <div key={cid} style={{ position: "relative", display: "flex", alignItems: "center" }}>
-                  <button onClick={() => setActiveClass(cid)} style={{ fontFamily: "Fraunces, serif", fontSize: 15, fontWeight: isActive ? 600 : 400,
-                    color: isActive ? cColor : COLORS.sub, background: isActive ? COLORS.panel : "transparent",
-                    border: `1px solid ${isActive ? COLORS.line : "transparent"}`, borderBottom: isActive ? `2px solid ${cColor}` : "1px solid transparent",
-                    borderRadius: "8px 8px 0 0", padding: "8px 16px", cursor: "pointer", marginBottom: -1, display: "flex", alignItems: "center", gap: 7 }}>
-                    <span style={{ width: 7, height: 7, borderRadius: "50%", background: cColor, flexShrink: 0 }} />
+                  <button onClick={() => setActiveClass(cid)} style={{ fontFamily: "Fraunces, serif", fontSize: 16, fontWeight: isActive ? 600 : 400,
+                    color: isActive ? cColor : COLORS.faint, background: "none",
+                    border: "none", borderBottom: isActive ? `2px solid ${cColor}` : "2px solid transparent",
+                    padding: "4px 2px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 7, transition: "color .15s" }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: cColor, flexShrink: 0, opacity: isActive ? 1 : 0.55 }} />
                     {c.name}
                   </button>
                   {isActive && data.order.length > 1 && (
-                    <button onClick={() => deleteClass(cid)} title="Supprimer cette classe" style={{ position: "absolute", right: 4, top: 6, background: "none", border: "none", color: COLORS.faint, cursor: "pointer", padding: 2 }}>
+                    <button onClick={() => deleteClass(cid)} title="Supprimer cette classe" style={{ position: "absolute", right: -4, top: -6, background: "none", border: "none", color: COLORS.faint, cursor: "pointer", padding: 4 }}>
                       <IconX size={11} />
                     </button>
                   )}
@@ -1350,7 +1391,7 @@ function App() {
               );
             })}
             {addingClass ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
                 <input autoFocus value={newClassName} onChange={(e) => setNewClassName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addClass()}
                   placeholder="Ex. : 4e" style={{ ...inputStyle, width: 100, padding: "5px 8px" }} />
                 <button onClick={addClass} style={{ ...btnCircle, color: COLORS.done }}><IconCheck size={13} /></button>
@@ -1358,25 +1399,16 @@ function App() {
               </div>
             ) : (
               <button onClick={() => setAddingClass(true)} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none",
-                color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 13, cursor: "pointer", padding: "8px 10px", marginBottom: 4 }}>
-                <IconPlus size={13} /> classe
+                color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 12.5, cursor: "pointer", padding: "4px 2px 10px" }}>
+                <IconPlus size={12} /> classe
               </button>
             )}
           </div>
         </div>
+        <div style={{ maxWidth: 640, margin: "0 auto", borderBottom: `1px solid ${COLORS.line}` }} />
       </header>
 
-      <main style={{ maxWidth: 880, margin: "0 auto", padding: "22px 20px 60px" }}>
-        <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
-          <button onClick={() => setView("home")} style={tabBtn(view === "home")}><IconHome size={13} /> Accueil</button>
-          <button onClick={() => setView("progression")} style={tabBtn(view === "progression")}><IconGrid size={13} /> Progression</button>
-          <button onClick={() => setView("planning")} style={tabBtn(view === "planning")}><IconCalendar size={13} /> Planning de l'année</button>
-          <button onClick={() => setView("fiches")} style={tabBtn(view === "fiches")}><IconPaperclip size={13} /> Fiches</button>
-          <button onClick={() => setView("schedule")} style={tabBtn(view === "schedule")}><IconClock size={13} /> Emploi du temps</button>
-          <button onClick={() => setView("evaluations")} style={tabBtn(view === "evaluations")}><IconClipboard size={13} /> Évaluations</button>
-          <button onClick={() => setView("students")} style={tabBtn(view === "students")}><IconUsers size={13} /> Élèves</button>
-        </div>
-
+      <main style={{ maxWidth: 640, margin: "0 auto", padding: "30px 20px 110px" }}>
         {view === "home" ? (
           <HomeView data={data} onAddTodo={addTodo} onToggleTodo={toggleTodo} onDeleteTodo={deleteTodo} onSetAnnualHours={setAnnualHours} />
         ) : view === "fiches" ? (
@@ -1414,6 +1446,7 @@ function App() {
           <PlanningView data={data} />
         )}
       </main>
+      <BottomNav view={view} setView={setView} />
     </div>
   );
 }
@@ -1441,3 +1474,4 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 </html>
+
