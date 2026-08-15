@@ -42,6 +42,25 @@
   .chevron { transition: transform .18s ease; }
   .chevron.open { transform: rotate(0deg); }
 
+  /* --- Mode sombre ---
+     Toutes les couleurs sont des variables CSS ; le thème se change
+     en basculant l'attribut data-theme sur <html>, sans rien redessiner. */
+  :root {
+    --bg: #FAF8F3; --panel: #FFFFFF; --ink: #2B2B2B; --sub: #555555; --faint: #8A8478;
+    --line: #E4DFD4; --encadre: #EFEFEF; --accent: #1F4E5F; --accentSoft: #E7EEF0;
+    --histoire: #7A3B2E; --histoireSoft: #F4E9E5; --geo: #1F4E5F; --geoSoft: #E7EEF0;
+    --todo: #B7AF9E; --todoSoft: #F1EFE8; --wip: #B98328; --wipSoft: #F7EBD6;
+    --done: #5C7A5E; --doneSoft: #E7EDE4; --shadow: rgba(31,78,95,0.05);
+  }
+  [data-theme="dark"] {
+    --bg: #1B1E20; --panel: #24282B; --ink: #EDE9E1; --sub: #B6B1A7; --faint: #7E796F;
+    --line: #383D3F; --encadre: #2C3033; --accent: #7FB2C9; --accentSoft: #223138;
+    --histoire: #DB9679; --histoireSoft: #3A2B24; --geo: #7FB2C9; --geoSoft: #1F2E34;
+    --todo: #6E695F; --todoSoft: #2A2C29; --wip: #D9AC5C; --wipSoft: #37301E;
+    --done: #86B389; --doneSoft: #22301F; --shadow: rgba(0,0,0,0.28);
+  }
+  body { background: var(--bg); }
+
   /* --- Grand écran (ordinateur, tablette large) ---
      La nav passe de la barre du bas à une colonne latérale fixe,
      et le contenu s'élargit pour occuper l'espace au lieu de rester
@@ -62,6 +81,13 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+  // Applique le thème choisi avant le premier rendu, pour éviter un flash clair
+  try {
+    var t = localStorage.getItem("theme-v1");
+    if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
+  } catch (e) {}
+</script>
 </head>
 <body>
 <div id="root"></div>
@@ -71,16 +97,16 @@ const { useState, useEffect, useRef, useCallback } = React;
 
 /* ---------- design tokens ---------- */
 const COLORS = {
-  bg: "#FAF8F3", panel: "#FFFFFF", ink: "#2B2B2B", sub: "#555555", faint: "#8A8478",
-  line: "#E4DFD4", encadre: "#EFEFEF", accent: "#1F4E5F", accentSoft: "#E7EEF0",
-  histoire: "#7A3B2E", histoireSoft: "#F4E9E5", geo: "#1F4E5F", geoSoft: "#E7EEF0",
-  todo: "#B7AF9E", todoSoft: "#F1EFE8", wip: "#B98328", wipSoft: "#F7EBD6",
-  done: "#5C7A5E", doneSoft: "#E7EDE4",
+  bg: "var(--bg)", panel: "var(--panel)", ink: "var(--ink)", sub: "var(--sub)", faint: "var(--faint)",
+  line: "var(--line)", encadre: "var(--encadre)", accent: "var(--accent)", accentSoft: "var(--accentSoft)",
+  histoire: "var(--histoire)", histoireSoft: "var(--histoireSoft)", geo: "var(--geo)", geoSoft: "var(--geoSoft)",
+  todo: "var(--todo)", todoSoft: "var(--todoSoft)", wip: "var(--wip)", wipSoft: "var(--wipSoft)",
+  done: "var(--done)", doneSoft: "var(--doneSoft)",
 };
 
 // Ombre très subtile pour donner une légère élévation aux cartes,
 // plus douce qu'une bordure dure — remplace border seul sur les panneaux.
-const CARD_SHADOW = "0 1px 2px rgba(31,78,95,0.05), 0 1px 5px rgba(31,78,95,0.05)";
+const CARD_SHADOW = "0 1px 2px var(--shadow), 0 1px 5px var(--shadow)";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const STORAGE_KEY = "progtracker-data-v1";
@@ -123,6 +149,8 @@ const IconFileText = (p) => <Icon {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2
 const IconUpload = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></Icon>;
 const IconClipboard = (p) => <Icon {...p}><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/><path d="M9 12l2 2 4-4"/></Icon>;
 const IconUsers = (p) => <Icon {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Icon>;
+const IconSun = (p) => <Icon {...p}><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></Icon>;
+const IconMoon = (p) => <Icon {...p}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></Icon>;
 
 const RESOURCE_LINKS = [
   { label: "Éduscol — Histoire-géographie collège", url: "https://eduscol.education.gouv.fr/31218/domaines-enseignement/histoire-geographie-college" },
@@ -424,12 +452,7 @@ function PlanningView({ data }) {
   });
   rows.sort((a, b) => (a.start || "9999").localeCompare(b.start || "9999"));
   if (!rows.length) {
-    return (
-      <div style={{ textAlign: "center", padding: "60px 20px", color: COLORS.faint, fontFamily: "Inter, sans-serif" }}>
-        <IconCalendar size={28} style={{ marginBottom: 10, opacity: 0.6 }} />
-        <p style={{ fontSize: 14 }}>Aucune date planifiée pour l'instant.<br/>Ouvre un chapitre et renseigne une date de début pour le voir apparaître ici.</p>
-      </div>
-    );
+    return <EmptyState icon={<IconCalendar size={28} />} text={<>Aucune date planifiée pour l'instant.<br/>Ouvre un chapitre et renseigne une date de début pour le voir apparaître ici.</>} />;
   }
   return (
     <div>
@@ -668,10 +691,7 @@ function FichesView({ data, onAdd, onDelete, onSetDriveFolder }) {
       </p>
 
       {data.fiches.length === 0 && !adding && (
-        <div style={{ textAlign: "center", padding: "40px 20px", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 14 }}>
-          <IconPaperclip size={26} style={{ marginBottom: 10, opacity: 0.6 }} />
-          <p>Aucune fiche stockée pour l'instant.</p>
-        </div>
+        <EmptyState icon={<IconPaperclip size={26} />} text="Aucune fiche stockée pour l'instant." />
       )}
 
       <div className="list-grid" style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
@@ -798,10 +818,7 @@ function ScheduleView({ data, onSetUrl, onAddSlot, onDeleteSlot }) {
       </div>
 
       {data.schedule.slots.length === 0 && !adding && (
-        <div style={{ textAlign: "center", padding: "40px 20px", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 14 }}>
-          <IconClock size={26} style={{ marginBottom: 10, opacity: 0.6 }} />
-          <p>Aucun créneau renseigné pour l'instant.</p>
-        </div>
+        <EmptyState icon={<IconClock size={26} />} text="Aucun créneau renseigné pour l'instant." />
       )}
 
       {DAYS_FR.map((day, i) => (
@@ -928,10 +945,7 @@ function EvaluationsView({ data, onAdd, onCycleStatus, onDelete, onSetGrade }) {
   return (
     <div>
       {rows.length === 0 && !adding && (
-        <div style={{ textAlign: "center", padding: "40px 20px", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 14 }}>
-          <IconClipboard size={26} style={{ marginBottom: 10, opacity: 0.6 }} />
-          <p>Aucune évaluation enregistrée pour l'instant.</p>
-        </div>
+        <EmptyState icon={<IconClipboard size={26} />} text="Aucune évaluation enregistrée pour l'instant." />
       )}
       <div className="list-grid" style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
         {rows.map((ev) => {
@@ -942,6 +956,11 @@ function EvaluationsView({ data, onAdd, onCycleStatus, onDelete, onSetGrade }) {
               borderLeft: `4px solid ${classColor(data, ev.classId)}`, borderRadius: 8, padding: "13px 16px" }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ width: 12, height: 12, borderRadius: "50%", flexShrink: 0,
+                    background: ev.status === "termine" ? EVAL_STATUS_COLOR[ev.status] : "transparent",
+                    border: `2px solid ${EVAL_STATUS_COLOR[ev.status]}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {ev.status === "termine" && <IconCheck size={7} color="#fff" strokeWidth={3.5} />}
+                  </span>
                   {ev.date && <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub }}>{formatDate(ev.date)}</span>}
                   {cls && <ClassTag color={classColor(data, ev.classId)} name={cls.name} size="small" />}
                   <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint }}>{ev.type}</span>
@@ -1010,10 +1029,7 @@ function StudentsView({ data, activeClass, onAddStudent, onUpdateStudent, onDele
       </div>
 
       {students.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px 20px", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 14 }}>
-          <IconUsers size={26} style={{ marginBottom: 10, opacity: 0.6 }} />
-          <p>Aucun élève renseigné pour {cls.name}.</p>
-        </div>
+        <EmptyState icon={<IconUsers size={26} />} text={`Aucun élève renseigné pour ${cls.name}.`} />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           {students.map((s) => (
@@ -1048,6 +1064,28 @@ function StudentRow({ classId, student, onUpdate, onDelete }) {
       <button onClick={() => onDelete(classId, local.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", flexShrink: 0 }}>
         <IconX size={13} />
       </button>
+    </div>
+  );
+}
+
+// État vide habillé d'un fond discret façon cahier d'écolier (lignes horizontales
+// + marge verticale), plutôt qu'une icône générique flottant dans le vide.
+function EmptyState({ icon, text }) {
+  return (
+    <div style={{ position: "relative", textAlign: "center", padding: "48px 20px", borderRadius: 10, overflow: "hidden" }}>
+      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} preserveAspectRatio="none">
+        <defs>
+          <pattern id="ruled" width="100%" height="26" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="26" x2="100%" y2="26" stroke={COLORS.line} strokeWidth="1" opacity="0.55" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#ruled)" />
+        <line x1="34" y1="0" x2="34" y2="100%" stroke={COLORS.histoire} strokeWidth="1" opacity="0.22" />
+      </svg>
+      <div style={{ position: "relative", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 14 }}>
+        <div style={{ opacity: 0.7 }}>{icon}</div>
+        <p style={{ marginTop: 10 }}>{text}</p>
+      </div>
     </div>
   );
 }
@@ -1319,6 +1357,14 @@ function App() {
   const [addingTheme, setAddingTheme] = useState(false);
   const [addingClass, setAddingClass] = useState(false);
   const [newClassName, setNewClassName] = useState("");
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem("theme-v1") || "light"; } catch (e) { return "light"; }
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try { localStorage.setItem("theme-v1", theme); } catch (e) {}
+  }, [theme]);
 
   useEffect(() => {
     try {
@@ -1452,8 +1498,12 @@ function App() {
     <div style={{ minHeight: "100vh", background: COLORS.bg }}>
       <header className="content-shift" style={{ borderBottom: "none", padding: "26px 20px 0", background: COLORS.bg, position: "sticky", top: 0, zIndex: 10 }}>
         <div className="content-width" style={{ maxWidth: 640, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 2 }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginBottom: 2 }}>
             <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600, color: COLORS.accent, margin: 0, letterSpacing: "-0.01em" }}>Cahier de progression</h1>
+            <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Changer de thème"
+              style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", padding: 4, display: "flex" }}>
+              {theme === "dark" ? <IconSun size={17} /> : <IconMoon size={17} />}
+            </button>
           </div>
           <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint }}>Histoire-Géographie</span>
           <div style={{ display: "flex", alignItems: "flex-end", gap: 18, marginTop: 18, flexWrap: "wrap" }}>
@@ -1512,10 +1562,7 @@ function App() {
           cls ? (
             <>
               {cls.themes.length === 0 && !addingTheme && (
-                <div style={{ textAlign: "center", padding: "50px 20px", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 14 }}>
-                  <IconBook size={26} style={{ marginBottom: 10, opacity: 0.6 }} />
-                  <p>Aucun thème pour {cls.name} pour l'instant.</p>
-                </div>
+                <EmptyState icon={<IconBook size={26} />} text={`Aucun thème pour ${cls.name} pour l'instant.`} />
               )}
               <div className="list-grid">
                 {cls.themes.map((th) => (
