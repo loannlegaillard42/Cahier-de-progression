@@ -81,6 +81,7 @@ const IconLink = (p) => <Icon {...p}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0
 const IconFileText = (p) => <Icon {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></Icon>;
 const IconUpload = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></Icon>;
 const IconClipboard = (p) => <Icon {...p}><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/><path d="M9 12l2 2 4-4"/></Icon>;
+const IconUsers = (p) => <Icon {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Icon>;
 
 const RESOURCE_LINKS = [
   { label: "Éduscol — Histoire-géographie collège", url: "https://eduscol.education.gouv.fr/31218/domaines-enseignement/histoire-geographie-college" },
@@ -104,7 +105,7 @@ const seedData = () => ({
   },
   evaluations: [],
   classes: {
-    "5e": { id: "5e", name: "5e", annualHours: 108, themes: [
+    "5e": { id: "5e", name: "5e", annualHours: 108, students: [], themes: [
       { id: uid(), title: "Chrétientés et Islam, des mondes en contact (VIe-XIIIe s.)", discipline: "histoire", chapters: [
         { id: uid(), title: "L'Empire byzantin", total: 4, done: 0, start: "", end: "", notes: "" },
         { id: uid(), title: "La naissance et la diffusion de l'Islam", total: 4, done: 0, start: "", end: "", notes: "" },
@@ -118,7 +119,7 @@ const seedData = () => ({
         { id: uid(), title: "L'énergie, l'eau : des ressources à ménager et à mieux utiliser", total: 6, done: 0, start: "", end: "", notes: "Études de cas : eau au Moyen-Orient / énergie aux États-Unis." },
       ]},
     ]},
-    "2nde": { id: "2nde", name: "Seconde", annualHours: 108, themes: [
+    "2nde": { id: "2nde", name: "Seconde", annualHours: 108, students: [], themes: [
       { id: uid(), title: "Le monde méditerranéen : empreintes de l'Antiquité et du Moyen Âge", discipline: "histoire", chapters: [
         { id: uid(), title: "La Méditerranée grecque et romaine (Antiquité)", total: 6, done: 0, start: "", end: "", notes: "" },
         { id: uid(), title: "La Méditerranée médiévale : espace d'échanges et de conflits", total: 6, done: 0, start: "", end: "", notes: "PPO : Bernard de Clairvaux / Venise." },
@@ -127,7 +128,7 @@ const seedData = () => ({
         { id: uid(), title: "Risques et tensions sur les ressources", total: 5, done: 5, start: "", end: "", notes: "Étude de cas Arctique, fiches Japon/Turquie." },
       ]},
     ]},
-    "1ere": { id: "1ere", name: "Première", annualHours: null, themes: [] },
+    "1ere": { id: "1ere", name: "Première", annualHours: null, students: [], themes: [] },
   },
 });
 
@@ -143,6 +144,10 @@ function withDefaults(raw) {
   data.order.forEach((cid) => {
     const c = data.classes[cid];
     if (c && c.annualHours === undefined) c.annualHours = null;
+    if (c && !Array.isArray(c.students)) c.students = [];
+  });
+  data.evaluations.forEach((ev) => {
+    if (!ev.grades || typeof ev.grades !== "object") ev.grades = {};
   });
   return data;
 }
@@ -828,8 +833,43 @@ function AddEvalForm({ classOrder, classes, onAdd, onCancel }) {
   );
 }
 
-function EvaluationsView({ data, onAdd, onCycleStatus, onDelete }) {
+function GradesPanel({ data, evaluation, onSetGrade }) {
+  const cls = data.classes[evaluation.classId];
+  const students = cls ? cls.students : [];
+  if (students.length === 0) {
+    return <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, marginTop: 8 }}>
+      Ajoute des élèves à {cls ? cls.name : "cette classe"} dans l'onglet Élèves pour saisir des notes.
+    </p>;
+  }
+  const values = students.map((s) => evaluation.grades[s.id]).filter((v) => v !== undefined && v !== "" && v !== null).map(Number);
+  const avg = values.length ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1) : null;
+
+  return (
+    <div style={{ marginTop: 10, borderTop: `1px solid ${COLORS.line}`, paddingTop: 10 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        {students.map((s) => (
+          <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{s.name}</span>
+            <input type="number" min={0} max={20} step={0.5}
+              value={evaluation.grades[s.id] ?? ""}
+              onChange={(e) => onSetGrade(evaluation.id, s.id, e.target.value)}
+              placeholder="—/20"
+              style={{ ...inputStyle, width: 64, padding: "4px 8px", fontFamily: "IBM Plex Mono, monospace", fontSize: 12.5 }} />
+          </div>
+        ))}
+      </div>
+      {avg && (
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub, marginTop: 8 }}>
+          Moyenne de la classe : <strong>{avg}/20</strong> ({values.length}/{students.length} note{values.length !== 1 ? "s" : ""} saisies)
+        </p>
+      )}
+    </div>
+  );
+}
+
+function EvaluationsView({ data, onAdd, onCycleStatus, onDelete, onSetGrade }) {
   const [adding, setAdding] = useState(false);
+  const [openId, setOpenId] = useState(null);
   const rows = [...data.evaluations].sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
 
   return (
@@ -843,6 +883,7 @@ function EvaluationsView({ data, onAdd, onCycleStatus, onDelete }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
         {rows.map((ev) => {
           const cls = data.classes[ev.classId];
+          const isOpen = openId === ev.id;
           return (
             <div key={ev.id} style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`,
               borderLeft: `4px solid ${classColor(data, ev.classId)}`, borderRadius: 8, padding: "10px 14px" }}>
@@ -858,12 +899,21 @@ function EvaluationsView({ data, onAdd, onCycleStatus, onDelete }) {
               </div>
               <div style={{ fontFamily: "Fraunces, serif", fontSize: 15, color: COLORS.ink, margin: "6px 0 2px" }}>{ev.title}</div>
               {ev.notes && <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, margin: "2px 0 8px" }}>{ev.notes}</p>}
-              <button onClick={() => onCycleStatus(ev.id)} style={{
-                fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: EVAL_STATUS_COLOR[ev.status],
-                background: EVAL_STATUS_SOFT[ev.status], border: "none", borderRadius: 5, padding: "4px 10px", cursor: "pointer", marginTop: 6,
-              }}>
-                {EVAL_STATUS[ev.status]} — changer
-              </button>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
+                <button onClick={() => onCycleStatus(ev.id)} style={{
+                  fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: EVAL_STATUS_COLOR[ev.status],
+                  background: EVAL_STATUS_SOFT[ev.status], border: "none", borderRadius: 5, padding: "4px 10px", cursor: "pointer",
+                }}>
+                  {EVAL_STATUS[ev.status]} — changer
+                </button>
+                <button onClick={() => setOpenId(isOpen ? null : ev.id)} style={{
+                  fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: COLORS.accent,
+                  background: COLORS.accentSoft, border: "none", borderRadius: 5, padding: "4px 10px", cursor: "pointer",
+                }}>
+                  {isOpen ? "Masquer les notes" : "Saisir les notes"}
+                </button>
+              </div>
+              {isOpen && <GradesPanel data={data} evaluation={ev} onSetGrade={onSetGrade} />}
             </div>
           );
         })}
@@ -878,6 +928,73 @@ function EvaluationsView({ data, onAdd, onCycleStatus, onDelete }) {
           </button>
         )
       )}
+    </div>
+  );
+}
+
+function StudentsView({ data, activeClass, onAddStudent, onUpdateStudent, onDeleteStudent }) {
+  const [name, setName] = useState("");
+  const cls = data.classes[activeClass];
+  if (!cls) {
+    return <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Sélectionne une classe en haut de l'écran.</p>;
+  }
+  const students = [...cls.students].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+
+  const submit = () => {
+    if (!name.trim()) return;
+    onAddStudent(activeClass, name.trim());
+    setName("");
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()}
+          placeholder={`Ajouter un·e élève à ${cls.name}…`} style={inputStyle} />
+        <button onClick={submit} style={{ ...primaryBtn, flexShrink: 0, display: "flex", alignItems: "center", gap: 5 }}>
+          <IconPlus size={14} /> Ajouter
+        </button>
+      </div>
+
+      {students.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "40px 20px", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 14 }}>
+          <IconUsers size={26} style={{ marginBottom: 10, opacity: 0.6 }} />
+          <p>Aucun élève renseigné pour {cls.name}.</p>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {students.map((s) => (
+            <StudentRow key={s.id} classId={activeClass} student={s} onUpdate={onUpdateStudent} onDelete={onDeleteStudent} />
+          ))}
+        </div>
+      )}
+      <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint, marginTop: 12 }}>
+        {students.length} élève{students.length !== 1 ? "s" : ""} dans {cls.name}.
+      </p>
+    </div>
+  );
+}
+
+function StudentRow({ classId, student, onUpdate, onDelete }) {
+  const [local, setLocal] = useState(student);
+  const debouncedSave = useDebouncedSave((v) => onUpdate(classId, v));
+  useEffect(() => setLocal(student), [student.id]);
+
+  const patch = (fields) => {
+    const next = { ...local, ...fields };
+    setLocal(next);
+    debouncedSave(next);
+  };
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 7 }}>
+      <input value={local.name} onChange={(e) => patch({ name: e.target.value })}
+        style={{ ...inputStyle, border: "none", padding: "2px 4px", flex: 1, fontFamily: "Fraunces, serif", fontSize: 14 }} />
+      <input value={local.note || ""} onChange={(e) => patch({ note: e.target.value })} placeholder="remarque (optionnel)"
+        style={{ ...inputStyle, border: "none", padding: "2px 4px", flex: 1, fontSize: 12, color: COLORS.sub }} />
+      <button onClick={() => onDelete(classId, local.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", flexShrink: 0 }}>
+        <IconX size={13} />
+      </button>
     </div>
   );
 }
@@ -1141,7 +1258,7 @@ function App() {
     const id = uid();
     const next = { ...data };
     next.order = [...next.order, id];
-    next.classes[id] = { id, name, annualHours: null, themes: [] };
+    next.classes[id] = { id, name, annualHours: null, students: [], themes: [] };
     setNewClassName(""); setAddingClass(false);
     persist(next);
     setActiveClass(id);
@@ -1172,6 +1289,28 @@ function App() {
       const nextStatus = EVAL_STATUS_ORDER[(idx + 1) % EVAL_STATUS_ORDER.length];
       return { ...ev, status: nextStatus };
     });
+    persist(next);
+  };
+  const setGrade = (evalId, studentId, value) => {
+    const next = { ...data };
+    next.evaluations = next.evaluations.map((ev) =>
+      ev.id !== evalId ? ev : { ...ev, grades: { ...ev.grades, [studentId]: value } }
+    );
+    persist(next);
+  };
+  const addStudent = (cid, name) => {
+    const next = { ...data };
+    next.classes[cid] = { ...next.classes[cid], students: [...next.classes[cid].students, { id: uid(), name, note: "" }] };
+    persist(next);
+  };
+  const updateStudent = (cid, student) => {
+    const next = { ...data };
+    next.classes[cid] = { ...next.classes[cid], students: next.classes[cid].students.map((s) => (s.id === student.id ? student : s)) };
+    persist(next);
+  };
+  const deleteStudent = (cid, sid) => {
+    const next = { ...data };
+    next.classes[cid] = { ...next.classes[cid], students: next.classes[cid].students.filter((s) => s.id !== sid) };
     persist(next);
   };
   const setAnnualHours = (cid, hours) => {
@@ -1235,6 +1374,7 @@ function App() {
           <button onClick={() => setView("fiches")} style={tabBtn(view === "fiches")}><IconPaperclip size={13} /> Fiches</button>
           <button onClick={() => setView("schedule")} style={tabBtn(view === "schedule")}><IconClock size={13} /> Emploi du temps</button>
           <button onClick={() => setView("evaluations")} style={tabBtn(view === "evaluations")}><IconClipboard size={13} /> Évaluations</button>
+          <button onClick={() => setView("students")} style={tabBtn(view === "students")}><IconUsers size={13} /> Élèves</button>
         </div>
 
         {view === "home" ? (
@@ -1244,7 +1384,9 @@ function App() {
         ) : view === "schedule" ? (
           <ScheduleView data={data} onSetUrl={setScheduleUrl} onAddSlot={addSlot} onDeleteSlot={deleteSlot} />
         ) : view === "evaluations" ? (
-          <EvaluationsView data={data} onAdd={addEvaluation} onCycleStatus={cycleEvalStatus} onDelete={deleteEvaluation} />
+          <EvaluationsView data={data} onAdd={addEvaluation} onCycleStatus={cycleEvalStatus} onDelete={deleteEvaluation} onSetGrade={setGrade} />
+        ) : view === "students" ? (
+          <StudentsView data={data} activeClass={activeClass} onAddStudent={addStudent} onUpdateStudent={updateStudent} onDeleteStudent={deleteStudent} />
         ) : view === "progression" ? (
           cls ? (
             <>
