@@ -41,6 +41,22 @@
   /* Accordéon des chapitres : rotation douce du chevron */
   .chevron { transition: transform .18s ease; }
   .chevron.open { transform: rotate(0deg); }
+
+  /* --- Grand écran (ordinateur, tablette large) ---
+     La nav passe de la barre du bas à une colonne latérale fixe,
+     et le contenu s'élargit pour occuper l'espace au lieu de rester
+     figé à une largeur de téléphone au milieu de l'écran. */
+  .side-nav { display: none; }
+  .content-shift { transition: margin-left .15s ease; }
+  @media (min-width: 880px) {
+    .bottom-nav { display: none !important; }
+    .side-nav { display: flex !important; }
+    .content-shift { margin-left: 220px !important; }
+    .content-width { max-width: 900px !important; }
+    .list-grid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 14px !important; align-items: start; }
+    .home-grid { display: grid !important; grid-template-columns: 1.3fr 1fr !important; gap: 32px !important; align-items: start; }
+    .home-grid > section { margin: 0 !important; }
+  }
 </style>
 
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -658,7 +674,7 @@ function FichesView({ data, onAdd, onDelete, onSetDriveFolder }) {
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
+      <div className="list-grid" style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
         {data.fiches.map((f) => {
           const cls = f.classId ? data.classes[f.classId] : null;
           const href = f.fileData || f.url;
@@ -917,7 +933,7 @@ function EvaluationsView({ data, onAdd, onCycleStatus, onDelete, onSetGrade }) {
           <p>Aucune évaluation enregistrée pour l'instant.</p>
         </div>
       )}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
+      <div className="list-grid" style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
         {rows.map((ev) => {
           const cls = data.classes[ev.classId];
           const isOpen = openId === ev.id;
@@ -1125,91 +1141,96 @@ function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHour
   upcoming.sort((a, b) => a.date.localeCompare(b.date));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
-      <MiniSchedule data={data} />
-      <section>
-        <SectionTitle icon={<IconClock size={15} />} title="Dans les 7 prochains jours" />
-        {upcoming.length === 0 ? (
-          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Aucune échéance renseignée cette semaine.</p>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-            {upcoming.map((r, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 7, flexWrap: "wrap" }}>
-                <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, width: 60, flexShrink: 0 }}>{formatDate(r.date)}</span>
-                <ClassTag color={classColor(data, r.classId)} name={r.className} />
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</span>
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, flexShrink: 0 }}>{r.kind}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-      <section>
-        <SectionTitle icon={<IconBook size={15} />} title="Chapitres en cours" />
-        {inProgress.length === 0 ? (
-          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Aucun chapitre en cours actuellement.</p>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-            {inProgress.map((r) => (
-              <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
-                <ClassTag color={classColor(data, r.classId)} name={r.className} />
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{r.title}</span>
-                <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, flexShrink: 0 }}>{r.done}/{r.total}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-      <section>
-        <SectionTitle icon={<IconClipboard size={15} />} title="Copies à corriger" />
-        {(() => {
-          const toCorrect = data.evaluations.filter((ev) => ev.status === "a_corriger");
-          if (toCorrect.length === 0) {
-            return <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Rien à corriger pour l'instant.</p>;
-          }
-          return (
+    <div className="home-grid" style={{ display: "flex", flexDirection: "column", gap: 36 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
+        <MiniSchedule data={data} />
+        <section>
+          <SectionTitle icon={<IconClock size={15} />} title="Dans les 7 prochains jours" />
+          {upcoming.length === 0 ? (
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Aucune échéance renseignée cette semaine.</p>
+          ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-              {toCorrect.map((ev) => {
-                const cls = data.classes[ev.classId];
-                return (
-                  <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
-                    {cls && <ClassTag color={classColor(data, ev.classId)} name={cls.name} />}
-                    <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{ev.title}</span>
-                    <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, flexShrink: 0 }}>{ev.type}</span>
-                  </div>
-                );
-              })}
+              {upcoming.map((r, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 7, flexWrap: "wrap" }}>
+                  <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, width: 60, flexShrink: 0 }}>{formatDate(r.date)}</span>
+                  <ClassTag color={classColor(data, r.classId)} name={r.className} />
+                  <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</span>
+                  <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, flexShrink: 0 }}>{r.kind}</span>
+                </div>
+              ))}
             </div>
-          );
-        })()}
-      </section>
-      <section>
-        <SectionTitle icon={<IconList size={15} />} title="Pense-bête" />
-        <TodoList todos={data.todos} onAdd={onAddTodo} onToggle={onToggleTodo} onDelete={onDeleteTodo} />
-      </section>
-      <section>
-        <SectionTitle icon={<IconAlert size={15} />} title="Volume horaire par classe" />
-        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, marginTop: -6, marginBottom: 12 }}>
-          Indicatif (1 séance ≈ 1h) — clique sur l'horaire annuel pour l'ajuster à ta dotation réelle.
-        </p>
-        {data.order.map((cid) => {
-          const c = data.classes[cid];
-          const planned = c.themes.reduce((s, th) => s + th.chapters.reduce((s2, ch) => s2 + (Number(ch.total) || 0), 0), 0);
-          return <HourBar key={cid} label={c.name} planned={planned} annual={c.annualHours} onEditAnnual={(v) => onSetAnnualHours(cid, v)} />;
-        })}
-      </section>
-      <section>
-        <SectionTitle icon={<IconGrad size={15} />} title="Ressources utiles" />
-        <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-          {RESOURCE_LINKS.map((r) => (
-            <a key={r.url} href={r.url} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 8,
-              fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.accent, textDecoration: "none", padding: "7px 10px",
-              background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 7 }}>
-              <IconExternal size={13} style={{ flexShrink: 0 }} />{r.label}
-            </a>
+          )}
+        </section>
+        <section>
+          <SectionTitle icon={<IconBook size={15} />} title="Chapitres en cours" />
+          {inProgress.length === 0 ? (
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Aucun chapitre en cours actuellement.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+              {inProgress.map((r) => (
+                <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
+                  <ClassTag color={classColor(data, r.classId)} name={r.className} />
+                  <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{r.title}</span>
+                  <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, flexShrink: 0 }}>{r.done}/{r.total}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+        <section>
+          <SectionTitle icon={<IconClipboard size={15} />} title="Copies à corriger" />
+          {(() => {
+            const toCorrect = data.evaluations.filter((ev) => ev.status === "a_corriger");
+            if (toCorrect.length === 0) {
+              return <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Rien à corriger pour l'instant.</p>;
+            }
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                {toCorrect.map((ev) => {
+                  const cls = data.classes[ev.classId];
+                  return (
+                    <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
+                      {cls && <ClassTag color={classColor(data, ev.classId)} name={cls.name} />}
+                      <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{ev.title}</span>
+                      <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, flexShrink: 0 }}>{ev.type}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </section>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
+        <section>
+          <SectionTitle icon={<IconList size={15} />} title="Pense-bête" />
+          <TodoList todos={data.todos} onAdd={onAddTodo} onToggle={onToggleTodo} onDelete={onDeleteTodo} />
+        </section>
+        <section>
+          <SectionTitle icon={<IconAlert size={15} />} title="Volume horaire par classe" />
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, marginTop: -6, marginBottom: 12 }}>
+            Indicatif (1 séance ≈ 1h) — clique sur l'horaire annuel pour l'ajuster à ta dotation réelle.
+          </p>
+          {data.order.map((cid) => {
+            const c = data.classes[cid];
+            const planned = c.themes.reduce((s, th) => s + th.chapters.reduce((s2, ch) => s2 + (Number(ch.total) || 0), 0), 0);
+            return <HourBar key={cid} label={c.name} planned={planned} annual={c.annualHours} onEditAnnual={(v) => onSetAnnualHours(cid, v)} />;
+          })}
+        </section>
+        <section>
+          <SectionTitle icon={<IconGrad size={15} />} title="Ressources utiles" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+            {RESOURCE_LINKS.map((r) => (
+              <a key={r.url} href={r.url} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 8,
+                fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.accent, textDecoration: "none", padding: "7px 10px",
+                background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 7 }}>
+                <IconExternal size={13} style={{ flexShrink: 0 }} />{r.label}
+              </a>
           ))}
         </div>
       </section>
+      </div>
     </div>
   );
 }
@@ -1232,13 +1253,13 @@ const NAV_ITEMS = [
 
 function BottomNav({ view, setView }) {
   return (
-    <nav style={{
+    <nav className="bottom-nav" style={{
       position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 20,
       background: "rgba(250,248,243,0.92)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
       borderTop: `1px solid ${COLORS.line}`,
       paddingBottom: "env(safe-area-inset-bottom, 0px)",
     }}>
-      <div style={{ maxWidth: 640, margin: "0 auto", display: "flex" }}>
+      <div className="content-width" style={{ maxWidth: 640, margin: "0 auto", display: "flex" }}>
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const active = view === item.id;
@@ -1257,6 +1278,36 @@ function BottomNav({ view, setView }) {
           );
         })}
       </div>
+    </nav>
+  );
+}
+
+function SideNav({ view, setView }) {
+  return (
+    <nav className="side-nav" style={{
+      position: "fixed", left: 0, top: 0, bottom: 0, width: 220, zIndex: 20,
+      flexDirection: "column", padding: "28px 14px", gap: 2,
+      background: COLORS.panel, borderRight: `1px solid ${COLORS.line}`,
+    }}>
+      <div style={{ fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 600, color: COLORS.accent, padding: "4px 10px 22px", letterSpacing: "-0.01em" }}>
+        Cahier de progression
+      </div>
+      {NAV_ITEMS.map((item) => {
+        const Icon = item.icon;
+        const active = view === item.id;
+        return (
+          <button key={item.id} onClick={() => setView(item.id)} style={{
+            display: "flex", alignItems: "center", gap: 11, textAlign: "left",
+            background: active ? COLORS.accentSoft : "none", border: "none", cursor: "pointer",
+            padding: "9px 10px", borderRadius: 7,
+            color: active ? COLORS.accent : COLORS.sub,
+            fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: active ? 700 : 500,
+          }}>
+            <Icon size={17} strokeWidth={active ? 2.1 : 1.7} />
+            {item.label}
+          </button>
+        );
+      })}
     </nav>
   );
 }
@@ -1399,8 +1450,8 @@ function App() {
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg }}>
-      <header style={{ borderBottom: "none", padding: "26px 20px 0", background: COLORS.bg, position: "sticky", top: 0, zIndex: 10 }}>
-        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+      <header className="content-shift" style={{ borderBottom: "none", padding: "26px 20px 0", background: COLORS.bg, position: "sticky", top: 0, zIndex: 10 }}>
+        <div className="content-width" style={{ maxWidth: 640, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 2 }}>
             <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600, color: COLORS.accent, margin: 0, letterSpacing: "-0.01em" }}>Cahier de progression</h1>
           </div>
@@ -1442,10 +1493,10 @@ function App() {
             )}
           </div>
         </div>
-        <div style={{ maxWidth: 640, margin: "0 auto", borderBottom: `1px solid ${COLORS.line}` }} />
+        <div className="content-width" style={{ maxWidth: 640, margin: "0 auto", borderBottom: `1px solid ${COLORS.line}` }} />
       </header>
 
-      <main style={{ maxWidth: 640, margin: "0 auto", padding: "30px 20px 110px" }}>
+      <main className="content-shift content-width" style={{ maxWidth: 640, margin: "0 auto", padding: "30px 20px 110px" }}>
         {view === "home" ? (
           <HomeView data={data} onAddTodo={addTodo} onToggleTodo={toggleTodo} onDeleteTodo={deleteTodo} onSetAnnualHours={setAnnualHours} />
         ) : view === "fiches" ? (
@@ -1465,9 +1516,11 @@ function App() {
                   <p>Aucun thème pour {cls.name} pour l'instant.</p>
                 </div>
               )}
-              {cls.themes.map((th) => (
-                <ThemeCard key={th.id} theme={th} onUpdateChapter={updateChapter} onDeleteChapter={deleteChapter} onAddChapter={addChapter} onDeleteTheme={deleteTheme} />
-              ))}
+              <div className="list-grid">
+                {cls.themes.map((th) => (
+                  <ThemeCard key={th.id} theme={th} onUpdateChapter={updateChapter} onDeleteChapter={deleteChapter} onAddChapter={addChapter} onDeleteTheme={deleteTheme} />
+                ))}
+              </div>
               {addingTheme ? (
                 <AddThemeForm onAdd={addTheme} onCancel={() => setAddingTheme(false)} />
               ) : (
@@ -1484,6 +1537,7 @@ function App() {
         )}
       </main>
       <BottomNav view={view} setView={setView} />
+      <SideNav view={view} setView={setView} />
     </div>
   );
 }
