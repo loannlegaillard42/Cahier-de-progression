@@ -20,6 +20,27 @@
   * { box-sizing: border-box; }
   body { margin: 0; -webkit-tap-highlight-color: transparent; }
   input, textarea, button { font: inherit; }
+
+  /* Micro-interactions : transitions douces sur tout élément interactif */
+  button, a, input, select, textarea {
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease,
+      opacity .15s ease, transform .1s ease, box-shadow .15s ease;
+  }
+  button:not(:disabled) { cursor: pointer; }
+
+  /* Survol clavier/souris (Chromebook, ordinateur) */
+  button:not(:disabled):hover, a:hover { opacity: 0.82; }
+  button:not(:disabled):active { transform: scale(0.98); }
+  button:focus-visible, a:focus-visible, input:focus-visible,
+  select:focus-visible, textarea:focus-visible {
+    outline: 2px solid #1F4E5F;
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  /* Accordéon des chapitres : rotation douce du chevron */
+  .chevron { transition: transform .18s ease; }
+  .chevron.open { transform: rotate(0deg); }
 </style>
 
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -40,6 +61,10 @@ const COLORS = {
   todo: "#B7AF9E", todoSoft: "#F1EFE8", wip: "#B98328", wipSoft: "#F7EBD6",
   done: "#5C7A5E", doneSoft: "#E7EDE4",
 };
+
+// Ombre très subtile pour donner une légère élévation aux cartes,
+// plus douce qu'une bordure dure — remplace border seul sur les panneaux.
+const CARD_SHADOW = "0 1px 2px rgba(31,78,95,0.05), 0 1px 5px rgba(31,78,95,0.05)";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const STORAGE_KEY = "progtracker-data-v1";
@@ -190,6 +215,20 @@ function DisciplineBadge({ d }) {
   );
 }
 
+// Étiquette de classe neutre (un point de couleur + le nom) — la couleur reste
+// identifiable sans transformer chaque ligne en pastille pleine et criarde.
+function ClassTag({ color, name, size }) {
+  const sz = size || "normal";
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0,
+      fontFamily: "Inter, sans-serif", fontSize: sz === "small" ? 10.5 : 11, fontWeight: 600, color: COLORS.ink,
+      background: COLORS.encadre, borderRadius: 4, padding: sz === "small" ? "1px 7px 1px 5px" : "2px 8px 2px 6px" }}>
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: color, flexShrink: 0 }} />
+      {name}
+    </span>
+  );
+}
+
 const btnCircle = { width: 24, height: 24, borderRadius: "50%", border: `1px solid ${COLORS.line}`, background: "#fff",
   color: COLORS.accent, fontSize: 14, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" };
 
@@ -236,7 +275,9 @@ function ChapterRow({ chapter, isLast, onUpdate, onDelete }) {
         <button onClick={() => setOpen((o) => !o)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
           width: "100%", background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-            {open ? <IconChevronDown size={15} color={COLORS.faint} /> : <IconChevronRight size={15} color={COLORS.faint} />}
+            <span style={{ display: "inline-flex", transition: "transform .18s ease", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}>
+              <IconChevronRight size={15} color={COLORS.faint} />
+            </span>
             <span style={{ fontFamily: "Fraunces, serif", fontSize: 15.5, color: COLORS.ink, fontWeight: 500,
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{local.title}</span>
           </div>
@@ -292,7 +333,7 @@ function ThemeCard({ theme, onUpdateChapter, onDeleteChapter, onAddChapter, onDe
   const done = theme.chapters.reduce((s, c) => s + Math.min(Number(c.done) || 0, Number(c.total) || 0), 0);
   const pct = total ? Math.round((done / total) * 100) : 0;
   return (
-    <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: "20px 22px", marginBottom: 22 }}>
+    <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 10, padding: "20px 22px", marginBottom: 22 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 4 }}>
         <div>
           <DisciplineBadge d={theme.discipline} />
@@ -380,11 +421,11 @@ function PlanningView({ data }) {
         const status = chapterStatus(r);
         return (
           <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: COLORS.panel,
-            border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${STATUS_COLOR[status]}`, borderRadius: 8, marginBottom: 8, flexWrap: "wrap" }}>
+            border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderLeft: `4px solid ${STATUS_COLOR[status]}`, borderRadius: 8, marginBottom: 8, flexWrap: "wrap" }}>
             <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub, width: 150, flexShrink: 0 }}>
               {r.start ? formatDate(r.start) : "—"}{r.end ? ` → ${formatDate(r.end)}` : ""}
             </div>
-            <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, r.classId), borderRadius: 4, padding: "2px 7px", flexShrink: 0 }}>{r.className}</span>
+            <ClassTag color={classColor(data, r.classId)} name={r.className} />
             <DisciplineBadge d={r.discipline} />
             <div style={{ flex: 1, minWidth: 120 }}>
               <div style={{ fontFamily: "Fraunces, serif", fontSize: 14.5, color: COLORS.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</div>
@@ -598,7 +639,7 @@ function FichesView({ data, onAdd, onDelete, onSetDriveFolder }) {
 
   return (
     <div>
-      <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: "13px 16px", marginBottom: 22 }}>
+      <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 10, padding: "13px 16px", marginBottom: 22 }}>
         <SectionTitle icon={<IconLink size={14} />} title="Dossiers Drive par classe" />
         {data.order.map((cid) => (
           <DriveFolderRow key={cid} cid={cid} name={data.classes[cid].name} color={classColor(data, cid)}
@@ -622,7 +663,7 @@ function FichesView({ data, onAdd, onDelete, onSetDriveFolder }) {
           const cls = f.classId ? data.classes[f.classId] : null;
           const href = f.fileData || f.url;
           return (
-            <div key={f.id} style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: "12px 14px" }}>
+            <div key={f.id} style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 8, padding: "12px 14px" }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 8, minWidth: 0 }}>
                   <span style={{ color: COLORS.accent, marginTop: 2, flexShrink: 0 }}>
@@ -631,9 +672,7 @@ function FichesView({ data, onAdd, onDelete, onSetDriveFolder }) {
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontFamily: "Fraunces, serif", fontSize: 14.5, color: COLORS.ink, wordBreak: "break-word" }}>{f.title}</div>
                     {cls && (
-                      <span style={{ fontFamily: "Inter, sans-serif", fontSize: 10.5, fontWeight: 700, color: "#fff", background: classColor(data, f.classId), borderRadius: 4, padding: "1px 6px", marginTop: 3, display: "inline-block" }}>
-                        {cls.name}
-                      </span>
+                      <div style={{ marginTop: 4 }}><ClassTag color={classColor(data, f.classId)} name={cls.name} size="small" /></div>
                     )}
                     {f.notes && <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub, marginTop: 4 }}>{f.notes}</p>}
                   </div>
@@ -720,7 +759,7 @@ function ScheduleView({ data, onSetUrl, onAddSlot, onDeleteSlot }) {
 
   return (
     <div>
-      <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: 14, marginBottom: 18 }}>
+      <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 10, padding: 14, marginBottom: 18 }}>
         <label style={labelStyle}>Lien vers ton emploi du temps en ligne (Pronote, ADE…)</label>
         {editingUrl ? (
           <div style={{ display: "flex", gap: 8 }}>
@@ -758,11 +797,9 @@ function ScheduleView({ data, onSetUrl, onAddSlot, onDeleteSlot }) {
                 const cls = data.classes[s.classId];
                 return (
                   <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.panel,
-                    border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${classColor(data, s.classId)}`, borderRadius: 7, flexWrap: "wrap" }}>
+                    border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderLeft: `4px solid ${classColor(data, s.classId)}`, borderRadius: 7, flexWrap: "wrap" }}>
                     <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub, width: 90, flexShrink: 0 }}>{s.start}–{s.end}</span>
-                    <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, s.classId), borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>
-                      {cls ? cls.name : "?"}
-                    </span>
+                    <ClassTag color={classColor(data, s.classId)} name={cls ? cls.name : "?"} />
                     {s.room && <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, flex: 1 }}>Salle {s.room}</span>}
                     <button onClick={() => onDeleteSlot(s.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", marginLeft: "auto" }}>
                       <IconX size={13} />
@@ -885,12 +922,12 @@ function EvaluationsView({ data, onAdd, onCycleStatus, onDelete, onSetGrade }) {
           const cls = data.classes[ev.classId];
           const isOpen = openId === ev.id;
           return (
-            <div key={ev.id} style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`,
+            <div key={ev.id} style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW,
               borderLeft: `4px solid ${classColor(data, ev.classId)}`, borderRadius: 8, padding: "13px 16px" }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   {ev.date && <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub }}>{formatDate(ev.date)}</span>}
-                  {cls && <span style={{ fontFamily: "Inter, sans-serif", fontSize: 10.5, fontWeight: 700, color: "#fff", background: classColor(data, ev.classId), borderRadius: 4, padding: "1px 6px" }}>{cls.name}</span>}
+                  {cls && <ClassTag color={classColor(data, ev.classId)} name={cls.name} size="small" />}
                   <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint }}>{ev.type}</span>
                 </div>
                 <button onClick={() => onDelete(ev.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer" }}>
@@ -987,7 +1024,7 @@ function StudentRow({ classId, student, onUpdate, onDelete }) {
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 7 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 7 }}>
       <input value={local.name} onChange={(e) => patch({ name: e.target.value })}
         style={{ ...inputStyle, border: "none", padding: "2px 4px", flex: 1, fontFamily: "Fraunces, serif", fontSize: 14 }} />
       <input value={local.note || ""} onChange={(e) => patch({ note: e.target.value })} placeholder="remarque (optionnel)"
@@ -1036,7 +1073,7 @@ function MiniSchedule({ data }) {
         <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, WebkitOverflowScrolling: "touch" }}>
           {days.map((d, i) => (
             <div key={i} style={{
-              flex: "0 0 auto", minWidth: 132, background: COLORS.panel, border: `1px solid ${COLORS.line}`,
+              flex: "0 0 auto", minWidth: 132, background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW,
               borderRadius: 9, padding: "10px 11px",
             }}>
               <div style={{ fontFamily: "Fraunces, serif", fontSize: 13, fontWeight: 600, color: COLORS.ink, marginBottom: 7 }}>{d.label}</div>
@@ -1097,9 +1134,9 @@ function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHour
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
             {upcoming.map((r, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 7, flexWrap: "wrap" }}>
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 7, flexWrap: "wrap" }}>
                 <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, width: 60, flexShrink: 0 }}>{formatDate(r.date)}</span>
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, r.classId), borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{r.className}</span>
+                <ClassTag color={classColor(data, r.classId)} name={r.className} />
                 <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</span>
                 <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, flexShrink: 0 }}>{r.kind}</span>
               </div>
@@ -1115,7 +1152,7 @@ function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHour
           <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
             {inProgress.map((r) => (
               <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, r.classId), borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{r.className}</span>
+                <ClassTag color={classColor(data, r.classId)} name={r.className} />
                 <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{r.title}</span>
                 <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, flexShrink: 0 }}>{r.done}/{r.total}</span>
               </div>
@@ -1136,7 +1173,7 @@ function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHour
                 const cls = data.classes[ev.classId];
                 return (
                   <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
-                    {cls && <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: "#fff", background: classColor(data, ev.classId), borderRadius: 4, padding: "1px 6px", flexShrink: 0 }}>{cls.name}</span>}
+                    {cls && <ClassTag color={classColor(data, ev.classId)} name={cls.name} />}
                     <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{ev.title}</span>
                     <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, flexShrink: 0 }}>{ev.type}</span>
                   </div>
@@ -1167,7 +1204,7 @@ function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHour
           {RESOURCE_LINKS.map((r) => (
             <a key={r.url} href={r.url} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 8,
               fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.accent, textDecoration: "none", padding: "7px 10px",
-              background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 7 }}>
+              background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 7 }}>
               <IconExternal size={13} style={{ flexShrink: 0 }} />{r.label}
             </a>
           ))}
@@ -1474,4 +1511,3 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 </html>
-
