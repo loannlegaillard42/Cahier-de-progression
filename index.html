@@ -151,6 +151,8 @@ const IconClipboard = (p) => <Icon {...p}><rect x="8" y="2" width="8" height="4"
 const IconUsers = (p) => <Icon {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Icon>;
 const IconSun = (p) => <Icon {...p}><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></Icon>;
 const IconMoon = (p) => <Icon {...p}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></Icon>;
+const IconSettings = (p) => <Icon {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10.6 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1.51H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></Icon>;
+const IconDownload = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Icon>;
 
 const RESOURCE_LINKS = [
   { label: "Éduscol — Histoire-géographie collège", url: "https://eduscol.education.gouv.fr/31218/domaines-enseignement/histoire-geographie-college" },
@@ -1070,6 +1072,123 @@ function StudentRow({ classId, student, onUpdate, onDelete }) {
 
 // État vide habillé d'un fond discret façon cahier d'écolier (lignes horizontales
 // + marge verticale), plutôt qu'une icône générique flottant dans le vide.
+function SettingsView({ data, onImport, theme, setTheme }) {
+  const [status, setStatus] = useState(null);
+  const fileRef = useRef(null);
+
+  const exportData = () => {
+    try {
+      const stamp = new Date().toISOString().slice(0, 10);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cahier-progression-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setStatus({ type: "ok", msg: "Sauvegarde téléchargée." });
+    } catch (e) {
+      setStatus({ type: "err", msg: "Échec de l'export." });
+    }
+  };
+
+  const handleFile = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        if (!parsed.classes || !Array.isArray(parsed.order)) {
+          setStatus({ type: "err", msg: "Ce fichier ne ressemble pas à une sauvegarde du Cahier." });
+          return;
+        }
+        onImport(parsed);
+        setStatus({ type: "ok", msg: "Données restaurées." });
+      } catch (err) {
+        setStatus({ type: "err", msg: "Fichier illisible — vérifie que c'est bien un export du Cahier." });
+      }
+    };
+    reader.onerror = () => setStatus({ type: "err", msg: "Impossible de lire le fichier." });
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const counts = {
+    classes: data.order.length,
+    chapitres: data.order.reduce((s, cid) => s + data.classes[cid].themes.reduce((s2, th) => s2 + th.chapters.length, 0), 0),
+    eleves: data.order.reduce((s, cid) => s + data.classes[cid].students.length, 0),
+    evals: data.evaluations.length,
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
+      <section>
+        <SectionTitle icon={<IconDownload size={15} />} title="Sauvegarde et transfert" />
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.sub, marginTop: -4, marginBottom: 16, lineHeight: 1.55 }}>
+          Tes données sont enregistrées uniquement sur cet appareil, dans ce navigateur. Elles ne passent pas d'un appareil à l'autre
+          toutes seules — et un nettoyage du navigateur les efface. Exporte régulièrement, et importe le fichier sur ton autre appareil
+          pour t'y retrouver avec le même contenu.
+        </p>
+
+        <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 10, padding: "16px 18px", marginBottom: 14 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 18, marginBottom: 16 }}>
+            {[["classes", "classe"], ["chapitres", "chapitre"], ["eleves", "élève"], ["evals", "évaluation"]].map(([key, label]) => (
+              <div key={key}>
+                <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 19, color: COLORS.ink }}>{counts[key]}</div>
+                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint }}>
+                  {label}{counts[key] !== 1 ? "s" : ""}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button onClick={exportData} style={{ ...primaryBtn, display: "flex", alignItems: "center", gap: 7 }}>
+              <IconDownload size={14} /> Exporter mes données
+            </button>
+            <button onClick={() => fileRef.current && fileRef.current.click()} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 7 }}>
+              <IconUpload size={14} /> Importer une sauvegarde
+            </button>
+            <input ref={fileRef} type="file" accept=".json,application/json" onChange={handleFile} style={{ display: "none" }} />
+          </div>
+
+          {status && (
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, marginTop: 12, marginBottom: 0,
+              color: status.type === "ok" ? COLORS.done : COLORS.histoire }}>
+              {status.msg}
+            </p>
+          )}
+        </div>
+
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, lineHeight: 1.55 }}>
+          L'import remplace intégralement le contenu actuel de cet appareil par celui du fichier. Pense à exporter avant, si tu as
+          saisi des choses ici que tu veux garder.
+        </p>
+      </section>
+
+      <section>
+        <SectionTitle icon={theme === "dark" ? <IconSun size={15} /> : <IconMoon size={15} />} title="Apparence" />
+        <div style={{ display: "flex", gap: 8 }}>
+          {[["light", "Clair"], ["dark", "Sombre"]].map(([value, label]) => (
+            <button key={value} onClick={() => setTheme(value)} style={{
+              padding: "8px 18px", borderRadius: 7,
+              border: `1px solid ${theme === value ? COLORS.accent : COLORS.line}`,
+              background: theme === value ? COLORS.accentSoft : COLORS.panel,
+              color: theme === value ? COLORS.accent : COLORS.sub,
+              fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: theme === value ? 600 : 400, cursor: "pointer",
+            }}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function EmptyState({ icon, text }) {
   return (
     <div style={{ position: "relative", textAlign: "center", padding: "48px 20px", borderRadius: 10, overflow: "hidden" }}>
@@ -1287,6 +1406,7 @@ const NAV_ITEMS = [
   { id: "evaluations", label: "Évals", icon: IconClipboard },
   { id: "students", label: "Élèves", icon: IconUsers },
   { id: "fiches", label: "Fiches", icon: IconPaperclip },
+  { id: "settings", label: "Réglages", icon: IconSettings },
 ];
 
 function BottomNav({ view, setView }) {
@@ -1451,6 +1571,11 @@ function App() {
   const addFiche = (f) => persist({ ...data, fiches: [...data.fiches, { id: uid(), ...f }] });
   const deleteFiche = (id) => persist({ ...data, fiches: data.fiches.filter((f) => f.id !== id) });
   const setDriveFolder = (cid, url) => persist({ ...data, driveFolders: { ...data.driveFolders, [cid]: url } });
+  const importData = (raw) => {
+    const merged = withDefaults(raw);
+    persist(merged);
+    setActiveClass(merged.order[0] || null);
+  };
   const setScheduleUrl = (url) => persist({ ...data, schedule: { ...data.schedule, url } });
   const addSlot = (s) => persist({ ...data, schedule: { ...data.schedule, slots: [...data.schedule.slots, { id: uid(), ...s }] } });
   const deleteSlot = (id) => persist({ ...data, schedule: { ...data.schedule, slots: data.schedule.slots.filter((s) => s.id !== id) } });
@@ -1552,6 +1677,8 @@ function App() {
           <HomeView data={data} onAddTodo={addTodo} onToggleTodo={toggleTodo} onDeleteTodo={deleteTodo} onSetAnnualHours={setAnnualHours} />
         ) : view === "fiches" ? (
           <FichesView data={data} onAdd={addFiche} onDelete={deleteFiche} onSetDriveFolder={setDriveFolder} />
+        ) : view === "settings" ? (
+          <SettingsView data={data} onImport={importData} theme={theme} setTheme={setTheme} />
         ) : view === "schedule" ? (
           <ScheduleView data={data} onSetUrl={setScheduleUrl} onAddSlot={addSlot} onDeleteSlot={deleteSlot} />
         ) : view === "evaluations" ? (
@@ -1613,4 +1740,3 @@ if ("serviceWorker" in navigator) {
 </script>
 </body>
 </html>
-
