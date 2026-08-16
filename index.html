@@ -234,8 +234,70 @@ const EVAL_STATUS_ORDER = ["a_faire", "a_corriger", "termine"];
 // toute l'architecture des thèmes et chapitres en début d'année.
 const PROGRAMMES = [
   {
+    id: "5e-histoire",
+    label: "5e — Histoire",
+    themes: [
+      {
+        title: "Chrétientés et islam (VIe-XIIIe siècles), des mondes en contact",
+        discipline: "histoire",
+        chapters: [
+          { title: "Byzance et l'Europe carolingienne", total: 4 },
+          { title: "De la naissance de l'islam à la prise de Bagdad par les Mongols", total: 4 },
+        ],
+      },
+      {
+        title: "Société, Église et pouvoir politique dans l'Occident féodal (XIe-XVe siècles)",
+        discipline: "histoire",
+        chapters: [
+          { title: "L'ordre seigneurial : la formation et la domination des campagnes", total: 4 },
+          { title: "L'émergence d'une nouvelle société urbaine", total: 4 },
+          { title: "L'affirmation de l'État monarchique dans le royaume des Capétiens et des Valois", total: 4 },
+        ],
+      },
+      {
+        title: "Transformations de l'Europe et ouverture sur le monde aux XVIe et XVIIe siècles",
+        discipline: "histoire",
+        chapters: [
+          { title: "Le monde au temps de Charles Quint et Soliman le Magnifique", total: 4 },
+          { title: "Humanisme, réformes et conflits religieux", total: 4 },
+          { title: "Du Prince de la Renaissance au roi absolu", total: 4 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "5e-geographie",
+    label: "5e — Géographie",
+    themes: [
+      {
+        title: "La question démographique et l'inégal développement",
+        discipline: "geo",
+        chapters: [
+          { title: "La croissance démographique et ses effets", total: 4 },
+          { title: "Répartition de la richesse et de la pauvreté dans le monde", total: 5 },
+        ],
+      },
+      {
+        title: "Des ressources limitées, à gérer et à renouveler",
+        discipline: "geo",
+        chapters: [
+          { title: "L'énergie, l'eau : des ressources à ménager et à mieux utiliser", total: 6 },
+          { title: "L'alimentation : comment nourrir une humanité en croissance démographique et aux besoins alimentaires accrus ?", total: 5 },
+        ],
+      },
+      {
+        title: "Prévenir les risques, s'adapter au changement global",
+        discipline: "geo",
+        chapters: [
+          { title: "Le changement global et ses principaux effets géographiques régionaux", total: 5 },
+          { title: "Prévenir les risques industriels et technologiques", total: 4 },
+        ],
+      },
+    ],
+  },
+  {
     id: "2nde-histoire",
-    label: "Seconde — Histoire (programme 2020, 48h)",
+    label: "2nde — Histoire (48h)",
     themes: [
       {
         title: "Le monde méditerranéen : empreintes de l'Antiquité et du Moyen Âge",
@@ -267,6 +329,125 @@ const PROGRAMMES = [
         discipline: "histoire",
         chapters: [
           { title: "Chapitre : Les Lumières et les mutations des sociétés des XVIIe et XVIIIe siècles", total: 11 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "2nde-geographie",
+    label: "2nde — Géographie (48h)",
+    themes: [
+      {
+        title: "Sociétés et environnements : des équilibres fragiles",
+        discipline: "geo",
+        chapters: [
+          { title: "Les sociétés face aux risques", total: 5 },
+          { title: "Des ressources majeures sous pression : tensions, gestion", total: 4 },
+          { title: "Étude de cas et croquis", total: 3 },
+        ],
+      },
+      {
+        title: "Territoires, populations et développement : quels défis ?",
+        discipline: "geo",
+        chapters: [
+          { title: "Des trajectoires démographiques différenciées : les défis du nombre et du vieillissement", total: 6 },
+          { title: "Développement et inégalités", total: 6 },
+        ],
+      },
+      {
+        title: "Des mobilités généralisées",
+        discipline: "geo",
+        chapters: [
+          { title: "Les migrations internationales", total: 6 },
+          { title: "Les mobilités touristiques internationales", total: 6 },
+        ],
+      },
+      {
+        title: "L'Afrique australe : un espace en profonde mutation (thème conclusif)",
+        discipline: "geo",
+        chapters: [
+          { title: "L'Afrique australe : un espace en profonde mutation", total: 6 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "1ere-histoire",
+    label: "1ère — Histoire (48h)",
+    themes: [
+      {
+        title: "L'Europe face aux révolutions",
+        discipline: "histoire",
+        chapters: [
+          { title: "Chapitre 1 : La Révolution française et l'Empire : une nouvelle conception de la nation", total: 7 },
+          { title: "Chapitre 2 : L'Europe entre restauration et révolution (1814-1848)", total: 5 },
+        ],
+      },
+      {
+        title: "La France dans l'Europe des nationalités : politique et société (1848-1871)",
+        discipline: "histoire",
+        chapters: [
+          { title: "Chapitre 1 : La difficile entrée dans l'âge démocratique : la Deuxième République et le Second Empire", total: 4 },
+          { title: "Chapitre 2 : L'industrialisation et l'accélération des transformations économiques et sociales en France", total: 4 },
+          { title: "Chapitre 3 : La France et la construction de nouveaux États par la guerre et la diplomatie", total: 4 },
+        ],
+      },
+      {
+        title: "La Troisième République avant 1914 : un régime politique, un empire colonial",
+        discipline: "histoire",
+        chapters: [
+          { title: "Chapitre 1 : La mise en œuvre du projet républicain", total: 6 },
+          { title: "Chapitre 2 : Permanences et mutations de la société française jusqu'en 1914", total: 3 },
+          { title: "Chapitre 3 : Métropole et colonies", total: 4 },
+        ],
+      },
+      {
+        title: "La Première Guerre mondiale : le « suicide de l'Europe » et la fin des empires européens",
+        discipline: "histoire",
+        chapters: [
+          { title: "Chapitre 1 : Un embrasement mondial et ses grandes étapes", total: 4 },
+          { title: "Chapitre 2 : Les sociétés en guerre : des civils acteurs et victimes de la guerre", total: 4 },
+          { title: "Chapitre 3 : Sortir de la guerre : la tentative de construction d'un ordre des nations démocratiques", total: 4 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "1ere-geographie",
+    label: "1ère — Géographie (48h)",
+    themes: [
+      {
+        title: "La métropolisation : un processus mondial différencié",
+        discipline: "geo",
+        chapters: [
+          { title: "Les villes à l'échelle mondiale : le poids croissant des métropoles", total: 4 },
+          { title: "Des métropoles inégales et en mutation", total: 4 },
+          { title: "Question spécifique : la France, la métropolisation et ses effets", total: 4 },
+        ],
+      },
+      {
+        title: "Une diversification des espaces et des acteurs de la production",
+        discipline: "geo",
+        chapters: [
+          { title: "Les espaces de production dans le monde : une diversité croissante", total: 4 },
+          { title: "Métropolisation, littoralisation des espaces productifs et accroissement des flux", total: 4 },
+          { title: "Question spécifique : les espaces productifs en France", total: 4 },
+        ],
+      },
+      {
+        title: "Les espaces ruraux : multifonctionnalité ou fragmentation ?",
+        discipline: "geo",
+        chapters: [
+          { title: "La fragmentation des espaces ruraux", total: 4 },
+          { title: "Affirmation des fonctions non agricoles et conflits d'usages", total: 4 },
+          { title: "Question spécifique : les espaces ruraux en France", total: 4 },
+        ],
+      },
+      {
+        title: "La Chine : des recompositions spatiales multiples (thème conclusif)",
+        discipline: "geo",
+        chapters: [
+          { title: "La Chine : des recompositions spatiales multiples", total: 6 },
         ],
       },
     ],
@@ -1520,6 +1701,7 @@ function App() {
   const [addingTheme, setAddingTheme] = useState(false);
   const [addingClass, setAddingClass] = useState(false);
   const [newClassName, setNewClassName] = useState("");
+  const [showProgrammes, setShowProgrammes] = useState(false);
   const [theme, setTheme] = useState(() => {
     try { return localStorage.getItem("theme-v1") || "light"; } catch (e) { return "light"; }
   });
@@ -1713,100 +1895,4 @@ function App() {
                         <IconX size={11} />
                       </span>
                     )}
-                  </button>
-                </div>
-              );
-            })}
-            {addingClass ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-                <input autoFocus value={newClassName} onChange={(e) => setNewClassName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addClass()}
-                  placeholder="Ex. : 4e" style={{ ...inputStyle, width: 100, padding: "5px 8px" }} />
-                <button onClick={addClass} style={{ ...btnCircle, color: COLORS.done }}><IconCheck size={13} /></button>
-                <button onClick={() => setAddingClass(false)} style={btnCircle}><IconX size={13} /></button>
-              </div>
-            ) : (
-              <button onClick={() => setAddingClass(true)} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none",
-                color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 12.5, cursor: "pointer", padding: "4px 2px 10px" }}>
-                <IconPlus size={12} /> classe
-              </button>
-            )}
-          </div>
-        </div>
-        <div className="content-width" style={{ maxWidth: 640, margin: "0 auto", borderBottom: `1px solid ${COLORS.line}` }} />
-      </header>
-
-      <main className="content-shift content-width" style={{ maxWidth: 640, margin: "0 auto", padding: "30px 20px 110px" }}>
-        {view === "home" ? (
-          <HomeView data={data} onAddTodo={addTodo} onToggleTodo={toggleTodo} onDeleteTodo={deleteTodo} onSetAnnualHours={setAnnualHours} />
-        ) : view === "fiches" ? (
-          <FichesView data={data} onAdd={addFiche} onDelete={deleteFiche} onSetDriveFolder={setDriveFolder} />
-        ) : view === "settings" ? (
-          <SettingsView data={data} onImport={importData} theme={theme} setTheme={setTheme} />
-        ) : view === "schedule" ? (
-          <ScheduleView data={data} onSetUrl={setScheduleUrl} onAddSlot={addSlot} onDeleteSlot={deleteSlot} />
-        ) : view === "evaluations" ? (
-          <EvaluationsView data={data} onAdd={addEvaluation} onCycleStatus={cycleEvalStatus} onDelete={deleteEvaluation} onSetGrade={setGrade} />
-        ) : view === "students" ? (
-          <StudentsView data={data} activeClass={activeClass} onAddStudent={addStudent} onUpdateStudent={updateStudent} onDeleteStudent={deleteStudent} />
-        ) : view === "progression" ? (
-          cls ? (
-            <>
-              {cls.themes.length === 0 && !addingTheme && (
-                <EmptyState icon={<IconBook size={26} />} text={`Aucun thème pour ${cls.name} pour l'instant.`} />
-              )}
-              <div className="list-grid">
-                {cls.themes.map((th) => (
-                  <ThemeCard key={th.id} theme={th} onUpdateChapter={updateChapter} onDeleteChapter={deleteChapter} onAddChapter={addChapter} onDeleteTheme={deleteTheme} />
-                ))}
-              </div>
-              {addingTheme ? (
-                <AddThemeForm onAdd={addTheme} onCancel={() => setAddingTheme(false)} />
-              ) : (
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <button onClick={() => setAddingTheme(true)} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 6 }}>
-                    <IconPlus size={14} /> Ajouter un thème pour {cls.name}
-                  </button>
-                  {PROGRAMMES.map((p) => (
-                    <button key={p.id} onClick={() => insertProgramme(p)} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 6 }}>
-                      <IconBook size={14} /> Insérer : {p.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <div style={{ textAlign: "center", padding: 60, color: COLORS.faint, fontFamily: "Inter, sans-serif" }}>Ajoute une classe pour commencer.</div>
-          )
-        ) : (
-          <PlanningView data={data} />
-        )}
-      </main>
-      <BottomNav view={view} setView={setView} />
-      <SideNav view={view} setView={setView} />
-    </div>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
-  });
-}
-</script>
-
-<script>
-  // Transformation manuelle du JSX en JS classique (runtime "classic"),
-  // pour éviter que Babel n'insère un `import` automatique (qui casse
-  // l'exécution puisque ce n'est pas un vrai module JavaScript).
-  var source = document.getElementById("app-source").textContent;
-  var output = Babel.transform(source, {
-    presets: [["react", { runtime: "classic" }]],
-  }).code;
-  var runner = document.createElement("script");
-  runner.textContent = output;
-  document.body.appendChild(runner);
-</script>
-</body>
-</html>
+                
