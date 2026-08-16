@@ -3356,4 +3356,1035 @@ function HomeView({
       flexDirection: "column",
       gap: 9
     }
- 
+  }, upcoming.map((r, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "11px 14px",
+      background: COLORS.panel,
+      border: `1px solid ${COLORS.line}`,
+      boxShadow: CARD_SHADOW,
+      borderRadius: 7,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "IBM Plex Mono, monospace",
+      fontSize: 11.5,
+      color: COLORS.sub,
+      width: 60,
+      flexShrink: 0
+    }
+  }, formatDate(r.date)), /*#__PURE__*/React.createElement(ClassTag, {
+    color: classColor(data, r.classId),
+    name: r.className
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      color: COLORS.ink,
+      flex: 1,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap"
+    }
+  }, r.title), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 11,
+      color: COLORS.faint,
+      flexShrink: 0
+    }
+  }, r.kind))))), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconBook, {
+      size: 15
+    }),
+    title: "Chapitres en cours"
+  }), inProgress.length === 0 ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      color: COLORS.faint
+    }
+  }, "Aucun chapitre en cours actuellement.") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, inProgress.map(r => /*#__PURE__*/React.createElement("div", {
+    key: r.id,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "11px 14px",
+      background: COLORS.wipSoft,
+      borderRadius: 7,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement(ClassTag, {
+    color: classColor(data, r.classId),
+    name: r.className
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      color: COLORS.ink,
+      flex: 1
+    }
+  }, r.title), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "IBM Plex Mono, monospace",
+      fontSize: 11.5,
+      color: COLORS.sub,
+      flexShrink: 0
+    }
+  }, r.done, "/", r.total))))), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconClipboard, {
+      size: 15
+    }),
+    title: "Copies à corriger"
+  }), (() => {
+    const toCorrect = data.evaluations.filter(ev => ev.status === "a_corriger");
+    if (toCorrect.length === 0) {
+      return /*#__PURE__*/React.createElement("p", {
+        style: {
+          fontFamily: "Inter, sans-serif",
+          fontSize: 13,
+          color: COLORS.faint
+        }
+      }, "Rien à corriger pour l'instant.");
+    }
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 9
+      }
+    }, toCorrect.map(ev => {
+      const cls = data.classes[ev.classId];
+      return /*#__PURE__*/React.createElement("div", {
+        key: ev.id,
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "11px 14px",
+          background: COLORS.wipSoft,
+          borderRadius: 7,
+          flexWrap: "wrap"
+        }
+      }, cls && /*#__PURE__*/React.createElement(ClassTag, {
+        color: classColor(data, ev.classId),
+        name: cls.name
+      }), /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontFamily: "Inter, sans-serif",
+          fontSize: 13,
+          color: COLORS.ink,
+          flex: 1
+        }
+      }, ev.title), /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontFamily: "Inter, sans-serif",
+          fontSize: 11,
+          color: COLORS.faint,
+          flexShrink: 0
+        }
+      }, ev.type));
+    }));
+  })())), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 36
+    }
+  }, /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconList, {
+      size: 15
+    }),
+    title: "Pense-bête"
+  }), /*#__PURE__*/React.createElement(TodoList, {
+    todos: data.todos,
+    onAdd: onAddTodo,
+    onToggle: onToggleTodo,
+    onDelete: onDeleteTodo
+  })), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconAlert, {
+      size: 15
+    }),
+    title: "Volume horaire par classe"
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12,
+      color: COLORS.faint,
+      marginTop: -6,
+      marginBottom: 12
+    }
+  }, "Indicatif (1 séance ≈ 1h) — clique sur l'horaire annuel pour l'ajuster à ta dotation réelle."), data.order.map(cid => {
+    const c = data.classes[cid];
+    const planned = c.themes.reduce((s, th) => s + th.chapters.reduce((s2, ch) => s2 + (Number(ch.total) || 0), 0), 0);
+    return /*#__PURE__*/React.createElement(HourBar, {
+      key: cid,
+      label: c.name,
+      planned: planned,
+      annual: c.annualHours,
+      onEditAnnual: v => onSetAnnualHours(cid, v)
+    });
+  })), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconGrad, {
+      size: 15
+    }),
+    title: "Ressources utiles"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, RESOURCE_LINKS.map(r => /*#__PURE__*/React.createElement("a", {
+    key: r.url,
+    href: r.url,
+    target: "_blank",
+    rel: "noreferrer",
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      color: COLORS.accent,
+      textDecoration: "none",
+      padding: "7px 10px",
+      background: COLORS.panel,
+      border: `1px solid ${COLORS.line}`,
+      boxShadow: CARD_SHADOW,
+      borderRadius: 7
+    }
+  }, /*#__PURE__*/React.createElement(IconExternal, {
+    size: 13,
+    style: {
+      flexShrink: 0
+    }
+  }), r.label))))));
+}
+function tabBtn(active) {
+  return {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    fontFamily: "Inter, sans-serif",
+    fontSize: 12.5,
+    fontWeight: 600,
+    color: active ? "#fff" : COLORS.sub,
+    background: active ? COLORS.accent : COLORS.panel,
+    border: `1px solid ${active ? COLORS.accent : COLORS.line}`,
+    borderRadius: 7,
+    padding: "7px 13px",
+    cursor: "pointer"
+  };
+}
+const NAV_ITEMS = [{
+  id: "home",
+  label: "Accueil",
+  icon: IconHome
+}, {
+  id: "progression",
+  label: "Progression",
+  icon: IconGrid
+}, {
+  id: "planning",
+  label: "Planning",
+  icon: IconCalendar
+}, {
+  id: "schedule",
+  label: "Emploi",
+  icon: IconClock
+}, {
+  id: "evaluations",
+  label: "Évals",
+  icon: IconClipboard
+}, {
+  id: "students",
+  label: "Élèves",
+  icon: IconUsers
+}, {
+  id: "fiches",
+  label: "Fiches",
+  icon: IconPaperclip
+}, {
+  id: "settings",
+  label: "Réglages",
+  icon: IconSettings
+}];
+function BottomNav({
+  view,
+  setView
+}) {
+  return /*#__PURE__*/React.createElement("nav", {
+    className: "bottom-nav",
+    style: {
+      position: "fixed",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 20,
+      background: "rgba(250,248,243,0.92)",
+      backdropFilter: "blur(10px)",
+      WebkitBackdropFilter: "blur(10px)",
+      borderTop: `1px solid ${COLORS.line}`,
+      paddingBottom: "env(safe-area-inset-bottom, 0px)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "content-width",
+    style: {
+      maxWidth: 640,
+      margin: "0 auto",
+      display: "flex"
+    }
+  }, NAV_ITEMS.map(item => {
+    const Icon = item.icon;
+    const active = view === item.id;
+    return /*#__PURE__*/React.createElement("button", {
+      key: item.id,
+      onClick: () => setView(item.id),
+      style: {
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 3,
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        padding: "9px 2px 8px",
+        color: active ? COLORS.accent : COLORS.faint
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      size: 19,
+      strokeWidth: active ? 2.1 : 1.7
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 9.5,
+        fontWeight: active ? 700 : 500,
+        letterSpacing: "0.01em"
+      }
+    }, item.label), /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 3,
+        height: 3,
+        borderRadius: "50%",
+        background: active ? COLORS.accent : "transparent"
+      }
+    }));
+  })));
+}
+function SideNav({
+  view,
+  setView
+}) {
+  return /*#__PURE__*/React.createElement("nav", {
+    className: "side-nav",
+    style: {
+      position: "fixed",
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 220,
+      zIndex: 20,
+      flexDirection: "column",
+      padding: "28px 14px",
+      gap: 2,
+      background: COLORS.panel,
+      borderRight: `1px solid ${COLORS.line}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: "Fraunces, serif",
+      fontSize: 17,
+      fontWeight: 600,
+      color: COLORS.accent,
+      padding: "4px 10px 22px",
+      letterSpacing: "-0.01em"
+    }
+  }, "Cahier de progression"), NAV_ITEMS.map(item => {
+    const Icon = item.icon;
+    const active = view === item.id;
+    return /*#__PURE__*/React.createElement("button", {
+      key: item.id,
+      onClick: () => setView(item.id),
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 11,
+        textAlign: "left",
+        background: active ? COLORS.accentSoft : "none",
+        border: "none",
+        cursor: "pointer",
+        padding: "9px 10px",
+        borderRadius: 7,
+        color: active ? COLORS.accent : COLORS.sub,
+        fontFamily: "Inter, sans-serif",
+        fontSize: 13.5,
+        fontWeight: active ? 700 : 500
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      size: 17,
+      strokeWidth: active ? 2.1 : 1.7
+    }), item.label);
+  }));
+}
+function App() {
+  const [data, setData] = useState(null);
+  const [activeClass, setActiveClass] = useState(null);
+  const [view, setView] = useState("home");
+  const [addingTheme, setAddingTheme] = useState(false);
+  const [addingClass, setAddingClass] = useState(false);
+  const [newClassName, setNewClassName] = useState("");
+  const [showProgrammes, setShowProgrammes] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem("theme-v1") || "light";
+    } catch (e) {
+      return "light";
+    }
+  });
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try {
+      localStorage.setItem("theme-v1", theme);
+    } catch (e) {}
+  }, [theme]);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = withDefaults(JSON.parse(raw));
+        setData(parsed);
+        setActiveClass(parsed.order[0] || null);
+      } else {
+        const seed = seedData();
+        setData(seed);
+        setActiveClass(seed.order[0]);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
+      }
+    } catch (e) {
+      console.error(e);
+      const seed = seedData();
+      setData(seed);
+      setActiveClass(seed.order[0]);
+    }
+  }, []);
+  const persist = useCallback(next => {
+    setData(next);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch (e) {
+      console.error("Échec de sauvegarde", e);
+    }
+  }, []);
+  if (!data) {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: COLORS.bg,
+        fontFamily: "Inter, sans-serif",
+        color: COLORS.faint
+      }
+    }, "Chargement du cahier…");
+  }
+  const cls = activeClass ? data.classes[activeClass] : null;
+  const updateChapter = (themeId, chapterVal) => {
+    const next = {
+      ...data
+    };
+    const t = next.classes[activeClass].themes.find(t => t.id === themeId);
+    t.chapters = t.chapters.map(c => c.id === chapterVal.id ? chapterVal : c);
+    persist(next);
+  };
+  const deleteChapter = (themeId, chapterId) => {
+    const next = {
+      ...data
+    };
+    const t = next.classes[activeClass].themes.find(t => t.id === themeId);
+    t.chapters = t.chapters.filter(c => c.id !== chapterId);
+    persist(next);
+  };
+  const addChapter = themeId => {
+    const next = {
+      ...data
+    };
+    const t = next.classes[activeClass].themes.find(t => t.id === themeId);
+    t.chapters.push({
+      id: uid(),
+      title: "Nouveau chapitre",
+      total: 4,
+      done: 0,
+      start: "",
+      end: "",
+      notes: ""
+    });
+    persist(next);
+  };
+  const deleteTheme = themeId => {
+    const next = {
+      ...data
+    };
+    next.classes[activeClass].themes = next.classes[activeClass].themes.filter(t => t.id !== themeId);
+    persist(next);
+  };
+  const addTheme = (title, discipline) => {
+    const next = {
+      ...data
+    };
+    next.classes[activeClass].themes.push({
+      id: uid(),
+      title,
+      discipline,
+      chapters: []
+    });
+    persist(next);
+    setAddingTheme(false);
+  };
+  // Ajoute les thèmes d'un programme officiel à la classe courante, en ignorant
+  // ceux dont le titre est déjà présent (pour ne rien écraser ni dupliquer).
+  const insertProgramme = programme => {
+    const next = {
+      ...data
+    };
+    const cls = next.classes[activeClass];
+    const existing = cls.themes.map(t => t.title.trim().toLowerCase());
+    const toAdd = programme.themes.filter(t => !existing.includes(t.title.trim().toLowerCase()));
+    cls.themes = [...cls.themes, ...toAdd.map(t => ({
+      id: uid(),
+      title: t.title,
+      discipline: t.discipline,
+      chapters: t.chapters.map(c => ({
+        id: uid(),
+        title: c.title,
+        total: c.total,
+        done: 0,
+        start: "",
+        end: "",
+        notes: ""
+      }))
+    }))];
+    persist(next);
+  };
+  const addClass = () => {
+    const name = newClassName.trim();
+    if (!name) return;
+    const id = uid();
+    const next = {
+      ...data
+    };
+    next.order = [...next.order, id];
+    next.classes[id] = {
+      id,
+      name,
+      annualHours: null,
+      students: [],
+      themes: []
+    };
+    setNewClassName("");
+    setAddingClass(false);
+    persist(next);
+    setActiveClass(id);
+  };
+  const deleteClass = id => {
+    const next = {
+      ...data
+    };
+    next.order = next.order.filter(cid => cid !== id);
+    delete next.classes[id];
+    persist(next);
+    if (activeClass === id) setActiveClass(next.order[0] || null);
+  };
+  const addTodo = text => persist({
+    ...data,
+    todos: [...data.todos, {
+      id: uid(),
+      text,
+      done: false
+    }]
+  });
+  const toggleTodo = id => persist({
+    ...data,
+    todos: data.todos.map(t => t.id === id ? {
+      ...t,
+      done: !t.done
+    } : t)
+  });
+  const deleteTodo = id => persist({
+    ...data,
+    todos: data.todos.filter(t => t.id !== id)
+  });
+  const addFiche = f => persist({
+    ...data,
+    fiches: [...data.fiches, {
+      id: uid(),
+      ...f
+    }]
+  });
+  const deleteFiche = id => persist({
+    ...data,
+    fiches: data.fiches.filter(f => f.id !== id)
+  });
+  const setDriveFolder = (cid, url) => persist({
+    ...data,
+    driveFolders: {
+      ...data.driveFolders,
+      [cid]: url
+    }
+  });
+  const importData = raw => {
+    const merged = withDefaults(raw);
+    persist(merged);
+    setActiveClass(merged.order[0] || null);
+  };
+  const setScheduleUrl = url => persist({
+    ...data,
+    schedule: {
+      ...data.schedule,
+      url
+    }
+  });
+  const addSlot = s => persist({
+    ...data,
+    schedule: {
+      ...data.schedule,
+      slots: [...data.schedule.slots, {
+        id: uid(),
+        ...s
+      }]
+    }
+  });
+  const deleteSlot = id => persist({
+    ...data,
+    schedule: {
+      ...data.schedule,
+      slots: data.schedule.slots.filter(s => s.id !== id)
+    }
+  });
+  const addEvaluation = ev => persist({
+    ...data,
+    evaluations: [...data.evaluations, {
+      id: uid(),
+      ...ev
+    }]
+  });
+  const deleteEvaluation = id => persist({
+    ...data,
+    evaluations: data.evaluations.filter(ev => ev.id !== id)
+  });
+  const cycleEvalStatus = id => {
+    const next = {
+      ...data
+    };
+    next.evaluations = next.evaluations.map(ev => {
+      if (ev.id !== id) return ev;
+      const idx = EVAL_STATUS_ORDER.indexOf(ev.status);
+      const nextStatus = EVAL_STATUS_ORDER[(idx + 1) % EVAL_STATUS_ORDER.length];
+      return {
+        ...ev,
+        status: nextStatus
+      };
+    });
+    persist(next);
+  };
+  const setGrade = (evalId, studentId, value) => {
+    const next = {
+      ...data
+    };
+    next.evaluations = next.evaluations.map(ev => ev.id !== evalId ? ev : {
+      ...ev,
+      grades: {
+        ...ev.grades,
+        [studentId]: value
+      }
+    });
+    persist(next);
+  };
+  const addStudent = (cid, name) => {
+    const next = {
+      ...data
+    };
+    next.classes[cid] = {
+      ...next.classes[cid],
+      students: [...next.classes[cid].students, {
+        id: uid(),
+        name,
+        note: ""
+      }]
+    };
+    persist(next);
+  };
+  const updateStudent = (cid, student) => {
+    const next = {
+      ...data
+    };
+    next.classes[cid] = {
+      ...next.classes[cid],
+      students: next.classes[cid].students.map(s => s.id === student.id ? student : s)
+    };
+    persist(next);
+  };
+  const deleteStudent = (cid, sid) => {
+    const next = {
+      ...data
+    };
+    next.classes[cid] = {
+      ...next.classes[cid],
+      students: next.classes[cid].students.filter(s => s.id !== sid)
+    };
+    persist(next);
+  };
+  const setAnnualHours = (cid, hours) => {
+    const next = {
+      ...data
+    };
+    next.classes[cid] = {
+      ...next.classes[cid],
+      annualHours: hours
+    };
+    persist(next);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: COLORS.bg
+    }
+  }, /*#__PURE__*/React.createElement("header", {
+    className: "content-shift",
+    style: {
+      borderBottom: "none",
+      padding: "26px 20px 0",
+      background: COLORS.bg,
+      position: "sticky",
+      top: 0,
+      zIndex: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "content-width",
+    style: {
+      maxWidth: 640,
+      margin: "0 auto"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+      gap: 10,
+      marginBottom: 2
+    }
+  }, /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontFamily: "Fraunces, serif",
+      fontSize: 22,
+      fontWeight: 600,
+      color: COLORS.accent,
+      margin: 0,
+      letterSpacing: "-0.01em"
+    }
+  }, "Cahier de progression"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTheme(theme === "dark" ? "light" : "dark"),
+    title: "Changer de thème",
+    style: {
+      background: "none",
+      border: "none",
+      color: COLORS.faint,
+      cursor: "pointer",
+      padding: 4,
+      display: "flex"
+    }
+  }, theme === "dark" ? /*#__PURE__*/React.createElement(IconSun, {
+    size: 17
+  }) : /*#__PURE__*/React.createElement(IconMoon, {
+    size: 17
+  }))), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12,
+      color: COLORS.faint
+    }
+  }, "Histoire-Géographie"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "flex-end",
+      gap: 18,
+      marginTop: 18,
+      flexWrap: "wrap"
+    }
+  }, data.order.map(cid => {
+    const c = data.classes[cid];
+    const isActive = cid === activeClass;
+    const cColor = classColor(data, cid);
+    return /*#__PURE__*/React.createElement("div", {
+      key: cid,
+      style: {
+        position: "relative",
+        display: "flex",
+        alignItems: "center"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => setActiveClass(cid),
+      style: {
+        fontFamily: "Fraunces, serif",
+        fontSize: 16,
+        fontWeight: isActive ? 600 : 400,
+        color: isActive ? cColor : COLORS.faint,
+        background: "none",
+        border: "none",
+        borderBottom: isActive ? `2px solid ${cColor}` : "2px solid transparent",
+        padding: "4px 2px 10px",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: 7,
+        transition: "color .15s"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        background: cColor,
+        flexShrink: 0,
+        opacity: isActive ? 1 : 0.55
+      }
+    }), c.name, isActive && data.order.length > 1 && /*#__PURE__*/React.createElement("span", {
+      onClick: e => {
+        e.stopPropagation();
+        deleteClass(cid);
+      },
+      title: "Supprimer cette classe",
+      style: {
+        color: COLORS.faint,
+        marginLeft: 2,
+        padding: 3,
+        display: "inline-flex"
+      }
+    }, /*#__PURE__*/React.createElement(IconX, {
+      size: 11
+    }))));
+  }), addingClass ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    autoFocus: true,
+    value: newClassName,
+    onChange: e => setNewClassName(e.target.value),
+    onKeyDown: e => e.key === "Enter" && addClass(),
+    placeholder: "Ex. : 4e",
+    style: {
+      ...inputStyle,
+      width: 100,
+      padding: "5px 8px"
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: addClass,
+    style: {
+      ...btnCircle,
+      color: COLORS.done
+    }
+  }, /*#__PURE__*/React.createElement(IconCheck, {
+    size: 13
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAddingClass(false),
+    style: btnCircle
+  }, /*#__PURE__*/React.createElement(IconX, {
+    size: 13
+  }))) : /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAddingClass(true),
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 4,
+      background: "none",
+      border: "none",
+      color: COLORS.faint,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12.5,
+      cursor: "pointer",
+      padding: "4px 2px 10px"
+    }
+  }, /*#__PURE__*/React.createElement(IconPlus, {
+    size: 12
+  }), " classe"))), /*#__PURE__*/React.createElement("div", {
+    className: "content-width",
+    style: {
+      maxWidth: 640,
+      margin: "0 auto",
+      borderBottom: `1px solid ${COLORS.line}`
+    }
+  })), /*#__PURE__*/React.createElement("main", {
+    className: "content-shift content-width",
+    style: {
+      maxWidth: 640,
+      margin: "0 auto",
+      padding: "30px 20px 110px"
+    }
+  }, view === "home" ? /*#__PURE__*/React.createElement(HomeView, {
+    data: data,
+    onAddTodo: addTodo,
+    onToggleTodo: toggleTodo,
+    onDeleteTodo: deleteTodo,
+    onSetAnnualHours: setAnnualHours
+  }) : view === "fiches" ? /*#__PURE__*/React.createElement(FichesView, {
+    data: data,
+    onAdd: addFiche,
+    onDelete: deleteFiche,
+    onSetDriveFolder: setDriveFolder
+  }) : view === "settings" ? /*#__PURE__*/React.createElement(SettingsView, {
+    data: data,
+    onImport: importData,
+    theme: theme,
+    setTheme: setTheme
+  }) : view === "schedule" ? /*#__PURE__*/React.createElement(ScheduleView, {
+    data: data,
+    onSetUrl: setScheduleUrl,
+    onAddSlot: addSlot,
+    onDeleteSlot: deleteSlot
+  }) : view === "evaluations" ? /*#__PURE__*/React.createElement(EvaluationsView, {
+    data: data,
+    onAdd: addEvaluation,
+    onCycleStatus: cycleEvalStatus,
+    onDelete: deleteEvaluation,
+    onSetGrade: setGrade
+  }) : view === "students" ? /*#__PURE__*/React.createElement(StudentsView, {
+    data: data,
+    activeClass: activeClass,
+    onAddStudent: addStudent,
+    onUpdateStudent: updateStudent,
+    onDeleteStudent: deleteStudent
+  }) : view === "progression" ? cls ? /*#__PURE__*/React.createElement(React.Fragment, null, cls.themes.length === 0 && !addingTheme && /*#__PURE__*/React.createElement(EmptyState, {
+    icon: /*#__PURE__*/React.createElement(IconBook, {
+      size: 26
+    }),
+    text: `Aucun thème pour ${cls.name} pour l'instant.`
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "list-grid"
+  }, cls.themes.map(th => /*#__PURE__*/React.createElement(ThemeCard, {
+    key: th.id,
+    theme: th,
+    onUpdateChapter: updateChapter,
+    onDeleteChapter: deleteChapter,
+    onAddChapter: addChapter,
+    onDeleteTheme: deleteTheme
+  }))), addingTheme ? /*#__PURE__*/React.createElement(AddThemeForm, {
+    onAdd: addTheme,
+    onCancel: () => setAddingTheme(false)
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAddingTheme(true),
+    style: {
+      ...ghostBtn,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement(IconPlus, {
+    size: 14
+  }), " Ajouter un thème pour ", cls.name), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setShowProgrammes(!showProgrammes),
+    style: {
+      ...ghostBtn,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement(IconBook, {
+    size: 14
+  }), " Insérer un programme officiel")), showProgrammes && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.encadre,
+      borderRadius: 10,
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12.5,
+      color: COLORS.sub,
+      marginTop: 0,
+      marginBottom: 12,
+      lineHeight: 1.5
+    }
+  }, "Les thèmes sont ajoutés à ", /*#__PURE__*/React.createElement("strong", null, cls.name), ". Ceux déjà présents sont ignorés, rien n'est écrasé."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 7
+    }
+  }, PROGRAMMES.map(p => /*#__PURE__*/React.createElement("button", {
+    key: p.id,
+    onClick: () => {
+      insertProgramme(p);
+      setShowProgrammes(false);
+    },
+    style: {
+      ...ghostBtn,
+      background: COLORS.panel,
+      textAlign: "left",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", null, p.label), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "IBM Plex Mono, monospace",
+      fontSize: 11,
+      color: COLORS.faint,
+      flexShrink: 0
+    }
+  }, p.themes.length, " thèmes · ", p.themes.reduce((s, t) => s + t.chapters.length, 0), " chapitres"))))))) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      padding: 60,
+      color: COLORS.faint,
+      fontFamily: "Inter, sans-serif"
+    }
+  }, "Ajoute une classe pour commencer.") : /*#__PURE__*/React.createElement(PlanningView, {
+    data: data
+  })), /*#__PURE__*/React.createElement(BottomNav, {
+    view: view,
+    setView: setView
+  }), /*#__PURE__*/React.createElement(SideNav, {
+    view: view,
+    setView: setView
+  }));
+}
+ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(App, null));
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
