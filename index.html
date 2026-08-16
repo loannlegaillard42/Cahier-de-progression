@@ -230,6 +230,49 @@ const EVAL_STATUS_COLOR = { a_faire: COLORS.todo, a_corriger: COLORS.wip, termin
 const EVAL_STATUS_SOFT = { a_faire: COLORS.todoSoft, a_corriger: COLORS.wipSoft, termine: COLORS.doneSoft };
 const EVAL_STATUS_ORDER = ["a_faire", "a_corriger", "termine"];
 
+// Programmes officiels prêts à insérer dans une classe, pour éviter de ressaisir
+// toute l'architecture des thèmes et chapitres en début d'année.
+const PROGRAMMES = [
+  {
+    id: "2nde-histoire",
+    label: "Seconde — Histoire (programme 2020, 48h)",
+    themes: [
+      {
+        title: "Le monde méditerranéen : empreintes de l'Antiquité et du Moyen Âge",
+        discipline: "histoire",
+        chapters: [
+          { title: "Chapitre 0 : La périodisation", total: 2 },
+          { title: "Chapitre 1 : La Méditerranée antique : les empreintes grecques et romaines", total: 6 },
+          { title: "Chapitre 2 : La Méditerranée médiévale : espace d'échanges et de conflits à la croisée de trois civilisations", total: 6 },
+        ],
+      },
+      {
+        title: "XVe-XVIe siècles : un nouveau rapport au monde, un temps de mutation intellectuelle",
+        discipline: "histoire",
+        chapters: [
+          { title: "Chapitre 1 : L'ouverture atlantique : les conséquences de la découverte du « Nouveau Monde »", total: 6 },
+          { title: "Chapitre 2 : Humanisme, Renaissance et réformes religieuses", total: 5 },
+        ],
+      },
+      {
+        title: "L'État à l'époque moderne : France et Angleterre",
+        discipline: "histoire",
+        chapters: [
+          { title: "Chapitre 1 : L'affirmation de l'État dans le royaume de France", total: 6 },
+          { title: "Chapitre 2 : Le modèle britannique et son influence", total: 6 },
+        ],
+      },
+      {
+        title: "Dynamiques et ruptures dans les sociétés des XVIIe et XVIIIe siècles",
+        discipline: "histoire",
+        chapters: [
+          { title: "Chapitre : Les Lumières et les mutations des sociétés des XVIIe et XVIIIe siècles", total: 11 },
+        ],
+      },
+    ],
+  },
+];
+
 function useDebouncedSave(saveFn, delay = 500) {
   const timer = useRef(null);
   return useCallback((value) => {
@@ -1547,6 +1590,26 @@ function App() {
     persist(next);
     setAddingTheme(false);
   };
+  // Ajoute les thèmes d'un programme officiel à la classe courante, en ignorant
+  // ceux dont le titre est déjà présent (pour ne rien écraser ni dupliquer).
+  const insertProgramme = (programme) => {
+    const next = { ...data };
+    const cls = next.classes[activeClass];
+    const existing = cls.themes.map((t) => t.title.trim().toLowerCase());
+    const toAdd = programme.themes.filter((t) => !existing.includes(t.title.trim().toLowerCase()));
+    cls.themes = [
+      ...cls.themes,
+      ...toAdd.map((t) => ({
+        id: uid(),
+        title: t.title,
+        discipline: t.discipline,
+        chapters: t.chapters.map((c) => ({
+          id: uid(), title: c.title, total: c.total, done: 0, start: "", end: "", notes: "",
+        })),
+      })),
+    ];
+    persist(next);
+  };
   const addClass = () => {
     const name = newClassName.trim();
     if (!name) return;
@@ -1699,9 +1762,16 @@ function App() {
               {addingTheme ? (
                 <AddThemeForm onAdd={addTheme} onCancel={() => setAddingTheme(false)} />
               ) : (
-                <button onClick={() => setAddingTheme(true)} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 6 }}>
-                  <IconPlus size={14} /> Ajouter un thème pour {cls.name}
-                </button>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <button onClick={() => setAddingTheme(true)} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 6 }}>
+                    <IconPlus size={14} /> Ajouter un thème pour {cls.name}
+                  </button>
+                  {PROGRAMMES.map((p) => (
+                    <button key={p.id} onClick={() => insertProgramme(p)} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 6 }}>
+                      <IconBook size={14} /> Insérer : {p.label}
+                    </button>
+                  ))}
+                </div>
               )}
             </>
           ) : (
