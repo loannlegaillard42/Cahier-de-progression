@@ -80,7 +80,6 @@
 
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script>
   // Applique le thème choisi avant le premier rendu, pour éviter un flash clair
   try {
@@ -92,22 +91,40 @@
 <body>
 <div id="root"></div>
 
-<script type="text/plain" id="app-source">
-const { useState, useEffect, useRef, useCallback } = React;
+<script>
+const {
+  useState,
+  useEffect,
+  useRef,
+  useCallback
+} = React;
 
 /* ---------- design tokens ---------- */
 const COLORS = {
-  bg: "var(--bg)", panel: "var(--panel)", ink: "var(--ink)", sub: "var(--sub)", faint: "var(--faint)",
-  line: "var(--line)", encadre: "var(--encadre)", accent: "var(--accent)", accentSoft: "var(--accentSoft)",
-  histoire: "var(--histoire)", histoireSoft: "var(--histoireSoft)", geo: "var(--geo)", geoSoft: "var(--geoSoft)",
-  todo: "var(--todo)", todoSoft: "var(--todoSoft)", wip: "var(--wip)", wipSoft: "var(--wipSoft)",
-  done: "var(--done)", doneSoft: "var(--doneSoft)",
+  bg: "var(--bg)",
+  panel: "var(--panel)",
+  ink: "var(--ink)",
+  sub: "var(--sub)",
+  faint: "var(--faint)",
+  line: "var(--line)",
+  encadre: "var(--encadre)",
+  accent: "var(--accent)",
+  accentSoft: "var(--accentSoft)",
+  histoire: "var(--histoire)",
+  histoireSoft: "var(--histoireSoft)",
+  geo: "var(--geo)",
+  geoSoft: "var(--geoSoft)",
+  todo: "var(--todo)",
+  todoSoft: "var(--todoSoft)",
+  wip: "var(--wip)",
+  wipSoft: "var(--wipSoft)",
+  done: "var(--done)",
+  doneSoft: "var(--doneSoft)"
 };
 
 // Ombre très subtile pour donner une légère élévation aux cartes,
 // plus douce qu'une bordure dure — remplace border seul sur les panneaux.
 const CARD_SHADOW = "0 1px 2px var(--shadow), 0 1px 5px var(--shadow)";
-
 const uid = () => Math.random().toString(36).slice(2, 10);
 const STORAGE_KEY = "progtracker-data-v1";
 
@@ -120,348 +137,734 @@ function classColor(data, cid) {
 }
 
 /* ---------- minimal icon set (no external dependency) ---------- */
-function Icon({ children, size = 15, color = "currentColor", strokeWidth = 1.8 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
-      strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
-      {children}
-    </svg>
-  );
+function Icon({
+  children,
+  size = 15,
+  color = "currentColor",
+  strokeWidth = 1.8
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: color,
+    strokeWidth: strokeWidth,
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, children);
 }
-const IconPlus = (p) => <Icon {...p}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Icon>;
-const IconX = (p) => <Icon {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Icon>;
-const IconCheck = (p) => <Icon {...p}><polyline points="20 6 9 17 4 12"/></Icon>;
-const IconChevronDown = (p) => <Icon {...p}><polyline points="6 9 12 15 18 9"/></Icon>;
-const IconChevronRight = (p) => <Icon {...p}><polyline points="9 18 15 12 9 6"/></Icon>;
-const IconTrash = (p) => <Icon {...p}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></Icon>;
-const IconCalendar = (p) => <Icon {...p}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></Icon>;
-const IconBook = (p) => <Icon {...p}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></Icon>;
-const IconHome = (p) => <Icon {...p}><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></Icon>;
-const IconList = (p) => <Icon {...p}><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5"/><circle cx="4" cy="12" r="1.5"/><circle cx="4" cy="18" r="1.5"/></Icon>;
-const IconExternal = (p) => <Icon {...p}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></Icon>;
-const IconAlert = (p) => <Icon {...p}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></Icon>;
-const IconGrad = (p) => <Icon {...p}><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></Icon>;
-const IconClock = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Icon>;
-const IconGrid = (p) => <Icon {...p}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></Icon>;
-const IconPaperclip = (p) => <Icon {...p}><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></Icon>;
-const IconLink = (p) => <Icon {...p}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></Icon>;
-const IconFileText = (p) => <Icon {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></Icon>;
-const IconUpload = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></Icon>;
-const IconClipboard = (p) => <Icon {...p}><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"/><path d="M9 12l2 2 4-4"/></Icon>;
-const IconUsers = (p) => <Icon {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Icon>;
-const IconSun = (p) => <Icon {...p}><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></Icon>;
-const IconMoon = (p) => <Icon {...p}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></Icon>;
-const IconSettings = (p) => <Icon {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10.6 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1.51H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></Icon>;
-const IconDownload = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Icon>;
-
-const RESOURCE_LINKS = [
-  { label: "Éduscol — Histoire-géographie collège", url: "https://eduscol.education.gouv.fr/31218/domaines-enseignement/histoire-geographie-college" },
-  { label: "Éduscol — Programmes et ressources lycée (voie GT)", url: "https://eduscol.education.gouv.fr/5799/programmes-et-ressources-en-histoire-geographie-voie-gt" },
-  { label: "Éduscol — Ressources d'accompagnement cycle 4", url: "https://eduscol.education.gouv.fr/5730/ressources-d-accompagnement-du-programme-d-histoire-geographie-au-cycle-4" },
-];
-
+const IconPlus = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("line", {
+  x1: "12",
+  y1: "5",
+  x2: "12",
+  y2: "19"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "5",
+  y1: "12",
+  x2: "19",
+  y2: "12"
+}));
+const IconX = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("line", {
+  x1: "18",
+  y1: "6",
+  x2: "6",
+  y2: "18"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "6",
+  y1: "6",
+  x2: "18",
+  y2: "18"
+}));
+const IconCheck = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("polyline", {
+  points: "20 6 9 17 4 12"
+}));
+const IconChevronDown = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("polyline", {
+  points: "6 9 12 15 18 9"
+}));
+const IconChevronRight = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("polyline", {
+  points: "9 18 15 12 9 6"
+}));
+const IconTrash = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("polyline", {
+  points: "3 6 5 6 21 6"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M10 11v6M14 11v6"
+}));
+const IconCalendar = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("rect", {
+  x: "3",
+  y: "4",
+  width: "18",
+  height: "18",
+  rx: "2"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "16",
+  y1: "2",
+  x2: "16",
+  y2: "6"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "8",
+  y1: "2",
+  x2: "8",
+  y2: "6"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "3",
+  y1: "10",
+  x2: "21",
+  y2: "10"
+}));
+const IconBook = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("path", {
+  d: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+}));
+const IconHome = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("path", {
+  d: "M3 11l9-8 9 8"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M5 10v10h14V10"
+}));
+const IconList = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("line", {
+  x1: "9",
+  y1: "6",
+  x2: "20",
+  y2: "6"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "9",
+  y1: "12",
+  x2: "20",
+  y2: "12"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "9",
+  y1: "18",
+  x2: "20",
+  y2: "18"
+}), /*#__PURE__*/React.createElement("circle", {
+  cx: "4",
+  cy: "6",
+  r: "1.5"
+}), /*#__PURE__*/React.createElement("circle", {
+  cx: "4",
+  cy: "12",
+  r: "1.5"
+}), /*#__PURE__*/React.createElement("circle", {
+  cx: "4",
+  cy: "18",
+  r: "1.5"
+}));
+const IconExternal = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("path", {
+  d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+}), /*#__PURE__*/React.createElement("polyline", {
+  points: "15 3 21 3 21 9"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "10",
+  y1: "14",
+  x2: "21",
+  y2: "3"
+}));
+const IconAlert = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("path", {
+  d: "M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "12",
+  y1: "9",
+  x2: "12",
+  y2: "13"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "12",
+  y1: "17",
+  x2: "12.01",
+  y2: "17"
+}));
+const IconGrad = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("path", {
+  d: "M22 10L12 5 2 10l10 5 10-5z"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"
+}));
+const IconClock = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("circle", {
+  cx: "12",
+  cy: "12",
+  r: "10"
+}), /*#__PURE__*/React.createElement("polyline", {
+  points: "12 6 12 12 16 14"
+}));
+const IconGrid = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("rect", {
+  x: "3",
+  y: "3",
+  width: "7",
+  height: "7"
+}), /*#__PURE__*/React.createElement("rect", {
+  x: "14",
+  y: "3",
+  width: "7",
+  height: "7"
+}), /*#__PURE__*/React.createElement("rect", {
+  x: "3",
+  y: "14",
+  width: "7",
+  height: "7"
+}), /*#__PURE__*/React.createElement("rect", {
+  x: "14",
+  y: "14",
+  width: "7",
+  height: "7"
+}));
+const IconPaperclip = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("path", {
+  d: "M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+}));
+const IconLink = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("path", {
+  d: "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+}));
+const IconFileText = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("path", {
+  d: "M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"
+}), /*#__PURE__*/React.createElement("polyline", {
+  points: "14 2 14 8 20 8"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "8",
+  y1: "13",
+  x2: "16",
+  y2: "13"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "8",
+  y1: "17",
+  x2: "16",
+  y2: "17"
+}));
+const IconUpload = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("path", {
+  d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+}), /*#__PURE__*/React.createElement("polyline", {
+  points: "17 8 12 3 7 8"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "12",
+  y1: "3",
+  x2: "12",
+  y2: "15"
+}));
+const IconClipboard = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("rect", {
+  x: "8",
+  y: "2",
+  width: "8",
+  height: "4",
+  rx: "1"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M9 12l2 2 4-4"
+}));
+const IconUsers = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("path", {
+  d: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+}), /*#__PURE__*/React.createElement("circle", {
+  cx: "9",
+  cy: "7",
+  r: "4"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M23 21v-2a4 4 0 0 0-3-3.87"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M16 3.13a4 4 0 0 1 0 7.75"
+}));
+const IconSun = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("circle", {
+  cx: "12",
+  cy: "12",
+  r: "4"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+}));
+const IconMoon = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("path", {
+  d: "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+}));
+const IconSettings = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("circle", {
+  cx: "12",
+  cy: "12",
+  r: "3"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10.6 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1.51H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+}));
+const IconDownload = p => /*#__PURE__*/React.createElement(Icon, p, /*#__PURE__*/React.createElement("path", {
+  d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+}), /*#__PURE__*/React.createElement("polyline", {
+  points: "7 10 12 15 17 10"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "12",
+  y1: "15",
+  x2: "12",
+  y2: "3"
+}));
+const RESOURCE_LINKS = [{
+  label: "Éduscol — Histoire-géographie collège",
+  url: "https://eduscol.education.gouv.fr/31218/domaines-enseignement/histoire-geographie-college"
+}, {
+  label: "Éduscol — Programmes et ressources lycée (voie GT)",
+  url: "https://eduscol.education.gouv.fr/5799/programmes-et-ressources-en-histoire-geographie-voie-gt"
+}, {
+  label: "Éduscol — Ressources d'accompagnement cycle 4",
+  url: "https://eduscol.education.gouv.fr/5730/ressources-d-accompagnement-du-programme-d-histoire-geographie-au-cycle-4"
+}];
 const seedData = () => ({
   order: ["5e", "2nde", "1ere"],
-  todos: [
-    { id: uid(), text: "Préparer le trousseau de rentrée (cahier de textes, listes, règlement)", done: false },
-    { id: uid(), text: "Repérer les élèves à PAP/PAI dans chaque classe", done: false },
-    { id: uid(), text: "Imprimer les fiches d'objectifs pour les premiers chapitres", done: false },
-  ],
+  todos: [{
+    id: uid(),
+    text: "Préparer le trousseau de rentrée (cahier de textes, listes, règlement)",
+    done: false
+  }, {
+    id: uid(),
+    text: "Repérer les élèves à PAP/PAI dans chaque classe",
+    done: false
+  }, {
+    id: uid(),
+    text: "Imprimer les fiches d'objectifs pour les premiers chapitres",
+    done: false
+  }],
   fiches: [],
-  schedule: { url: "", slots: [] },
+  schedule: {
+    url: "",
+    slots: []
+  },
   driveFolders: {
     "5e": "https://drive.google.com/drive/folders/1UuWvnBc0gaTQNZfMAoYuYH3_TlpBDzPv",
     "2nde": "https://drive.google.com/drive/folders/18XfyvbduCZ9fSIc3yVGKY8ZyLtKBffRo",
-    "1ere": "https://drive.google.com/drive/folders/1uxQd8v3FA8oefI6Gpg-ehH74PNoKBdS0",
+    "1ere": "https://drive.google.com/drive/folders/1uxQd8v3FA8oefI6Gpg-ehH74PNoKBdS0"
   },
   evaluations: [],
   classes: {
-    "5e": { id: "5e", name: "5e", annualHours: 108, students: [], themes: [
-      { id: uid(), title: "Chrétientés et Islam, des mondes en contact (VIe-XIIIe s.)", discipline: "histoire", chapters: [
-        { id: uid(), title: "L'Empire byzantin", total: 4, done: 0, start: "", end: "", notes: "" },
-        { id: uid(), title: "La naissance et la diffusion de l'Islam", total: 4, done: 0, start: "", end: "", notes: "" },
-        { id: uid(), title: "L'Empire carolingien", total: 4, done: 0, start: "", end: "", notes: "" },
-      ]},
-      { id: uid(), title: "La question démographique et l'inégal développement", discipline: "geo", chapters: [
-        { id: uid(), title: "La croissance démographique et ses effets", total: 4, done: 0, start: "", end: "", notes: "" },
-        { id: uid(), title: "Répartition de la richesse et de la pauvreté dans le monde", total: 5, done: 0, start: "", end: "", notes: "Dossier complet déjà prêt (diaporama, activités échelles, IDH/PIB, croquis São Paulo, éval)." },
-      ]},
-      { id: uid(), title: "Des ressources limitées, à gérer et à renouveler", discipline: "geo", chapters: [
-        { id: uid(), title: "L'énergie, l'eau : des ressources à ménager et à mieux utiliser", total: 6, done: 0, start: "", end: "", notes: "Études de cas : eau au Moyen-Orient / énergie aux États-Unis." },
-      ]},
-    ]},
-    "2nde": { id: "2nde", name: "Seconde", annualHours: 108, students: [], themes: [
-      { id: uid(), title: "Le monde méditerranéen : empreintes de l'Antiquité et du Moyen Âge", discipline: "histoire", chapters: [
-        { id: uid(), title: "La Méditerranée grecque et romaine (Antiquité)", total: 6, done: 0, start: "", end: "", notes: "" },
-        { id: uid(), title: "La Méditerranée médiévale : espace d'échanges et de conflits", total: 6, done: 0, start: "", end: "", notes: "PPO : Bernard de Clairvaux / Venise." },
-      ]},
-      { id: uid(), title: "Sociétés et environnements : des équilibres fragiles", discipline: "geo", chapters: [
-        { id: uid(), title: "Risques et tensions sur les ressources", total: 5, done: 5, start: "", end: "", notes: "Étude de cas Arctique, fiches Japon/Turquie." },
-      ]},
-    ]},
-    "1ere": { id: "1ere", name: "Première", annualHours: null, students: [], themes: [] },
-  },
+    "5e": {
+      id: "5e",
+      name: "5e",
+      annualHours: 108,
+      students: [],
+      themes: [{
+        id: uid(),
+        title: "Chrétientés et Islam, des mondes en contact (VIe-XIIIe s.)",
+        discipline: "histoire",
+        chapters: [{
+          id: uid(),
+          title: "L'Empire byzantin",
+          total: 4,
+          done: 0,
+          start: "",
+          end: "",
+          notes: ""
+        }, {
+          id: uid(),
+          title: "La naissance et la diffusion de l'Islam",
+          total: 4,
+          done: 0,
+          start: "",
+          end: "",
+          notes: ""
+        }, {
+          id: uid(),
+          title: "L'Empire carolingien",
+          total: 4,
+          done: 0,
+          start: "",
+          end: "",
+          notes: ""
+        }]
+      }, {
+        id: uid(),
+        title: "La question démographique et l'inégal développement",
+        discipline: "geo",
+        chapters: [{
+          id: uid(),
+          title: "La croissance démographique et ses effets",
+          total: 4,
+          done: 0,
+          start: "",
+          end: "",
+          notes: ""
+        }, {
+          id: uid(),
+          title: "Répartition de la richesse et de la pauvreté dans le monde",
+          total: 5,
+          done: 0,
+          start: "",
+          end: "",
+          notes: "Dossier complet déjà prêt (diaporama, activités échelles, IDH/PIB, croquis São Paulo, éval)."
+        }]
+      }, {
+        id: uid(),
+        title: "Des ressources limitées, à gérer et à renouveler",
+        discipline: "geo",
+        chapters: [{
+          id: uid(),
+          title: "L'énergie, l'eau : des ressources à ménager et à mieux utiliser",
+          total: 6,
+          done: 0,
+          start: "",
+          end: "",
+          notes: "Études de cas : eau au Moyen-Orient / énergie aux États-Unis."
+        }]
+      }]
+    },
+    "2nde": {
+      id: "2nde",
+      name: "Seconde",
+      annualHours: 108,
+      students: [],
+      themes: [{
+        id: uid(),
+        title: "Le monde méditerranéen : empreintes de l'Antiquité et du Moyen Âge",
+        discipline: "histoire",
+        chapters: [{
+          id: uid(),
+          title: "La Méditerranée grecque et romaine (Antiquité)",
+          total: 6,
+          done: 0,
+          start: "",
+          end: "",
+          notes: ""
+        }, {
+          id: uid(),
+          title: "La Méditerranée médiévale : espace d'échanges et de conflits",
+          total: 6,
+          done: 0,
+          start: "",
+          end: "",
+          notes: "PPO : Bernard de Clairvaux / Venise."
+        }]
+      }, {
+        id: uid(),
+        title: "Sociétés et environnements : des équilibres fragiles",
+        discipline: "geo",
+        chapters: [{
+          id: uid(),
+          title: "Risques et tensions sur les ressources",
+          total: 5,
+          done: 5,
+          start: "",
+          end: "",
+          notes: "Étude de cas Arctique, fiches Japon/Turquie."
+        }]
+      }]
+    },
+    "1ere": {
+      id: "1ere",
+      name: "Première",
+      annualHours: null,
+      students: [],
+      themes: []
+    }
+  }
 });
-
 function withDefaults(raw) {
-  const data = { ...raw };
+  const data = {
+    ...raw
+  };
   if (!Array.isArray(data.todos)) data.todos = [];
   if (!Array.isArray(data.fiches)) data.fiches = [];
   if (!Array.isArray(data.evaluations)) data.evaluations = [];
   if (!data.driveFolders || typeof data.driveFolders !== "object") data.driveFolders = {};
-  if (!data.schedule || typeof data.schedule !== "object") data.schedule = { url: "", slots: [] };
+  if (!data.schedule || typeof data.schedule !== "object") data.schedule = {
+    url: "",
+    slots: []
+  };
   if (!Array.isArray(data.schedule.slots)) data.schedule.slots = [];
   if (typeof data.schedule.url !== "string") data.schedule.url = "";
-  data.order.forEach((cid) => {
+  data.order.forEach(cid => {
     const c = data.classes[cid];
     if (c && c.annualHours === undefined) c.annualHours = null;
     if (c && !Array.isArray(c.students)) c.students = [];
   });
-  data.evaluations.forEach((ev) => {
+  data.evaluations.forEach(ev => {
     if (!ev.grades || typeof ev.grades !== "object") ev.grades = {};
   });
   return data;
 }
-
 const DAYS_FR = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 const EVAL_TYPES = ["Contrôle", "DST", "Oral", "DM", "Autre"];
-const EVAL_STATUS = { a_faire: "À venir", a_corriger: "À corriger", termine: "Terminée" };
-const EVAL_STATUS_COLOR = { a_faire: COLORS.todo, a_corriger: COLORS.wip, termine: COLORS.done };
-const EVAL_STATUS_SOFT = { a_faire: COLORS.todoSoft, a_corriger: COLORS.wipSoft, termine: COLORS.doneSoft };
+const EVAL_STATUS = {
+  a_faire: "À venir",
+  a_corriger: "À corriger",
+  termine: "Terminée"
+};
+const EVAL_STATUS_COLOR = {
+  a_faire: COLORS.todo,
+  a_corriger: COLORS.wip,
+  termine: COLORS.done
+};
+const EVAL_STATUS_SOFT = {
+  a_faire: COLORS.todoSoft,
+  a_corriger: COLORS.wipSoft,
+  termine: COLORS.doneSoft
+};
 const EVAL_STATUS_ORDER = ["a_faire", "a_corriger", "termine"];
 
 // Programmes officiels prêts à insérer dans une classe, pour éviter de ressaisir
 // toute l'architecture des thèmes et chapitres en début d'année.
-const PROGRAMMES = [
-  {
-    id: "5e-histoire",
-    label: "5e — Histoire",
-    themes: [
-      {
-        title: "Chrétientés et islam (VIe-XIIIe siècles), des mondes en contact",
-        discipline: "histoire",
-        chapters: [
-          { title: "Byzance et l'Europe carolingienne", total: 4 },
-          { title: "De la naissance de l'islam à la prise de Bagdad par les Mongols", total: 4 },
-        ],
-      },
-      {
-        title: "Société, Église et pouvoir politique dans l'Occident féodal (XIe-XVe siècles)",
-        discipline: "histoire",
-        chapters: [
-          { title: "L'ordre seigneurial : la formation et la domination des campagnes", total: 4 },
-          { title: "L'émergence d'une nouvelle société urbaine", total: 4 },
-          { title: "L'affirmation de l'État monarchique dans le royaume des Capétiens et des Valois", total: 4 },
-        ],
-      },
-      {
-        title: "Transformations de l'Europe et ouverture sur le monde aux XVIe et XVIIe siècles",
-        discipline: "histoire",
-        chapters: [
-          { title: "Le monde au temps de Charles Quint et Soliman le Magnifique", total: 4 },
-          { title: "Humanisme, réformes et conflits religieux", total: 4 },
-          { title: "Du Prince de la Renaissance au roi absolu", total: 4 },
-        ],
-      },
-    ],
-  },
-  {
-    id: "5e-geographie",
-    label: "5e — Géographie",
-    themes: [
-      {
-        title: "La question démographique et l'inégal développement",
-        discipline: "geo",
-        chapters: [
-          { title: "La croissance démographique et ses effets", total: 4 },
-          { title: "Répartition de la richesse et de la pauvreté dans le monde", total: 5 },
-        ],
-      },
-      {
-        title: "Des ressources limitées, à gérer et à renouveler",
-        discipline: "geo",
-        chapters: [
-          { title: "L'énergie, l'eau : des ressources à ménager et à mieux utiliser", total: 6 },
-          { title: "L'alimentation : comment nourrir une humanité en croissance démographique et aux besoins alimentaires accrus ?", total: 5 },
-        ],
-      },
-      {
-        title: "Prévenir les risques, s'adapter au changement global",
-        discipline: "geo",
-        chapters: [
-          { title: "Le changement global et ses principaux effets géographiques régionaux", total: 5 },
-          { title: "Prévenir les risques industriels et technologiques", total: 4 },
-        ],
-      },
-    ],
-  },
-  {
-    id: "2nde-histoire",
-    label: "2nde — Histoire (48h)",
-    themes: [
-      {
-        title: "Le monde méditerranéen : empreintes de l'Antiquité et du Moyen Âge",
-        discipline: "histoire",
-        chapters: [
-          { title: "Chapitre 0 : La périodisation", total: 2 },
-          { title: "Chapitre 1 : La Méditerranée antique : les empreintes grecques et romaines", total: 6 },
-          { title: "Chapitre 2 : La Méditerranée médiévale : espace d'échanges et de conflits à la croisée de trois civilisations", total: 6 },
-        ],
-      },
-      {
-        title: "XVe-XVIe siècles : un nouveau rapport au monde, un temps de mutation intellectuelle",
-        discipline: "histoire",
-        chapters: [
-          { title: "Chapitre 1 : L'ouverture atlantique : les conséquences de la découverte du « Nouveau Monde »", total: 6 },
-          { title: "Chapitre 2 : Humanisme, Renaissance et réformes religieuses", total: 5 },
-        ],
-      },
-      {
-        title: "L'État à l'époque moderne : France et Angleterre",
-        discipline: "histoire",
-        chapters: [
-          { title: "Chapitre 1 : L'affirmation de l'État dans le royaume de France", total: 6 },
-          { title: "Chapitre 2 : Le modèle britannique et son influence", total: 6 },
-        ],
-      },
-      {
-        title: "Dynamiques et ruptures dans les sociétés des XVIIe et XVIIIe siècles",
-        discipline: "histoire",
-        chapters: [
-          { title: "Chapitre : Les Lumières et les mutations des sociétés des XVIIe et XVIIIe siècles", total: 11 },
-        ],
-      },
-    ],
-  },
-  {
-    id: "2nde-geographie",
-    label: "2nde — Géographie (48h)",
-    themes: [
-      {
-        title: "Sociétés et environnements : des équilibres fragiles",
-        discipline: "geo",
-        chapters: [
-          { title: "Les sociétés face aux risques", total: 5 },
-          { title: "Des ressources majeures sous pression : tensions, gestion", total: 4 },
-          { title: "Étude de cas et croquis", total: 3 },
-        ],
-      },
-      {
-        title: "Territoires, populations et développement : quels défis ?",
-        discipline: "geo",
-        chapters: [
-          { title: "Des trajectoires démographiques différenciées : les défis du nombre et du vieillissement", total: 6 },
-          { title: "Développement et inégalités", total: 6 },
-        ],
-      },
-      {
-        title: "Des mobilités généralisées",
-        discipline: "geo",
-        chapters: [
-          { title: "Les migrations internationales", total: 6 },
-          { title: "Les mobilités touristiques internationales", total: 6 },
-        ],
-      },
-      {
-        title: "L'Afrique australe : un espace en profonde mutation (thème conclusif)",
-        discipline: "geo",
-        chapters: [
-          { title: "L'Afrique australe : un espace en profonde mutation", total: 6 },
-        ],
-      },
-    ],
-  },
-  {
-    id: "1ere-histoire",
-    label: "1ère — Histoire (48h)",
-    themes: [
-      {
-        title: "L'Europe face aux révolutions",
-        discipline: "histoire",
-        chapters: [
-          { title: "Chapitre 1 : La Révolution française et l'Empire : une nouvelle conception de la nation", total: 7 },
-          { title: "Chapitre 2 : L'Europe entre restauration et révolution (1814-1848)", total: 5 },
-        ],
-      },
-      {
-        title: "La France dans l'Europe des nationalités : politique et société (1848-1871)",
-        discipline: "histoire",
-        chapters: [
-          { title: "Chapitre 1 : La difficile entrée dans l'âge démocratique : la Deuxième République et le Second Empire", total: 4 },
-          { title: "Chapitre 2 : L'industrialisation et l'accélération des transformations économiques et sociales en France", total: 4 },
-          { title: "Chapitre 3 : La France et la construction de nouveaux États par la guerre et la diplomatie", total: 4 },
-        ],
-      },
-      {
-        title: "La Troisième République avant 1914 : un régime politique, un empire colonial",
-        discipline: "histoire",
-        chapters: [
-          { title: "Chapitre 1 : La mise en œuvre du projet républicain", total: 6 },
-          { title: "Chapitre 2 : Permanences et mutations de la société française jusqu'en 1914", total: 3 },
-          { title: "Chapitre 3 : Métropole et colonies", total: 4 },
-        ],
-      },
-      {
-        title: "La Première Guerre mondiale : le « suicide de l'Europe » et la fin des empires européens",
-        discipline: "histoire",
-        chapters: [
-          { title: "Chapitre 1 : Un embrasement mondial et ses grandes étapes", total: 4 },
-          { title: "Chapitre 2 : Les sociétés en guerre : des civils acteurs et victimes de la guerre", total: 4 },
-          { title: "Chapitre 3 : Sortir de la guerre : la tentative de construction d'un ordre des nations démocratiques", total: 4 },
-        ],
-      },
-    ],
-  },
-  {
-    id: "1ere-geographie",
-    label: "1ère — Géographie (48h)",
-    themes: [
-      {
-        title: "La métropolisation : un processus mondial différencié",
-        discipline: "geo",
-        chapters: [
-          { title: "Les villes à l'échelle mondiale : le poids croissant des métropoles", total: 4 },
-          { title: "Des métropoles inégales et en mutation", total: 4 },
-          { title: "Question spécifique : la France, la métropolisation et ses effets", total: 4 },
-        ],
-      },
-      {
-        title: "Une diversification des espaces et des acteurs de la production",
-        discipline: "geo",
-        chapters: [
-          { title: "Les espaces de production dans le monde : une diversité croissante", total: 4 },
-          { title: "Métropolisation, littoralisation des espaces productifs et accroissement des flux", total: 4 },
-          { title: "Question spécifique : les espaces productifs en France", total: 4 },
-        ],
-      },
-      {
-        title: "Les espaces ruraux : multifonctionnalité ou fragmentation ?",
-        discipline: "geo",
-        chapters: [
-          { title: "La fragmentation des espaces ruraux", total: 4 },
-          { title: "Affirmation des fonctions non agricoles et conflits d'usages", total: 4 },
-          { title: "Question spécifique : les espaces ruraux en France", total: 4 },
-        ],
-      },
-      {
-        title: "La Chine : des recompositions spatiales multiples (thème conclusif)",
-        discipline: "geo",
-        chapters: [
-          { title: "La Chine : des recompositions spatiales multiples", total: 6 },
-        ],
-      },
-    ],
-  },
-];
-
+const PROGRAMMES = [{
+  id: "5e-histoire",
+  label: "5e — Histoire",
+  themes: [{
+    title: "Chrétientés et islam (VIe-XIIIe siècles), des mondes en contact",
+    discipline: "histoire",
+    chapters: [{
+      title: "Byzance et l'Europe carolingienne",
+      total: 4
+    }, {
+      title: "De la naissance de l'islam à la prise de Bagdad par les Mongols",
+      total: 4
+    }]
+  }, {
+    title: "Société, Église et pouvoir politique dans l'Occident féodal (XIe-XVe siècles)",
+    discipline: "histoire",
+    chapters: [{
+      title: "L'ordre seigneurial : la formation et la domination des campagnes",
+      total: 4
+    }, {
+      title: "L'émergence d'une nouvelle société urbaine",
+      total: 4
+    }, {
+      title: "L'affirmation de l'État monarchique dans le royaume des Capétiens et des Valois",
+      total: 4
+    }]
+  }, {
+    title: "Transformations de l'Europe et ouverture sur le monde aux XVIe et XVIIe siècles",
+    discipline: "histoire",
+    chapters: [{
+      title: "Le monde au temps de Charles Quint et Soliman le Magnifique",
+      total: 4
+    }, {
+      title: "Humanisme, réformes et conflits religieux",
+      total: 4
+    }, {
+      title: "Du Prince de la Renaissance au roi absolu",
+      total: 4
+    }]
+  }]
+}, {
+  id: "5e-geographie",
+  label: "5e — Géographie",
+  themes: [{
+    title: "La question démographique et l'inégal développement",
+    discipline: "geo",
+    chapters: [{
+      title: "La croissance démographique et ses effets",
+      total: 4
+    }, {
+      title: "Répartition de la richesse et de la pauvreté dans le monde",
+      total: 5
+    }]
+  }, {
+    title: "Des ressources limitées, à gérer et à renouveler",
+    discipline: "geo",
+    chapters: [{
+      title: "L'énergie, l'eau : des ressources à ménager et à mieux utiliser",
+      total: 6
+    }, {
+      title: "L'alimentation : comment nourrir une humanité en croissance démographique et aux besoins alimentaires accrus ?",
+      total: 5
+    }]
+  }, {
+    title: "Prévenir les risques, s'adapter au changement global",
+    discipline: "geo",
+    chapters: [{
+      title: "Le changement global et ses principaux effets géographiques régionaux",
+      total: 5
+    }, {
+      title: "Prévenir les risques industriels et technologiques",
+      total: 4
+    }]
+  }]
+}, {
+  id: "2nde-histoire",
+  label: "2nde — Histoire (48h)",
+  themes: [{
+    title: "Le monde méditerranéen : empreintes de l'Antiquité et du Moyen Âge",
+    discipline: "histoire",
+    chapters: [{
+      title: "Chapitre 0 : La périodisation",
+      total: 2
+    }, {
+      title: "Chapitre 1 : La Méditerranée antique : les empreintes grecques et romaines",
+      total: 6
+    }, {
+      title: "Chapitre 2 : La Méditerranée médiévale : espace d'échanges et de conflits à la croisée de trois civilisations",
+      total: 6
+    }]
+  }, {
+    title: "XVe-XVIe siècles : un nouveau rapport au monde, un temps de mutation intellectuelle",
+    discipline: "histoire",
+    chapters: [{
+      title: "Chapitre 1 : L'ouverture atlantique : les conséquences de la découverte du « Nouveau Monde »",
+      total: 6
+    }, {
+      title: "Chapitre 2 : Humanisme, Renaissance et réformes religieuses",
+      total: 5
+    }]
+  }, {
+    title: "L'État à l'époque moderne : France et Angleterre",
+    discipline: "histoire",
+    chapters: [{
+      title: "Chapitre 1 : L'affirmation de l'État dans le royaume de France",
+      total: 6
+    }, {
+      title: "Chapitre 2 : Le modèle britannique et son influence",
+      total: 6
+    }]
+  }, {
+    title: "Dynamiques et ruptures dans les sociétés des XVIIe et XVIIIe siècles",
+    discipline: "histoire",
+    chapters: [{
+      title: "Chapitre : Les Lumières et les mutations des sociétés des XVIIe et XVIIIe siècles",
+      total: 11
+    }]
+  }]
+}, {
+  id: "2nde-geographie",
+  label: "2nde — Géographie (48h)",
+  themes: [{
+    title: "Sociétés et environnements : des équilibres fragiles",
+    discipline: "geo",
+    chapters: [{
+      title: "Les sociétés face aux risques",
+      total: 5
+    }, {
+      title: "Des ressources majeures sous pression : tensions, gestion",
+      total: 4
+    }, {
+      title: "Étude de cas et croquis",
+      total: 3
+    }]
+  }, {
+    title: "Territoires, populations et développement : quels défis ?",
+    discipline: "geo",
+    chapters: [{
+      title: "Des trajectoires démographiques différenciées : les défis du nombre et du vieillissement",
+      total: 6
+    }, {
+      title: "Développement et inégalités",
+      total: 6
+    }]
+  }, {
+    title: "Des mobilités généralisées",
+    discipline: "geo",
+    chapters: [{
+      title: "Les migrations internationales",
+      total: 6
+    }, {
+      title: "Les mobilités touristiques internationales",
+      total: 6
+    }]
+  }, {
+    title: "L'Afrique australe : un espace en profonde mutation (thème conclusif)",
+    discipline: "geo",
+    chapters: [{
+      title: "L'Afrique australe : un espace en profonde mutation",
+      total: 6
+    }]
+  }]
+}, {
+  id: "1ere-histoire",
+  label: "1ère — Histoire (48h)",
+  themes: [{
+    title: "L'Europe face aux révolutions",
+    discipline: "histoire",
+    chapters: [{
+      title: "Chapitre 1 : La Révolution française et l'Empire : une nouvelle conception de la nation",
+      total: 7
+    }, {
+      title: "Chapitre 2 : L'Europe entre restauration et révolution (1814-1848)",
+      total: 5
+    }]
+  }, {
+    title: "La France dans l'Europe des nationalités : politique et société (1848-1871)",
+    discipline: "histoire",
+    chapters: [{
+      title: "Chapitre 1 : La difficile entrée dans l'âge démocratique : la Deuxième République et le Second Empire",
+      total: 4
+    }, {
+      title: "Chapitre 2 : L'industrialisation et l'accélération des transformations économiques et sociales en France",
+      total: 4
+    }, {
+      title: "Chapitre 3 : La France et la construction de nouveaux États par la guerre et la diplomatie",
+      total: 4
+    }]
+  }, {
+    title: "La Troisième République avant 1914 : un régime politique, un empire colonial",
+    discipline: "histoire",
+    chapters: [{
+      title: "Chapitre 1 : La mise en œuvre du projet républicain",
+      total: 6
+    }, {
+      title: "Chapitre 2 : Permanences et mutations de la société française jusqu'en 1914",
+      total: 3
+    }, {
+      title: "Chapitre 3 : Métropole et colonies",
+      total: 4
+    }]
+  }, {
+    title: "La Première Guerre mondiale : le « suicide de l'Europe » et la fin des empires européens",
+    discipline: "histoire",
+    chapters: [{
+      title: "Chapitre 1 : Un embrasement mondial et ses grandes étapes",
+      total: 4
+    }, {
+      title: "Chapitre 2 : Les sociétés en guerre : des civils acteurs et victimes de la guerre",
+      total: 4
+    }, {
+      title: "Chapitre 3 : Sortir de la guerre : la tentative de construction d'un ordre des nations démocratiques",
+      total: 4
+    }]
+  }]
+}, {
+  id: "1ere-geographie",
+  label: "1ère — Géographie (48h)",
+  themes: [{
+    title: "La métropolisation : un processus mondial différencié",
+    discipline: "geo",
+    chapters: [{
+      title: "Les villes à l'échelle mondiale : le poids croissant des métropoles",
+      total: 4
+    }, {
+      title: "Des métropoles inégales et en mutation",
+      total: 4
+    }, {
+      title: "Question spécifique : la France, la métropolisation et ses effets",
+      total: 4
+    }]
+  }, {
+    title: "Une diversification des espaces et des acteurs de la production",
+    discipline: "geo",
+    chapters: [{
+      title: "Les espaces de production dans le monde : une diversité croissante",
+      total: 4
+    }, {
+      title: "Métropolisation, littoralisation des espaces productifs et accroissement des flux",
+      total: 4
+    }, {
+      title: "Question spécifique : les espaces productifs en France",
+      total: 4
+    }]
+  }, {
+    title: "Les espaces ruraux : multifonctionnalité ou fragmentation ?",
+    discipline: "geo",
+    chapters: [{
+      title: "La fragmentation des espaces ruraux",
+      total: 4
+    }, {
+      title: "Affirmation des fonctions non agricoles et conflits d'usages",
+      total: 4
+    }, {
+      title: "Question spécifique : les espaces ruraux en France",
+      total: 4
+    }]
+  }, {
+    title: "La Chine : des recompositions spatiales multiples (thème conclusif)",
+    discipline: "geo",
+    chapters: [{
+      title: "La Chine : des recompositions spatiales multiples",
+      total: 6
+    }]
+  }]
+}];
 function useDebouncedSave(saveFn, delay = 500) {
   const timer = useRef(null);
-  return useCallback((value) => {
+  return useCallback(value => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => saveFn(value), delay);
   }, [saveFn, delay]);
 }
-
 function chapterStatus(ch) {
   const total = Math.max(1, Number(ch.total) || 1);
   const done = Math.min(Number(ch.done) || 0, total);
@@ -469,322 +872,838 @@ function chapterStatus(ch) {
   if (done >= total) return "done";
   return "wip";
 }
-
-const STATUS_LABEL = { todo: "À faire", wip: "En cours", done: "Terminé" };
-const STATUS_COLOR = { todo: COLORS.todo, wip: COLORS.wip, done: COLORS.done };
-const STATUS_SOFT = { todo: COLORS.todoSoft, wip: COLORS.wipSoft, done: COLORS.doneSoft };
-
-function DisciplineBadge({ d }) {
+const STATUS_LABEL = {
+  todo: "À faire",
+  wip: "En cours",
+  done: "Terminé"
+};
+const STATUS_COLOR = {
+  todo: COLORS.todo,
+  wip: COLORS.wip,
+  done: COLORS.done
+};
+const STATUS_SOFT = {
+  todo: COLORS.todoSoft,
+  wip: COLORS.wipSoft,
+  done: COLORS.doneSoft
+};
+function DisciplineBadge({
+  d
+}) {
   const isHist = d === "histoire";
-  return (
-    <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em",
-      textTransform: "uppercase", color: isHist ? COLORS.histoire : COLORS.geo,
-      background: isHist ? COLORS.histoireSoft : COLORS.geoSoft, padding: "3px 8px", borderRadius: 4 }}>
-      {isHist ? "Histoire" : "Géographie"}
-    </span>
-  );
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 11,
+      fontWeight: 600,
+      letterSpacing: "0.04em",
+      textTransform: "uppercase",
+      color: isHist ? COLORS.histoire : COLORS.geo,
+      background: isHist ? COLORS.histoireSoft : COLORS.geoSoft,
+      padding: "3px 8px",
+      borderRadius: 4
+    }
+  }, isHist ? "Histoire" : "Géographie");
 }
 
 // Étiquette de classe neutre (un point de couleur + le nom) — la couleur reste
 // identifiable sans transformer chaque ligne en pastille pleine et criarde.
-function ClassTag({ color, name, size }) {
+function ClassTag({
+  color,
+  name,
+  size
+}) {
   const sz = size || "normal";
-  return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0,
-      fontFamily: "Inter, sans-serif", fontSize: sz === "small" ? 10.5 : 11, fontWeight: 600, color: COLORS.ink,
-      background: COLORS.encadre, borderRadius: 4, padding: sz === "small" ? "1px 7px 1px 5px" : "2px 8px 2px 6px" }}>
-      <span style={{ width: 6, height: 6, borderRadius: "50%", background: color, flexShrink: 0 }} />
-      {name}
-    </span>
-  );
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 5,
+      flexShrink: 0,
+      fontFamily: "Inter, sans-serif",
+      fontSize: sz === "small" ? 10.5 : 11,
+      fontWeight: 600,
+      color: COLORS.ink,
+      background: COLORS.encadre,
+      borderRadius: 4,
+      padding: sz === "small" ? "1px 7px 1px 5px" : "2px 8px 2px 6px"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 6,
+      height: 6,
+      borderRadius: "50%",
+      background: color,
+      flexShrink: 0
+    }
+  }), name);
 }
-
-const btnCircle = { width: 24, height: 24, borderRadius: "50%", border: `1px solid ${COLORS.line}`, background: "#fff",
-  color: COLORS.accent, fontSize: 14, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" };
-
-function Stepper({ done, total, onChange }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "IBM Plex Mono, monospace" }}>
-      <button onClick={() => onChange(Math.max(0, done - 1))} style={btnCircle} aria-label="Retirer une séance">−</button>
-      <span style={{ fontSize: 14, color: COLORS.ink, minWidth: 46, textAlign: "center" }}>{done} / {total}</span>
-      <button onClick={() => onChange(Math.min(total, done + 1))} style={btnCircle} aria-label="Ajouter une séance">+</button>
-    </div>
-  );
+const btnCircle = {
+  width: 24,
+  height: 24,
+  borderRadius: "50%",
+  border: `1px solid ${COLORS.line}`,
+  background: "#fff",
+  color: COLORS.accent,
+  fontSize: 14,
+  lineHeight: 1,
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center"
+};
+function Stepper({
+  done,
+  total,
+  onChange
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      fontFamily: "IBM Plex Mono, monospace"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => onChange(Math.max(0, done - 1)),
+    style: btnCircle,
+    "aria-label": "Retirer une séance"
+  }, "−"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      color: COLORS.ink,
+      minWidth: 46,
+      textAlign: "center"
+    }
+  }, done, " / ", total), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onChange(Math.min(total, done + 1)),
+    style: btnCircle,
+    "aria-label": "Ajouter une séance"
+  }, "+"));
 }
-
-const inputStyle = { fontFamily: "Inter, sans-serif", fontSize: 13.5, color: COLORS.ink, background: "#fff",
-  border: `1px solid ${COLORS.line}`, borderRadius: 5, padding: "6px 9px", width: "100%", outline: "none" };
-const labelStyle = { display: "block", fontFamily: "Inter, sans-serif", fontSize: 10.5, fontWeight: 600,
-  letterSpacing: "0.03em", textTransform: "uppercase", color: COLORS.faint, marginBottom: 3 };
-const primaryBtn = { background: COLORS.accent, color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px",
-  fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer" };
-const ghostBtn = { background: "none", border: `1px solid ${COLORS.line}`, color: COLORS.sub, borderRadius: 6,
-  padding: "8px 16px", fontFamily: "Inter, sans-serif", fontSize: 13, cursor: "pointer" };
-
-function ChapterRow({ chapter, isLast, onUpdate, onDelete }) {
+const inputStyle = {
+  fontFamily: "Inter, sans-serif",
+  fontSize: 13.5,
+  color: COLORS.ink,
+  background: "#fff",
+  border: `1px solid ${COLORS.line}`,
+  borderRadius: 5,
+  padding: "6px 9px",
+  width: "100%",
+  outline: "none"
+};
+const labelStyle = {
+  display: "block",
+  fontFamily: "Inter, sans-serif",
+  fontSize: 10.5,
+  fontWeight: 600,
+  letterSpacing: "0.03em",
+  textTransform: "uppercase",
+  color: COLORS.faint,
+  marginBottom: 3
+};
+const primaryBtn = {
+  background: COLORS.accent,
+  color: "#fff",
+  border: "none",
+  borderRadius: 6,
+  padding: "8px 16px",
+  fontFamily: "Inter, sans-serif",
+  fontSize: 13,
+  fontWeight: 600,
+  cursor: "pointer"
+};
+const ghostBtn = {
+  background: "none",
+  border: `1px solid ${COLORS.line}`,
+  color: COLORS.sub,
+  borderRadius: 6,
+  padding: "8px 16px",
+  fontFamily: "Inter, sans-serif",
+  fontSize: 13,
+  cursor: "pointer"
+};
+function ChapterRow({
+  chapter,
+  isLast,
+  onUpdate,
+  onDelete
+}) {
   const [open, setOpen] = useState(false);
   const [local, setLocal] = useState(chapter);
-  const debouncedSave = useDebouncedSave((v) => onUpdate(v));
+  const debouncedSave = useDebouncedSave(v => onUpdate(v));
   useEffect(() => setLocal(chapter), [chapter.id]);
   const status = chapterStatus(local);
   const patch = (fields, saveNow = true) => {
-    const next = { ...local, ...fields };
+    const next = {
+      ...local,
+      ...fields
+    };
     setLocal(next);
-    if (saveNow) onUpdate(next); else debouncedSave(next);
+    if (saveNow) onUpdate(next);else debouncedSave(next);
   };
-  return (
-    <div style={{ display: "flex", gap: 12 }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 20 }}>
-        <div style={{ width: 14, height: 14, borderRadius: "50%", background: status === "done" ? STATUS_COLOR.done : "#fff",
-          border: `2px solid ${STATUS_COLOR[status]}`, marginTop: 6, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {status === "done" && <IconCheck size={9} color="#fff" strokeWidth={3} />}
-        </div>
-        {!isLast && <div style={{ flex: 1, width: 2, background: COLORS.line, marginTop: 2 }} />}
-      </div>
-      <div style={{ flex: 1, paddingBottom: 18 }}>
-        <button onClick={() => setOpen((o) => !o)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
-          width: "100%", background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-            <span style={{ display: "inline-flex", transition: "transform .18s ease", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}>
-              <IconChevronRight size={15} color={COLORS.faint} />
-            </span>
-            <span style={{ fontFamily: "Fraunces, serif", fontSize: 15.5, color: COLORS.ink, fontWeight: 500,
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{local.title}</span>
-          </div>
-          <span style={{ flexShrink: 0, fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: STATUS_COLOR[status],
-            background: STATUS_SOFT[status], padding: "2px 8px", borderRadius: 4, marginLeft: 8 }}>{STATUS_LABEL[status]}</span>
-        </button>
-        {open && (
-          <div style={{ marginTop: 12, paddingLeft: 23, display: "flex", flexDirection: "column", gap: 10 }}>
-            <input value={local.title} onChange={(e) => patch({ title: e.target.value }, false)} onBlur={() => onUpdate(local)}
-              style={inputStyle} placeholder="Titre du chapitre" />
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center" }}>
-              <div>
-                <label style={labelStyle}>Séances</label>
-                <Stepper done={local.done} total={local.total} onChange={(d) => patch({ done: d })} />
-              </div>
-              <div>
-                <label style={labelStyle}>Total séances</label>
-                <input type="number" min={1} value={local.total}
-                  onChange={(e) => patch({ total: Math.max(1, Number(e.target.value) || 1) })}
-                  style={{ ...inputStyle, width: 64, fontFamily: "IBM Plex Mono, monospace" }} />
-              </div>
-              <div>
-                <label style={labelStyle}>Début prévu</label>
-                <input type="date" value={local.start} onChange={(e) => patch({ start: e.target.value })}
-                  style={{ ...inputStyle, fontFamily: "IBM Plex Mono, monospace" }} />
-              </div>
-              <div>
-                <label style={labelStyle}>Fin prévue</label>
-                <input type="date" value={local.end} onChange={(e) => patch({ end: e.target.value })}
-                  style={{ ...inputStyle, fontFamily: "IBM Plex Mono, monospace" }} />
-              </div>
-            </div>
-            <div>
-              <label style={labelStyle}>Notes de cours</label>
-              <textarea value={local.notes} onChange={(e) => patch({ notes: e.target.value }, false)} onBlur={() => onUpdate(local)}
-                rows={3} placeholder="Déroulé, ajustements, ce qui a fonctionné ou non…"
-                style={{ ...inputStyle, resize: "vertical", fontFamily: "Inter, sans-serif" }} />
-            </div>
-            <button onClick={() => onDelete(local.id)} style={{ alignSelf: "flex-start", display: "flex", alignItems: "center",
-              gap: 5, background: "none", border: "none", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 12,
-              cursor: "pointer", padding: "4px 0" }}>
-              <IconTrash size={12} /> Supprimer ce chapitre
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      width: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 14,
+      height: 14,
+      borderRadius: "50%",
+      background: status === "done" ? STATUS_COLOR.done : "#fff",
+      border: `2px solid ${STATUS_COLOR[status]}`,
+      marginTop: 6,
+      flexShrink: 0,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, status === "done" && /*#__PURE__*/React.createElement(IconCheck, {
+    size: 9,
+    color: "#fff",
+    strokeWidth: 3
+  })), !isLast && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      width: 2,
+      background: COLORS.line,
+      marginTop: 2
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      paddingBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpen(o => !o),
+    style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      width: "100%",
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+      padding: 0,
+      textAlign: "left"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-flex",
+      transition: "transform .18s ease",
+      transform: open ? "rotate(90deg)" : "rotate(0deg)"
+    }
+  }, /*#__PURE__*/React.createElement(IconChevronRight, {
+    size: 15,
+    color: COLORS.faint
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "Fraunces, serif",
+      fontSize: 15.5,
+      color: COLORS.ink,
+      fontWeight: 500,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap"
+    }
+  }, local.title)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flexShrink: 0,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 11,
+      fontWeight: 600,
+      color: STATUS_COLOR[status],
+      background: STATUS_SOFT[status],
+      padding: "2px 8px",
+      borderRadius: 4,
+      marginLeft: 8
+    }
+  }, STATUS_LABEL[status])), open && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      paddingLeft: 23,
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: local.title,
+    onChange: e => patch({
+      title: e.target.value
+    }, false),
+    onBlur: () => onUpdate(local),
+    style: inputStyle,
+    placeholder: "Titre du chapitre"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 16,
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Séances"), /*#__PURE__*/React.createElement(Stepper, {
+    done: local.done,
+    total: local.total,
+    onChange: d => patch({
+      done: d
+    })
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Total séances"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: 1,
+    value: local.total,
+    onChange: e => patch({
+      total: Math.max(1, Number(e.target.value) || 1)
+    }),
+    style: {
+      ...inputStyle,
+      width: 64,
+      fontFamily: "IBM Plex Mono, monospace"
+    }
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Début prévu"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: local.start,
+    onChange: e => patch({
+      start: e.target.value
+    }),
+    style: {
+      ...inputStyle,
+      fontFamily: "IBM Plex Mono, monospace"
+    }
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Fin prévue"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: local.end,
+    onChange: e => patch({
+      end: e.target.value
+    }),
+    style: {
+      ...inputStyle,
+      fontFamily: "IBM Plex Mono, monospace"
+    }
+  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Notes de cours"), /*#__PURE__*/React.createElement("textarea", {
+    value: local.notes,
+    onChange: e => patch({
+      notes: e.target.value
+    }, false),
+    onBlur: () => onUpdate(local),
+    rows: 3,
+    placeholder: "Déroulé, ajustements, ce qui a fonctionné ou non…",
+    style: {
+      ...inputStyle,
+      resize: "vertical",
+      fontFamily: "Inter, sans-serif"
+    }
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onDelete(local.id),
+    style: {
+      alignSelf: "flex-start",
+      display: "flex",
+      alignItems: "center",
+      gap: 5,
+      background: "none",
+      border: "none",
+      color: COLORS.faint,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12,
+      cursor: "pointer",
+      padding: "4px 0"
+    }
+  }, /*#__PURE__*/React.createElement(IconTrash, {
+    size: 12
+  }), " Supprimer ce chapitre"))));
 }
-
-function ThemeCard({ theme, onUpdateChapter, onDeleteChapter, onAddChapter, onDeleteTheme }) {
+function ThemeCard({
+  theme,
+  onUpdateChapter,
+  onDeleteChapter,
+  onAddChapter,
+  onDeleteTheme
+}) {
   const total = theme.chapters.reduce((s, c) => s + (Number(c.total) || 0), 0);
   const done = theme.chapters.reduce((s, c) => s + Math.min(Number(c.done) || 0, Number(c.total) || 0), 0);
-  const pct = total ? Math.round((done / total) * 100) : 0;
-  return (
-    <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 10, padding: "20px 22px", marginBottom: 22 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 4 }}>
-        <div>
-          <DisciplineBadge d={theme.discipline} />
-          <h3 style={{ fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 600, color: COLORS.ink, margin: "7px 0 0", lineHeight: 1.25 }}>
-            {theme.title}
-          </h3>
-        </div>
-        <button onClick={() => onDeleteTheme(theme.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", flexShrink: 0 }} aria-label="Supprimer le thème">
-          <IconX size={16} />
-        </button>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "10px 0 18px" }}>
-        <div style={{ flex: 1, height: 5, background: COLORS.encadre, borderRadius: 3, overflow: "hidden" }}>
-          <div style={{ width: `${pct}%`, height: "100%", background: COLORS.accent, transition: "width .3s" }} />
-        </div>
-        <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, flexShrink: 0 }}>{done}/{total} séances</span>
-      </div>
-      <div>
-        {theme.chapters.map((c, i) => (
-          <ChapterRow key={c.id} chapter={c} isLast={i === theme.chapters.length - 1}
-            onUpdate={(v) => onUpdateChapter(theme.id, v)} onDelete={(id) => onDeleteChapter(theme.id, id)} />
-        ))}
-      </div>
-      <button onClick={() => onAddChapter(theme.id)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none",
-        border: "none", color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500, cursor: "pointer", marginLeft: 32, padding: "4px 0" }}>
-        <IconPlus size={14} /> Ajouter un chapitre
-      </button>
-    </div>
-  );
+  const pct = total ? Math.round(done / total * 100) : 0;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.panel,
+      border: `1px solid ${COLORS.line}`,
+      boxShadow: CARD_SHADOW,
+      borderRadius: 10,
+      padding: "20px 22px",
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      gap: 10,
+      marginBottom: 4
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(DisciplineBadge, {
+    d: theme.discipline
+  }), /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontFamily: "Fraunces, serif",
+      fontSize: 18,
+      fontWeight: 600,
+      color: COLORS.ink,
+      margin: "7px 0 0",
+      lineHeight: 1.25
+    }
+  }, theme.title)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onDeleteTheme(theme.id),
+    style: {
+      background: "none",
+      border: "none",
+      color: COLORS.faint,
+      cursor: "pointer",
+      flexShrink: 0
+    },
+    "aria-label": "Supprimer le thème"
+  }, /*#__PURE__*/React.createElement(IconX, {
+    size: 16
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      margin: "10px 0 18px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: 5,
+      background: COLORS.encadre,
+      borderRadius: 3,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: `${pct}%`,
+      height: "100%",
+      background: COLORS.accent,
+      transition: "width .3s"
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "IBM Plex Mono, monospace",
+      fontSize: 11.5,
+      color: COLORS.sub,
+      flexShrink: 0
+    }
+  }, done, "/", total, " séances")), /*#__PURE__*/React.createElement("div", null, theme.chapters.map((c, i) => /*#__PURE__*/React.createElement(ChapterRow, {
+    key: c.id,
+    chapter: c,
+    isLast: i === theme.chapters.length - 1,
+    onUpdate: v => onUpdateChapter(theme.id, v),
+    onDelete: id => onDeleteChapter(theme.id, id)
+  }))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onAddChapter(theme.id),
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      background: "none",
+      border: "none",
+      color: COLORS.accent,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      fontWeight: 500,
+      cursor: "pointer",
+      marginLeft: 32,
+      padding: "4px 0"
+    }
+  }, /*#__PURE__*/React.createElement(IconPlus, {
+    size: 14
+  }), " Ajouter un chapitre"));
 }
-
-function AddThemeForm({ onAdd, onCancel }) {
+function AddThemeForm({
+  onAdd,
+  onCancel
+}) {
   const [title, setTitle] = useState("");
   const [discipline, setDiscipline] = useState("histoire");
-  return (
-    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 22 }}>
-      <label style={labelStyle}>Titre du thème</label>
-      <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}
-        placeholder="Ex. : Le monde méditerranéen…" autoFocus />
-      <label style={labelStyle}>Discipline</label>
-      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-        {["histoire", "geo"].map((d) => (
-          <button key={d} onClick={() => setDiscipline(d)} style={{ padding: "6px 14px", borderRadius: 6,
-            border: `1px solid ${discipline === d ? COLORS.accent : COLORS.line}`, background: discipline === d ? COLORS.accentSoft : "#fff",
-            color: discipline === d ? COLORS.accent : COLORS.sub, fontFamily: "Inter, sans-serif", fontSize: 13, cursor: "pointer" }}>
-            {d === "histoire" ? "Histoire" : "Géographie"}
-          </button>
-        ))}
-      </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={() => title.trim() && onAdd(title.trim(), discipline)} style={primaryBtn}>Ajouter</button>
-        <button onClick={onCancel} style={ghostBtn}>Annuler</button>
-      </div>
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.encadre,
+      borderRadius: 10,
+      padding: 16,
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Titre du thème"), /*#__PURE__*/React.createElement("input", {
+    value: title,
+    onChange: e => setTitle(e.target.value),
+    style: {
+      ...inputStyle,
+      marginBottom: 10
+    },
+    placeholder: "Ex. : Le monde méditerranéen…",
+    autoFocus: true
+  }), /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Discipline"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 14
+    }
+  }, ["histoire", "geo"].map(d => /*#__PURE__*/React.createElement("button", {
+    key: d,
+    onClick: () => setDiscipline(d),
+    style: {
+      padding: "6px 14px",
+      borderRadius: 6,
+      border: `1px solid ${discipline === d ? COLORS.accent : COLORS.line}`,
+      background: discipline === d ? COLORS.accentSoft : "#fff",
+      color: discipline === d ? COLORS.accent : COLORS.sub,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      cursor: "pointer"
+    }
+  }, d === "histoire" ? "Histoire" : "Géographie"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => title.trim() && onAdd(title.trim(), discipline),
+    style: primaryBtn
+  }, "Ajouter"), /*#__PURE__*/React.createElement("button", {
+    onClick: onCancel,
+    style: ghostBtn
+  }, "Annuler")));
 }
-
 function formatDate(d) {
   const [y, m, day] = d.split("-");
   return `${day}/${m}/${y.slice(2)}`;
 }
-
-function PlanningView({ data }) {
+function PlanningView({
+  data
+}) {
   const rows = [];
-  data.order.forEach((cid) => {
+  data.order.forEach(cid => {
     const cls = data.classes[cid];
-    cls.themes.forEach((th) => {
-      th.chapters.forEach((ch) => {
-        if (ch.start || ch.end) rows.push({ className: cls.name, classId: cid, discipline: th.discipline, theme: th.title, ...ch });
+    cls.themes.forEach(th => {
+      th.chapters.forEach(ch => {
+        if (ch.start || ch.end) rows.push({
+          className: cls.name,
+          classId: cid,
+          discipline: th.discipline,
+          theme: th.title,
+          ...ch
+        });
       });
     });
   });
   rows.sort((a, b) => (a.start || "9999").localeCompare(b.start || "9999"));
   if (!rows.length) {
-    return <EmptyState icon={<IconCalendar size={28} />} text={<>Aucune date planifiée pour l'instant.<br/>Ouvre un chapitre et renseigne une date de début pour le voir apparaître ici.</>} />;
+    return /*#__PURE__*/React.createElement(EmptyState, {
+      icon: /*#__PURE__*/React.createElement(IconCalendar, {
+        size: 28
+      }),
+      text: /*#__PURE__*/React.createElement(React.Fragment, null, "Aucune date planifiée pour l'instant.", /*#__PURE__*/React.createElement("br", null), "Ouvre un chapitre et renseigne une date de début pour le voir apparaître ici.")
+    });
   }
-  return (
-    <div>
-      {rows.map((r) => {
-        const status = chapterStatus(r);
-        return (
-          <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: COLORS.panel,
-            border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderLeft: `4px solid ${STATUS_COLOR[status]}`, borderRadius: 8, marginBottom: 8, flexWrap: "wrap" }}>
-            <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub, width: 150, flexShrink: 0 }}>
-              {r.start ? formatDate(r.start) : "—"}{r.end ? ` → ${formatDate(r.end)}` : ""}
-            </div>
-            <ClassTag color={classColor(data, r.classId)} name={r.className} />
-            <DisciplineBadge d={r.discipline} />
-            <div style={{ flex: 1, minWidth: 120 }}>
-              <div style={{ fontFamily: "Fraunces, serif", fontSize: 14.5, color: COLORS.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</div>
-              <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint }}>{r.theme}</div>
-            </div>
-            <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: STATUS_COLOR[status], background: STATUS_SOFT[status], padding: "3px 9px", borderRadius: 4, flexShrink: 0 }}>{STATUS_LABEL[status]}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", null, rows.map(r => {
+    const status = chapterStatus(r);
+    return /*#__PURE__*/React.createElement("div", {
+      key: r.id,
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        padding: "12px 16px",
+        background: COLORS.panel,
+        border: `1px solid ${COLORS.line}`,
+        boxShadow: CARD_SHADOW,
+        borderLeft: `4px solid ${STATUS_COLOR[status]}`,
+        borderRadius: 8,
+        marginBottom: 8,
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: "IBM Plex Mono, monospace",
+        fontSize: 12,
+        color: COLORS.sub,
+        width: 150,
+        flexShrink: 0
+      }
+    }, r.start ? formatDate(r.start) : "—", r.end ? ` → ${formatDate(r.end)}` : ""), /*#__PURE__*/React.createElement(ClassTag, {
+      color: classColor(data, r.classId),
+      name: r.className
+    }), /*#__PURE__*/React.createElement(DisciplineBadge, {
+      d: r.discipline
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 120
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: "Fraunces, serif",
+        fontSize: 14.5,
+        color: COLORS.ink,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap"
+      }
+    }, r.title), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 11.5,
+        color: COLORS.faint
+      }
+    }, r.theme)), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 11,
+        fontWeight: 600,
+        color: STATUS_COLOR[status],
+        background: STATUS_SOFT[status],
+        padding: "3px 9px",
+        borderRadius: 4,
+        flexShrink: 0
+      }
+    }, STATUS_LABEL[status]));
+  }));
 }
-
-function TodoList({ todos, onAdd, onToggle, onDelete }) {
+function TodoList({
+  todos,
+  onAdd,
+  onToggle,
+  onDelete
+}) {
   const [text, setText] = useState("");
-  const submit = () => { if (!text.trim()) return; onAdd(text.trim()); setText(""); };
-  const remaining = todos.filter((t) => !t.done).length;
-  return (
-    <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder="Ex. : photocopier la fiche pour jeudi…" style={inputStyle} />
-        <button onClick={submit} style={{ ...primaryBtn, flexShrink: 0, display: "flex", alignItems: "center", gap: 5 }}>
-          <IconPlus size={14} /> Ajouter
-        </button>
-      </div>
-      {todos.length === 0 ? (
-        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Rien à faire pour l'instant — profite-en.</p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-          {todos.map((t) => (
-            <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
-              background: t.done ? COLORS.doneSoft : COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 7 }}>
-              <button onClick={() => onToggle(t.id)} style={{ width: 18, height: 18, borderRadius: 5,
-                border: `1.5px solid ${t.done ? COLORS.done : COLORS.faint}`, background: t.done ? COLORS.done : "#fff",
-                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }} aria-label="Marquer comme fait">
-                {t.done && <IconCheck size={12} color="#fff" strokeWidth={3} />}
-              </button>
-              <span style={{ flex: 1, fontFamily: "Inter, sans-serif", fontSize: 13.5, color: t.done ? COLORS.faint : COLORS.ink,
-                textDecoration: t.done ? "line-through" : "none" }}>{t.text}</span>
-              <button onClick={() => onDelete(t.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", flexShrink: 0 }} aria-label="Supprimer">
-                <IconX size={13} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      {todos.length > 0 && (
-        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint, marginTop: 8 }}>
-          {remaining} tâche{remaining !== 1 ? "s" : ""} restante{remaining !== 1 ? "s" : ""}
-        </p>
-      )}
-    </div>
-  );
+  const submit = () => {
+    if (!text.trim()) return;
+    onAdd(text.trim());
+    setText("");
+  };
+  const remaining = todos.filter(t => !t.done).length;
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: text,
+    onChange: e => setText(e.target.value),
+    onKeyDown: e => e.key === "Enter" && submit(),
+    placeholder: "Ex. : photocopier la fiche pour jeudi…",
+    style: inputStyle
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: submit,
+    style: {
+      ...primaryBtn,
+      flexShrink: 0,
+      display: "flex",
+      alignItems: "center",
+      gap: 5
+    }
+  }, /*#__PURE__*/React.createElement(IconPlus, {
+    size: 14
+  }), " Ajouter")), todos.length === 0 ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      color: COLORS.faint
+    }
+  }, "Rien à faire pour l'instant — profite-en.") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, todos.map(t => /*#__PURE__*/React.createElement("div", {
+    key: t.id,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "8px 10px",
+      background: t.done ? COLORS.doneSoft : COLORS.panel,
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 7
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => onToggle(t.id),
+    style: {
+      width: 18,
+      height: 18,
+      borderRadius: 5,
+      border: `1.5px solid ${t.done ? COLORS.done : COLORS.faint}`,
+      background: t.done ? COLORS.done : "#fff",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      flexShrink: 0
+    },
+    "aria-label": "Marquer comme fait"
+  }, t.done && /*#__PURE__*/React.createElement(IconCheck, {
+    size: 12,
+    color: "#fff",
+    strokeWidth: 3
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13.5,
+      color: t.done ? COLORS.faint : COLORS.ink,
+      textDecoration: t.done ? "line-through" : "none"
+    }
+  }, t.text), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onDelete(t.id),
+    style: {
+      background: "none",
+      border: "none",
+      color: COLORS.faint,
+      cursor: "pointer",
+      flexShrink: 0
+    },
+    "aria-label": "Supprimer"
+  }, /*#__PURE__*/React.createElement(IconX, {
+    size: 13
+  }))))), todos.length > 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 11.5,
+      color: COLORS.faint,
+      marginTop: 8
+    }
+  }, remaining, " tâche", remaining !== 1 ? "s" : "", " restante", remaining !== 1 ? "s" : ""));
 }
-
-function HourBar({ label, planned, annual, onEditAnnual }) {
+function HourBar({
+  label,
+  planned,
+  annual,
+  onEditAnnual
+}) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(annual ?? "");
-  const pct = annual ? Math.min(100, Math.round((planned / annual) * 100)) : null;
+  const pct = annual ? Math.min(100, Math.round(planned / annual * 100)) : null;
   const over = annual && planned > annual;
-  return (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, flexWrap: "wrap", gap: 4 }}>
-        <span style={{ fontFamily: "Fraunces, serif", fontSize: 14.5, color: COLORS.ink }}>{label}</span>
-        {editing ? (
-          <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <input type="number" autoFocus value={val} onChange={(e) => setVal(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { onEditAnnual(Number(val) || null); setEditing(false); } }}
-              style={{ ...inputStyle, width: 60, padding: "3px 6px", fontFamily: "IBM Plex Mono, monospace" }} />
-            <button onClick={() => { onEditAnnual(Number(val) || null); setEditing(false); }} style={{ ...btnCircle, width: 20, height: 20 }}>
-              <IconCheck size={11} />
-            </button>
-          </span>
-        ) : (
-          <button onClick={() => setEditing(true)} style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.faint, background: "none", border: "none", cursor: "pointer" }}>
-            {planned}h prévues {annual ? `/ ${annual}h au programme` : "· horaire annuel non renseigné (cliquer)"}
-          </button>
-        )}
-      </div>
-      {annual ? (
-        <div style={{ height: 5, background: COLORS.encadre, borderRadius: 3, overflow: "hidden" }}>
-          <div style={{ width: `${pct}%`, height: "100%", background: over ? COLORS.wip : COLORS.accent, transition: "width .3s" }} />
-        </div>
-      ) : null}
-      {over && (
-        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.wip, marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
-          <IconAlert size={11} /> Volume prévu au-delà de l'horaire annuel — le programme risque d'être serré.
-        </p>
-      )}
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 5,
+      flexWrap: "wrap",
+      gap: 4
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "Fraunces, serif",
+      fontSize: 14.5,
+      color: COLORS.ink
+    }
+  }, label), editing ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 5
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    autoFocus: true,
+    value: val,
+    onChange: e => setVal(e.target.value),
+    onKeyDown: e => {
+      if (e.key === "Enter") {
+        onEditAnnual(Number(val) || null);
+        setEditing(false);
+      }
+    },
+    style: {
+      ...inputStyle,
+      width: 60,
+      padding: "3px 6px",
+      fontFamily: "IBM Plex Mono, monospace"
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      onEditAnnual(Number(val) || null);
+      setEditing(false);
+    },
+    style: {
+      ...btnCircle,
+      width: 20,
+      height: 20
+    }
+  }, /*#__PURE__*/React.createElement(IconCheck, {
+    size: 11
+  }))) : /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEditing(true),
+    style: {
+      fontFamily: "IBM Plex Mono, monospace",
+      fontSize: 11.5,
+      color: COLORS.faint,
+      background: "none",
+      border: "none",
+      cursor: "pointer"
+    }
+  }, planned, "h prévues ", annual ? `/ ${annual}h au programme` : "· horaire annuel non renseigné (cliquer)")), annual ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 5,
+      background: COLORS.encadre,
+      borderRadius: 3,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: `${pct}%`,
+      height: "100%",
+      background: over ? COLORS.wip : COLORS.accent,
+      transition: "width .3s"
+    }
+  })) : null, over && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 11.5,
+      color: COLORS.wip,
+      marginTop: 4,
+      display: "flex",
+      alignItems: "center",
+      gap: 4
+    }
+  }, /*#__PURE__*/React.createElement(IconAlert, {
+    size: 11
+  }), " Volume prévu au-delà de l'horaire annuel — le programme risque d'être serré."));
 }
-
 const MAX_FILE_BYTES = 2 * 1024 * 1024; // 2 Mo par fichier — au-delà, utiliser un lien externe
 
 function fileToDataURL(file) {
@@ -795,8 +1714,12 @@ function fileToDataURL(file) {
     reader.readAsDataURL(file);
   });
 }
-
-function AddFicheForm({ classOrder, classes, onAdd, onCancel }) {
+function AddFicheForm({
+  classOrder,
+  classes,
+  onAdd,
+  onCancel
+}) {
   const [title, setTitle] = useState("");
   const [classId, setClassId] = useState("");
   const [url, setUrl] = useState("");
@@ -804,11 +1727,13 @@ function AddFicheForm({ classOrder, classes, onAdd, onCancel }) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-
-  const handleFile = (e) => {
+  const handleFile = e => {
     const f = e.target.files && e.target.files[0];
     setError("");
-    if (!f) { setFile(null); return; }
+    if (!f) {
+      setFile(null);
+      return;
+    }
     if (f.size > MAX_FILE_BYTES) {
       setError("Fichier trop volumineux (max 2 Mo) — utilise plutôt un lien externe (Drive, Canva…) ci-dessous.");
       setFile(null);
@@ -817,493 +1742,1162 @@ function AddFicheForm({ classOrder, classes, onAdd, onCancel }) {
     }
     setFile(f);
   };
-
   const submit = async () => {
-    if (!title.trim()) { setError("Donne un titre à la fiche."); return; }
-    if (!file && !url.trim()) { setError("Joins un fichier ou renseigne un lien."); return; }
+    if (!title.trim()) {
+      setError("Donne un titre à la fiche.");
+      return;
+    }
+    if (!file && !url.trim()) {
+      setError("Joins un fichier ou renseigne un lien.");
+      return;
+    }
     setBusy(true);
     try {
-      let fileData = null, fileName = null, fileType = null;
+      let fileData = null,
+        fileName = null,
+        fileType = null;
       if (file) {
         fileData = await fileToDataURL(file);
         fileName = file.name;
         fileType = file.type;
       }
-      onAdd({ title: title.trim(), classId: classId || null, url: url.trim(), notes: notes.trim(), fileData, fileName, fileType });
+      onAdd({
+        title: title.trim(),
+        classId: classId || null,
+        url: url.trim(),
+        notes: notes.trim(),
+        fileData,
+        fileName,
+        fileType
+      });
     } catch (e) {
       setError("Échec de la lecture du fichier — réessaie ou utilise un lien externe.");
     }
     setBusy(false);
   };
-
-  return (
-    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 22 }}>
-      <label style={labelStyle}>Titre de la fiche</label>
-      <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}
-        placeholder="Ex. : Fiche activité — L'Empire byzantin" autoFocus />
-
-      <label style={labelStyle}>Classe associée (optionnel)</label>
-      <select value={classId} onChange={(e) => setClassId(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}>
-        <option value="">Aucune</option>
-        {classOrder.map((cid) => <option key={cid} value={cid}>{classes[cid].name}</option>)}
-      </select>
-
-      <label style={labelStyle}>Fichier (PDF, image… 2 Mo max)</label>
-      <input type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp" onChange={handleFile}
-        style={{ ...inputStyle, marginBottom: 10, padding: "6px" }} />
-
-      <label style={labelStyle}>ou lien externe (Drive, Canva…)</label>
-      <input value={url} onChange={(e) => setUrl(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}
-        placeholder="https://…" />
-
-      <label style={labelStyle}>Notes (optionnel)</label>
-      <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
-        style={{ ...inputStyle, marginBottom: 10, resize: "vertical" }} placeholder="Contenu, usage, remarques…" />
-
-      {error && <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.histoire, marginBottom: 10 }}>{error}</p>}
-
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={submit} disabled={busy} style={primaryBtn}>{busy ? "Ajout…" : "Ajouter"}</button>
-        <button onClick={onCancel} style={ghostBtn}>Annuler</button>
-      </div>
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.encadre,
+      borderRadius: 10,
+      padding: 16,
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Titre de la fiche"), /*#__PURE__*/React.createElement("input", {
+    value: title,
+    onChange: e => setTitle(e.target.value),
+    style: {
+      ...inputStyle,
+      marginBottom: 10
+    },
+    placeholder: "Ex. : Fiche activité — L'Empire byzantin",
+    autoFocus: true
+  }), /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Classe associée (optionnel)"), /*#__PURE__*/React.createElement("select", {
+    value: classId,
+    onChange: e => setClassId(e.target.value),
+    style: {
+      ...inputStyle,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Aucune"), classOrder.map(cid => /*#__PURE__*/React.createElement("option", {
+    key: cid,
+    value: cid
+  }, classes[cid].name))), /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Fichier (PDF, image… 2 Mo max)"), /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: ".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp",
+    onChange: handleFile,
+    style: {
+      ...inputStyle,
+      marginBottom: 10,
+      padding: "6px"
+    }
+  }), /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "ou lien externe (Drive, Canva…)"), /*#__PURE__*/React.createElement("input", {
+    value: url,
+    onChange: e => setUrl(e.target.value),
+    style: {
+      ...inputStyle,
+      marginBottom: 10
+    },
+    placeholder: "https://…"
+  }), /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Notes (optionnel)"), /*#__PURE__*/React.createElement("textarea", {
+    value: notes,
+    onChange: e => setNotes(e.target.value),
+    rows: 2,
+    style: {
+      ...inputStyle,
+      marginBottom: 10,
+      resize: "vertical"
+    },
+    placeholder: "Contenu, usage, remarques…"
+  }), error && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12,
+      color: COLORS.histoire,
+      marginBottom: 10
+    }
+  }, error), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: submit,
+    disabled: busy,
+    style: primaryBtn
+  }, busy ? "Ajout…" : "Ajouter"), /*#__PURE__*/React.createElement("button", {
+    onClick: onCancel,
+    style: ghostBtn
+  }, "Annuler")));
 }
-
-function DriveFolderRow({ cid, name, color, url, onSet }) {
+function DriveFolderRow({
+  cid,
+  name,
+  color,
+  url,
+  onSet
+}) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(url);
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0" }}>
-      <span style={{ width: 7, height: 7, borderRadius: "50%", background: color, flexShrink: 0 }} />
-      <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, width: 64, flexShrink: 0 }}>{name}</span>
-      {editing ? (
-        <div style={{ display: "flex", gap: 6, flex: 1 }}>
-          <input value={draft} onChange={(e) => setDraft(e.target.value)} style={{ ...inputStyle, padding: "4px 8px" }} placeholder="https://drive.google.com/…" autoFocus />
-          <button onClick={() => { onSet(cid, draft.trim()); setEditing(false); }} style={{ ...btnCircle, width: 22, height: 22, color: COLORS.done, flexShrink: 0 }}><IconCheck size={11} /></button>
-        </div>
-      ) : url ? (
-        <>
-          <a href={url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.accent, textDecoration: "none" }}>
-            <IconExternal size={11} /> Ouvrir
-          </a>
-          <button onClick={() => { setDraft(url); setEditing(true); }} style={{ background: "none", border: "none", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 11.5, cursor: "pointer", marginLeft: 4 }}>modifier</button>
-        </>
-      ) : (
-        <button onClick={() => setEditing(true)} style={{ background: "none", border: "none", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 12, cursor: "pointer" }}>+ lier un dossier Drive</button>
-      )}
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "6px 0"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 7,
+      height: 7,
+      borderRadius: "50%",
+      background: color,
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12.5,
+      color: COLORS.ink,
+      width: 64,
+      flexShrink: 0
+    }
+  }, name), editing ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6,
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: draft,
+    onChange: e => setDraft(e.target.value),
+    style: {
+      ...inputStyle,
+      padding: "4px 8px"
+    },
+    placeholder: "https://drive.google.com/…",
+    autoFocus: true
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      onSet(cid, draft.trim());
+      setEditing(false);
+    },
+    style: {
+      ...btnCircle,
+      width: 22,
+      height: 22,
+      color: COLORS.done,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(IconCheck, {
+    size: 11
+  }))) : url ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("a", {
+    href: url,
+    target: "_blank",
+    rel: "noreferrer",
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 4,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12.5,
+      color: COLORS.accent,
+      textDecoration: "none"
+    }
+  }, /*#__PURE__*/React.createElement(IconExternal, {
+    size: 11
+  }), " Ouvrir"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setDraft(url);
+      setEditing(true);
+    },
+    style: {
+      background: "none",
+      border: "none",
+      color: COLORS.faint,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 11.5,
+      cursor: "pointer",
+      marginLeft: 4
+    }
+  }, "modifier")) : /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEditing(true),
+    style: {
+      background: "none",
+      border: "none",
+      color: COLORS.faint,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12,
+      cursor: "pointer"
+    }
+  }, "+ lier un dossier Drive"));
 }
-
-function FichesView({ data, onAdd, onDelete, onSetDriveFolder }) {
+function FichesView({
+  data,
+  onAdd,
+  onDelete,
+  onSetDriveFolder
+}) {
   const [adding, setAdding] = useState(false);
   const totalBytes = data.fiches.reduce((s, f) => s + (f.fileData ? f.fileData.length : 0), 0);
   const approxKB = Math.round(totalBytes / 1024);
-
-  return (
-    <div>
-      <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 10, padding: "13px 16px", marginBottom: 22 }}>
-        <SectionTitle icon={<IconLink size={14} />} title="Dossiers Drive par classe" />
-        {data.order.map((cid) => (
-          <DriveFolderRow key={cid} cid={cid} name={data.classes[cid].name} color={classColor(data, cid)}
-            url={data.driveFolders[cid] || ""} onSet={onSetDriveFolder} />
-        ))}
-      </div>
-
-      <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, marginBottom: 14 }}>
-        Les fichiers joints ci-dessous sont stockés directement sur cet appareil ({approxKB} Ko utilisés). Pour des documents volumineux, dépose-les plutôt dans le dossier Drive de la classe ci-dessus.
-      </p>
-
-      {data.fiches.length === 0 && !adding && (
-        <EmptyState icon={<IconPaperclip size={26} />} text="Aucune fiche stockée pour l'instant." />
-      )}
-
-      <div className="list-grid" style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
-        {data.fiches.map((f) => {
-          const cls = f.classId ? data.classes[f.classId] : null;
-          const href = f.fileData || f.url;
-          return (
-            <div key={f.id} style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 8, padding: "12px 14px" }}>
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, minWidth: 0 }}>
-                  <span style={{ color: COLORS.accent, marginTop: 2, flexShrink: 0 }}>
-                    {f.fileData ? <IconFileText size={16} /> : <IconLink size={16} />}
-                  </span>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontFamily: "Fraunces, serif", fontSize: 14.5, color: COLORS.ink, wordBreak: "break-word" }}>{f.title}</div>
-                    {cls && (
-                      <div style={{ marginTop: 4 }}><ClassTag color={classColor(data, f.classId)} name={cls.name} size="small" /></div>
-                    )}
-                    {f.notes && <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub, marginTop: 4 }}>{f.notes}</p>}
-                  </div>
-                </div>
-                <button onClick={() => onDelete(f.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", flexShrink: 0 }} aria-label="Supprimer">
-                  <IconX size={14} />
-                </button>
-              </div>
-              {href && (
-                <a href={href} target="_blank" rel="noreferrer" download={f.fileName || undefined}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 8, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.accent, textDecoration: "none" }}>
-                  <IconExternal size={12} /> {f.fileData ? "Ouvrir le fichier" : "Ouvrir le lien"}
-                </a>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {adding ? (
-        <AddFicheForm classOrder={data.order} classes={data.classes}
-          onAdd={(f) => { onAdd(f); setAdding(false); }} onCancel={() => setAdding(false)} />
-      ) : (
-        <button onClick={() => setAdding(true)} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 6 }}>
-          <IconUpload size={14} /> Ajouter une fiche
-        </button>
-      )}
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.panel,
+      border: `1px solid ${COLORS.line}`,
+      boxShadow: CARD_SHADOW,
+      borderRadius: 10,
+      padding: "13px 16px",
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconLink, {
+      size: 14
+    }),
+    title: "Dossiers Drive par classe"
+  }), data.order.map(cid => /*#__PURE__*/React.createElement(DriveFolderRow, {
+    key: cid,
+    cid: cid,
+    name: data.classes[cid].name,
+    color: classColor(data, cid),
+    url: data.driveFolders[cid] || "",
+    onSet: onSetDriveFolder
+  }))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12,
+      color: COLORS.faint,
+      marginBottom: 14
+    }
+  }, "Les fichiers joints ci-dessous sont stockés directement sur cet appareil (", approxKB, " Ko utilisés). Pour des documents volumineux, dépose-les plutôt dans le dossier Drive de la classe ci-dessus."), data.fiches.length === 0 && !adding && /*#__PURE__*/React.createElement(EmptyState, {
+    icon: /*#__PURE__*/React.createElement(IconPaperclip, {
+      size: 26
+    }),
+    text: "Aucune fiche stockée pour l'instant."
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "list-grid",
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8,
+      marginBottom: 22
+    }
+  }, data.fiches.map(f => {
+    const cls = f.classId ? data.classes[f.classId] : null;
+    const href = f.fileData || f.url;
+    return /*#__PURE__*/React.createElement("div", {
+      key: f.id,
+      style: {
+        background: COLORS.panel,
+        border: `1px solid ${COLORS.line}`,
+        boxShadow: CARD_SHADOW,
+        borderRadius: 8,
+        padding: "12px 14px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 8,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: COLORS.accent,
+        marginTop: 2,
+        flexShrink: 0
+      }
+    }, f.fileData ? /*#__PURE__*/React.createElement(IconFileText, {
+      size: 16
+    }) : /*#__PURE__*/React.createElement(IconLink, {
+      size: 16
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: "Fraunces, serif",
+        fontSize: 14.5,
+        color: COLORS.ink,
+        wordBreak: "break-word"
+      }
+    }, f.title), cls && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 4
+      }
+    }, /*#__PURE__*/React.createElement(ClassTag, {
+      color: classColor(data, f.classId),
+      name: cls.name,
+      size: "small"
+    })), f.notes && /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 12,
+        color: COLORS.sub,
+        marginTop: 4
+      }
+    }, f.notes))), /*#__PURE__*/React.createElement("button", {
+      onClick: () => onDelete(f.id),
+      style: {
+        background: "none",
+        border: "none",
+        color: COLORS.faint,
+        cursor: "pointer",
+        flexShrink: 0
+      },
+      "aria-label": "Supprimer"
+    }, /*#__PURE__*/React.createElement(IconX, {
+      size: 14
+    }))), href && /*#__PURE__*/React.createElement("a", {
+      href: href,
+      target: "_blank",
+      rel: "noreferrer",
+      download: f.fileName || undefined,
+      style: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        marginTop: 8,
+        fontFamily: "Inter, sans-serif",
+        fontSize: 12.5,
+        color: COLORS.accent,
+        textDecoration: "none"
+      }
+    }, /*#__PURE__*/React.createElement(IconExternal, {
+      size: 12
+    }), " ", f.fileData ? "Ouvrir le fichier" : "Ouvrir le lien"));
+  })), adding ? /*#__PURE__*/React.createElement(AddFicheForm, {
+    classOrder: data.order,
+    classes: data.classes,
+    onAdd: f => {
+      onAdd(f);
+      setAdding(false);
+    },
+    onCancel: () => setAdding(false)
+  }) : /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAdding(true),
+    style: {
+      ...ghostBtn,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement(IconUpload, {
+    size: 14
+  }), " Ajouter une fiche"));
 }
-
-function AddSlotForm({ classOrder, classes, onAdd, onCancel }) {
+function AddSlotForm({
+  classOrder,
+  classes,
+  onAdd,
+  onCancel
+}) {
   const [day, setDay] = useState(0);
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("09:00");
   const [classId, setClassId] = useState(classOrder[0] || "");
   const [room, setRoom] = useState("");
-
   const submit = () => {
     if (!classId) return;
-    onAdd({ day: Number(day), start, end, classId, room: room.trim() });
+    onAdd({
+      day: Number(day),
+      start,
+      end,
+      classId,
+      room: room.trim()
+    });
   };
-
-  return (
-    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 22 }}>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 10 }}>
-        <div>
-          <label style={labelStyle}>Jour</label>
-          <select value={day} onChange={(e) => setDay(e.target.value)} style={inputStyle}>
-            {DAYS_FR.map((d, i) => <option key={i} value={i}>{d}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={labelStyle}>Début</label>
-          <input type="time" value={start} onChange={(e) => setStart(e.target.value)} style={{ ...inputStyle, fontFamily: "IBM Plex Mono, monospace" }} />
-        </div>
-        <div>
-          <label style={labelStyle}>Fin</label>
-          <input type="time" value={end} onChange={(e) => setEnd(e.target.value)} style={{ ...inputStyle, fontFamily: "IBM Plex Mono, monospace" }} />
-        </div>
-      </div>
-      <label style={labelStyle}>Classe</label>
-      <select value={classId} onChange={(e) => setClassId(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }}>
-        {classOrder.map((cid) => <option key={cid} value={cid}>{classes[cid].name}</option>)}
-      </select>
-      <label style={labelStyle}>Salle (optionnel)</label>
-      <input value={room} onChange={(e) => setRoom(e.target.value)} style={{ ...inputStyle, marginBottom: 12 }} placeholder="Ex. : B12" />
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={submit} style={primaryBtn}>Ajouter</button>
-        <button onClick={onCancel} style={ghostBtn}>Annuler</button>
-      </div>
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.encadre,
+      borderRadius: 10,
+      padding: 16,
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 12,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Jour"), /*#__PURE__*/React.createElement("select", {
+    value: day,
+    onChange: e => setDay(e.target.value),
+    style: inputStyle
+  }, DAYS_FR.map((d, i) => /*#__PURE__*/React.createElement("option", {
+    key: i,
+    value: i
+  }, d)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Début"), /*#__PURE__*/React.createElement("input", {
+    type: "time",
+    value: start,
+    onChange: e => setStart(e.target.value),
+    style: {
+      ...inputStyle,
+      fontFamily: "IBM Plex Mono, monospace"
+    }
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Fin"), /*#__PURE__*/React.createElement("input", {
+    type: "time",
+    value: end,
+    onChange: e => setEnd(e.target.value),
+    style: {
+      ...inputStyle,
+      fontFamily: "IBM Plex Mono, monospace"
+    }
+  }))), /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Classe"), /*#__PURE__*/React.createElement("select", {
+    value: classId,
+    onChange: e => setClassId(e.target.value),
+    style: {
+      ...inputStyle,
+      marginBottom: 10
+    }
+  }, classOrder.map(cid => /*#__PURE__*/React.createElement("option", {
+    key: cid,
+    value: cid
+  }, classes[cid].name))), /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Salle (optionnel)"), /*#__PURE__*/React.createElement("input", {
+    value: room,
+    onChange: e => setRoom(e.target.value),
+    style: {
+      ...inputStyle,
+      marginBottom: 12
+    },
+    placeholder: "Ex. : B12"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: submit,
+    style: primaryBtn
+  }, "Ajouter"), /*#__PURE__*/React.createElement("button", {
+    onClick: onCancel,
+    style: ghostBtn
+  }, "Annuler")));
 }
-
-function ScheduleView({ data, onSetUrl, onAddSlot, onDeleteSlot }) {
+function ScheduleView({
+  data,
+  onSetUrl,
+  onAddSlot,
+  onDeleteSlot
+}) {
   const [adding, setAdding] = useState(false);
   const [urlDraft, setUrlDraft] = useState(data.schedule.url);
   const [editingUrl, setEditingUrl] = useState(false);
-
-  const byDay = DAYS_FR.map((_, i) =>
-    data.schedule.slots.filter((s) => s.day === i).sort((a, b) => a.start.localeCompare(b.start))
-  );
-
-  return (
-    <div>
-      <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 10, padding: 14, marginBottom: 18 }}>
-        <label style={labelStyle}>Lien vers ton emploi du temps en ligne (Pronote, ADE…)</label>
-        {editingUrl ? (
-          <div style={{ display: "flex", gap: 8 }}>
-            <input value={urlDraft} onChange={(e) => setUrlDraft(e.target.value)} style={inputStyle} placeholder="https://…" autoFocus />
-            <button onClick={() => { onSetUrl(urlDraft.trim()); setEditingUrl(false); }} style={{ ...btnCircle, color: COLORS.done, flexShrink: 0 }}><IconCheck size={13} /></button>
-          </div>
-        ) : data.schedule.url ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <a href={data.schedule.url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.accent, textDecoration: "none" }}>
-              <IconExternal size={13} /> Ouvrir mon emploi du temps
-            </a>
-            <button onClick={() => { setUrlDraft(data.schedule.url); setEditingUrl(true); }} style={{ background: "none", border: "none", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 12, cursor: "pointer" }}>modifier</button>
-          </div>
-        ) : (
-          <button onClick={() => setEditingUrl(true)} style={{ ...ghostBtn, fontSize: 12.5, padding: "6px 12px" }}>+ Ajouter le lien</button>
-        )}
-        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint, marginTop: 8, marginBottom: 0 }}>
-          Ce lien s'ouvre dans ton application habituelle (Pronote, ADE…) — il n'est pas affiché automatiquement ici.
-        </p>
-      </div>
-
-      {data.schedule.slots.length === 0 && !adding && (
-        <EmptyState icon={<IconClock size={26} />} text="Aucun créneau renseigné pour l'instant." />
-      )}
-
-      {DAYS_FR.map((day, i) => (
-        byDay[i].length > 0 && (
-          <div key={i} style={{ marginBottom: 22 }}>
-            <h3 style={{ fontFamily: "Fraunces, serif", fontSize: 15, fontWeight: 600, color: COLORS.ink, margin: "0 0 8px" }}>{day}</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-              {byDay[i].map((s) => {
-                const cls = data.classes[s.classId];
-                return (
-                  <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.panel,
-                    border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderLeft: `4px solid ${classColor(data, s.classId)}`, borderRadius: 7, flexWrap: "wrap" }}>
-                    <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub, width: 90, flexShrink: 0 }}>{s.start}–{s.end}</span>
-                    <ClassTag color={classColor(data, s.classId)} name={cls ? cls.name : "?"} />
-                    {s.room && <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, flex: 1 }}>Salle {s.room}</span>}
-                    <button onClick={() => onDeleteSlot(s.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", marginLeft: "auto" }}>
-                      <IconX size={13} />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )
-      ))}
-
-      {adding ? (
-        <AddSlotForm classOrder={data.order} classes={data.classes}
-          onAdd={(s) => { onAddSlot(s); setAdding(false); }} onCancel={() => setAdding(false)} />
-      ) : (
-        data.order.length > 0 && (
-          <button onClick={() => setAdding(true)} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 6 }}>
-            <IconPlus size={14} /> Ajouter un créneau
-          </button>
-        )
-      )}
-    </div>
-  );
+  const byDay = DAYS_FR.map((_, i) => data.schedule.slots.filter(s => s.day === i).sort((a, b) => a.start.localeCompare(b.start)));
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.panel,
+      border: `1px solid ${COLORS.line}`,
+      boxShadow: CARD_SHADOW,
+      borderRadius: 10,
+      padding: 14,
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Lien vers ton emploi du temps en ligne (Pronote, ADE…)"), editingUrl ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: urlDraft,
+    onChange: e => setUrlDraft(e.target.value),
+    style: inputStyle,
+    placeholder: "https://…",
+    autoFocus: true
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      onSetUrl(urlDraft.trim());
+      setEditingUrl(false);
+    },
+    style: {
+      ...btnCircle,
+      color: COLORS.done,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(IconCheck, {
+    size: 13
+  }))) : data.schedule.url ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("a", {
+    href: data.schedule.url,
+    target: "_blank",
+    rel: "noreferrer",
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 5,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      color: COLORS.accent,
+      textDecoration: "none"
+    }
+  }, /*#__PURE__*/React.createElement(IconExternal, {
+    size: 13
+  }), " Ouvrir mon emploi du temps"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setUrlDraft(data.schedule.url);
+      setEditingUrl(true);
+    },
+    style: {
+      background: "none",
+      border: "none",
+      color: COLORS.faint,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12,
+      cursor: "pointer"
+    }
+  }, "modifier")) : /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEditingUrl(true),
+    style: {
+      ...ghostBtn,
+      fontSize: 12.5,
+      padding: "6px 12px"
+    }
+  }, "+ Ajouter le lien"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 11.5,
+      color: COLORS.faint,
+      marginTop: 8,
+      marginBottom: 0
+    }
+  }, "Ce lien s'ouvre dans ton application habituelle (Pronote, ADE…) — il n'est pas affiché automatiquement ici.")), data.schedule.slots.length === 0 && !adding && /*#__PURE__*/React.createElement(EmptyState, {
+    icon: /*#__PURE__*/React.createElement(IconClock, {
+      size: 26
+    }),
+    text: "Aucun créneau renseigné pour l'instant."
+  }), DAYS_FR.map((day, i) => byDay[i].length > 0 && /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      fontFamily: "Fraunces, serif",
+      fontSize: 15,
+      fontWeight: 600,
+      color: COLORS.ink,
+      margin: "0 0 8px"
+    }
+  }, day), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, byDay[i].map(s => {
+    const cls = data.classes[s.classId];
+    return /*#__PURE__*/React.createElement("div", {
+      key: s.id,
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "11px 14px",
+        background: COLORS.panel,
+        border: `1px solid ${COLORS.line}`,
+        boxShadow: CARD_SHADOW,
+        borderLeft: `4px solid ${classColor(data, s.classId)}`,
+        borderRadius: 7,
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: "IBM Plex Mono, monospace",
+        fontSize: 12,
+        color: COLORS.sub,
+        width: 90,
+        flexShrink: 0
+      }
+    }, s.start, "–", s.end), /*#__PURE__*/React.createElement(ClassTag, {
+      color: classColor(data, s.classId),
+      name: cls ? cls.name : "?"
+    }), s.room && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 12,
+        color: COLORS.faint,
+        flex: 1
+      }
+    }, "Salle ", s.room), /*#__PURE__*/React.createElement("button", {
+      onClick: () => onDeleteSlot(s.id),
+      style: {
+        background: "none",
+        border: "none",
+        color: COLORS.faint,
+        cursor: "pointer",
+        marginLeft: "auto"
+      }
+    }, /*#__PURE__*/React.createElement(IconX, {
+      size: 13
+    })));
+  })))), adding ? /*#__PURE__*/React.createElement(AddSlotForm, {
+    classOrder: data.order,
+    classes: data.classes,
+    onAdd: s => {
+      onAddSlot(s);
+      setAdding(false);
+    },
+    onCancel: () => setAdding(false)
+  }) : data.order.length > 0 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAdding(true),
+    style: {
+      ...ghostBtn,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement(IconPlus, {
+    size: 14
+  }), " Ajouter un créneau"));
 }
-
-function AddEvalForm({ classOrder, classes, onAdd, onCancel }) {
+function AddEvalForm({
+  classOrder,
+  classes,
+  onAdd,
+  onCancel
+}) {
   const [title, setTitle] = useState("");
   const [classId, setClassId] = useState(classOrder[0] || "");
   const [type, setType] = useState(EVAL_TYPES[0]);
   const [date, setDate] = useState("");
   const [notes, setNotes] = useState("");
-
   const submit = () => {
     if (!title.trim()) return;
-    onAdd({ title: title.trim(), classId, type, date, notes: notes.trim(), status: "a_faire" });
+    onAdd({
+      title: title.trim(),
+      classId,
+      type,
+      date,
+      notes: notes.trim(),
+      status: "a_faire"
+    });
   };
-
-  return (
-    <div style={{ background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 22 }}>
-      <label style={labelStyle}>Titre</label>
-      <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ ...inputStyle, marginBottom: 10 }} placeholder="Ex. : Contrôle chapitre 2" autoFocus />
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 10 }}>
-        <div>
-          <label style={labelStyle}>Classe</label>
-          <select value={classId} onChange={(e) => setClassId(e.target.value)} style={inputStyle}>
-            {classOrder.map((cid) => <option key={cid} value={cid}>{classes[cid].name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={labelStyle}>Type</label>
-          <select value={type} onChange={(e) => setType(e.target.value)} style={inputStyle}>
-            {EVAL_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={labelStyle}>Date</label>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ ...inputStyle, fontFamily: "IBM Plex Mono, monospace" }} />
-        </div>
-      </div>
-      <label style={labelStyle}>Notes (optionnel)</label>
-      <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} style={{ ...inputStyle, marginBottom: 12, resize: "vertical" }} />
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={submit} style={primaryBtn}>Ajouter</button>
-        <button onClick={onCancel} style={ghostBtn}>Annuler</button>
-      </div>
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.encadre,
+      borderRadius: 10,
+      padding: 16,
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Titre"), /*#__PURE__*/React.createElement("input", {
+    value: title,
+    onChange: e => setTitle(e.target.value),
+    style: {
+      ...inputStyle,
+      marginBottom: 10
+    },
+    placeholder: "Ex. : Contrôle chapitre 2",
+    autoFocus: true
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 12,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Classe"), /*#__PURE__*/React.createElement("select", {
+    value: classId,
+    onChange: e => setClassId(e.target.value),
+    style: inputStyle
+  }, classOrder.map(cid => /*#__PURE__*/React.createElement("option", {
+    key: cid,
+    value: cid
+  }, classes[cid].name)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Type"), /*#__PURE__*/React.createElement("select", {
+    value: type,
+    onChange: e => setType(e.target.value),
+    style: inputStyle
+  }, EVAL_TYPES.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t,
+    value: t
+  }, t)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Date"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: date,
+    onChange: e => setDate(e.target.value),
+    style: {
+      ...inputStyle,
+      fontFamily: "IBM Plex Mono, monospace"
+    }
+  }))), /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Notes (optionnel)"), /*#__PURE__*/React.createElement("textarea", {
+    value: notes,
+    onChange: e => setNotes(e.target.value),
+    rows: 2,
+    style: {
+      ...inputStyle,
+      marginBottom: 12,
+      resize: "vertical"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: submit,
+    style: primaryBtn
+  }, "Ajouter"), /*#__PURE__*/React.createElement("button", {
+    onClick: onCancel,
+    style: ghostBtn
+  }, "Annuler")));
 }
-
-function GradesPanel({ data, evaluation, onSetGrade }) {
+function GradesPanel({
+  data,
+  evaluation,
+  onSetGrade
+}) {
   const cls = data.classes[evaluation.classId];
   const students = cls ? cls.students : [];
   if (students.length === 0) {
-    return <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, marginTop: 8 }}>
-      Ajoute des élèves à {cls ? cls.name : "cette classe"} dans l'onglet Élèves pour saisir des notes.
-    </p>;
+    return /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 12,
+        color: COLORS.faint,
+        marginTop: 8
+      }
+    }, "Ajoute des élèves à ", cls ? cls.name : "cette classe", " dans l'onglet Élèves pour saisir des notes.");
   }
-  const values = students.map((s) => evaluation.grades[s.id]).filter((v) => v !== undefined && v !== "" && v !== null).map(Number);
+  const values = students.map(s => evaluation.grades[s.id]).filter(v => v !== undefined && v !== "" && v !== null).map(Number);
   const avg = values.length ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1) : null;
-
-  return (
-    <div style={{ marginTop: 10, borderTop: `1px solid ${COLORS.line}`, paddingTop: 10 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-        {students.map((s) => (
-          <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{s.name}</span>
-            <input type="number" min={0} max={20} step={0.5}
-              value={evaluation.grades[s.id] ?? ""}
-              onChange={(e) => onSetGrade(evaluation.id, s.id, e.target.value)}
-              placeholder="—/20"
-              style={{ ...inputStyle, width: 64, padding: "4px 8px", fontFamily: "IBM Plex Mono, monospace", fontSize: 12.5 }} />
-          </div>
-        ))}
-      </div>
-      {avg && (
-        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub, marginTop: 8 }}>
-          Moyenne de la classe : <strong>{avg}/20</strong> ({values.length}/{students.length} note{values.length !== 1 ? "s" : ""} saisies)
-        </p>
-      )}
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      borderTop: `1px solid ${COLORS.line}`,
+      paddingTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 5
+    }
+  }, students.map(s => /*#__PURE__*/React.createElement("div", {
+    key: s.id,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      color: COLORS.ink,
+      flex: 1
+    }
+  }, s.name), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: 0,
+    max: 20,
+    step: 0.5,
+    value: evaluation.grades[s.id] ?? "",
+    onChange: e => onSetGrade(evaluation.id, s.id, e.target.value),
+    placeholder: "—/20",
+    style: {
+      ...inputStyle,
+      width: 64,
+      padding: "4px 8px",
+      fontFamily: "IBM Plex Mono, monospace",
+      fontSize: 12.5
+    }
+  })))), avg && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12,
+      color: COLORS.sub,
+      marginTop: 8
+    }
+  }, "Moyenne de la classe : ", /*#__PURE__*/React.createElement("strong", null, avg, "/20"), " (", values.length, "/", students.length, " note", values.length !== 1 ? "s" : "", " saisies)"));
 }
-
-function EvaluationsView({ data, onAdd, onCycleStatus, onDelete, onSetGrade }) {
+function EvaluationsView({
+  data,
+  onAdd,
+  onCycleStatus,
+  onDelete,
+  onSetGrade
+}) {
   const [adding, setAdding] = useState(false);
   const [openId, setOpenId] = useState(null);
   const rows = [...data.evaluations].sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
-
-  return (
-    <div>
-      {rows.length === 0 && !adding && (
-        <EmptyState icon={<IconClipboard size={26} />} text="Aucune évaluation enregistrée pour l'instant." />
-      )}
-      <div className="list-grid" style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
-        {rows.map((ev) => {
-          const cls = data.classes[ev.classId];
-          const isOpen = openId === ev.id;
-          return (
-            <div key={ev.id} style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW,
-              borderLeft: `4px solid ${classColor(data, ev.classId)}`, borderRadius: 8, padding: "13px 16px" }}>
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ width: 12, height: 12, borderRadius: "50%", flexShrink: 0,
-                    background: ev.status === "termine" ? EVAL_STATUS_COLOR[ev.status] : "transparent",
-                    border: `2px solid ${EVAL_STATUS_COLOR[ev.status]}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {ev.status === "termine" && <IconCheck size={7} color="#fff" strokeWidth={3.5} />}
-                  </span>
-                  {ev.date && <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub }}>{formatDate(ev.date)}</span>}
-                  {cls && <ClassTag color={classColor(data, ev.classId)} name={cls.name} size="small" />}
-                  <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint }}>{ev.type}</span>
-                </div>
-                <button onClick={() => onDelete(ev.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer" }}>
-                  <IconX size={13} />
-                </button>
-              </div>
-              <div style={{ fontFamily: "Fraunces, serif", fontSize: 15, color: COLORS.ink, margin: "6px 0 2px" }}>{ev.title}</div>
-              {ev.notes && <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, margin: "2px 0 8px" }}>{ev.notes}</p>}
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
-                <button onClick={() => onCycleStatus(ev.id)} style={{
-                  fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: EVAL_STATUS_COLOR[ev.status],
-                  background: EVAL_STATUS_SOFT[ev.status], border: "none", borderRadius: 5, padding: "4px 10px", cursor: "pointer",
-                }}>
-                  {EVAL_STATUS[ev.status]} — changer
-                </button>
-                <button onClick={() => setOpenId(isOpen ? null : ev.id)} style={{
-                  fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color: COLORS.accent,
-                  background: COLORS.accentSoft, border: "none", borderRadius: 5, padding: "4px 10px", cursor: "pointer",
-                }}>
-                  {isOpen ? "Masquer les notes" : "Saisir les notes"}
-                </button>
-              </div>
-              {isOpen && <GradesPanel data={data} evaluation={ev} onSetGrade={onSetGrade} />}
-            </div>
-          );
-        })}
-      </div>
-      {adding ? (
-        <AddEvalForm classOrder={data.order} classes={data.classes}
-          onAdd={(ev) => { onAdd(ev); setAdding(false); }} onCancel={() => setAdding(false)} />
-      ) : (
-        data.order.length > 0 && (
-          <button onClick={() => setAdding(true)} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 6 }}>
-            <IconPlus size={14} /> Ajouter une évaluation
-          </button>
-        )
-      )}
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", null, rows.length === 0 && !adding && /*#__PURE__*/React.createElement(EmptyState, {
+    icon: /*#__PURE__*/React.createElement(IconClipboard, {
+      size: 26
+    }),
+    text: "Aucune évaluation enregistrée pour l'instant."
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "list-grid",
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8,
+      marginBottom: 22
+    }
+  }, rows.map(ev => {
+    const cls = data.classes[ev.classId];
+    const isOpen = openId === ev.id;
+    return /*#__PURE__*/React.createElement("div", {
+      key: ev.id,
+      style: {
+        background: COLORS.panel,
+        border: `1px solid ${COLORS.line}`,
+        boxShadow: CARD_SHADOW,
+        borderLeft: `4px solid ${classColor(data, ev.classId)}`,
+        borderRadius: 8,
+        padding: "13px 16px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 8,
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 12,
+        height: 12,
+        borderRadius: "50%",
+        flexShrink: 0,
+        background: ev.status === "termine" ? EVAL_STATUS_COLOR[ev.status] : "transparent",
+        border: `2px solid ${EVAL_STATUS_COLOR[ev.status]}`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }
+    }, ev.status === "termine" && /*#__PURE__*/React.createElement(IconCheck, {
+      size: 7,
+      color: "#fff",
+      strokeWidth: 3.5
+    })), ev.date && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: "IBM Plex Mono, monospace",
+        fontSize: 12,
+        color: COLORS.sub
+      }
+    }, formatDate(ev.date)), cls && /*#__PURE__*/React.createElement(ClassTag, {
+      color: classColor(data, ev.classId),
+      name: cls.name,
+      size: "small"
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 11,
+        color: COLORS.faint
+      }
+    }, ev.type)), /*#__PURE__*/React.createElement("button", {
+      onClick: () => onDelete(ev.id),
+      style: {
+        background: "none",
+        border: "none",
+        color: COLORS.faint,
+        cursor: "pointer"
+      }
+    }, /*#__PURE__*/React.createElement(IconX, {
+      size: 13
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: "Fraunces, serif",
+        fontSize: 15,
+        color: COLORS.ink,
+        margin: "6px 0 2px"
+      }
+    }, ev.title), ev.notes && /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 12.5,
+        color: COLORS.sub,
+        margin: "2px 0 8px"
+      }
+    }, ev.notes), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        marginTop: 6
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => onCycleStatus(ev.id),
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 11.5,
+        fontWeight: 600,
+        color: EVAL_STATUS_COLOR[ev.status],
+        background: EVAL_STATUS_SOFT[ev.status],
+        border: "none",
+        borderRadius: 5,
+        padding: "4px 10px",
+        cursor: "pointer"
+      }
+    }, EVAL_STATUS[ev.status], " — changer"), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setOpenId(isOpen ? null : ev.id),
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 11.5,
+        fontWeight: 600,
+        color: COLORS.accent,
+        background: COLORS.accentSoft,
+        border: "none",
+        borderRadius: 5,
+        padding: "4px 10px",
+        cursor: "pointer"
+      }
+    }, isOpen ? "Masquer les notes" : "Saisir les notes")), isOpen && /*#__PURE__*/React.createElement(GradesPanel, {
+      data: data,
+      evaluation: ev,
+      onSetGrade: onSetGrade
+    }));
+  })), adding ? /*#__PURE__*/React.createElement(AddEvalForm, {
+    classOrder: data.order,
+    classes: data.classes,
+    onAdd: ev => {
+      onAdd(ev);
+      setAdding(false);
+    },
+    onCancel: () => setAdding(false)
+  }) : data.order.length > 0 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAdding(true),
+    style: {
+      ...ghostBtn,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement(IconPlus, {
+    size: 14
+  }), " Ajouter une évaluation"));
 }
-
-function StudentsView({ data, activeClass, onAddStudent, onUpdateStudent, onDeleteStudent }) {
+function StudentsView({
+  data,
+  activeClass,
+  onAddStudent,
+  onUpdateStudent,
+  onDeleteStudent
+}) {
   const [name, setName] = useState("");
   const cls = data.classes[activeClass];
   if (!cls) {
-    return <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Sélectionne une classe en haut de l'écran.</p>;
+    return /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 13,
+        color: COLORS.faint
+      }
+    }, "Sélectionne une classe en haut de l'écran.");
   }
   const students = [...cls.students].sort((a, b) => a.name.localeCompare(b.name, "fr"));
-
   const submit = () => {
     if (!name.trim()) return;
     onAddStudent(activeClass, name.trim());
     setName("");
   };
-
-  return (
-    <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-        <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder={`Ajouter un·e élève à ${cls.name}…`} style={inputStyle} />
-        <button onClick={submit} style={{ ...primaryBtn, flexShrink: 0, display: "flex", alignItems: "center", gap: 5 }}>
-          <IconPlus size={14} /> Ajouter
-        </button>
-      </div>
-
-      {students.length === 0 ? (
-        <EmptyState icon={<IconUsers size={26} />} text={`Aucun élève renseigné pour ${cls.name}.`} />
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-          {students.map((s) => (
-            <StudentRow key={s.id} classId={activeClass} student={s} onUpdate={onUpdateStudent} onDelete={onDeleteStudent} />
-          ))}
-        </div>
-      )}
-      <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint, marginTop: 12 }}>
-        {students.length} élève{students.length !== 1 ? "s" : ""} dans {cls.name}.
-      </p>
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: name,
+    onChange: e => setName(e.target.value),
+    onKeyDown: e => e.key === "Enter" && submit(),
+    placeholder: `Ajouter un·e élève à ${cls.name}…`,
+    style: inputStyle
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: submit,
+    style: {
+      ...primaryBtn,
+      flexShrink: 0,
+      display: "flex",
+      alignItems: "center",
+      gap: 5
+    }
+  }, /*#__PURE__*/React.createElement(IconPlus, {
+    size: 14
+  }), " Ajouter")), students.length === 0 ? /*#__PURE__*/React.createElement(EmptyState, {
+    icon: /*#__PURE__*/React.createElement(IconUsers, {
+      size: 26
+    }),
+    text: `Aucun élève renseigné pour ${cls.name}.`
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, students.map(s => /*#__PURE__*/React.createElement(StudentRow, {
+    key: s.id,
+    classId: activeClass,
+    student: s,
+    onUpdate: onUpdateStudent,
+    onDelete: onDeleteStudent
+  }))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 11.5,
+      color: COLORS.faint,
+      marginTop: 12
+    }
+  }, students.length, " élève", students.length !== 1 ? "s" : "", " dans ", cls.name, "."));
 }
-
-function StudentRow({ classId, student, onUpdate, onDelete }) {
+function StudentRow({
+  classId,
+  student,
+  onUpdate,
+  onDelete
+}) {
   const [local, setLocal] = useState(student);
-  const debouncedSave = useDebouncedSave((v) => onUpdate(classId, v));
+  const debouncedSave = useDebouncedSave(v => onUpdate(classId, v));
   useEffect(() => setLocal(student), [student.id]);
-
-  const patch = (fields) => {
-    const next = { ...local, ...fields };
+  const patch = fields => {
+    const next = {
+      ...local,
+      ...fields
+    };
     setLocal(next);
     debouncedSave(next);
   };
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 7 }}>
-      <input value={local.name} onChange={(e) => patch({ name: e.target.value })}
-        style={{ ...inputStyle, border: "none", padding: "2px 4px", flex: 1, fontFamily: "Fraunces, serif", fontSize: 14 }} />
-      <input value={local.note || ""} onChange={(e) => patch({ note: e.target.value })} placeholder="remarque (optionnel)"
-        style={{ ...inputStyle, border: "none", padding: "2px 4px", flex: 1, fontSize: 12, color: COLORS.sub }} />
-      <button onClick={() => onDelete(classId, local.id)} style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", flexShrink: 0 }}>
-        <IconX size={13} />
-      </button>
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "8px 10px",
+      background: COLORS.panel,
+      border: `1px solid ${COLORS.line}`,
+      boxShadow: CARD_SHADOW,
+      borderRadius: 7
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: local.name,
+    onChange: e => patch({
+      name: e.target.value
+    }),
+    style: {
+      ...inputStyle,
+      border: "none",
+      padding: "2px 4px",
+      flex: 1,
+      fontFamily: "Fraunces, serif",
+      fontSize: 14
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    value: local.note || "",
+    onChange: e => patch({
+      note: e.target.value
+    }),
+    placeholder: "remarque (optionnel)",
+    style: {
+      ...inputStyle,
+      border: "none",
+      padding: "2px 4px",
+      flex: 1,
+      fontSize: 12,
+      color: COLORS.sub
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onDelete(classId, local.id),
+    style: {
+      background: "none",
+      border: "none",
+      color: COLORS.faint,
+      cursor: "pointer",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(IconX, {
+    size: 13
+  })));
 }
 
 // État vide habillé d'un fond discret façon cahier d'écolier (lignes horizontales
 // + marge verticale), plutôt qu'une icône générique flottant dans le vide.
-function SettingsView({ data, onImport, theme, setTheme }) {
+function SettingsView({
+  data,
+  onImport,
+  theme,
+  setTheme
+}) {
   const [status, setStatus] = useState(null);
   const fileRef = useRef(null);
-
   const exportData = () => {
     try {
       const stamp = new Date().toISOString().slice(0, 10);
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json"
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -1312,13 +2906,18 @@ function SettingsView({ data, onImport, theme, setTheme }) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      setStatus({ type: "ok", msg: "Sauvegarde téléchargée." });
+      setStatus({
+        type: "ok",
+        msg: "Sauvegarde téléchargée."
+      });
     } catch (e) {
-      setStatus({ type: "err", msg: "Échec de l'export." });
+      setStatus({
+        type: "err",
+        msg: "Échec de l'export."
+      });
     }
   };
-
-  const handleFile = (e) => {
+  const handleFile = e => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -1326,123 +2925,255 @@ function SettingsView({ data, onImport, theme, setTheme }) {
       try {
         const parsed = JSON.parse(reader.result);
         if (!parsed.classes || !Array.isArray(parsed.order)) {
-          setStatus({ type: "err", msg: "Ce fichier ne ressemble pas à une sauvegarde du Cahier." });
+          setStatus({
+            type: "err",
+            msg: "Ce fichier ne ressemble pas à une sauvegarde du Cahier."
+          });
           return;
         }
         onImport(parsed);
-        setStatus({ type: "ok", msg: "Données restaurées." });
+        setStatus({
+          type: "ok",
+          msg: "Données restaurées."
+        });
       } catch (err) {
-        setStatus({ type: "err", msg: "Fichier illisible — vérifie que c'est bien un export du Cahier." });
+        setStatus({
+          type: "err",
+          msg: "Fichier illisible — vérifie que c'est bien un export du Cahier."
+        });
       }
     };
-    reader.onerror = () => setStatus({ type: "err", msg: "Impossible de lire le fichier." });
+    reader.onerror = () => setStatus({
+      type: "err",
+      msg: "Impossible de lire le fichier."
+    });
     reader.readAsText(file);
     e.target.value = "";
   };
-
   const counts = {
     classes: data.order.length,
     chapitres: data.order.reduce((s, cid) => s + data.classes[cid].themes.reduce((s2, th) => s2 + th.chapters.length, 0), 0),
     eleves: data.order.reduce((s, cid) => s + data.classes[cid].students.length, 0),
-    evals: data.evaluations.length,
+    evals: data.evaluations.length
   };
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
-      <section>
-        <SectionTitle icon={<IconDownload size={15} />} title="Sauvegarde et transfert" />
-        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.sub, marginTop: -4, marginBottom: 16, lineHeight: 1.55 }}>
-          Tes données sont enregistrées uniquement sur cet appareil, dans ce navigateur. Elles ne passent pas d'un appareil à l'autre
-          toutes seules — et un nettoyage du navigateur les efface. Exporte régulièrement, et importe le fichier sur ton autre appareil
-          pour t'y retrouver avec le même contenu.
-        </p>
-
-        <div style={{ background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 10, padding: "16px 18px", marginBottom: 14 }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 18, marginBottom: 16 }}>
-            {[["classes", "classe"], ["chapitres", "chapitre"], ["eleves", "élève"], ["evals", "évaluation"]].map(([key, label]) => (
-              <div key={key}>
-                <div style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 19, color: COLORS.ink }}>{counts[key]}</div>
-                <div style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint }}>
-                  {label}{counts[key] !== 1 ? "s" : ""}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button onClick={exportData} style={{ ...primaryBtn, display: "flex", alignItems: "center", gap: 7 }}>
-              <IconDownload size={14} /> Exporter mes données
-            </button>
-            <button onClick={() => fileRef.current && fileRef.current.click()} style={{ ...ghostBtn, display: "flex", alignItems: "center", gap: 7 }}>
-              <IconUpload size={14} /> Importer une sauvegarde
-            </button>
-            <input ref={fileRef} type="file" accept=".json,application/json" onChange={handleFile} style={{ display: "none" }} />
-          </div>
-
-          {status && (
-            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12.5, marginTop: 12, marginBottom: 0,
-              color: status.type === "ok" ? COLORS.done : COLORS.histoire }}>
-              {status.msg}
-            </p>
-          )}
-        </div>
-
-        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, lineHeight: 1.55 }}>
-          L'import remplace intégralement le contenu actuel de cet appareil par celui du fichier. Pense à exporter avant, si tu as
-          saisi des choses ici que tu veux garder.
-        </p>
-      </section>
-
-      <section>
-        <SectionTitle icon={theme === "dark" ? <IconSun size={15} /> : <IconMoon size={15} />} title="Apparence" />
-        <div style={{ display: "flex", gap: 8 }}>
-          {[["light", "Clair"], ["dark", "Sombre"]].map(([value, label]) => (
-            <button key={value} onClick={() => setTheme(value)} style={{
-              padding: "8px 18px", borderRadius: 7,
-              border: `1px solid ${theme === value ? COLORS.accent : COLORS.line}`,
-              background: theme === value ? COLORS.accentSoft : COLORS.panel,
-              color: theme === value ? COLORS.accent : COLORS.sub,
-              fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: theme === value ? 600 : 400, cursor: "pointer",
-            }}>
-              {label}
-            </button>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 36
+    }
+  }, /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconDownload, {
+      size: 15
+    }),
+    title: "Sauvegarde et transfert"
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      color: COLORS.sub,
+      marginTop: -4,
+      marginBottom: 16,
+      lineHeight: 1.55
+    }
+  }, "Tes données sont enregistrées uniquement sur cet appareil, dans ce navigateur. Elles ne passent pas d'un appareil à l'autre toutes seules — et un nettoyage du navigateur les efface. Exporte régulièrement, et importe le fichier sur ton autre appareil pour t'y retrouver avec le même contenu."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.panel,
+      border: `1px solid ${COLORS.line}`,
+      boxShadow: CARD_SHADOW,
+      borderRadius: 10,
+      padding: "16px 18px",
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 18,
+      marginBottom: 16
+    }
+  }, [["classes", "classe"], ["chapitres", "chapitre"], ["eleves", "élève"], ["evals", "évaluation"]].map(([key, label]) => /*#__PURE__*/React.createElement("div", {
+    key: key
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: "IBM Plex Mono, monospace",
+      fontSize: 19,
+      color: COLORS.ink
+    }
+  }, counts[key]), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 11.5,
+      color: COLORS.faint
+    }
+  }, label, counts[key] !== 1 ? "s" : "")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: exportData,
+    style: {
+      ...primaryBtn,
+      display: "flex",
+      alignItems: "center",
+      gap: 7
+    }
+  }, /*#__PURE__*/React.createElement(IconDownload, {
+    size: 14
+  }), " Exporter mes données"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => fileRef.current && fileRef.current.click(),
+    style: {
+      ...ghostBtn,
+      display: "flex",
+      alignItems: "center",
+      gap: 7
+    }
+  }, /*#__PURE__*/React.createElement(IconUpload, {
+    size: 14
+  }), " Importer une sauvegarde"), /*#__PURE__*/React.createElement("input", {
+    ref: fileRef,
+    type: "file",
+    accept: ".json,application/json",
+    onChange: handleFile,
+    style: {
+      display: "none"
+    }
+  })), status && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12.5,
+      marginTop: 12,
+      marginBottom: 0,
+      color: status.type === "ok" ? COLORS.done : COLORS.histoire
+    }
+  }, status.msg)), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12,
+      color: COLORS.faint,
+      lineHeight: 1.55
+    }
+  }, "L'import remplace intégralement le contenu actuel de cet appareil par celui du fichier. Pense à exporter avant, si tu as saisi des choses ici que tu veux garder.")), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: theme === "dark" ? /*#__PURE__*/React.createElement(IconSun, {
+      size: 15
+    }) : /*#__PURE__*/React.createElement(IconMoon, {
+      size: 15
+    }),
+    title: "Apparence"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, [["light", "Clair"], ["dark", "Sombre"]].map(([value, label]) => /*#__PURE__*/React.createElement("button", {
+    key: value,
+    onClick: () => setTheme(value),
+    style: {
+      padding: "8px 18px",
+      borderRadius: 7,
+      border: `1px solid ${theme === value ? COLORS.accent : COLORS.line}`,
+      background: theme === value ? COLORS.accentSoft : COLORS.panel,
+      color: theme === value ? COLORS.accent : COLORS.sub,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      fontWeight: theme === value ? 600 : 400,
+      cursor: "pointer"
+    }
+  }, label)))));
 }
-
-function EmptyState({ icon, text }) {
-  return (
-    <div style={{ position: "relative", textAlign: "center", padding: "48px 20px", borderRadius: 10, overflow: "hidden" }}>
-      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} preserveAspectRatio="none">
-        <defs>
-          <pattern id="ruled" width="100%" height="26" patternUnits="userSpaceOnUse">
-            <line x1="0" y1="26" x2="100%" y2="26" stroke={COLORS.line} strokeWidth="1" opacity="0.55" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#ruled)" />
-        <line x1="34" y1="0" x2="34" y2="100%" stroke={COLORS.histoire} strokeWidth="1" opacity="0.22" />
-      </svg>
-      <div style={{ position: "relative", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 14 }}>
-        <div style={{ opacity: 0.7 }}>{icon}</div>
-        <p style={{ marginTop: 10 }}>{text}</p>
-      </div>
-    </div>
-  );
+function EmptyState({
+  icon,
+  text
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      textAlign: "center",
+      padding: "48px 20px",
+      borderRadius: 10,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    style: {
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%"
+    },
+    preserveAspectRatio: "none"
+  }, /*#__PURE__*/React.createElement("defs", null, /*#__PURE__*/React.createElement("pattern", {
+    id: "ruled",
+    width: "100%",
+    height: "26",
+    patternUnits: "userSpaceOnUse"
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: "0",
+    y1: "26",
+    x2: "100%",
+    y2: "26",
+    stroke: COLORS.line,
+    strokeWidth: "1",
+    opacity: "0.55"
+  }))), /*#__PURE__*/React.createElement("rect", {
+    width: "100%",
+    height: "100%",
+    fill: "url(#ruled)"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "34",
+    y1: "0",
+    x2: "34",
+    y2: "100%",
+    stroke: COLORS.histoire,
+    strokeWidth: "1",
+    opacity: "0.22"
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      color: COLORS.faint,
+      fontFamily: "Inter, sans-serif",
+      fontSize: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      opacity: 0.7
+    }
+  }, icon), /*#__PURE__*/React.createElement("p", {
+    style: {
+      marginTop: 10
+    }
+  }, text)));
 }
-
-function SectionTitle({ icon, title }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-      <span style={{ color: COLORS.accent }}>{icon}</span>
-      <h2 style={{ fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 600, color: COLORS.ink, margin: 0, letterSpacing: "-0.005em" }}>{title}</h2>
-    </div>
-  );
+function SectionTitle({
+  icon,
+  title
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.accent
+    }
+  }, icon), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: "Fraunces, serif",
+      fontSize: 17,
+      fontWeight: 600,
+      color: COLORS.ink,
+      margin: 0,
+      letterSpacing: "-0.005em"
+    }
+  }, title));
 }
-
-function MiniSchedule({ data }) {
+function MiniSchedule({
+  data
+}) {
   const dayLabels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
   const days = [];
   for (let i = 0; i < 4; i++) {
@@ -1450,449 +3181,179 @@ function MiniSchedule({ data }) {
     d.setDate(d.getDate() + i);
     const jsDay = d.getDay();
     const schedIndex = jsDay === 0 ? null : jsDay - 1; // Lundi=0 … Samedi=5, Dimanche=null
-    const slots = schedIndex === null ? [] : data.schedule.slots.filter((s) => s.day === schedIndex).sort((a, b) => a.start.localeCompare(b.start));
+    const slots = schedIndex === null ? [] : data.schedule.slots.filter(s => s.day === schedIndex).sort((a, b) => a.start.localeCompare(b.start));
     days.push({
       label: i === 0 ? "Aujourd'hui" : i === 1 ? "Demain" : `${dayLabels[jsDay]} ${d.getDate()}`,
       isWeekend: jsDay === 0,
-      slots,
+      slots
     });
   }
-  const hasAny = days.some((d) => d.slots.length > 0);
-
-  return (
-    <section>
-      <SectionTitle icon={<IconClock size={15} />} title="Prochains cours" />
-      {!hasAny ? (
-        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>
-          Aucun créneau renseigné. Ajoute ton emploi du temps dans l'onglet dédié pour le voir apparaître ici.
-        </p>
-      ) : (
-        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, WebkitOverflowScrolling: "touch" }}>
-          {days.map((d, i) => (
-            <div key={i} style={{
-              flex: "0 0 auto", minWidth: 132, background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW,
-              borderRadius: 9, padding: "10px 11px",
-            }}>
-              <div style={{ fontFamily: "Fraunces, serif", fontSize: 13, fontWeight: 600, color: COLORS.ink, marginBottom: 7 }}>{d.label}</div>
-              {d.isWeekend ? (
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint }}>Pas cours</span>
-              ) : d.slots.length === 0 ? (
-                <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint }}>—</span>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  {d.slots.map((s) => {
-                    const cls = data.classes[s.classId];
-                    return (
-                      <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: classColor(data, s.classId), flexShrink: 0 }} />
-                        <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 10.5, color: COLORS.sub, flexShrink: 0 }}>{s.start}</span>
-                        <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {cls ? cls.name : "?"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </section>
-  );
+  const hasAny = days.some(d => d.slots.length > 0);
+  return /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconClock, {
+      size: 15
+    }),
+    title: "Prochains cours"
+  }), !hasAny ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      color: COLORS.faint
+    }
+  }, "Aucun créneau renseigné. Ajoute ton emploi du temps dans l'onglet dédié pour le voir apparaître ici.") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      overflowX: "auto",
+      paddingBottom: 4,
+      WebkitOverflowScrolling: "touch"
+    }
+  }, days.map((d, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      flex: "0 0 auto",
+      minWidth: 132,
+      background: COLORS.panel,
+      border: `1px solid ${COLORS.line}`,
+      boxShadow: CARD_SHADOW,
+      borderRadius: 9,
+      padding: "10px 11px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: "Fraunces, serif",
+      fontSize: 13,
+      fontWeight: 600,
+      color: COLORS.ink,
+      marginBottom: 7
+    }
+  }, d.label), d.isWeekend ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 11.5,
+      color: COLORS.faint
+    }
+  }, "Pas cours") : d.slots.length === 0 ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 11.5,
+      color: COLORS.faint
+    }
+  }, "—") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 4
+    }
+  }, d.slots.map(s => {
+    const cls = data.classes[s.classId];
+    return /*#__PURE__*/React.createElement("div", {
+      key: s.id,
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 5
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        background: classColor(data, s.classId),
+        flexShrink: 0
+      }
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: "IBM Plex Mono, monospace",
+        fontSize: 10.5,
+        color: COLORS.sub,
+        flexShrink: 0
+      }
+    }, s.start), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 11.5,
+        color: COLORS.ink,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap"
+      }
+    }, cls ? cls.name : "?"));
+  }))))));
 }
-
-function HomeView({ data, onAddTodo, onToggleTodo, onDeleteTodo, onSetAnnualHours }) {
+function HomeView({
+  data,
+  onAddTodo,
+  onToggleTodo,
+  onDeleteTodo,
+  onSetAnnualHours
+}) {
   const today = new Date();
-  const in7 = new Date(today); in7.setDate(in7.getDate() + 7);
-  const fmt = (d) => d.toISOString().slice(0, 10);
+  const in7 = new Date(today);
+  in7.setDate(in7.getDate() + 7);
+  const fmt = d => d.toISOString().slice(0, 10);
   const upcoming = [];
   const inProgress = [];
-  data.order.forEach((cid) => {
+  data.order.forEach(cid => {
     const cls = data.classes[cid];
-    cls.themes.forEach((th) => {
-      th.chapters.forEach((ch) => {
+    cls.themes.forEach(th => {
+      th.chapters.forEach(ch => {
         const st = chapterStatus(ch);
-        if (st === "wip") inProgress.push({ className: cls.name, classId: cid, theme: th.title, discipline: th.discipline, ...ch });
-        if (ch.start && ch.start >= fmt(today) && ch.start <= fmt(in7)) upcoming.push({ className: cls.name, classId: cid, kind: "début", date: ch.start, ...ch });
-        if (ch.end && ch.end >= fmt(today) && ch.end <= fmt(in7)) upcoming.push({ className: cls.name, classId: cid, kind: "fin", date: ch.end, ...ch });
+        if (st === "wip") inProgress.push({
+          className: cls.name,
+          classId: cid,
+          theme: th.title,
+          discipline: th.discipline,
+          ...ch
+        });
+        if (ch.start && ch.start >= fmt(today) && ch.start <= fmt(in7)) upcoming.push({
+          className: cls.name,
+          classId: cid,
+          kind: "début",
+          date: ch.start,
+          ...ch
+        });
+        if (ch.end && ch.end >= fmt(today) && ch.end <= fmt(in7)) upcoming.push({
+          className: cls.name,
+          classId: cid,
+          kind: "fin",
+          date: ch.end,
+          ...ch
+        });
       });
     });
   });
   upcoming.sort((a, b) => a.date.localeCompare(b.date));
-
-  return (
-    <div className="home-grid" style={{ display: "flex", flexDirection: "column", gap: 36 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
-        <MiniSchedule data={data} />
-        <section>
-          <SectionTitle icon={<IconClock size={15} />} title="Dans les 7 prochains jours" />
-          {upcoming.length === 0 ? (
-            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Aucune échéance renseignée cette semaine.</p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-              {upcoming.map((r, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 7, flexWrap: "wrap" }}>
-                  <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, width: 60, flexShrink: 0 }}>{formatDate(r.date)}</span>
-                  <ClassTag color={classColor(data, r.classId)} name={r.className} />
-                  <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</span>
-                  <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, flexShrink: 0 }}>{r.kind}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-        <section>
-          <SectionTitle icon={<IconBook size={15} />} title="Chapitres en cours" />
-          {inProgress.length === 0 ? (
-            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Aucun chapitre en cours actuellement.</p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-              {inProgress.map((r) => (
-                <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
-                  <ClassTag color={classColor(data, r.classId)} name={r.className} />
-                  <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{r.title}</span>
-                  <span style={{ fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, flexShrink: 0 }}>{r.done}/{r.total}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-        <section>
-          <SectionTitle icon={<IconClipboard size={15} />} title="Copies à corriger" />
-          {(() => {
-            const toCorrect = data.evaluations.filter((ev) => ev.status === "a_corriger");
-            if (toCorrect.length === 0) {
-              return <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint }}>Rien à corriger pour l'instant.</p>;
-            }
-            return (
-              <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-                {toCorrect.map((ev) => {
-                  const cls = data.classes[ev.classId];
-                  return (
-                    <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: COLORS.wipSoft, borderRadius: 7, flexWrap: "wrap" }}>
-                      {cls && <ClassTag color={classColor(data, ev.classId)} name={cls.name} />}
-                      <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1 }}>{ev.title}</span>
-                      <span style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, flexShrink: 0 }}>{ev.type}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
-        </section>
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
-        <section>
-          <SectionTitle icon={<IconList size={15} />} title="Pense-bête" />
-          <TodoList todos={data.todos} onAdd={onAddTodo} onToggle={onToggleTodo} onDelete={onDeleteTodo} />
-        </section>
-        <section>
-          <SectionTitle icon={<IconAlert size={15} />} title="Volume horaire par classe" />
-          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, marginTop: -6, marginBottom: 12 }}>
-            Indicatif (1 séance ≈ 1h) — clique sur l'horaire annuel pour l'ajuster à ta dotation réelle.
-          </p>
-          {data.order.map((cid) => {
-            const c = data.classes[cid];
-            const planned = c.themes.reduce((s, th) => s + th.chapters.reduce((s2, ch) => s2 + (Number(ch.total) || 0), 0), 0);
-            return <HourBar key={cid} label={c.name} planned={planned} annual={c.annualHours} onEditAnnual={(v) => onSetAnnualHours(cid, v)} />;
-          })}
-        </section>
-        <section>
-          <SectionTitle icon={<IconGrad size={15} />} title="Ressources utiles" />
-          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-            {RESOURCE_LINKS.map((r) => (
-              <a key={r.url} href={r.url} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 8,
-                fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.accent, textDecoration: "none", padding: "7px 10px",
-                background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 7 }}>
-                <IconExternal size={13} style={{ flexShrink: 0 }} />{r.label}
-              </a>
-          ))}
-        </div>
-      </section>
-      </div>
-    </div>
-  );
-}
-
-function tabBtn(active) {
-  return { display: "flex", alignItems: "center", gap: 6, fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 600,
-    color: active ? "#fff" : COLORS.sub, background: active ? COLORS.accent : COLORS.panel,
-    border: `1px solid ${active ? COLORS.accent : COLORS.line}`, borderRadius: 7, padding: "7px 13px", cursor: "pointer" };
-}
-
-const NAV_ITEMS = [
-  { id: "home", label: "Accueil", icon: IconHome },
-  { id: "progression", label: "Progression", icon: IconGrid },
-  { id: "planning", label: "Planning", icon: IconCalendar },
-  { id: "schedule", label: "Emploi", icon: IconClock },
-  { id: "evaluations", label: "Évals", icon: IconClipboard },
-  { id: "students", label: "Élèves", icon: IconUsers },
-  { id: "fiches", label: "Fiches", icon: IconPaperclip },
-  { id: "settings", label: "Réglages", icon: IconSettings },
-];
-
-function BottomNav({ view, setView }) {
-  return (
-    <nav className="bottom-nav" style={{
-      position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 20,
-      background: "rgba(250,248,243,0.92)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
-      borderTop: `1px solid ${COLORS.line}`,
-      paddingBottom: "env(safe-area-inset-bottom, 0px)",
-    }}>
-      <div className="content-width" style={{ maxWidth: 640, margin: "0 auto", display: "flex" }}>
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const active = view === item.id;
-          return (
-            <button key={item.id} onClick={() => setView(item.id)} style={{
-              flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-              background: "none", border: "none", cursor: "pointer", padding: "9px 2px 8px",
-              color: active ? COLORS.accent : COLORS.faint,
-            }}>
-              <Icon size={19} strokeWidth={active ? 2.1 : 1.7} />
-              <span style={{ fontFamily: "Inter, sans-serif", fontSize: 9.5, fontWeight: active ? 700 : 500, letterSpacing: "0.01em" }}>
-                {item.label}
-              </span>
-              <span style={{ width: 3, height: 3, borderRadius: "50%", background: active ? COLORS.accent : "transparent" }} />
-            </button>
-          );
-        })}
-      </div>
-    </nav>
-  );
-}
-
-function SideNav({ view, setView }) {
-  return (
-    <nav className="side-nav" style={{
-      position: "fixed", left: 0, top: 0, bottom: 0, width: 220, zIndex: 20,
-      flexDirection: "column", padding: "28px 14px", gap: 2,
-      background: COLORS.panel, borderRight: `1px solid ${COLORS.line}`,
-    }}>
-      <div style={{ fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 600, color: COLORS.accent, padding: "4px 10px 22px", letterSpacing: "-0.01em" }}>
-        Cahier de progression
-      </div>
-      {NAV_ITEMS.map((item) => {
-        const Icon = item.icon;
-        const active = view === item.id;
-        return (
-          <button key={item.id} onClick={() => setView(item.id)} style={{
-            display: "flex", alignItems: "center", gap: 11, textAlign: "left",
-            background: active ? COLORS.accentSoft : "none", border: "none", cursor: "pointer",
-            padding: "9px 10px", borderRadius: 7,
-            color: active ? COLORS.accent : COLORS.sub,
-            fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: active ? 700 : 500,
-          }}>
-            <Icon size={17} strokeWidth={active ? 2.1 : 1.7} />
-            {item.label}
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
-function App() {
-  const [data, setData] = useState(null);
-  const [activeClass, setActiveClass] = useState(null);
-  const [view, setView] = useState("home");
-  const [addingTheme, setAddingTheme] = useState(false);
-  const [addingClass, setAddingClass] = useState(false);
-  const [newClassName, setNewClassName] = useState("");
-  const [showProgrammes, setShowProgrammes] = useState(false);
-  const [theme, setTheme] = useState(() => {
-    try { return localStorage.getItem("theme-v1") || "light"; } catch (e) { return "light"; }
-  });
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    try { localStorage.setItem("theme-v1", theme); } catch (e) {}
-  }, [theme]);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = withDefaults(JSON.parse(raw));
-        setData(parsed);
-        setActiveClass(parsed.order[0] || null);
-      } else {
-        const seed = seedData();
-        setData(seed);
-        setActiveClass(seed.order[0]);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
-      }
-    } catch (e) {
-      console.error(e);
-      const seed = seedData();
-      setData(seed);
-      setActiveClass(seed.order[0]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "home-grid",
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 36
     }
-  }, []);
-
-  const persist = useCallback((next) => {
-    setData(next);
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (e) { console.error("Échec de sauvegarde", e); }
-  }, []);
-
-  if (!data) {
-    return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: COLORS.bg, fontFamily: "Inter, sans-serif", color: COLORS.faint }}>Chargement du cahier…</div>;
-  }
-
-  const cls = activeClass ? data.classes[activeClass] : null;
-
-  const updateChapter = (themeId, chapterVal) => {
-    const next = { ...data };
-    const t = next.classes[activeClass].themes.find((t) => t.id === themeId);
-    t.chapters = t.chapters.map((c) => (c.id === chapterVal.id ? chapterVal : c));
-    persist(next);
-  };
-  const deleteChapter = (themeId, chapterId) => {
-    const next = { ...data };
-    const t = next.classes[activeClass].themes.find((t) => t.id === themeId);
-    t.chapters = t.chapters.filter((c) => c.id !== chapterId);
-    persist(next);
-  };
-  const addChapter = (themeId) => {
-    const next = { ...data };
-    const t = next.classes[activeClass].themes.find((t) => t.id === themeId);
-    t.chapters.push({ id: uid(), title: "Nouveau chapitre", total: 4, done: 0, start: "", end: "", notes: "" });
-    persist(next);
-  };
-  const deleteTheme = (themeId) => {
-    const next = { ...data };
-    next.classes[activeClass].themes = next.classes[activeClass].themes.filter((t) => t.id !== themeId);
-    persist(next);
-  };
-  const addTheme = (title, discipline) => {
-    const next = { ...data };
-    next.classes[activeClass].themes.push({ id: uid(), title, discipline, chapters: [] });
-    persist(next);
-    setAddingTheme(false);
-  };
-  // Ajoute les thèmes d'un programme officiel à la classe courante, en ignorant
-  // ceux dont le titre est déjà présent (pour ne rien écraser ni dupliquer).
-  const insertProgramme = (programme) => {
-    const next = { ...data };
-    const cls = next.classes[activeClass];
-    const existing = cls.themes.map((t) => t.title.trim().toLowerCase());
-    const toAdd = programme.themes.filter((t) => !existing.includes(t.title.trim().toLowerCase()));
-    cls.themes = [
-      ...cls.themes,
-      ...toAdd.map((t) => ({
-        id: uid(),
-        title: t.title,
-        discipline: t.discipline,
-        chapters: t.chapters.map((c) => ({
-          id: uid(), title: c.title, total: c.total, done: 0, start: "", end: "", notes: "",
-        })),
-      })),
-    ];
-    persist(next);
-  };
-  const addClass = () => {
-    const name = newClassName.trim();
-    if (!name) return;
-    const id = uid();
-    const next = { ...data };
-    next.order = [...next.order, id];
-    next.classes[id] = { id, name, annualHours: null, students: [], themes: [] };
-    setNewClassName(""); setAddingClass(false);
-    persist(next);
-    setActiveClass(id);
-  };
-  const deleteClass = (id) => {
-    const next = { ...data };
-    next.order = next.order.filter((cid) => cid !== id);
-    delete next.classes[id];
-    persist(next);
-    if (activeClass === id) setActiveClass(next.order[0] || null);
-  };
-  const addTodo = (text) => persist({ ...data, todos: [...data.todos, { id: uid(), text, done: false }] });
-  const toggleTodo = (id) => persist({ ...data, todos: data.todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) });
-  const deleteTodo = (id) => persist({ ...data, todos: data.todos.filter((t) => t.id !== id) });
-  const addFiche = (f) => persist({ ...data, fiches: [...data.fiches, { id: uid(), ...f }] });
-  const deleteFiche = (id) => persist({ ...data, fiches: data.fiches.filter((f) => f.id !== id) });
-  const setDriveFolder = (cid, url) => persist({ ...data, driveFolders: { ...data.driveFolders, [cid]: url } });
-  const importData = (raw) => {
-    const merged = withDefaults(raw);
-    persist(merged);
-    setActiveClass(merged.order[0] || null);
-  };
-  const setScheduleUrl = (url) => persist({ ...data, schedule: { ...data.schedule, url } });
-  const addSlot = (s) => persist({ ...data, schedule: { ...data.schedule, slots: [...data.schedule.slots, { id: uid(), ...s }] } });
-  const deleteSlot = (id) => persist({ ...data, schedule: { ...data.schedule, slots: data.schedule.slots.filter((s) => s.id !== id) } });
-  const addEvaluation = (ev) => persist({ ...data, evaluations: [...data.evaluations, { id: uid(), ...ev }] });
-  const deleteEvaluation = (id) => persist({ ...data, evaluations: data.evaluations.filter((ev) => ev.id !== id) });
-  const cycleEvalStatus = (id) => {
-    const next = { ...data };
-    next.evaluations = next.evaluations.map((ev) => {
-      if (ev.id !== id) return ev;
-      const idx = EVAL_STATUS_ORDER.indexOf(ev.status);
-      const nextStatus = EVAL_STATUS_ORDER[(idx + 1) % EVAL_STATUS_ORDER.length];
-      return { ...ev, status: nextStatus };
-    });
-    persist(next);
-  };
-  const setGrade = (evalId, studentId, value) => {
-    const next = { ...data };
-    next.evaluations = next.evaluations.map((ev) =>
-      ev.id !== evalId ? ev : { ...ev, grades: { ...ev.grades, [studentId]: value } }
-    );
-    persist(next);
-  };
-  const addStudent = (cid, name) => {
-    const next = { ...data };
-    next.classes[cid] = { ...next.classes[cid], students: [...next.classes[cid].students, { id: uid(), name, note: "" }] };
-    persist(next);
-  };
-  const updateStudent = (cid, student) => {
-    const next = { ...data };
-    next.classes[cid] = { ...next.classes[cid], students: next.classes[cid].students.map((s) => (s.id === student.id ? student : s)) };
-    persist(next);
-  };
-  const deleteStudent = (cid, sid) => {
-    const next = { ...data };
-    next.classes[cid] = { ...next.classes[cid], students: next.classes[cid].students.filter((s) => s.id !== sid) };
-    persist(next);
-  };
-  const setAnnualHours = (cid, hours) => {
-    const next = { ...data };
-    next.classes[cid] = { ...next.classes[cid], annualHours: hours };
-    persist(next);
-  };
-
-  return (
-    <div style={{ minHeight: "100vh", background: COLORS.bg }}>
-      <header className="content-shift" style={{ borderBottom: "none", padding: "26px 20px 0", background: COLORS.bg, position: "sticky", top: 0, zIndex: 10 }}>
-        <div className="content-width" style={{ maxWidth: 640, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginBottom: 2 }}>
-            <h1 style={{ fontFamily: "Fraunces, serif", fontSize: 22, fontWeight: 600, color: COLORS.accent, margin: 0, letterSpacing: "-0.01em" }}>Cahier de progression</h1>
-            <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} title="Changer de thème"
-              style={{ background: "none", border: "none", color: COLORS.faint, cursor: "pointer", padding: 4, display: "flex" }}>
-              {theme === "dark" ? <IconSun size={17} /> : <IconMoon size={17} />}
-            </button>
-          </div>
-          <span style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint }}>Histoire-Géographie</span>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 18, marginTop: 18, flexWrap: "wrap" }}>
-            {data.order.map((cid) => {
-              const c = data.classes[cid];
-              const isActive = cid === activeClass;
-              const cColor = classColor(data, cid);
-              return (
-                <div key={cid} style={{ position: "relative", display: "flex", alignItems: "center" }}>
-                  <button onClick={() => setActiveClass(cid)} style={{ fontFamily: "Fraunces, serif", fontSize: 16, fontWeight: isActive ? 600 : 400,
-                    color: isActive ? cColor : COLORS.faint, background: "none",
-                    border: "none", borderBottom: isActive ? `2px solid ${cColor}` : "2px solid transparent",
-                    padding: "4px 2px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 7, transition: "color .15s" }}>
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: cColor, flexShrink: 0, opacity: isActive ? 1 : 0.55 }} />
-                    {c.name}
-                    {isActive && data.order.length > 1 && (
-                      <span onClick={(e) => { e.stopPropagation(); deleteClass(cid); }} title="Supprimer cette classe"
-                        style={{ color: COLORS.faint, marginLeft: 2, padding: 3, display: "inline-flex" }}>
-                        <IconX size={11} />
-                      </span>
-                    )}
-                
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 36
+    }
+  }, /*#__PURE__*/React.createElement(MiniSchedule, {
+    data: data
+  }), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconClock, {
+      size: 15
+    }),
+    title: "Dans les 7 prochains jours"
+  }), upcoming.length === 0 ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 13,
+      color: COLORS.faint
+    }
+  }, "Aucune échéance renseignée cette semaine.") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+ 
