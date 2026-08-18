@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Rituels — Histoire-Géographie</title>
+<meta name="description" content="Rituels de début de cours projetables en classe, en histoire-géographie" />
+<meta name="theme-color" content="#1F4E5F" />
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #FAF8F3; --panel: #FFFFFF; --ink: #22282A; --sub: #55605F; --faint: #8A8478;
+    --line: #E4DFD4; --accent: #1F4E5F; --accentSoft: #E7EEF0;
+    --histoire: #7A3B2E; --histoireSoft: #F4E9E5;
+    --geo: #1F4E5F; --geoSoft: #E7EEF0;
+    --reveal: #5C7A5E; --revealSoft: #E9F0E7;
+  }
+  [data-theme="dark"] {
+    --bg: #14181A; --panel: #1F2528; --ink: #F1ECE3; --sub: #B6B1A7; --faint: #7E796F;
+    --line: #333B3E; --accent: #8FC3D9; --accentSoft: #1E2E36;
+    --histoire: #E0A78C; --histoireSoft: #33251F;
+    --geo: #8FC3D9; --geoSoft: #1E2E36;
+    --reveal: #93C196; --revealSoft: #1E2A1E;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: Inter, system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button { font: inherit; cursor: pointer; transition: background-color .15s, border-color .15s, color .15s, opacity .15s, transform .1s; }
+  button:hover { opacity: .85; }
+  button:active { transform: scale(.985); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  h1 { font-family: Fraunces, serif; font-size: 26px; font-weight: 600; color: var(--accent); margin: 0 0 4px; letter-spacing: -.01em; }
+  .sous { font-size: 13px; color: var(--faint); margin: 0 0 30px; }
+
+  .bloc { margin-bottom: 26px; }
+  .etiq { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); margin-bottom: 10px; }
+
+  .choix { display: flex; flex-wrap: wrap; gap: 9px; }
+  .opt {
+    padding: 10px 18px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--sub); font-size: 14px;
+  }
+  .opt[aria-pressed="true"] { border-color: var(--accent); background: var(--accentSoft); color: var(--accent); font-weight: 600; }
+
+  .lancer {
+    width: 100%; padding: 16px; border: none; border-radius: 10px;
+    background: var(--accent); color: #fff; font-size: 16px; font-weight: 600;
+    font-family: Fraunces, serif; letter-spacing: .01em; margin-top: 6px;
+  }
+  .lancer:disabled { opacity: .45; cursor: not-allowed; }
+
+  .info { font-size: 12.5px; color: var(--faint); margin-top: 12px; line-height: 1.6; }
+
+  .barre-haut { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .mini { background: none; border: none; color: var(--faint); font-size: 12.5px; padding: 6px; }
+
+  /* ---------- Mode projection ---------- */
+  #scene { display: none; position: fixed; inset: 0; background: var(--bg); flex-direction: column; }
+  #scene.on { display: flex; }
+
+  .scene-haut {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 26px; gap: 14px; flex-shrink: 0;
+  }
+  .pastilles { display: flex; gap: 7px; }
+  .past { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+  .past.faite { background: var(--accent); }
+  .past.active { background: var(--accent); transform: scale(1.45); }
+
+  .tag {
+    font-size: clamp(11px, 1.3vw, 14px); font-weight: 600; letter-spacing: .05em;
+    text-transform: uppercase; padding: 5px 12px; border-radius: 5px;
+  }
+  .tag.histoire { color: var(--histoire); background: var(--histoireSoft); }
+  .tag.geo { color: var(--geo); background: var(--geoSoft); }
+
+  .scene-corps {
+    flex: 1; display: flex; flex-direction: column; justify-content: center;
+    padding: 20px clamp(26px, 6vw, 90px); gap: clamp(22px, 4vh, 46px); overflow-y: auto;
+  }
+  .theme-nom { font-size: clamp(13px, 1.6vw, 18px); color: var(--faint); }
+  .question {
+    font-family: Fraunces, serif; font-weight: 600; line-height: 1.22;
+    font-size: clamp(30px, 5.2vw, 66px); letter-spacing: -.015em;
+  }
+  .reponse {
+    font-size: clamp(19px, 2.6vw, 34px); line-height: 1.42; color: var(--ink);
+    border-left: 5px solid var(--reveal); background: var(--revealSoft);
+    padding: clamp(16px, 2.4vw, 28px) clamp(18px, 2.6vw, 32px); border-radius: 0 10px 10px 0;
+  }
+  .cache { display: none; }
+  .indice { font-size: clamp(13px, 1.5vw, 17px); color: var(--faint); }
+
+  .scene-bas {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 26px calc(16px + env(safe-area-inset-bottom, 0px)); gap: 12px; flex-shrink: 0;
+  }
+  .nav {
+    padding: 13px 26px; border-radius: 9px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--ink); font-size: clamp(14px, 1.5vw, 17px); font-weight: 600;
+  }
+  .nav.primaire { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .nav:disabled { opacity: .35; cursor: not-allowed; }
+
+  .fin { text-align: center; }
+  .fin h2 { font-family: Fraunces, serif; font-size: clamp(26px, 4vw, 44px); margin: 0 0 12px; color: var(--accent); }
+  .fin p { font-size: clamp(15px, 1.8vw, 20px); color: var(--sub); margin: 0 0 26px; }
+
+  @media (max-width: 620px) {
+    .scene-haut, .scene-bas { padding-left: 16px; padding-right: 16px; }
+    .nav { padding: 12px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ---------- Écran de réglage ---------- -->
+<div class="wrap" id="accueil">
+  <div class="barre-haut">
+    <div>
+      <h1>Rituels</h1>
+      <p class="sous">Histoire-Géographie — 5 minutes en début de cours</p>
+    </div>
+    <button class="mini" id="btn-theme" title="Changer de thème">Mode sombre</button>
+  </div>
+
+  <div class="bloc">
+    <div class="etiq">Niveau</div>
+    <div class="choix" id="choix-niveau"></div>
+  </div>
+
+  <div class="bloc">
+    <div class="etiq">Discipline</div>
+    <div class="choix" id="choix-discipline"></div>
+  </div>
+
+  <div class="bloc">
+    <div class="etiq">Thème (facultatif)</div>
+    <div class="choix" id="choix-theme"></div>
+  </div>
+
+  <div class="bloc">
+    <div class="etiq">Nombre de questions</div>
+    <div class="choix" id="choix-nombre"></div>
+  </div>
+
+  <button class="lancer" id="btn-lancer">Lancer le rituel</button>
+  <p class="info" id="info-dispo"></p>
+  <p class="info">
+    Les questions déjà posées les fois précédentes passent en dernier, pour faire revenir régulièrement
+    les notions anciennes plutôt que de tourner sur le seul chapitre en cours.<br />
+    En projection : <strong>Espace</strong> ou clic pour révéler puis avancer, <strong>←</strong> pour revenir, <strong>Échap</strong> pour sortir.
+  </p>
+</div>
+
+<!-- ---------- Mode projection ---------- -->
+<div id="scene">
+  <div class="scene-haut">
+    <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+      <span class="tag" id="scene-tag"></span>
+      <span class="theme-nom" id="scene-theme"></span>
+    </div>
+    <div class="pastilles" id="scene-pastilles"></div>
+  </div>
+
+  <div class="scene-corps" id="scene-corps">
+    <div id="vue-question">
+      <div class="question" id="scene-question"></div>
+      <div class="reponse cache" id="scene-reponse" style="margin-top:clamp(22px,4vh,46px)"></div>
+      <div class="indice" id="scene-indice" style="margin-top:clamp(16px,2.5vh,28px)"></div>
+    </div>
+
+    <div class="fin cache" id="vue-fin">
+      <h2>Rituel terminé</h2>
+      <p id="fin-detail"></p>
+      <button class="nav primaire" id="btn-rejouer">Nouveau rituel</button>
+    </div>
+  </div>
+
+  <div class="scene-bas">
+    <button class="nav" id="btn-prec">← Précédent</button>
+    <button class="mini" id="btn-quitter">Quitter</button>
+    <button class="nav primaire" id="btn-suiv">Révéler</button>
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var CLE_VUES = "rituels-vues-v1";
+  var CLE_REGLAGES = "rituels-reglages-v1";
+  var CLE_THEME = "rituels-theme-v1";
+
+  var NIVEAUX = [
+    { id: "5e", nom: "5e" },
+    { id: "2nde", nom: "Seconde" },
+    { id: "1ere", nom: "Première" }
+  ];
+  var DISCIPLINES = [
+    { id: "histoire", nom: "Histoire" },
+    { id: "geo", nom: "Géographie" },
+    { id: "les-deux", nom: "Les deux" }
+  ];
+  var NOMBRES = [3, 5, 8];
+
+  var LIBELLE_TYPE = {
+    notion: "Notion à définir",
+    repere: "Repère à situer",
+    vf: "Vrai ou faux",
+    flash: "Question flash"
+  };
+
+  // --- petits utilitaires de stockage, tolérants aux navigateurs restrictifs
+  function lire(cle, defaut) {
+    try {
+      var v = localStorage.getItem(cle);
+      return v ? JSON.parse(v) : defaut;
+    } catch (e) { return defaut; }
+  }
+  function ecrire(cle, valeur) {
+    try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch (e) {}
+  }
+
+  // identifiant stable d'une question (sans dépendre de son rang dans la banque)
+  function idQuestion(q) { return q.n + "|" + q.d + "|" + q.q; }
+
+  var etat = {
+    niveau: "5e",
+    discipline: "les-deux",
+    theme: null,
+    nombre: 5,
+    serie: [],
+    index: 0,
+    revele: false
+  };
+
+  var vues = lire(CLE_VUES, {});
+
+  // ---------- Thème clair / sombre ----------
+  function appliquerTheme(t) {
+    if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
+    else document.documentElement.removeAttribute("data-theme");
+    document.getElementById("btn-theme").textContent = t === "dark" ? "Mode clair" : "Mode sombre";
+    ecrire(CLE_THEME, t);
+  }
+  var themeActuel = lire(CLE_THEME, "light");
+  appliquerTheme(themeActuel);
+  document.getElementById("btn-theme").addEventListener("click", function () {
+    themeActuel = themeActuel === "dark" ? "light" : "dark";
+    appliquerTheme(themeActuel);
+  });
+
+  // ---------- Construction des boutons de réglage ----------
+  function boutonsOptions(conteneur, liste, valeurActuelle, auClic) {
+    conteneur.innerHTML = "";
+    liste.forEach(function (item) {
+      var b = document.createElement("button");
+      b.className = "opt";
+      b.type = "button";
+      b.textContent = item.nom;
+      b.setAttribute("aria-pressed", String(item.id === valeurActuelle));
+      b.addEventListener("click", function () { auClic(item.id); });
+      conteneur.appendChild(b);
+    });
+  }
+
+  function themesDisponibles() {
+    var vus = {};
+    var liste = [];
+    BANQUE.forEach(function (q) {
+      if (q.n !== etat.niveau) return;
+      if (etat.discipline !== "les-deux" && q.d !== etat.discipline) return;
+      if (!vus[q.t]) { vus[q.t] = true; liste.push({ id: q.t, nom: q.t }); }
+    });
+    return liste;
+  }
+
+  function questionsFiltrees() {
+    return BANQUE.filter(function (q) {
+      if (q.n !== etat.niveau) return false;
+      if (etat.discipline !== "les-deux" && q.d !== etat.discipline) return false;
+      if (etat.theme && q.t !== etat.theme) return false;
+      return true;
+    });
+  }
+
+  function rafraichirReglages() {
+    boutonsOptions(document.getElementById("choix-niveau"), NIVEAUX, etat.niveau, function (v) {
+      etat.niveau = v; etat.theme = null; rafraichirReglages();
+    });
+    boutonsOptions(document.getElementById("choix-discipline"), DISCIPLINES, etat.discipline, function (v) {
+      etat.discipline = v; etat.theme = null; rafraichirReglages();
+    });
+
+    var themes = [{ id: null, nom: "Tous les thèmes" }].concat(themesDisponibles());
+    boutonsOptions(document.getElementById("choix-theme"), themes, etat.theme, function (v) {
+      etat.theme = v; rafraichirReglages();
+    });
+
+    boutonsOptions(
+      document.getElementById("choix-nombre"),
+      NOMBRES.map(function (n) { return { id: n, nom: String(n) }; }),
+      etat.nombre,
+      function (v) { etat.nombre = v; rafraichirReglages(); }
+    );
+
+    var dispo = questionsFiltrees().length;
+    document.getElementById("info-dispo").textContent =
+      dispo + " question" + (dispo > 1 ? "s" : "") + " disponible" + (dispo > 1 ? "s" : "") + " avec ces réglages.";
+    document.getElementById("btn-lancer").disabled = dispo === 0;
+
+    ecrire(CLE_REGLAGES, { niveau: etat.niveau, discipline: etat.discipline, theme: etat.theme, nombre: etat.nombre });
+  }
+
+  // ---------- Tirage de la série ----------
+  function melanger(tab) {
+    var a = tab.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function tirerSerie() {
+    var pool = questionsFiltrees();
+    // priorité aux questions jamais posées, puis aux plus anciennement vues
+    var jamais = [], deja = [];
+    pool.forEach(function (q) {
+      if (vues[idQuestion(q)]) deja.push(q); else jamais.push(q);
+    });
+    deja.sort(function (a, b) { return vues[idQuestion(a)] - vues[idQuestion(b)]; });
+    var serie = melanger(jamais).concat(deja);
+    return serie.slice(0, Math.min(etat.nombre, serie.length));
+  }
+
+  // ---------- Affichage de la projection ----------
+  var scene = document.getElementById("scene");
+  var elQuestion = document.getElementById("scene-question");
+  var elReponse = document.getElementById("scene-reponse");
+  var elIndice = document.getElementById("scene-indice");
+  var elTag = document.getElementById("scene-tag");
+  var elTheme = document.getElementById("scene-theme");
+  var elPastilles = document.getElementById("scene-pastilles");
+  var vueQuestion = document.getElementById("vue-question");
+  var vueFin = document.getElementById("vue-fin");
+  var btnSuiv = document.getElementById("btn-suiv");
+  var btnPrec = document.getElementById("btn-prec");
+
+  function dessinerPastilles() {
+    elPastilles.innerHTML = "";
+    etat.serie.forEach(function (_, i) {
+      var p = document.createElement("span");
+      p.className = "past" + (i === etat.index ? " active" : (i < etat.index ? " faite" : ""));
+      elPastilles.appendChild(p);
+    });
+  }
+
+  function afficher() {
+    if (etat.index >= etat.serie.length) {
+      vueQuestion.classList.add("cache");
+      vueFin.classList.remove("cache");
+      document.getElementById("fin-detail").textContent =
+        etat.serie.length + " question" + (etat.serie.length > 1 ? "s" : "") + " passée" + (etat.serie.length > 1 ? "s" : "") + " en revue.";
+      btnSuiv.disabled = true;
+      btnPrec.disabled = false;
+      dessinerPastilles();
+      return;
+    }
+
+    vueQuestion.classList.remove("cache");
+    vueFin.classList.add("cache");
+
+    var q = etat.serie[etat.index];
+    elQuestion.textContent = q.q;
+    elReponse.textContent = q.r;
+    elTag.textContent = q.d === "histoire" ? "Histoire" : "Géographie";
+    elTag.className = "tag " + (q.d === "histoire" ? "histoire" : "geo");
+    elTheme.textContent = q.t;
+    elIndice.textContent = LIBELLE_TYPE[q.k] || "";
+
+    if (etat.revele) {
+      elReponse.classList.remove("cache");
+      btnSuiv.textContent = etat.index === etat.serie.length - 1 ? "Terminer" : "Question suivante →";
+    } else {
+      elReponse.classList.add("cache");
+      btnSuiv.textContent = "Révéler";
+    }
+    btnSuiv.disabled = false;
+    btnPrec.disabled = etat.index === 0 && !etat.revele;
+    dessinerPastilles();
+  }
+
+  function avancer() {
+    if (etat.index >= etat.serie.length) return;
+    if (!etat.revele) {
+      etat.revele = true;
+      // on note la question comme vue au moment où la réponse est donnée
+      vues[idQuestion(etat.serie[etat.index])] = Date.now();
+      ecrire(CLE_VUES, vues);
+    } else {
+      etat.index++;
+      etat.revele = false;
+    }
+    afficher();
+  }
+
+  function reculer() {
+    if (etat.revele) { etat.revele = false; }
+    else if (etat.index > 0) { etat.index--; etat.revele = true; }
+    else return;
+    afficher();
+  }
+
+  function ouvrirScene() {
+    etat.serie = tirerSerie();
+    if (!etat.serie.length) return;
+    etat.index = 0;
+    etat.revele = false;
+    scene.classList.add("on");
+    afficher();
+    if (scene.requestFullscreen) { scene.requestFullscreen().catch(function () {}); }
+  }
+
+  function fermerScene() {
+    scene.classList.remove("on");
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(function () {});
+    }
+    rafraichirReglages();
+  }
+
+  document.getElementById("btn-lancer").addEventListener("click", ouvrirScene);
+  btnSuiv.addEventListener("click", avancer);
+  btnPrec.addEventListener("click", reculer);
+  document.getElementById("btn-quitter").addEventListener("click", fermerScene);
+  document.getElementById("btn-rejouer").addEventListener("click", ouvrirScene);
+
+  // clic n'importe où dans la zone de contenu = avancer (pratique au vidéoprojecteur)
+  document.getElementById("scene-corps").addEventListener("click", function (e) {
+    if (e.target.closest("button")) return;
+    avancer();
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (!scene.classList.contains("on")) return;
+    if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight" || e.key === "PageDown") {
+      e.preventDefault(); avancer();
+    } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+      e.preventDefault(); reculer();
+    } else if (e.key === "Escape") {
+      fermerScene();
+    }
+  });
+
+  // ---------- Démarrage ----------
+  var sauvegarde = lire(CLE_REGLAGES, null);
+  if (sauvegarde) {
+    if (sauvegarde.niveau) etat.niveau = sauvegarde.niveau;
+    if (sauvegarde.discipline) etat.discipline = sauvegarde.discipline;
+    if (sauvegarde.nombre) etat.nombre = sauvegarde.nombre;
+    // le thème n'est repris que s'il existe toujours dans la banque
+    var themesOk = themesDisponibles().map(function (t) { return t.id; });
+    etat.theme = (sauvegarde.theme && themesOk.indexOf(sauvegarde.theme) !== -1) ? sauvegarde.theme : null;
+  }
+  rafraichirReglages();
+})();
+</script>
+</body>
+</html>
