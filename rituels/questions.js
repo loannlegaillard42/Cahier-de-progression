@@ -1,10 +1,60 @@
-
 /* Banque de rituels — histoire-géographie
    Chaque entrée : { n: niveau, d: discipline, t: thème, k: type, q: question, r: réponse }
-   Types (k) : "notion" (définir), "repere" (date/lieu), "vf" (vrai-faux), "flash" (question ouverte)
+   Types (k) : "notion" (définir), "repere" (date/lieu), "vf" (vrai-faux), "flash" (question ouverte),
+               "quisuisje" (indices progressifs à révéler un par un, puis réponse — utilise "indices": [...] et "r": le sujet)
    Cette banque est modifiable : tes propres questions s'ajoutent depuis l'application. */
 
 const BANQUE = [
+  /* ---------------- QUI SUIS-JE ? — 2nde Histoire, Thème 1 ---------------- */
+  { n: "2nde", d: "histoire", t: "Le monde méditerranéen : Antiquité et Moyen Âge", k: "quisuisje",
+    q: "Qui suis-je ?", r: "Périclès",
+    indices: [
+      "Je suis un homme politique de l'Antiquité.",
+      "J'ai été plusieurs fois stratège, élu par mes concitoyens.",
+      "Mon nom est associé au « siècle d'or » d'une grande cité grecque, au Ve siècle av. J.-C.",
+      "J'ai fait construire le Parthénon sur l'Acropole d'Athènes."
+    ] },
+  { n: "2nde", d: "histoire", t: "Le monde méditerranéen : Antiquité et Moyen Âge", k: "quisuisje",
+    q: "Qui suis-je ?", r: "Auguste",
+    indices: [
+      "Je suis un homme politique de l'Antiquité romaine.",
+      "Je suis le petit-neveu et fils adoptif d'un célèbre général assassiné en 44 av. J.-C.",
+      "Le Sénat m'a donné un titre qui signifie « vénérable, sacré ».",
+      "Je suis considéré comme le premier empereur romain, à l'origine de la Pax Romana."
+    ] },
+  { n: "2nde", d: "histoire", t: "Le monde méditerranéen : Antiquité et Moyen Âge", k: "quisuisje",
+    q: "Qui suis-je ?", r: "Alexandrie",
+    indices: [
+      "Je suis une grande ville du pourtour méditerranéen.",
+      "J'ai été fondée au IVe siècle av. J.-C. par un conquérant macédonien qui porte mon nom.",
+      "Sous les Ptolémées puis sous Rome, j'ai abrité l'une des plus grandes bibliothèques de l'Antiquité.",
+      "Je suis aujourd'hui une grande ville d'Égypte, sur la mer Méditerranée."
+    ] },
+  { n: "2nde", d: "histoire", t: "Le monde méditerranéen : Antiquité et Moyen Âge", k: "quisuisje",
+    q: "Qui suis-je ?", r: "Bernard de Clairvaux",
+    indices: [
+      "Je suis un religieux du Moyen Âge occidental.",
+      "J'ai fondé et dirigé une abbaye qui deviendra célèbre dans toute l'Europe.",
+      "J'appartiens à l'ordre cistercien, réputé pour sa rigueur.",
+      "En 1146, j'ai prêché un appel à une nouvelle croisade en Terre sainte."
+    ] },
+  { n: "2nde", d: "histoire", t: "Le monde méditerranéen : Antiquité et Moyen Âge", k: "quisuisje",
+    q: "Qui suis-je ?", r: "Venise",
+    indices: [
+      "Je suis une cité du Moyen Âge, bâtie sur des îles et des lagunes.",
+      "Je suis dirigée par un doge, et une partie de mes habitants sont de riches marchands.",
+      "Mes navires relient l'Occident chrétien à Constantinople et au monde musulman.",
+      "Je donne mon nom à une célèbre république maritime d'Italie du Nord-Est."
+    ] },
+  { n: "2nde", d: "histoire", t: "Le monde méditerranéen : Antiquité et Moyen Âge", k: "quisuisje",
+    q: "Qui suis-je ?", r: "Jérusalem",
+    indices: [
+      "Je suis une ville de la Méditerranée orientale.",
+      "Trois religions me considèrent comme une ville sainte.",
+      "Prise par les croisés en 1099, je suis reprise par Saladin en 1187.",
+      "Je suis aujourd'hui la capitale revendiquée d'Israël, entre judaïsme, christianisme et islam."
+    ] },
+
   /* ---------------- 5e — HISTOIRE ---------------- */
   { n: "5e", d: "histoire", t: "Chrétientés et islam (VIe-XIIIe s.)", k: "notion", q: "Qu'est-ce que l'Empire byzantin ?", r: "L'Empire romain d'Orient, qui survit après la chute de Rome. Sa capitale est Constantinople." },
   { n: "5e", d: "histoire", t: "Chrétientés et islam (VIe-XIIIe s.)", k: "repere", q: "Que se passe-t-il en 622 ?", r: "L'Hégire : Mahomet quitte La Mecque pour Médine. C'est le point de départ du calendrier musulman." },
