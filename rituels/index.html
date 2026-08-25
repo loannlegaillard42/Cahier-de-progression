@@ -101,6 +101,20 @@
   .cache { display: none; }
   .indice { font-size: clamp(13px, 1.5vw, 17px); color: var(--faint); }
 
+  /* ---------- Qui suis-je ? (indices progressifs) ---------- */
+  .qsj-ligne {
+    display: flex; align-items: flex-start; gap: 16px;
+    font-size: clamp(20px, 3vw, 32px); line-height: 1.4; margin-bottom: 16px;
+    animation: apparition .25s ease;
+  }
+  .qsj-num {
+    flex-shrink: 0; width: clamp(30px, 3vw, 38px); height: clamp(30px, 3vw, 38px); border-radius: 50%;
+    background: var(--accentSoft); color: var(--accent); display: flex; align-items: center; justify-content: center;
+    font-family: "IBM Plex Mono", monospace; font-size: clamp(13px, 1.4vw, 16px); font-weight: 600; margin-top: 2px;
+  }
+  @keyframes apparition { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .qsj-attente { font-size: clamp(15px, 1.7vw, 19px); color: var(--faint); font-style: italic; }
+
   .scene-bas {
     display: flex; justify-content: space-between; align-items: center;
     padding: 16px 26px calc(16px + env(safe-area-inset-bottom, 0px)); gap: 12px; flex-shrink: 0;
@@ -253,9 +267,17 @@
 
   <div class="scene-corps" id="scene-corps">
     <div id="vue-question">
-      <div class="question" id="scene-question"></div>
-      <div class="reponse cache" id="scene-reponse" style="margin-top:clamp(22px,4vh,46px)"></div>
-      <div class="indice" id="scene-indice" style="margin-top:clamp(16px,2.5vh,28px)"></div>
+      <div id="bloc-classique">
+        <div class="question" id="scene-question"></div>
+        <div class="reponse cache" id="scene-reponse" style="margin-top:clamp(22px,4vh,46px)"></div>
+        <div class="indice" id="scene-indice" style="margin-top:clamp(16px,2.5vh,28px)"></div>
+      </div>
+      <div id="bloc-quisuisje" class="cache">
+        <div class="question" id="qsj-titre">Qui suis-je ?</div>
+        <div id="qsj-indices" style="margin-top:clamp(22px,4vh,40px)"></div>
+        <div class="qsj-attente" id="qsj-attente"></div>
+        <div class="reponse cache" id="qsj-reponse" style="margin-top:clamp(22px,4vh,40px)"></div>
+      </div>
     </div>
 
     <div class="fin cache" id="vue-fin">
@@ -298,7 +320,8 @@
     notion: "Notion à définir",
     repere: "Repère à situer",
     vf: "Vrai ou faux",
-    flash: "Question flash"
+    flash: "Question flash",
+    quisuisje: "Qui suis-je ?"
   };
 
   // --- petits utilitaires de stockage, tolérants aux navigateurs restrictifs
@@ -340,7 +363,8 @@
     nombre: 5,
     serie: [],
     index: 0,
-    revele: false
+    revele: false,
+    subIndex: 0 // pour "quisuisje" : nombre d'indices déjà révélés
   };
 
   var vues = lire(CLE_VUES, {});
@@ -453,6 +477,11 @@
   var elPastilles = document.getElementById("scene-pastilles");
   var vueQuestion = document.getElementById("vue-question");
   var vueFin = document.getElementById("vue-fin");
+  var blocClassique = document.getElementById("bloc-classique");
+  var blocQsj = document.getElementById("bloc-quisuisje");
+  var qsjIndices = document.getElementById("qsj-indices");
+  var qsjAttente = document.getElementById("qsj-attente");
+  var qsjReponse = document.getElementById("qsj-reponse");
   var btnSuiv = document.getElementById("btn-suiv");
   var btnPrec = document.getElementById("btn-prec");
 
@@ -481,43 +510,117 @@
     vueFin.classList.add("cache");
 
     var q = etat.serie[etat.index];
-    elQuestion.textContent = q.q;
-    elReponse.textContent = q.r;
     elTag.textContent = q.d === "histoire" ? "Histoire" : "Géographie";
     elTag.className = "tag " + (q.d === "histoire" ? "histoire" : "geo");
     elTheme.textContent = q.t;
-    elIndice.textContent = LIBELLE_TYPE[q.k] || "";
 
-    if (etat.revele) {
-      elReponse.classList.remove("cache");
-      btnSuiv.textContent = etat.index === etat.serie.length - 1 ? "Terminer" : "Question suivante →";
+    if (q.k === "quisuisje") {
+      blocClassique.classList.add("cache");
+      blocQsj.classList.remove("cache");
+      var indices = q.indices || [];
+
+      qsjIndices.innerHTML = "";
+      for (var i = 0; i < etat.subIndex; i++) {
+        var ligne = document.createElement("div");
+        ligne.className = "qsj-ligne";
+        var num = document.createElement("span");
+        num.className = "qsj-num";
+        num.textContent = String(i + 1);
+        var txt = document.createElement("span");
+        txt.textContent = indices[i];
+        ligne.appendChild(num); ligne.appendChild(txt);
+        qsjIndices.appendChild(ligne);
+      }
+
+      if (etat.revele) {
+        qsjAttente.textContent = "";
+        qsjReponse.textContent = "C'est : " + q.r;
+        qsjReponse.classList.remove("cache");
+        btnSuiv.textContent = etat.index === etat.serie.length - 1 ? "Terminer" : "Question suivante →";
+      } else {
+        qsjReponse.classList.add("cache");
+        if (etat.subIndex < indices.length) {
+          qsjAttente.textContent = etat.subIndex === 0
+            ? "Clique pour révéler le premier indice."
+            : "Encore " + (indices.length - etat.subIndex) + " indice" + (indices.length - etat.subIndex > 1 ? "s" : "") + " disponible" + (indices.length - etat.subIndex > 1 ? "s" : "") + ".";
+          btnSuiv.textContent = etat.subIndex === 0 ? "Premier indice" : "Indice suivant (" + (etat.subIndex + 1) + "/" + indices.length + ")";
+        } else {
+          qsjAttente.textContent = "";
+          btnSuiv.textContent = "Révéler qui c'est";
+        }
+      }
     } else {
-      elReponse.classList.add("cache");
-      btnSuiv.textContent = "Révéler";
+      blocQsj.classList.add("cache");
+      blocClassique.classList.remove("cache");
+      elQuestion.textContent = q.q;
+      elReponse.textContent = q.r;
+      elIndice.textContent = LIBELLE_TYPE[q.k] || "";
+
+      if (etat.revele) {
+        elReponse.classList.remove("cache");
+        btnSuiv.textContent = etat.index === etat.serie.length - 1 ? "Terminer" : "Question suivante →";
+      } else {
+        elReponse.classList.add("cache");
+        btnSuiv.textContent = "Révéler";
+      }
     }
+
     btnSuiv.disabled = false;
-    btnPrec.disabled = etat.index === 0 && !etat.revele;
+    btnPrec.disabled = etat.index === 0 && !etat.revele && etat.subIndex === 0;
     dessinerPastilles();
+  }
+
+  function marquerVue(q) {
+    vues[idQuestion(q)] = Date.now();
+    ecrire(CLE_VUES, vues);
   }
 
   function avancer() {
     if (etat.index >= etat.serie.length) return;
-    if (!etat.revele) {
-      etat.revele = true;
-      // on note la question comme vue au moment où la réponse est donnée
-      vues[idQuestion(etat.serie[etat.index])] = Date.now();
-      ecrire(CLE_VUES, vues);
+    var q = etat.serie[etat.index];
+
+    if (q.k === "quisuisje") {
+      var nbIndices = (q.indices || []).length;
+      if (etat.subIndex < nbIndices) {
+        etat.subIndex++;
+      } else if (!etat.revele) {
+        etat.revele = true;
+        marquerVue(q);
+      } else {
+        etat.index++; etat.revele = false; etat.subIndex = 0;
+      }
     } else {
-      etat.index++;
-      etat.revele = false;
+      if (!etat.revele) {
+        etat.revele = true;
+        marquerVue(q);
+      } else {
+        etat.index++; etat.revele = false; etat.subIndex = 0;
+      }
     }
     afficher();
   }
 
   function reculer() {
-    if (etat.revele) { etat.revele = false; }
-    else if (etat.index > 0) { etat.index--; etat.revele = true; }
-    else return;
+    var q = etat.index < etat.serie.length ? etat.serie[etat.index] : null;
+
+    if (q && q.k === "quisuisje") {
+      if (etat.revele) { etat.revele = false; }
+      else if (etat.subIndex > 0) { etat.subIndex--; }
+      else if (etat.index > 0) {
+        etat.index--;
+        var prec = etat.serie[etat.index];
+        etat.revele = true;
+        etat.subIndex = prec.k === "quisuisje" ? (prec.indices || []).length : 0;
+      } else return;
+    } else {
+      if (etat.revele) { etat.revele = false; }
+      else if (etat.index > 0) {
+        etat.index--;
+        var prec2 = etat.serie[etat.index];
+        etat.revele = true;
+        etat.subIndex = prec2.k === "quisuisje" ? (prec2.indices || []).length : 0;
+      } else return;
+    }
     afficher();
   }
 
@@ -526,6 +629,7 @@
     if (!etat.serie.length) return;
     etat.index = 0;
     etat.revele = false;
+    etat.subIndex = 0;
     scene.classList.add("on");
     afficher();
     if (scene.requestFullscreen) { scene.requestFullscreen().catch(function () {}); }
@@ -628,10 +732,10 @@
 
     var pq = document.createElement("p");
     pq.className = "qcard-q";
-    pq.textContent = q.q;
+    pq.textContent = q.k === "quisuisje" ? ("Réponse : " + q.r) : q.q;
     var pr = document.createElement("p");
     pr.className = "qcard-r";
-    pr.textContent = q.r;
+    pr.textContent = q.k === "quisuisje" ? (q.indices || []).map(function (ind, i) { return (i + 1) + ". " + ind; }).join("  ") : q.r;
 
     var actions = document.createElement("div");
     actions.className = "qcard-actions";
@@ -666,7 +770,7 @@
 
     var estNouvelle = etatGestion.edition === "nouvelle";
     var base = estNouvelle
-      ? { n: etatGestion.niveau, d: etatGestion.discipline === "geo" ? "geo" : "histoire", t: "", k: "notion", q: "", r: "" }
+      ? { n: etatGestion.niveau, d: etatGestion.discipline === "geo" ? "geo" : "histoire", t: "", k: "notion", q: "", r: "", indices: [] }
       : (BANQUE_ACTUELLE.filter(function (x) { return idQuestion(x) === etatGestion.edition; })[0] || {});
 
     var panel = document.createElement("div");
@@ -691,7 +795,8 @@
     var selNiveau = select(NIVEAUX, base.n);
     var selDiscipline = select([{ id: "histoire", nom: "Histoire" }, { id: "geo", nom: "Géographie" }], base.d);
     var selType = select(
-      [{ id: "notion", nom: "Notion à définir" }, { id: "repere", nom: "Repère à situer" }, { id: "vf", nom: "Vrai ou faux" }, { id: "flash", nom: "Question flash" }],
+      [{ id: "notion", nom: "Notion à définir" }, { id: "repere", nom: "Repère à situer" }, { id: "vf", nom: "Vrai ou faux" },
+       { id: "flash", nom: "Question flash" }, { id: "quisuisje", nom: "Qui suis-je ? (indices)" }],
       base.k
     );
     row1.appendChild(ligne("Niveau", selNiveau));
@@ -702,24 +807,61 @@
     var rowTheme = document.createElement("div"); rowTheme.className = "form-row";
     rowTheme.appendChild(ligne("Thème (reprends un intitulé existant pour la rattacher au bon chapitre)", inputTheme));
 
-    var taQ = document.createElement("textarea"); taQ.value = base.q || "";
-    var rowQ = document.createElement("div"); rowQ.className = "form-row";
-    rowQ.appendChild(ligne("Question", taQ));
+    // Zone dynamique : Question/Réponse pour les types classiques, Indices/Sujet pour "Qui suis-je ?"
+    var zoneDynamique = document.createElement("div");
+    var taQ, taR, taIndices;
 
-    var taR = document.createElement("textarea"); taR.value = base.r || "";
-    var rowR = document.createElement("div"); rowR.className = "form-row";
-    rowR.appendChild(ligne("Réponse", taR));
+    function dessinerDynamique(type) {
+      zoneDynamique.innerHTML = "";
+      if (type === "quisuisje") {
+        taIndices = document.createElement("textarea");
+        taIndices.style.minHeight = "110px";
+        taIndices.value = (base.k === "quisuisje" ? (base.indices || []) : []).join("\n");
+        taIndices.placeholder = "Un indice par ligne, du plus vague au plus précis.\nEx.\nJe suis un homme politique de l'Antiquité.\nJ'ai fait construire le Parthénon.";
+        var rowIndices = document.createElement("div"); rowIndices.className = "form-row";
+        rowIndices.appendChild(ligne("Indices (un par ligne, ordre du plus vague au plus précis)", taIndices));
+
+        taR = document.createElement("textarea"); taR.value = base.k === "quisuisje" ? (base.r || "") : "";
+        var rowR2 = document.createElement("div"); rowR2.className = "form-row";
+        rowR2.appendChild(ligne("Réponse (le sujet à deviner)", taR));
+
+        zoneDynamique.appendChild(rowIndices); zoneDynamique.appendChild(rowR2);
+      } else {
+        taQ = document.createElement("textarea"); taQ.value = base.k !== "quisuisje" ? (base.q || "") : "";
+        var rowQ = document.createElement("div"); rowQ.className = "form-row";
+        rowQ.appendChild(ligne("Question", taQ));
+
+        taR = document.createElement("textarea"); taR.value = base.k !== "quisuisje" ? (base.r || "") : "";
+        var rowR = document.createElement("div"); rowR.className = "form-row";
+        rowR.appendChild(ligne("Réponse", taR));
+
+        zoneDynamique.appendChild(rowQ); zoneDynamique.appendChild(rowR);
+      }
+    }
+    dessinerDynamique(base.k || "notion");
+    selType.addEventListener("change", function () { dessinerDynamique(selType.value); });
 
     var btns = document.createElement("div"); btns.className = "form-btns";
     var btnSave = document.createElement("button"); btnSave.className = "btn-plein"; btnSave.textContent = "Enregistrer";
     var btnCancel = document.createElement("button"); btnCancel.className = "btn-ghost"; btnCancel.textContent = "Annuler";
     btnCancel.addEventListener("click", function () { etatGestion.edition = null; rafraichirGestion(); });
     btnSave.addEventListener("click", function () {
-      var val = {
-        n: selNiveau.value, d: selDiscipline.value, k: selType.value,
-        t: inputTheme.value.trim(), q: taQ.value.trim(), r: taR.value.trim()
-      };
-      if (!val.t || !val.q || !val.r) { alert("Renseigne au moins le thème, la question et la réponse."); return; }
+      var type = selType.value;
+      var val = { n: selNiveau.value, d: selDiscipline.value, k: type, t: inputTheme.value.trim() };
+
+      if (type === "quisuisje") {
+        var indices = taIndices.value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+        val.q = "Qui suis-je ?";
+        val.indices = indices;
+        val.r = taR.value.trim();
+        if (!val.t || indices.length < 2 || !val.r) {
+          alert("Renseigne le thème, au moins 2 indices, et la réponse (le sujet à deviner)."); return;
+        }
+      } else {
+        val.q = taQ.value.trim();
+        val.r = taR.value.trim();
+        if (!val.t || !val.q || !val.r) { alert("Renseigne au moins le thème, la question et la réponse."); return; }
+      }
 
       if (estNouvelle) {
         val.id = "perso-" + Math.random().toString(36).slice(2, 10);
@@ -738,7 +880,7 @@
     });
     btns.appendChild(btnSave); btns.appendChild(btnCancel);
 
-    panel.appendChild(row1); panel.appendChild(rowTheme); panel.appendChild(rowQ); panel.appendChild(rowR); panel.appendChild(btns);
+    panel.appendChild(row1); panel.appendChild(rowTheme); panel.appendChild(zoneDynamique); panel.appendChild(btns);
     zone.appendChild(panel);
   }
 
