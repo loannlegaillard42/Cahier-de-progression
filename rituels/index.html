@@ -116,6 +116,63 @@
   .fin h2 { font-family: Fraunces, serif; font-size: clamp(26px, 4vw, 44px); margin: 0 0 12px; color: var(--accent); }
   .fin p { font-size: clamp(15px, 1.8vw, 20px); color: var(--sub); margin: 0 0 26px; }
 
+  /* ---------- Écran de gestion de la banque de questions ---------- */
+  .lien-gestion {
+    background: none; border: none; color: var(--faint); font-size: 12.5px;
+    padding: 6px 0; text-decoration: underline; text-underline-offset: 2px;
+  }
+  #gestion { display: none; }
+  #gestion.on { display: block; }
+  .retour {
+    background: none; border: none; color: var(--accent); font-size: 13.5px; font-weight: 600;
+    padding: 6px 0; margin-bottom: 6px; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .filtres-gestion { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 18px; }
+  .qcard {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px;
+  }
+  .qcard-haut { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .badge-mini {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 4px; background: var(--accentSoft); color: var(--accent);
+  }
+  .badge-mini.hist { background: var(--histoireSoft); color: var(--histoire); }
+  .badge-mini.geo { background: var(--geoSoft); color: var(--geo); }
+  .qcard-theme { font-size: 11.5px; color: var(--faint); }
+  .qcard-q { font-family: Fraunces, serif; font-size: 16px; color: var(--ink); margin: 0 0 6px; line-height: 1.35; }
+  .qcard-r { font-size: 13.5px; color: var(--sub); margin: 0; line-height: 1.5; }
+  .qcard-actions { display: flex; gap: 14px; margin-top: 10px; }
+  .qcard-actions button {
+    background: none; border: none; color: var(--faint); font-size: 12.5px; padding: 2px 0;
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  .qcard-actions button.danger { color: var(--histoire); }
+
+  .form-panel {
+    background: var(--accentSoft); border-radius: 10px; padding: 18px; margin-bottom: 20px;
+  }
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .form-panel label {
+    display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
+    color: var(--faint); margin-bottom: 4px;
+  }
+  .form-panel input, .form-panel select, .form-panel textarea {
+    width: 100%; font: inherit; font-size: 13.5px; padding: 8px 10px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink); box-sizing: border-box;
+  }
+  .form-panel textarea { resize: vertical; min-height: 52px; }
+  .form-btns { display: flex; gap: 8px; margin-top: 4px; }
+  .btn-ghost {
+    padding: 9px 18px; border-radius: 7px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--sub); font-size: 13.5px; font-weight: 500;
+  }
+  .btn-plein {
+    padding: 9px 18px; border-radius: 7px; border: none;
+    background: var(--accent); color: #fff; font-size: 13.5px; font-weight: 600;
+  }
+  .vide-gestion { text-align: center; padding: 40px 20px; color: var(--faint); font-size: 13.5px; }
+
   @media (max-width: 620px) {
     .scene-haut, .scene-bas { padding-left: 16px; padding-right: 16px; }
     .nav { padding: 12px 18px; }
@@ -161,6 +218,27 @@
     les notions anciennes plutôt que de tourner sur le seul chapitre en cours.<br />
     En projection : <strong>Espace</strong> ou clic pour révéler puis avancer, <strong>←</strong> pour revenir, <strong>Échap</strong> pour sortir.
   </p>
+
+  <button class="lien-gestion" id="btn-ouvrir-gestion">Voir et modifier la banque de questions →</button>
+</div>
+
+<!-- ---------- Gestion de la banque de questions ---------- -->
+<div id="gestion">
+  <div class="wrap">
+    <button class="retour" id="btn-retour-gestion">← Retour</button>
+    <h1 style="font-size:22px;">Banque de questions</h1>
+    <p class="sous" id="gestion-compte" style="margin-bottom:18px;"></p>
+
+    <div class="filtres-gestion">
+      <div class="choix" id="gestion-niveau"></div>
+      <div class="choix" id="gestion-discipline"></div>
+    </div>
+
+    <button class="btn-plein" id="btn-nouvelle-question" style="margin-bottom:18px;">+ Nouvelle question</button>
+
+    <div id="gestion-formulaire"></div>
+    <div id="gestion-liste"></div>
+  </div>
 </div>
 
 <!-- ---------- Mode projection ---------- -->
@@ -202,6 +280,7 @@
   var CLE_VUES = "rituels-vues-v1";
   var CLE_REGLAGES = "rituels-reglages-v1";
   var CLE_THEME = "rituels-theme-v1";
+  var CLE_PERSO = "rituels-perso-v1"; // questions ajoutées / modifiées / supprimées par l'utilisateur
 
   var NIVEAUX = [
     { id: "5e", nom: "5e" },
@@ -233,8 +312,26 @@
     try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch (e) {}
   }
 
-  // identifiant stable d'une question (sans dépendre de son rang dans la banque)
-  function idQuestion(q) { return q.n + "|" + q.d + "|" + q.q; }
+  // identifiant stable d'une question (sans dépendre de son rang dans la banque) :
+  // les questions personnalisées ont un id propre, les questions d'origine sont
+  // identifiées par leur contenu (niveau + discipline + intitulé).
+  function idQuestion(q) { return q.id || (q.n + "|" + q.d + "|" + q.q); }
+
+  // ---------- Banque effective = questions d'origine (questions.js) + modifications locales ----------
+  var perso = lire(CLE_PERSO, { ajoutees: [], modifiees: {}, supprimees: [] });
+  function sauverPerso() { ecrire(CLE_PERSO, perso); recalculerBanque(); }
+
+  var BANQUE_ACTUELLE = [];
+  function recalculerBanque() {
+    var supp = {};
+    perso.supprimees.forEach(function (id) { supp[id] = true; });
+    var base = BANQUE.filter(function (q) { return !supp[idQuestion(q)]; }).map(function (q) {
+      var mod = perso.modifiees[idQuestion(q)];
+      return mod ? Object.assign({}, q, mod) : q;
+    });
+    BANQUE_ACTUELLE = base.concat(perso.ajoutees);
+  }
+  recalculerBanque();
 
   var etat = {
     niveau: "5e",
@@ -279,7 +376,7 @@
   function themesDisponibles() {
     var vus = {};
     var liste = [];
-    BANQUE.forEach(function (q) {
+    BANQUE_ACTUELLE.forEach(function (q) {
       if (q.n !== etat.niveau) return;
       if (etat.discipline !== "les-deux" && q.d !== etat.discipline) return;
       if (!vus[q.t]) { vus[q.t] = true; liste.push({ id: q.t, nom: q.t }); }
@@ -288,7 +385,7 @@
   }
 
   function questionsFiltrees() {
-    return BANQUE.filter(function (q) {
+    return BANQUE_ACTUELLE.filter(function (q) {
       if (q.n !== etat.niveau) return false;
       if (etat.discipline !== "les-deux" && q.d !== etat.discipline) return false;
       if (etat.theme && q.t !== etat.theme) return false;
@@ -463,6 +560,192 @@
     } else if (e.key === "Escape") {
       fermerScene();
     }
+  });
+
+  // ---------- Écran de gestion de la banque de questions ----------
+  var gestion = document.getElementById("gestion");
+  var etatGestion = { niveau: "5e", discipline: "les-deux", edition: null }; // edition = id en cours d'édition, ou "nouvelle"
+
+  function ouvrirGestion() {
+    document.getElementById("accueil").style.display = "none";
+    gestion.classList.add("on");
+    etatGestion.edition = null;
+    rafraichirGestion();
+  }
+  function fermerGestion() {
+    gestion.classList.remove("on");
+    document.getElementById("accueil").style.display = "";
+  }
+
+  function rafraichirGestion() {
+    boutonsOptions(document.getElementById("gestion-niveau"), NIVEAUX, etatGestion.niveau, function (v) {
+      etatGestion.niveau = v; rafraichirGestion();
+    });
+    boutonsOptions(document.getElementById("gestion-discipline"), DISCIPLINES, etatGestion.discipline, function (v) {
+      etatGestion.discipline = v; rafraichirGestion();
+    });
+
+    var liste = BANQUE_ACTUELLE.filter(function (q) {
+      if (q.n !== etatGestion.niveau) return false;
+      if (etatGestion.discipline !== "les-deux" && q.d !== etatGestion.discipline) return false;
+      return true;
+    });
+
+    document.getElementById("gestion-compte").textContent =
+      BANQUE_ACTUELLE.length + " questions au total dans la banque · " + liste.length + " affichées avec ces filtres.";
+
+    var conteneur = document.getElementById("gestion-liste");
+    conteneur.innerHTML = "";
+    if (!liste.length) {
+      var vide = document.createElement("div");
+      vide.className = "vide-gestion";
+      vide.textContent = "Aucune question avec ces filtres.";
+      conteneur.appendChild(vide);
+    }
+    liste.forEach(function (q) {
+      conteneur.appendChild(carteQuestion(q));
+    });
+
+    dessinerFormulaire();
+  }
+
+  function carteQuestion(q) {
+    var card = document.createElement("div");
+    card.className = "qcard";
+
+    var haut = document.createElement("div");
+    haut.className = "qcard-haut";
+    var bDisc = document.createElement("span");
+    bDisc.className = "badge-mini " + (q.d === "histoire" ? "hist" : "geo");
+    bDisc.textContent = q.d === "histoire" ? "Histoire" : "Géographie";
+    var bType = document.createElement("span");
+    bType.className = "badge-mini";
+    bType.textContent = LIBELLE_TYPE[q.k] || q.k;
+    var theme = document.createElement("span");
+    theme.className = "qcard-theme";
+    theme.textContent = q.t;
+    haut.appendChild(bDisc); haut.appendChild(bType); haut.appendChild(theme);
+
+    var pq = document.createElement("p");
+    pq.className = "qcard-q";
+    pq.textContent = q.q;
+    var pr = document.createElement("p");
+    pr.className = "qcard-r";
+    pr.textContent = q.r;
+
+    var actions = document.createElement("div");
+    actions.className = "qcard-actions";
+    var btnEdit = document.createElement("button");
+    btnEdit.textContent = "Modifier";
+    btnEdit.addEventListener("click", function () { etatGestion.edition = idQuestion(q); rafraichirGestion(); window.scrollTo(0, 0); });
+    var btnDel = document.createElement("button");
+    btnDel.className = "danger";
+    btnDel.textContent = "Supprimer";
+    btnDel.addEventListener("click", function () {
+      if (!confirm("Supprimer définitivement cette question de la banque ?")) return;
+      var id = idQuestion(q);
+      if (id.indexOf("perso-") === 0) {
+        perso.ajoutees = perso.ajoutees.filter(function (a) { return a.id !== id; });
+      } else {
+        perso.supprimees.push(id);
+        delete perso.modifiees[id];
+      }
+      sauverPerso();
+      rafraichirGestion();
+    });
+    actions.appendChild(btnEdit); actions.appendChild(btnDel);
+
+    card.appendChild(haut); card.appendChild(pq); card.appendChild(pr); card.appendChild(actions);
+    return card;
+  }
+
+  function dessinerFormulaire() {
+    var zone = document.getElementById("gestion-formulaire");
+    zone.innerHTML = "";
+    if (!etatGestion.edition) return;
+
+    var estNouvelle = etatGestion.edition === "nouvelle";
+    var base = estNouvelle
+      ? { n: etatGestion.niveau, d: etatGestion.discipline === "geo" ? "geo" : "histoire", t: "", k: "notion", q: "", r: "" }
+      : (BANQUE_ACTUELLE.filter(function (x) { return idQuestion(x) === etatGestion.edition; })[0] || {});
+
+    var panel = document.createElement("div");
+    panel.className = "form-panel";
+
+    function ligne(labelTxt, el) {
+      var l = document.createElement("label"); l.textContent = labelTxt;
+      var wrap = document.createElement("div"); wrap.appendChild(l); wrap.appendChild(el);
+      return wrap;
+    }
+    function select(options, valeur) {
+      var s = document.createElement("select");
+      options.forEach(function (o) {
+        var op = document.createElement("option"); op.value = o.id; op.textContent = o.nom;
+        if (o.id === valeur) op.selected = true;
+        s.appendChild(op);
+      });
+      return s;
+    }
+
+    var row1 = document.createElement("div"); row1.className = "form-row";
+    var selNiveau = select(NIVEAUX, base.n);
+    var selDiscipline = select([{ id: "histoire", nom: "Histoire" }, { id: "geo", nom: "Géographie" }], base.d);
+    var selType = select(
+      [{ id: "notion", nom: "Notion à définir" }, { id: "repere", nom: "Repère à situer" }, { id: "vf", nom: "Vrai ou faux" }, { id: "flash", nom: "Question flash" }],
+      base.k
+    );
+    row1.appendChild(ligne("Niveau", selNiveau));
+    row1.appendChild(ligne("Discipline", selDiscipline));
+    row1.appendChild(ligne("Type", selType));
+
+    var inputTheme = document.createElement("input"); inputTheme.value = base.t || "";
+    var rowTheme = document.createElement("div"); rowTheme.className = "form-row";
+    rowTheme.appendChild(ligne("Thème (reprends un intitulé existant pour la rattacher au bon chapitre)", inputTheme));
+
+    var taQ = document.createElement("textarea"); taQ.value = base.q || "";
+    var rowQ = document.createElement("div"); rowQ.className = "form-row";
+    rowQ.appendChild(ligne("Question", taQ));
+
+    var taR = document.createElement("textarea"); taR.value = base.r || "";
+    var rowR = document.createElement("div"); rowR.className = "form-row";
+    rowR.appendChild(ligne("Réponse", taR));
+
+    var btns = document.createElement("div"); btns.className = "form-btns";
+    var btnSave = document.createElement("button"); btnSave.className = "btn-plein"; btnSave.textContent = "Enregistrer";
+    var btnCancel = document.createElement("button"); btnCancel.className = "btn-ghost"; btnCancel.textContent = "Annuler";
+    btnCancel.addEventListener("click", function () { etatGestion.edition = null; rafraichirGestion(); });
+    btnSave.addEventListener("click", function () {
+      var val = {
+        n: selNiveau.value, d: selDiscipline.value, k: selType.value,
+        t: inputTheme.value.trim(), q: taQ.value.trim(), r: taR.value.trim()
+      };
+      if (!val.t || !val.q || !val.r) { alert("Renseigne au moins le thème, la question et la réponse."); return; }
+
+      if (estNouvelle) {
+        val.id = "perso-" + Math.random().toString(36).slice(2, 10);
+        perso.ajoutees.push(val);
+      } else {
+        var id = etatGestion.edition;
+        if (id.indexOf("perso-") === 0) {
+          perso.ajoutees = perso.ajoutees.map(function (a) { return a.id === id ? Object.assign({}, a, val) : a; });
+        } else {
+          perso.modifiees[id] = val;
+        }
+      }
+      sauverPerso();
+      etatGestion.edition = null;
+      rafraichirGestion();
+    });
+    btns.appendChild(btnSave); btns.appendChild(btnCancel);
+
+    panel.appendChild(row1); panel.appendChild(rowTheme); panel.appendChild(rowQ); panel.appendChild(rowR); panel.appendChild(btns);
+    zone.appendChild(panel);
+  }
+
+  document.getElementById("btn-ouvrir-gestion").addEventListener("click", ouvrirGestion);
+  document.getElementById("btn-retour-gestion").addEventListener("click", fermerGestion);
+  document.getElementById("btn-nouvelle-question").addEventListener("click", function () {
+    etatGestion.edition = "nouvelle"; rafraichirGestion(); window.scrollTo(0, 0);
   });
 
   // ---------- Démarrage ----------
