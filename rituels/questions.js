@@ -1,4 +1,4 @@
-/* Banque de rituels — histoire-géographie
+   /* Banque de rituels — histoire-géographie
    Chaque entrée : { n: niveau, d: discipline, t: thème, k: type, q: question, r: réponse }
    Types (k) : "notion" (définir), "repere" (date/lieu), "vf" (vrai-faux), "flash" (question ouverte),
                "quisuisje" (indices progressifs à révéler un par un, puis réponse — utilise "indices": [...] et "r": le sujet)
@@ -93,6 +93,30 @@ const BANQUE = [
   { n: "5e", d: "geo", t: "Prévenir les risques, changement global", k: "vf", q: "Vrai ou faux : un aléa devient un risque uniquement s'il menace des populations ou des biens.", r: "VRAI — sans enjeu humain exposé, il n'y a pas de risque." },
   { n: "5e", d: "geo", t: "Prévenir les risques, changement global", k: "notion", q: "Qu'est-ce que le changement global ?", r: "L'ensemble des transformations de la planète liées aux activités humaines, dont le réchauffement climatique." },
   { n: "5e", d: "geo", t: "Prévenir les risques, changement global", k: "notion", q: "Que signifie « s'adapter » au changement climatique ?", r: "Modifier ses aménagements et ses pratiques pour en limiter les conséquences (digues, cultures adaptées, alerte…)." },
+
+  /* ---------------- 2nde — RENTRÉE : prérequis de 3e ----------------
+     Pour la toute première séance : du connu (dates et notions déjà vues au collège),
+     pour faire comprendre le principe du rituel avant d'attaquer la matière de Seconde. */
+  { n: "2nde", d: "histoire", t: "Rentrée — prérequis de 3e", k: "repere", q: "Que s'est-il passé entre 1914 et 1918 ?", r: "La Première Guerre mondiale, souvent appelée « la Grande Guerre »." },
+  { n: "2nde", d: "histoire", t: "Rentrée — prérequis de 3e", k: "repere", q: "Que s'est-il passé entre 1939 et 1945 ?", r: "La Seconde Guerre mondiale." },
+  { n: "2nde", d: "histoire", t: "Rentrée — prérequis de 3e", k: "repere", q: "Que retenir de l'année 1945 ?", r: "La fin de la Seconde Guerre mondiale et la création de l'ONU (Organisation des Nations unies)." },
+  { n: "2nde", d: "histoire", t: "Rentrée — prérequis de 3e", k: "repere", q: "Que se passe-t-il en France en 1958 ?", r: "Le début de la Ve République, avec une nouvelle Constitution portée par le général de Gaulle." },
+  { n: "2nde", d: "histoire", t: "Rentrée — prérequis de 3e", k: "repere", q: "Que s'est-il passé en 1989 ?", r: "La chute du mur de Berlin, symbole de la fin de la coupure entre l'Europe de l'Ouest et l'Europe de l'Est." },
+  { n: "2nde", d: "histoire", t: "Rentrée — prérequis de 3e", k: "notion", q: "Qu'est-ce que la démocratie ?", r: "Un régime politique où le pouvoir appartient au peuple, exercé directement ou par des représentants élus." },
+  { n: "2nde", d: "histoire", t: "Rentrée — prérequis de 3e", k: "notion", q: "Qu'est-ce qu'un régime totalitaire ?", r: "Un régime qui contrôle tous les aspects de la vie (politique, société, pensée) et supprime les libertés individuelles." },
+  { n: "2nde", d: "histoire", t: "Rentrée — prérequis de 3e", k: "notion", q: "Qu'est-ce que la décolonisation ?", r: "Le processus par lequel les colonies accèdent à l'indépendance, principalement après 1945." },
+  { n: "2nde", d: "histoire", t: "Rentrée — prérequis de 3e", k: "notion", q: "Qu'est-ce que l'Union européenne ?", r: "Une union d'États européens qui coopèrent sur les plans économique et politique, dotée d'institutions communes." },
+  { n: "2nde", d: "histoire", t: "Rentrée — prérequis de 3e", k: "vf", q: "Vrai ou faux : la France est aujourd'hui une monarchie.", r: "FAUX — la France est une république, actuellement la Ve République." },
+  { n: "2nde", d: "histoire", t: "Rentrée — prérequis de 3e", k: "flash", q: "Cite un droit fondamental garanti par la Déclaration universelle des droits de l'homme (1948).", r: "Par exemple : la liberté d'expression, l'égalité devant la loi, le droit à la sûreté, le droit à l'éducation…" },
+  { n: "2nde", d: "histoire", t: "Rentrée — prérequis de 3e", k: "quisuisje", q: "Qui suis-je ?", r: "Charles de Gaulle",
+    indices: [
+      "Je suis un homme politique et militaire français du XXe siècle.",
+      "En juin 1940, j'ai appelé les Français à poursuivre le combat depuis Londres.",
+      "J'ai fondé un nouveau régime politique français en 1958.",
+      "Je suis le tout premier président de la Ve République."
+    ] },
+  { n: "2nde", d: "geo", t: "Rentrée — prérequis de 3e", k: "notion", q: "Qu'est-ce que l'aménagement du territoire ?", r: "L'ensemble des actions menées par des acteurs publics et privés pour organiser un territoire et réduire les inégalités entre ses espaces." },
+  { n: "2nde", d: "geo", t: "Rentrée — prérequis de 3e", k: "notion", q: "Qu'est-ce qu'une métropole ?", r: "Une grande ville qui concentre population, activités et pouvoirs de décision, et qui exerce une influence sur le territoire qui l'entoure." },
 
   /* ---------------- 2nde — HISTOIRE ---------------- */
   { n: "2nde", d: "histoire", t: "Le monde méditerranéen : Antiquité et Moyen Âge", k: "notion", q: "Qu'est-ce qu'une cité grecque (polis) ?", r: "Un petit État indépendant formé d'une ville et de son territoire, avec ses lois, ses dieux et ses citoyens." },
