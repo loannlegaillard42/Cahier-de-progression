@@ -1,4 +1,4 @@
-   /* Banque de rituels — histoire-géographie
+/* Banque de rituels — histoire-géographie
    Chaque entrée : { n: niveau, d: discipline, t: thème, k: type, q: question, r: réponse }
    Types (k) : "notion" (définir), "repere" (date/lieu), "vf" (vrai-faux), "flash" (question ouverte),
                "quisuisje" (indices progressifs à révéler un par un, puis réponse — utilise "indices": [...] et "r": le sujet)
@@ -54,6 +54,28 @@ const BANQUE = [
       "Prise par les croisés en 1099, je suis reprise par Saladin en 1187.",
       "Je suis aujourd'hui la capitale revendiquée d'Israël, entre judaïsme, christianisme et islam."
     ] },
+
+  /* ---------------- 5e — RENTRÉE : prérequis de 6e ----------------
+     Pour la première séance : du connu (dates et notions déjà vues en 6e),
+     pour faire comprendre le principe du rituel avant d'attaquer la matière de 5e. */
+  { n: "5e", d: "histoire", t: "Rentrée — prérequis de 6e", k: "repere", q: "Que retiens-tu de l'an 753 avant J.-C. ?", r: "La date légendaire de la fondation de Rome." },
+  { n: "5e", d: "histoire", t: "Rentrée — prérequis de 6e", k: "notion", q: "Qu'est-ce que le Néolithique ?", r: "La période où les humains se sont sédentarisés et ont inventé l'agriculture et l'élevage, après des millions d'années de vie nomade." },
+  { n: "5e", d: "histoire", t: "Rentrée — prérequis de 6e", k: "notion", q: "Qu'est-ce que le polythéisme ?", r: "La croyance en plusieurs dieux, comme chez les Grecs et les Romains de l'Antiquité." },
+  { n: "5e", d: "histoire", t: "Rentrée — prérequis de 6e", k: "notion", q: "Qu'est-ce que le monothéisme ?", r: "La croyance en un seul dieu. Le judaïsme est la première grande religion monothéiste étudiée en 6e." },
+  { n: "5e", d: "histoire", t: "Rentrée — prérequis de 6e", k: "notion", q: "Qui est citoyen à Athènes dans l'Antiquité ?", r: "Un homme libre, né de père et de mère athéniens, qui participe à la vie de la cité (Assemblée, votes…)." },
+  { n: "5e", d: "histoire", t: "Rentrée — prérequis de 6e", k: "notion", q: "Qu'est-ce que la République romaine ?", r: "Un régime où le pouvoir est exercé par des magistrats élus pour un temps limité, et non par un roi." },
+  { n: "5e", d: "histoire", t: "Rentrée — prérequis de 6e", k: "vf", q: "Vrai ou faux : Rome a d'abord été une monarchie avant de devenir une République.", r: "VRAI — la légende situe des rois à l'origine de Rome, avant l'instauration de la République." },
+  { n: "5e", d: "histoire", t: "Rentrée — prérequis de 6e", k: "flash", q: "Cite une religion monothéiste née dans l'Antiquité au Proche-Orient.", r: "Le judaïsme, étudié en 6e comme la première grande religion monothéiste (le christianisme apparaît un peu plus tard)." },
+  { n: "5e", d: "histoire", t: "Rentrée — prérequis de 6e", k: "quisuisje", q: "Qui suis-je ?", r: "Romulus",
+    indices: [
+      "Je suis un personnage légendaire de l'Antiquité.",
+      "Selon la légende, j'ai un frère jumeau prénommé Rémus.",
+      "Enfants, nous aurions été recueillis et élevés par une louve.",
+      "J'aurais fondé une cité vouée à un grand avenir en 753 avant J.-C."
+    ] },
+  { n: "5e", d: "geo", t: "Rentrée — prérequis de 6e", k: "notion", q: "Qu'est-ce qu'une métropole ?", r: "Une grande ville qui concentre population, activités et pouvoirs de décision, et qui exerce une influence sur son territoire environnant." },
+  { n: "5e", d: "geo", t: "Rentrée — prérequis de 6e", k: "notion", q: "Qu'est-ce qu'un littoral ?", r: "Une zone de contact entre la terre et la mer, souvent très recherchée pour y vivre ou y travailler." },
+  { n: "5e", d: "geo", t: "Rentrée — prérequis de 6e", k: "notion", q: "Qu'est-ce qu'un espace à fortes contraintes ?", r: "Un territoire où les conditions de vie sont rendues difficiles par le climat, le relief ou l'isolement (montagne, désert, zone polaire…)." },
 
   /* ---------------- 5e — HISTOIRE ---------------- */
   { n: "5e", d: "histoire", t: "Chrétientés et islam (VIe-XIIIe s.)", k: "notion", q: "Qu'est-ce que l'Empire byzantin ?", r: "L'Empire romain d'Orient, qui survit après la chute de Rome. Sa capitale est Constantinople." },
@@ -164,6 +186,29 @@ const BANQUE = [
   { n: "2nde", d: "geo", t: "L'Afrique australe (thème conclusif)", k: "flash", q: "Pourquoi l'Afrique australe est-elle un espace « en profonde mutation » ?", r: "Elle combine ressources abondantes, forte croissance urbaine, mobilités importantes et inégalités héritées, dont celles de l'apartheid." },
 
   /* ---------------- 1ère — HISTOIRE ---------------- */
+  /* ---------------- 1ère — RENTRÉE : prérequis de 2de ----------------
+     Pour la première séance : du connu (dates et notions déjà vues en Seconde),
+     pour faire comprendre le principe du rituel avant d'attaquer la matière de Première. */
+  { n: "1ere", d: "histoire", t: "Rentrée — prérequis de 2de", k: "repere", q: "Que retenir de l'année 1492 ?", r: "Christophe Colomb atteint l'Amérique : le début de l'ouverture atlantique de l'Europe." },
+  { n: "1ere", d: "histoire", t: "Rentrée — prérequis de 2de", k: "repere", q: "Que se passe-t-il en 1517 ?", r: "Luther publie ses 95 thèses : c'est le point de départ de la Réforme protestante." },
+  { n: "1ere", d: "histoire", t: "Rentrée — prérequis de 2de", k: "notion", q: "Qu'est-ce que l'humanisme ?", r: "Un courant intellectuel de la Renaissance qui place l'être humain et son savoir au centre, en s'appuyant sur les textes antiques." },
+  { n: "1ere", d: "histoire", t: "Rentrée — prérequis de 2de", k: "notion", q: "Qu'est-ce que la monarchie absolue ?", r: "Un régime où le roi concentre tous les pouvoirs et affirme les tenir de Dieu, sans partage avec une assemblée." },
+  { n: "1ere", d: "histoire", t: "Rentrée — prérequis de 2de", k: "notion", q: "Qu'est-ce qu'une monarchie parlementaire ?", r: "Un régime où le roi règne mais partage le pouvoir avec un Parlement qui vote les lois et l'impôt (le cas britannique)." },
+  { n: "1ere", d: "histoire", t: "Rentrée — prérequis de 2de", k: "notion", q: "Qu'est-ce que le mouvement des Lumières ?", r: "Un courant du XVIIIe siècle qui défend la raison, l'esprit critique, la tolérance et la liberté contre l'arbitraire." },
+  { n: "1ere", d: "histoire", t: "Rentrée — prérequis de 2de", k: "vf", q: "Vrai ou faux : au Moyen Âge, la Méditerranée n'a été qu'un espace de guerre entre chrétiens et musulmans.", r: "FAUX — elle a aussi été un espace d'échanges commerciaux et culturels intenses, malgré les conflits." },
+  { n: "1ere", d: "histoire", t: "Rentrée — prérequis de 2de", k: "quisuisje", q: "Qui suis-je ?", r: "Christophe Colomb",
+    indices: [
+      "Je suis un navigateur de la fin du XVe siècle.",
+      "Je suis génois, mais je navigue au service des rois d'Espagne.",
+      "En 1492, je pense avoir atteint les Indes en traversant l'Atlantique.",
+      "J'ai en réalité ouvert aux Européens un continent qu'ils ne connaissaient pas : l'Amérique."
+    ] },
+  { n: "1ere", d: "geo", t: "Rentrée — prérequis de 2de", k: "notion", q: "Comment définit-on un risque ?", r: "La rencontre entre un aléa (phénomène menaçant) et des enjeux vulnérables (populations, biens, activités)." },
+  { n: "1ere", d: "geo", t: "Rentrée — prérequis de 2de", k: "notion", q: "Qu'est-ce que le développement durable ?", r: "Un développement qui répond aux besoins présents sans compromettre ceux des générations futures : économique, social, environnemental." },
+  { n: "1ere", d: "geo", t: "Rentrée — prérequis de 2de", k: "notion", q: "Quelle différence entre un migrant et un réfugié ?", r: "Le migrant se déplace pour diverses raisons ; le réfugié fuit un danger et bénéficie d'une protection juridique internationale." },
+  { n: "1ere", d: "geo", t: "Rentrée — prérequis de 2de", k: "notion", q: "Qu'est-ce qu'un pays émergent ?", r: "Un pays en forte croissance économique, qui s'insère dans la mondialisation mais conserve de fortes inégalités internes." },
+  { n: "1ere", d: "geo", t: "Rentrée — prérequis de 2de", k: "flash", q: "Cite un exemple de mobilité internationale étudié en Seconde (migration, tourisme…).", r: "Par exemple : les migrations de travail, les personnes réfugiées, ou les grands flux touristiques mondiaux." },
+
   { n: "1ere", d: "histoire", t: "L'Europe face aux révolutions", k: "repere", q: "Que se passe-t-il en 1789 ?", r: "Le début de la Révolution française : États généraux, prise de la Bastille, Déclaration des droits de l'homme et du citoyen." },
   { n: "1ere", d: "histoire", t: "L'Europe face aux révolutions", k: "notion", q: "Qu'est-ce que la souveraineté nationale ?", r: "Le principe selon lequel le pouvoir appartient à la nation, et non plus au roi de droit divin." },
   { n: "1ere", d: "histoire", t: "L'Europe face aux révolutions", k: "repere", q: "Que retenir de 1804 ?", r: "Napoléon devient empereur ; c'est aussi l'année du Code civil, qui fixe durablement le droit français." },
