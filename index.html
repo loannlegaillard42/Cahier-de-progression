@@ -1023,6 +1023,181 @@ const ghostBtn = {
   fontSize: 13,
   cursor: "pointer"
 };
+function JournalSeances({
+  journal,
+  onChange
+}) {
+  const [date, setDate] = useState("");
+  const [texte, setTexte] = useState("");
+  const [enMasse, setEnMasse] = useState(false);
+  const [texteImport, setTexteImport] = useState("");
+  const list = [...(journal || [])].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  const ajouter = () => {
+    if (!texte.trim()) return;
+    const entry = {
+      id: uid(),
+      date: date || new Date().toISOString().slice(0, 10),
+      texte: texte.trim()
+    };
+    onChange([...(journal || []), entry]);
+    setTexte("");
+  };
+  const supprimer = id => onChange((journal || []).filter(e => e.id !== id));
+  const importer = () => {
+    const existantes = new Set((journal || []).map(e => (e.date || "") + "|" + e.texte));
+    const nouvelles = texteImport.split("\n").map(l => l.trim()).filter(Boolean).map(ligne => {
+      const idx = ligne.indexOf("\t");
+      if (idx === -1) return {
+        date: "",
+        texte: ligne
+      };
+      const d = ligne.slice(0, idx).trim();
+      const t = ligne.slice(idx + 1).trim();
+      return {
+        date: /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : "",
+        texte: t || ligne
+      };
+    }).filter(e => e.texte && !existantes.has((e.date || "") + "|" + e.texte)).map(e => ({
+      id: uid(),
+      ...e
+    }));
+    if (!nouvelles.length) return;
+    onChange([...(journal || []), ...nouvelles]);
+    setTexteImport("");
+    setEnMasse(false);
+  };
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: labelStyle
+  }, "Journal de séances"), list.length === 0 ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12,
+      color: COLORS.faint,
+      margin: "2px 0 8px"
+    }
+  }, "Aucune séance notée pour l'instant.") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 6,
+      marginBottom: 10
+    }
+  }, list.map(e => /*#__PURE__*/React.createElement("div", {
+    key: e.id,
+    style: {
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 8,
+      padding: "7px 9px",
+      background: COLORS.encadre,
+      borderRadius: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "IBM Plex Mono, monospace",
+      fontSize: 11,
+      color: COLORS.sub,
+      flexShrink: 0,
+      marginTop: 1,
+      width: 56
+    }
+  }, e.date ? formatDate(e.date) : "—"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12.5,
+      color: COLORS.ink,
+      flex: 1,
+      lineHeight: 1.4
+    }
+  }, e.texte), /*#__PURE__*/React.createElement("button", {
+    onClick: () => supprimer(e.id),
+    style: {
+      background: "none",
+      border: "none",
+      color: COLORS.faint,
+      cursor: "pointer",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(IconX, {
+    size: 12
+  }))))), enMasse ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: texteImport,
+    onChange: e => setTexteImport(e.target.value),
+    rows: 5,
+    placeholder: "Une séance par ligne : AAAA-MM-JJ puis une tabulation puis le texte.",
+    style: {
+      ...inputStyle,
+      resize: "vertical",
+      fontFamily: "IBM Plex Mono, monospace",
+      fontSize: 12,
+      marginBottom: 6
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: importer,
+    style: primaryBtn
+  }, "Importer"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setEnMasse(false);
+      setTexteImport("");
+    },
+    style: ghostBtn
+  }, "Annuler"))) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6,
+      flexWrap: "wrap",
+      marginBottom: 6
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: date,
+    onChange: e => setDate(e.target.value),
+    style: {
+      ...inputStyle,
+      width: 138,
+      fontFamily: "IBM Plex Mono, monospace"
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    value: texte,
+    onChange: e => setTexte(e.target.value),
+    onKeyDown: e => e.key === "Enter" && ajouter(),
+    placeholder: "Ce qui a été fait cette séance…",
+    style: {
+      ...inputStyle,
+      flex: 1,
+      minWidth: 140
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: ajouter,
+    style: {
+      ...btnCircle,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(IconPlus, {
+    size: 12
+  }))), !enMasse && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEnMasse(true),
+    style: {
+      background: "none",
+      border: "none",
+      color: COLORS.faint,
+      fontSize: 11.5,
+      fontFamily: "Inter, sans-serif",
+      textDecoration: "underline",
+      cursor: "pointer",
+      padding: 0
+    }
+  }, "Coller plusieurs séances d'un coup"));
+}
 function ChapterRow({
   chapter,
   isLast,
@@ -1218,7 +1393,12 @@ function ChapterRow({
       resize: "vertical",
       fontFamily: "Inter, sans-serif"
     }
-  })), /*#__PURE__*/React.createElement("button", {
+  })), /*#__PURE__*/React.createElement(JournalSeances, {
+    journal: local.journal,
+    onChange: journal => patch({
+      journal
+    })
+  }), /*#__PURE__*/React.createElement("button", {
     onClick: () => onDelete(local.id),
     style: {
       alignSelf: "flex-start",
@@ -3414,35 +3594,52 @@ function HomeView({
       flexDirection: "column",
       gap: 9
     }
-  }, inProgress.map(r => /*#__PURE__*/React.createElement("div", {
-    key: r.id,
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-      padding: "11px 14px",
-      background: COLORS.wipSoft,
-      borderRadius: 7,
-      flexWrap: "wrap"
-    }
-  }, /*#__PURE__*/React.createElement(ClassTag, {
-    color: classColor(data, r.classId),
-    name: r.className
-  }), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: "Inter, sans-serif",
-      fontSize: 13,
-      color: COLORS.ink,
-      flex: 1
-    }
-  }, r.title), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: "IBM Plex Mono, monospace",
-      fontSize: 11.5,
-      color: COLORS.sub,
-      flexShrink: 0
-    }
-  }, r.done, "/", r.total))))), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+  }, inProgress.map(r => {
+    const derniere = (r.journal || []).slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""))[0];
+    return /*#__PURE__*/React.createElement("div", {
+      key: r.id,
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 4,
+        padding: "11px 14px",
+        background: COLORS.wipSoft,
+        borderRadius: 7
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        flexWrap: "wrap"
+      }
+    }, /*#__PURE__*/React.createElement(ClassTag, {
+      color: classColor(data, r.classId),
+      name: r.className
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 13,
+        color: COLORS.ink,
+        flex: 1
+      }
+    }, r.title), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: "IBM Plex Mono, monospace",
+        fontSize: 11.5,
+        color: COLORS.sub,
+        flexShrink: 0
+      }
+    }, r.done, "/", r.total)), derniere && /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontFamily: "Inter, sans-serif",
+        fontSize: 11.5,
+        color: COLORS.sub,
+        margin: "0 0 0 2px",
+        lineHeight: 1.4
+      }
+    }, /*#__PURE__*/React.createElement("strong", null, "Dernière séance (", formatDate(derniere.date), ") : "), derniere.texte));
+  }))), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
     icon: /*#__PURE__*/React.createElement(IconClipboard, {
       size: 15
     }),
