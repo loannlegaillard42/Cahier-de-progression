@@ -76,6 +76,13 @@
     .home-grid { display: grid !important; grid-template-columns: 1.3fr 1fr !important; gap: 32px !important; align-items: start; }
     .home-grid > section { margin: 0 !important; }
   }
+  /* Très grand écran : colonne « Prochaines dates » à droite de l'accueil */
+  .right-rail { display: none; }
+  @media (min-width: 1280px) {
+    .has-rail .right-rail { display: flex !important; }
+    .has-rail .content-shift { margin-right: 330px !important; }
+    .has-rail .rail-inline { display: none !important; }
+  }
 </style>
 
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -1926,6 +1933,70 @@ function WeekView({ data, onSaveEntry, onSaveNote, scheduleProps }) {
       h(SectionTitle, { icon: h(IconList, { size: 15 }), title: "Notes de la semaine" }),
       h("textarea", { value: note, onChange: e => setNote(e.target.value), onBlur: () => onSaveNote(mISO, note), placeholder: "Photocopies, élèves à revoir, idées…",
         style: { ...inputStyle, minHeight: 110, resize: "vertical", lineHeight: 1.5, backgroundImage: `repeating-linear-gradient(transparent 0 23px, ${"var(--line)"} 23px 24px)`, backgroundAttachment: "local" } })));
+}
+
+/* ---------- Prochaines dates (colonne de droite sur grand écran) ---------- */
+function collectDates(data, fromISO, max) {
+  const out = [];
+  (data.agenda || []).forEach(ev => { if (ev.date >= fromISO) out.push({ date: ev.date, time: ev.time, title: ev.title, kind: "event", cat: ev.cat }); });
+  (data.evaluations || []).forEach(ev => { if (ev.date && ev.date >= fromISO && ev.status !== "termine") out.push({ date: ev.date, title: ev.title, kind: "eval", classId: ev.classId, sub: ev.type }); });
+  data.order.forEach(cid => data.classes[cid].themes.forEach(th => th.chapters.forEach(ch => {
+    if (ch.start && ch.start >= fromISO) out.push({ date: ch.start, title: ch.title, kind: "chap", classId: cid, sub: "début" });
+    if (ch.end && ch.end >= fromISO) out.push({ date: ch.end, title: ch.title, kind: "chap", classId: cid, sub: "fin" });
+  })));
+  SCHOOL_YEAR.vacances.forEach(v => {
+    if (v.from >= fromISO) out.push({ date: v.from, title: v.name, kind: "vac", sub: "début" });
+    const r = parseISO(v.to); r.setDate(r.getDate() + 1); const ri = localISO(r);
+    if (ri >= fromISO) out.push({ date: ri, title: "Reprise des cours", kind: "vac", sub: v.name.replace("Vacances ", "") });
+  });
+  Object.entries(SCHOOL_YEAR.feries).forEach(([d, n]) => { if (d >= fromISO && !dayInfo(d).weekend) out.push({ date: d, title: n, kind: "ferie", sub: "férié" }); });
+  out.sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
+  return out.slice(0, max);
+}
+function relDay(iso, todayISO) {
+  const n = Math.round((parseISO(iso) - parseISO(todayISO)) / 86400000);
+  return n === 0 ? "aujourd'hui" : n === 1 ? "demain" : n < 7 ? `dans ${n} j` : n < 60 ? `dans ${Math.round(n / 7)} sem.` : `dans ${Math.round(n / 30)} mois`;
+}
+function UpcomingDates({ data, max, onOpenAgenda, compact }) {
+  const h = React.createElement;
+  const todayISO = localISO(new Date());
+  const items = collectDates(data, todayISO, max || 12);
+  const groups = [];
+  items.forEach(it => { const g = groups[groups.length - 1]; if (g && g.date === it.date) g.items.push(it); else groups.push({ date: it.date, items: [it] }); });
+  const dot = it => it.kind === "event" ? agendaCat(it.cat).color : it.kind === "eval" ? "var(--wip)" : it.kind === "ferie" ? "var(--histoire)" : it.kind === "vac" ? "var(--wip)" : classColor(data, it.classId);
+  return h("section", null,
+    h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 } },
+      h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+        h("span", { style: { color: COLORS.accent } }, h(IconCalendar, { size: 15 })),
+        h("h2", { style: { fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 600, color: COLORS.ink, margin: 0 } }, "Prochaines dates")),
+      onOpenAgenda && h("button", { onClick: onOpenAgenda, style: { background: "none", border: "none", color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer" } }, "Agenda →")),
+    groups.length === 0 ? h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint } }, "Rien à l'horizon.") :
+    h("div", { style: { position: "relative", paddingLeft: 16 } },
+      h("div", { style: { position: "absolute", left: 4, top: 6, bottom: 6, width: 2, background: COLORS.line, borderRadius: 1 } }),
+      groups.map(g => {
+        const isToday = g.date === todayISO;
+        return h("div", { key: g.date, style: { position: "relative", marginBottom: compact ? 10 : 14 } },
+          h("span", { style: { position: "absolute", left: -16, top: 4, width: 10, height: 10, borderRadius: 5, background: isToday ? COLORS.accent : COLORS.panel, border: `2px solid ${isToday ? COLORS.accent : dot(g.items[0])}` } }),
+          h("div", { style: { display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 } },
+            h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 700, color: isToday ? COLORS.accent : COLORS.ink } }, (t => t.charAt(0).toUpperCase() + t.slice(1))(longDate(g.date))),
+            h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint } }, relDay(g.date, todayISO))),
+          h("div", { style: { display: "flex", flexDirection: "column", gap: 4 } },
+            g.items.map((it, i) => h("div", { key: i, style: { display: "flex", alignItems: "center", gap: 7, padding: "6px 9px", borderRadius: 7,
+                background: it.kind === "vac" ? VAC_BG : it.kind === "ferie" ? "var(--histoireSoft)" : COLORS.panel,
+                border: `1px solid ${COLORS.line}`, borderLeft: `3px solid ${dot(it)}` } },
+              it.time && h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: COLORS.sub, flexShrink: 0 } }, it.time),
+              it.classId && data.classes[it.classId] && h(ClassTag, { color: classColor(data, it.classId), name: data.classes[it.classId].name }),
+              h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } },
+                it.kind === "eval" ? "Éval : " + it.title : it.title),
+              it.sub && it.kind !== "event" && h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 10.5, color: COLORS.faint, flexShrink: 0 } }, it.sub)))));
+      })));
+}
+function RightRail({ data, setView }) {
+  const h = React.createElement;
+  const now = new Date();
+  return h("aside", { className: "right-rail", style: { position: "fixed", right: 0, top: 0, bottom: 0, width: 330, zIndex: 15, flexDirection: "column", gap: 22, padding: "28px 18px", overflowY: "auto", background: COLORS.panel, borderLeft: `1px solid ${COLORS.line}` } },
+    h(MiniMonth, { y: now.getFullYear(), m: now.getMonth(), data, todayISO: localISO(now), onPick: () => setView("planning") }),
+    h(UpcomingDates, { data, max: 16, compact: true, onOpenAgenda: () => setView("planning") }));
 }
 
 function AgendaView({ data, onAdd, onUpdate, onDelete, startDate }) {
@@ -3903,6 +3974,7 @@ function MiniSchedule({
 }
 function HomeView({
   data,
+  setView,
   onAddTodo,
   onToggleTodo,
   onDeleteTodo,
@@ -3966,67 +4038,13 @@ function HomeView({
     }
   }, /*#__PURE__*/React.createElement(SchoolBanner, null), /*#__PURE__*/React.createElement(MiniSchedule, {
     data: data
-  }), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
-    icon: /*#__PURE__*/React.createElement(IconClock, {
-      size: 15
-    }),
-    title: "Dans les 7 prochains jours"
-  }), upcoming.length === 0 ? /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontFamily: "Inter, sans-serif",
-      fontSize: 13,
-      color: COLORS.faint
-    }
-  }, "Rien de prévu cette semaine.") : /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      flexDirection: "column",
-      gap: 9
-    }
-  }, upcoming.map((r, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-      padding: "11px 14px",
-      background: COLORS.panel,
-      border: `1px solid ${COLORS.line}`,
-      boxShadow: CARD_SHADOW,
-      borderRadius: 7,
-      flexWrap: "wrap"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: "IBM Plex Mono, monospace",
-      fontSize: 11.5,
-      color: COLORS.sub,
-      width: 60,
-      flexShrink: 0
-    }
-  }, formatDate(r.date)), r.isEvent ? /*#__PURE__*/React.createElement(CatChip, {
-    cat: r.cat
-  }) : /*#__PURE__*/React.createElement(ClassTag, {
-    color: classColor(data, r.classId),
-    name: r.className
-  }), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: "Inter, sans-serif",
-      fontSize: 13,
-      color: COLORS.ink,
-      flex: 1,
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap"
-    }
-  }, r.title), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: "Inter, sans-serif",
-      fontSize: 11,
-      color: COLORS.faint,
-      flexShrink: 0
-    }
-  }, r.kind))))), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "rail-inline"
+  }, /*#__PURE__*/React.createElement(UpcomingDates, {
+    data: data,
+    max: 8,
+    onOpenAgenda: setView ? () => setView("planning") : null
+  })), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
     icon: /*#__PURE__*/React.createElement(IconBook, {
       size: 15
     }),
@@ -4735,11 +4753,15 @@ function App() {
     persist(next);
   };
   return /*#__PURE__*/React.createElement("div", {
+    className: view === "home" ? "has-rail" : "",
     style: {
       minHeight: "100vh",
       background: COLORS.bg
     }
-  }, /*#__PURE__*/React.createElement("header", {
+  }, view === "home" && /*#__PURE__*/React.createElement(RightRail, {
+    data: data,
+    setView: setView
+  }), /*#__PURE__*/React.createElement("header", {
     className: "content-shift",
     style: {
       borderBottom: "none",
@@ -4916,6 +4938,7 @@ function App() {
     }
   }, view === "home" ? /*#__PURE__*/React.createElement(HomeView, {
     data: data,
+    setView: setView,
     onAddTodo: addTodo,
     onToggleTodo: toggleTodo,
     onDeleteTodo: deleteTodo,
