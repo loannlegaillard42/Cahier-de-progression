@@ -1871,6 +1871,133 @@ function SlotCard({ data, slot, date, entry, onSave, evals }) {
         "Cocher « faite » avec un chapitre choisi ajoute la séance au journal du chapitre et fait avancer sa progression.")));
 }
 
+/* ---------- Liens semainier ↔ séances suivantes ---------- */
+const slotsOnDate = (data, iso) => { const di = (parseISO(iso).getDay() + 6) % 7; return data.schedule.slots.filter(s => s.day === di).sort((a, b) => a.start.localeCompare(b.start)); };
+function nextSessionDate(data, classId, afterISO) {
+  const d = parseISO(afterISO);
+  for (let k = 0; k < 90; k++) {
+    d.setDate(d.getDate() + 1);
+    const iso = localISO(d);
+    if (!dayInfo(iso).schoolDay) continue;
+    if (slotsOnDate(data, iso).some(s => s.classId === classId)) return iso;
+  }
+  return null;
+}
+function cahierEntriesFor(data, classId) {
+  const bySlot = {}; data.schedule.slots.forEach(s => { bySlot[s.id] = s; });
+  return Object.entries(data.cahier || {}).map(([key, e]) => { const [date, sid] = key.split("|"); return { key, date, slot: bySlot[sid], ...e }; })
+    .filter(e => e.slot && e.slot.classId === classId).sort((a, b) => (a.date + a.slot.start).localeCompare(b.date + b.slot.start));
+}
+function workDueOn(data, classId, iso) {
+  return cahierEntriesFor(data, classId).filter(e => e.devoirs && e.date < iso && nextSessionDate(data, classId, e.date) === iso);
+}
+
+/* ---------- Ma journée (accueil) ---------- */
+function MyDay({ data, setView }) {
+  const h = React.createElement;
+  const todayISO = localISO(new Date());
+  let dayISO = todayISO;
+  const hasCourses = iso => dayInfo(iso).schoolDay && slotsOnDate(data, iso).length > 0;
+  if (!hasCourses(dayISO)) {
+    const d = parseISO(todayISO);
+    for (let k = 0; k < 90; k++) { d.setDate(d.getDate() + 1); if (hasCourses(localISO(d))) { dayISO = localISO(d); break; } }
+  }
+  const isToday = dayISO === todayISO;
+  const tomorrow = (() => { const d = parseISO(todayISO); d.setDate(d.getDate() + 1); return localISO(d); })();
+  const title = isToday ? "Ma journée" : dayISO === tomorrow ? "Demain" : "Prochain jour de cours";
+  const slots = hasCourses(dayISO) ? slotsOnDate(data, dayISO) : [];
+  const events = (data.agenda || []).filter(e => e.date === todayISO).sort(sortEvents);
+  const now = new Date(); const nowHM = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+  const txt = { fontFamily: "Inter, sans-serif", fontSize: 12.5, lineHeight: 1.45 };
+  return h("section", null,
+    h("div", { style: { display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 12, gap: 8 } },
+      h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+        h("span", { style: { color: COLORS.accent } }, h(IconSun, { size: 15 })),
+        h("h2", { style: { fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 600, color: COLORS.ink, margin: 0 } }, title),
+        h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint } }, longDate(dayISO))),
+      h("button", { onClick: () => setView && setView("schedule"), style: { background: "none", border: "none", color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0 } }, "Semainier →")),
+    data.schedule.slots.length === 0 && h("p", { style: { ...txt, color: COLORS.faint, margin: 0 } }, "Renseigne ton emploi du temps (Semaine → Emploi du temps) pour voir ta journée ici."),
+    events.length > 0 && h("div", { style: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 8 } },
+      events.map(ev => h("div", { key: ev.id, style: { display: "flex", alignItems: "center", gap: 10, padding: "7px 12px", borderRadius: 8, border: `1px dashed ${agendaCat(ev.cat).color}` } },
+        h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, width: 44 } }, ev.time || "—"),
+        h("span", { style: { ...txt, fontWeight: 600, color: COLORS.ink, flex: 1 } }, ev.title), h(CatChip, { cat: ev.cat })))),
+    h("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+      slots.map(s => {
+        const e = (data.cahier || {})[`${dayISO}|${s.id}`] || {};
+        const cls = data.classes[s.classId];
+        const f = e.chapterId ? findChapter(data, s.classId, e.chapterId) : null;
+        const due = workDueOn(data, s.classId, dayISO);
+        const evals = data.evaluations.filter(ev => ev.date === dayISO && ev.classId === s.classId);
+        const past = isToday && s.end <= nowHM;
+        const current = isToday && s.start <= nowHM && s.end > nowHM;
+        return h("div", { key: s.id, onClick: () => setView && setView("schedule"), style: { cursor: "pointer", display: "flex", gap: 12, padding: "10px 12px", background: COLORS.panel, border: `1px solid ${current ? COLORS.accent : COLORS.line}`, borderLeft: `4px solid ${classColor(data, s.classId)}`, borderRadius: 8, boxShadow: CARD_SHADOW, opacity: past ? 0.55 : 1 } },
+          h("div", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, width: 46, flexShrink: 0, lineHeight: 1.5 } }, h("div", null, s.start), h("div", { style: { color: COLORS.faint } }, s.end)),
+          h("div", { style: { flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 3 } },
+            h("div", { style: { display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" } },
+              h(ClassTag, { color: classColor(data, s.classId), name: cls ? cls.name : "?" }),
+              s.room && h("span", { style: { ...txt, fontSize: 11.5, color: COLORS.faint } }, "Salle " + s.room),
+              current && h("span", { style: { ...txt, fontSize: 11, fontWeight: 700, color: COLORS.accent } }, "en cours"),
+              e.done && h("span", { style: { color: COLORS.done, display: "flex" } }, h(IconCheck, { size: 13 }))),
+            f && h("div", { style: { ...txt, fontSize: 11.5, color: COLORS.sub, fontStyle: "italic" } }, f.chapter.title),
+            e.seance ? h("div", { style: { ...txt, color: COLORS.ink } }, e.seance) : h("div", { style: { ...txt, color: COLORS.faint } }, "Séance pas encore préparée"),
+            due.map(d => h("div", { key: d.key, style: { ...txt, fontSize: 12, color: COLORS.histoire } }, h("strong", null, "À relever : "), d.devoirs)),
+            evals.map(ev => h("div", { key: ev.id, style: { ...txt, fontSize: 12, fontWeight: 600, color: COLORS.wip } }, "Évaluation : " + ev.title))));
+      })));
+}
+
+/* ---------- Cahier de textes prêt à copier (École Directe) ---------- */
+function CopyBtn({ text, label }) {
+  const h = React.createElement;
+  const [ok, setOk] = useState(false);
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(text); }
+    catch (e) { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+    setOk(true); setTimeout(() => setOk(false), 1400);
+  };
+  return h("button", { onClick: copy, style: { ...ghostBtn, padding: "4px 10px", fontSize: 11.5, display: "inline-flex", alignItems: "center", gap: 5, color: ok ? COLORS.done : COLORS.accent, borderColor: ok ? COLORS.done : COLORS.line, flexShrink: 0 } },
+    ok ? h(IconCheck, { size: 12 }) : null, ok ? "Copié" : label || "Copier");
+}
+function CahierTextes({ data, monday }) {
+  const h = React.createElement;
+  const days = [0, 1, 2, 3, 4, 5].map(i => { const d = new Date(monday); d.setDate(d.getDate() + i); return localISO(d); });
+  const byClass = {};
+  days.forEach(iso => slotsOnDate(data, iso).forEach(s => {
+    const e = (data.cahier || {})[`${iso}|${s.id}`];
+    if (!e || !(e.seance || e.devoirs || e.chapterId)) return;
+    (byClass[s.classId] = byClass[s.classId] || []).push({ iso, slot: s, e });
+  }));
+  const order = data.order.filter(cid => byClass[cid]);
+  const box = { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, background: COLORS.encadre, borderRadius: 6, padding: "8px 10px", whiteSpace: "pre-wrap", lineHeight: 1.45, flex: 1, minWidth: 0 };
+  const lab = { fontFamily: "Inter, sans-serif", fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase", color: COLORS.faint, marginBottom: 4 };
+  if (!order.length) return h("div", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.sub, background: COLORS.encadre, borderRadius: 8, padding: "12px 14px" } },
+    "Rien à reporter cette semaine. Remplis la séance et le travail donné dans le semainier : le texte à coller dans École Directe apparaîtra ici.");
+  return h("div", { style: { display: "flex", flexDirection: "column", gap: 22 } },
+    h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, margin: 0 } }, "Pour chaque séance : colle le contenu dans « Contenu de séance », puis le travail dans « Travail à faire » à la date indiquée."),
+    order.map(cid => {
+      const cls = data.classes[cid];
+      const all = byClass[cid].map(({ iso, e }) => {
+        const f = e.chapterId ? findChapter(data, cid, e.chapterId) : null;
+        const due = e.devoirs ? nextSessionDate(data, cid, iso) : null;
+        return `${longDate(iso)}\n${[f && f.chapter.title, e.seance].filter(Boolean).join(" — ")}${e.devoirs ? `\nPour le ${due ? longDate(due) : "prochain cours"} : ${e.devoirs}` : ""}`;
+      }).join("\n\n");
+      return h("section", { key: cid },
+        h("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 10, paddingBottom: 6, borderBottom: `2px solid ${classColor(data, cid)}` } },
+          h(ClassTag, { color: classColor(data, cid), name: cls.name }), h("span", { style: { flex: 1 } }), h(CopyBtn, { text: all, label: "Tout copier" })),
+        h("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
+          byClass[cid].map(({ iso, slot, e }) => {
+            const f = e.chapterId ? findChapter(data, cid, e.chapterId) : null;
+            const contenu = [f && f.chapter.title, e.seance].filter(Boolean).join(" — ");
+            const due = e.devoirs ? nextSessionDate(data, cid, iso) : null;
+            return h("div", { key: iso + slot.id, style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: "10px 12px", boxShadow: CARD_SHADOW } },
+              h("div", { style: { fontFamily: "Fraunces, serif", fontSize: 14, fontWeight: 600, color: COLORS.ink, marginBottom: 8 } }, (t => t.charAt(0).toUpperCase() + t.slice(1))(longDate(iso)), h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: COLORS.faint, fontWeight: 400, marginLeft: 8 } }, `${slot.start}–${slot.end}`)),
+              contenu && h("div", { style: { marginBottom: e.devoirs ? 10 : 0 } }, h("div", { style: lab }, "Contenu de séance"),
+                h("div", { style: { display: "flex", gap: 8, alignItems: "flex-start" } }, h("div", { style: box }, contenu), h(CopyBtn, { text: contenu }))),
+              e.devoirs && h("div", null, h("div", { style: lab }, `Travail à faire — pour le ${due ? longDate(due) : "prochain cours"}`),
+                h("div", { style: { display: "flex", gap: 8, alignItems: "flex-start" } }, h("div", { style: box }, e.devoirs), h(CopyBtn, { text: e.devoirs }))));
+          })));
+    }));
+}
+
 function WeekView({ data, onSaveEntry, onSaveNote, scheduleProps }) {
   const h = React.createElement;
   const [tab, setTab] = useState("semaine");
@@ -1887,11 +2014,22 @@ function WeekView({ data, onSaveEntry, onSaveNote, scheduleProps }) {
   const [note, setNote] = useState((data.weekNotes || {})[mISO] || "");
   useEffect(() => { setNote((data.weekNotes || {})[mISO] || ""); }, [mISO]);
   const navBtn = { ...btnCircle, width: 30, height: 30 };
-  const tabs = h("div", { style: { display: "flex", gap: 8, marginBottom: 18 } },
+  const tabs = h("div", { style: { display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" } },
     h("button", { style: tabBtn(tab === "semaine"), onClick: () => setTab("semaine") }, h(IconBook, { size: 13 }), "Semainier"),
+    h("button", { style: tabBtn(tab === "ct"), onClick: () => setTab("ct") }, h(IconList, { size: 13 }), "Cahier de textes"),
     h("button", { style: tabBtn(tab === "edt"), onClick: () => setTab("edt") }, h(IconClock, { size: 13 }), "Emploi du temps"));
   if (tab === "edt") return h("div", null, tabs, h(ScheduleView, scheduleProps));
   const noSlots = data.schedule.slots.length === 0;
+  const weekNav = h("div", null,
+    h("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 6 } },
+      h("button", { style: navBtn, onClick: () => shift(-1), "aria-label": "Semaine précédente" }, "‹"),
+      h("div", { style: { flex: 1, textAlign: "center" } },
+        h("div", { style: { fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 600, color: COLORS.ink } }, `Du ${shortDate(days[0].iso)} au ${shortDate(sat)}`),
+        h("div", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, `Semaine ${isoWeek(monday)} · ${monday.getFullYear()}`)),
+      h("button", { style: navBtn, onClick: () => shift(1), "aria-label": "Semaine suivante" }, "›")),
+    h("div", { style: { display: "flex", justifyContent: "center", marginBottom: 16 } },
+      h("button", { style: { ...ghostBtn, padding: "4px 12px", fontSize: 12 }, onClick: () => setMonday(mondayOf(new Date())) }, "Cette semaine")));
+  if (tab === "ct") return h("div", null, tabs, weekNav, h(CahierTextes, { data, monday }));
   return h("div", null, tabs,
     h("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 6 } },
       h("button", { style: navBtn, onClick: () => shift(-1), "aria-label": "Semaine précédente" }, "‹"),
@@ -4036,8 +4174,9 @@ function HomeView({
       flexDirection: "column",
       gap: 36
     }
-  }, /*#__PURE__*/React.createElement(SchoolBanner, null), /*#__PURE__*/React.createElement(MiniSchedule, {
-    data: data
+  }, /*#__PURE__*/React.createElement(SchoolBanner, null), /*#__PURE__*/React.createElement(MyDay, {
+    data: data,
+    setView: setView
   }), /*#__PURE__*/React.createElement("div", {
     className: "rail-inline"
   }, /*#__PURE__*/React.createElement(UpcomingDates, {
