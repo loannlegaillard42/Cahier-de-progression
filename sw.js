@@ -1,4 +1,4 @@
-const CACHE = "cahier-hg-v8";
+const CACHE = "cahier-hg-v9";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
