@@ -1847,6 +1847,7 @@ function SlotCard({ data, slot, date, entry, onSave, evals }) {
     h("div", { onClick: () => setOpen(!open), style: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", cursor: "pointer", flexWrap: "wrap" } },
       h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, width: 82, flexShrink: 0 } }, `${slot.start}–${slot.end}`),
       h(ClassTag, { color, name: cls ? cls.name : "?" }),
+      h(SlotBadges, { slot, small: true }),
       slot.room && h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, "Salle " + slot.room),
       evals.map(ev => h("span", { key: ev.id, style: { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: COLORS.wip, background: COLORS.wipSoft, borderRadius: 999, padding: "2px 8px" } }, "Éval : " + ev.title)),
       h("span", { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 } },
@@ -1871,15 +1872,132 @@ function SlotCard({ data, slot, date, entry, onSave, evals }) {
         "Cocher « faite » avec un chapitre choisi ajoute la séance au journal du chapitre et fait avancer sa progression.")));
 }
 
+/* ---------- Semaines A/B, matières et demi-groupes ---------- */
+const MATIERES = { HG: { label: "Histoire-géo", short: "HG", color: "var(--geo)" }, EMC: { label: "EMC", short: "EMC", color: "#7A4E8C" } };
+const slotMat = s => (s.matiere === "EMC" ? "EMC" : "HG");
+const slotWeek = s => (s.semaine === "A" || s.semaine === "B" ? s.semaine : "AB");
+const abConf = data => ({ refMonday: "2026-08-31", refLetter: "A", skipVacations: true, ...((data.schedule || {}).ab || {}) });
+const fullVacWeek = mondayISO => { const d = parseISO(mondayISO); for (let i = 0; i < 5; i++) { if (!dayInfo(localISO(d)).vac) return false; d.setDate(d.getDate() + 1); } return true; };
+const WEEK_LETTER_CACHE = new Map();
+function weekLetter(data, iso) {
+  const c = abConf(data);
+  const ck = `${c.refMonday}|${c.refLetter}|${c.skipVacations}|${localISO(mondayOf(parseISO(iso)))}`;
+  if (WEEK_LETTER_CACHE.has(ck)) return WEEK_LETTER_CACHE.get(ck);
+  const res = weekLetterRaw(c, iso);
+  WEEK_LETTER_CACHE.set(ck, res);
+  return res;
+}
+function weekLetterRaw(c, iso) {
+  const target = mondayOf(parseISO(iso));
+  if (c.skipVacations && fullVacWeek(localISO(target))) return null;
+  const ref = parseISO(c.refMonday);
+  const dir = target >= ref ? 1 : -1;
+  let n = 0; const d = new Date(ref);
+  while (localISO(d) !== localISO(target)) {
+    d.setDate(d.getDate() + 7 * dir);
+    if (c.skipVacations && fullVacWeek(localISO(d)) && localISO(d) !== localISO(target)) continue;
+    n++;
+    if (n > 200) break;
+  }
+  return n % 2 === 0 ? c.refLetter : (c.refLetter === "A" ? "B" : "A");
+}
+const slotActive = (data, s, iso) => slotWeek(s) === "AB" || weekLetter(data, iso) === slotWeek(s);
+const sameCourse = (a, b) => a.classId === b.classId && slotMat(a) === slotMat(b) && (a.groupe || "") === (b.groupe || "");
+
+function SlotBadges({ slot, small }) {
+  const h = React.createElement;
+  const fs = small ? 10.5 : 11;
+  const chip = (txt, color, bg) => h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: fs, fontWeight: 700, color, background: bg, borderRadius: 999, padding: "1px 7px", whiteSpace: "nowrap" } }, txt);
+  return h(React.Fragment, null,
+    slotMat(slot) === "EMC" && chip("EMC", "#fff", MATIERES.EMC.color),
+    slot.groupe && chip(slot.groupe, COLORS.sub, COLORS.encadre),
+    slotWeek(slot) !== "AB" && chip("Sem. " + slotWeek(slot), COLORS.accent, COLORS.accentSoft));
+}
+
+function SlotForm({ data, initial, onSave, onCancel, onDelete }) {
+  const h = React.createElement;
+  const [f, setF] = useState({ day: 0, start: "08:00", end: "09:00", classId: data.order[0] || "", room: "", matiere: "HG", semaine: "AB", groupe: "", ...initial });
+  const set = (k, v) => setF({ ...f, [k]: v });
+  const seg = (key, opts) => h("div", { style: { display: "flex", border: `1px solid ${COLORS.line}`, borderRadius: 7, overflow: "hidden" } },
+    opts.map(([v, lab]) => h("button", { key: v, onClick: () => set(key, v), style: { flex: 1, padding: "7px 8px", border: "none", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 600, background: f[key] === v ? COLORS.accent : "transparent", color: f[key] === v ? "#fff" : COLORS.sub } }, lab)));
+  return h("div", { style: { background: COLORS.encadre, borderRadius: 10, padding: 14, display: "flex", flexDirection: "column", gap: 11, marginBottom: 18 } },
+    h("div", { style: { display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr", gap: 8 } },
+      h("div", null, h("label", { style: labelStyle }, "Jour"), h("select", { style: inputStyle, value: f.day, onChange: e => set("day", Number(e.target.value)) }, DAYS_FR.map((d, i) => h("option", { key: i, value: i }, d)))),
+      h("div", null, h("label", { style: labelStyle }, "Début"), h("input", { type: "time", style: inputStyle, value: f.start, onChange: e => set("start", e.target.value) })),
+      h("div", null, h("label", { style: labelStyle }, "Fin"), h("input", { type: "time", style: inputStyle, value: f.end, onChange: e => set("end", e.target.value) }))),
+    h("div", { style: { display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 8 } },
+      h("div", null, h("label", { style: labelStyle }, "Classe"), h("select", { style: inputStyle, value: f.classId, onChange: e => set("classId", e.target.value) }, data.order.map(cid => h("option", { key: cid, value: cid }, data.classes[cid].name)))),
+      h("div", null, h("label", { style: labelStyle }, "Salle"), h("input", { style: inputStyle, value: f.room, onChange: e => set("room", e.target.value) }))),
+    h("div", null, h("label", { style: labelStyle }, "Matière"), seg("matiere", [["HG", "Histoire-géo"], ["EMC", "EMC"]])),
+    h("div", null, h("label", { style: labelStyle }, "Semaines"), seg("semaine", [["AB", "Toutes"], ["A", "Sem. A"], ["B", "Sem. B"]])),
+    h("div", null, h("label", { style: labelStyle }, "Demi-groupe (facultatif)"),
+      h("div", { style: { display: "flex", gap: 6, flexWrap: "wrap" } },
+        ["", "Gr. 1", "Gr. 2"].map(g => h("button", { key: g, onClick: () => set("groupe", g), style: { ...ghostBtn, padding: "5px 11px", fontSize: 12, background: f.groupe === g ? COLORS.accent : "transparent", color: f.groupe === g ? "#fff" : COLORS.sub } }, g || "Classe entière")))),
+    h("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
+      h("button", { style: primaryBtn, onClick: () => f.classId && onSave({ ...f, room: (f.room || "").trim() }) }, initial && initial.id ? "Enregistrer" : "Ajouter"),
+      h("button", { style: ghostBtn, onClick: onCancel }, "Annuler"),
+      onDelete && h("button", { onClick: () => { if (confirm("Supprimer ce créneau ?")) onDelete(); }, style: { ...ghostBtn, marginLeft: "auto", color: "#B5452E", display: "flex", alignItems: "center", gap: 5 } }, h(IconTrash, { size: 13 }), "Supprimer")));
+}
+
+function ABSettings({ data, onSetAB }) {
+  const h = React.createElement;
+  const c = abConf(data);
+  const todayISO = localISO(new Date());
+  const cur = weekLetter(data, todayISO);
+  const setCurrent = L => onSetAB({ ...c, refMonday: localISO(mondayOf(new Date())), refLetter: L });
+  const btn = (L) => h("button", { onClick: () => setCurrent(L), style: { ...ghostBtn, padding: "6px 16px", fontWeight: 700, background: cur === L ? COLORS.accent : "transparent", color: cur === L ? "#fff" : COLORS.sub } }, "Semaine " + L);
+  return h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 10, padding: 14, marginBottom: 18 } },
+    h("label", { style: labelStyle }, "Alternance semaines A / B"),
+    cur ? h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" } },
+      h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink } }, "Cette semaine est une :"), btn("A"), btn("B"))
+      : h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.sub, margin: 0 } }, "Semaine de vacances — l'alternance reprendra à la rentrée."),
+    h("label", { style: { display: "flex", alignItems: "center", gap: 8, marginTop: 12, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, cursor: "pointer" } },
+      h("input", { type: "checkbox", checked: c.skipVacations, onChange: e => onSetAB({ ...c, skipVacations: e.target.checked }) }),
+      "Les semaines de vacances ne comptent pas (l'alternance reprend là où elle s'était arrêtée)"),
+    h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint, margin: "8px 0 0" } }, "Si ton établissement ne suit pas cette règle, décoche la case, ou reclique sur A ou B la semaine où l'alternance se décale."));
+}
+
+function ScheduleView2({ data, onSetUrl, onAddSlot, onUpdateSlot, onDeleteSlot, onSetAB }) {
+  const h = React.createElement;
+  const [editing, setEditing] = useState(null);
+  const byDay = DAYS_FR.map((_, i) => data.schedule.slots.filter(s => s.day === i).sort((a, b) => a.start.localeCompare(b.start) || slotWeek(a).localeCompare(slotWeek(b))));
+  return h("div", null,
+    h(ABSettings, { data, onSetAB }),
+    editing && h(SlotForm, { key: editing.id || "new", data, initial: editing, onCancel: () => setEditing(null),
+      onSave: s => { s.id ? onUpdateSlot(s) : onAddSlot(s); setEditing(null); },
+      onDelete: editing.id ? () => { onDeleteSlot(editing.id); setEditing(null); } : null }),
+    !editing && data.order.length > 0 && h("button", { onClick: () => setEditing({}), style: { ...ghostBtn, display: "flex", alignItems: "center", gap: 6, marginBottom: 18 } }, h(IconPlus, { size: 14 }), " Ajouter un créneau"),
+    data.schedule.slots.length === 0 && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint } }, "Aucun créneau renseigné pour l'instant."),
+    DAYS_FR.map((day, i) => byDay[i].length > 0 && h("div", { key: i, style: { marginBottom: 20 } },
+      h("h3", { style: { fontFamily: "Fraunces, serif", fontSize: 15, fontWeight: 600, color: COLORS.ink, margin: "0 0 8px" } }, day),
+      h("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+        byDay[i].map(s => {
+          const cls = data.classes[s.classId];
+          return h("div", { key: s.id, onClick: () => { setEditing({ ...s }); window.scrollTo({ top: 0, behavior: "smooth" }); }, style: { cursor: "pointer", display: "flex", alignItems: "center", gap: 8, padding: "10px 13px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderLeft: `4px solid ${slotMat(s) === "EMC" ? MATIERES.EMC.color : classColor(data, s.classId)}`, borderRadius: 7, flexWrap: "wrap" } },
+            h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub, width: 88, flexShrink: 0 } }, `${s.start}–${s.end}`),
+            h(ClassTag, { color: classColor(data, s.classId), name: cls ? cls.name : "?" }),
+            h(SlotBadges, { slot: s }),
+            s.room && h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint } }, "Salle " + s.room),
+            h("span", { style: { marginLeft: "auto", fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, "modifier"));
+        })))),
+    h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: 14, marginTop: 8 } },
+      h("label", { style: labelStyle }, "Lien vers ton emploi du temps en ligne (Pronote, ADE, École Directe…)"),
+      data.schedule.url
+        ? h("div", { style: { display: "flex", gap: 10, alignItems: "center" } },
+            h("a", { href: data.schedule.url, target: "_blank", rel: "noreferrer", style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.accent, display: "inline-flex", gap: 5, alignItems: "center", textDecoration: "none" } }, h(IconExternal, { size: 13 }), "Ouvrir mon emploi du temps"),
+            h("button", { onClick: () => { const u = prompt("Lien", data.schedule.url); if (u !== null) onSetUrl(u.trim()); }, style: { background: "none", border: "none", color: COLORS.faint, fontSize: 12, cursor: "pointer" } }, "modifier"))
+        : h("button", { onClick: () => { const u = prompt("Colle le lien de ton emploi du temps"); if (u) onSetUrl(u.trim()); }, style: { ...ghostBtn, fontSize: 12.5, padding: "6px 12px" } }, "+ Ajouter le lien")));
+}
+
 /* ---------- Liens semainier ↔ séances suivantes ---------- */
-const slotsOnDate = (data, iso) => { const di = (parseISO(iso).getDay() + 6) % 7; return data.schedule.slots.filter(s => s.day === di).sort((a, b) => a.start.localeCompare(b.start)); };
-function nextSessionDate(data, classId, afterISO) {
+const slotsOnDate = (data, iso) => { const di = (parseISO(iso).getDay() + 6) % 7; return data.schedule.slots.filter(s => s.day === di && slotActive(data, s, iso)).sort((a, b) => a.start.localeCompare(b.start)); };
+function nextSessionDate(data, classId, afterISO, ref) {
   const d = parseISO(afterISO);
   for (let k = 0; k < 90; k++) {
     d.setDate(d.getDate() + 1);
     const iso = localISO(d);
     if (!dayInfo(iso).schoolDay) continue;
-    if (slotsOnDate(data, iso).some(s => s.classId === classId)) return iso;
+    if (slotsOnDate(data, iso).some(s => ref ? sameCourse(s, ref) : s.classId === classId)) return iso;
   }
   return null;
 }
@@ -1888,8 +2006,8 @@ function cahierEntriesFor(data, classId) {
   return Object.entries(data.cahier || {}).map(([key, e]) => { const [date, sid] = key.split("|"); return { key, date, slot: bySlot[sid], ...e }; })
     .filter(e => e.slot && e.slot.classId === classId).sort((a, b) => (a.date + a.slot.start).localeCompare(b.date + b.slot.start));
 }
-function workDueOn(data, classId, iso) {
-  return cahierEntriesFor(data, classId).filter(e => e.devoirs && e.date < iso && nextSessionDate(data, classId, e.date) === iso);
+function workDueOn(data, classId, iso, ref) {
+  return cahierEntriesFor(data, classId).filter(e => e.devoirs && e.date < iso && (!ref || sameCourse(e.slot, ref)) && nextSessionDate(data, classId, e.date, e.slot) === iso);
 }
 
 /* ---------- Ma journée (accueil) ---------- */
@@ -1926,7 +2044,7 @@ function MyDay({ data, setView }) {
         const e = (data.cahier || {})[`${dayISO}|${s.id}`] || {};
         const cls = data.classes[s.classId];
         const f = e.chapterId ? findChapter(data, s.classId, e.chapterId) : null;
-        const due = workDueOn(data, s.classId, dayISO);
+        const due = workDueOn(data, s.classId, dayISO, s);
         const evals = data.evaluations.filter(ev => ev.date === dayISO && ev.classId === s.classId);
         const past = isToday && s.end <= nowHM;
         const current = isToday && s.start <= nowHM && s.end > nowHM;
@@ -1935,6 +2053,7 @@ function MyDay({ data, setView }) {
           h("div", { style: { flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 3 } },
             h("div", { style: { display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" } },
               h(ClassTag, { color: classColor(data, s.classId), name: cls ? cls.name : "?" }),
+              h(SlotBadges, { slot: s, small: true }),
               s.room && h("span", { style: { ...txt, fontSize: 11.5, color: COLORS.faint } }, "Salle " + s.room),
               current && h("span", { style: { ...txt, fontSize: 11, fontWeight: 700, color: COLORS.accent } }, "en cours"),
               e.done && h("span", { style: { color: COLORS.done, display: "flex" } }, h(IconCheck, { size: 13 }))),
@@ -1964,30 +2083,33 @@ function CahierTextes({ data, monday }) {
   days.forEach(iso => slotsOnDate(data, iso).forEach(s => {
     const e = (data.cahier || {})[`${iso}|${s.id}`];
     if (!e || !(e.seance || e.devoirs || e.chapterId)) return;
-    (byClass[s.classId] = byClass[s.classId] || []).push({ iso, slot: s, e });
+    const gk = `${s.classId}|${slotMat(s)}|${s.groupe || ""}`;
+    (byClass[gk] = byClass[gk] || []).push({ iso, slot: s, e });
   }));
-  const order = data.order.filter(cid => byClass[cid]);
+  const order = [];
+  data.order.forEach(cid => Object.keys(byClass).filter(k => k.startsWith(cid + "|")).sort().forEach(k => order.push(k)));
   const box = { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, background: COLORS.encadre, borderRadius: 6, padding: "8px 10px", whiteSpace: "pre-wrap", lineHeight: 1.45, flex: 1, minWidth: 0 };
   const lab = { fontFamily: "Inter, sans-serif", fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase", color: COLORS.faint, marginBottom: 4 };
   if (!order.length) return h("div", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.sub, background: COLORS.encadre, borderRadius: 8, padding: "12px 14px" } },
     "Rien à reporter cette semaine. Remplis la séance et le travail donné dans le semainier : le texte à coller dans École Directe apparaîtra ici.");
   return h("div", { style: { display: "flex", flexDirection: "column", gap: 22 } },
     h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, margin: 0 } }, "Pour chaque séance : colle le contenu dans « Contenu de séance », puis le travail dans « Travail à faire » à la date indiquée."),
-    order.map(cid => {
+    order.map(gk => {
+      const cid = gk.split("|")[0];
       const cls = data.classes[cid];
-      const all = byClass[cid].map(({ iso, e }) => {
+      const all = byClass[gk].map(({ iso, e, slot }) => {
         const f = e.chapterId ? findChapter(data, cid, e.chapterId) : null;
-        const due = e.devoirs ? nextSessionDate(data, cid, iso) : null;
+        const due = e.devoirs ? nextSessionDate(data, cid, iso, slot) : null;
         return `${longDate(iso)}\n${[f && f.chapter.title, e.seance].filter(Boolean).join(" — ")}${e.devoirs ? `\nPour le ${due ? longDate(due) : "prochain cours"} : ${e.devoirs}` : ""}`;
       }).join("\n\n");
-      return h("section", { key: cid },
+      return h("section", { key: gk },
         h("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 10, paddingBottom: 6, borderBottom: `2px solid ${classColor(data, cid)}` } },
-          h(ClassTag, { color: classColor(data, cid), name: cls.name }), h("span", { style: { flex: 1 } }), h(CopyBtn, { text: all, label: "Tout copier" })),
+          h(ClassTag, { color: classColor(data, cid), name: cls.name }), h(SlotBadges, { slot: { ...byClass[gk][0].slot, semaine: "AB" } }), h("span", { style: { flex: 1 } }), h(CopyBtn, { text: all, label: "Tout copier" })),
         h("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
-          byClass[cid].map(({ iso, slot, e }) => {
+          byClass[gk].map(({ iso, slot, e }) => {
             const f = e.chapterId ? findChapter(data, cid, e.chapterId) : null;
             const contenu = [f && f.chapter.title, e.seance].filter(Boolean).join(" — ");
-            const due = e.devoirs ? nextSessionDate(data, cid, iso) : null;
+            const due = e.devoirs ? nextSessionDate(data, cid, iso, slot) : null;
             return h("div", { key: iso + slot.id, style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: "10px 12px", boxShadow: CARD_SHADOW } },
               h("div", { style: { fontFamily: "Fraunces, serif", fontSize: 14, fontWeight: 600, color: COLORS.ink, marginBottom: 8 } }, (t => t.charAt(0).toUpperCase() + t.slice(1))(longDate(iso)), h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: COLORS.faint, fontWeight: 400, marginLeft: 8 } }, `${slot.start}–${slot.end}`)),
               contenu && h("div", { style: { marginBottom: e.devoirs ? 10 : 0 } }, h("div", { style: lab }, "Contenu de séance"),
@@ -2005,7 +2127,7 @@ function WeekView({ data, onSaveEntry, onSaveNote, scheduleProps }) {
   const todayISO = localISO(new Date());
   const mISO = localISO(monday);
   const days = DAY_LONG.map((label, i) => { const d = new Date(monday); d.setDate(d.getDate() + i); return { label, i, iso: localISO(d) }; });
-  const slotsOf = i => data.schedule.slots.filter(s => s.day === i).sort((a, b) => a.start.localeCompare(b.start));
+  const slotsOf = i => slotsOnDate(data, days[i].iso);
   const eventsOf = iso => (data.agenda || []).filter(e => e.date === iso).sort(sortEvents);
   const shown = days.filter(d => d.i < 5 || slotsOf(d.i).length || eventsOf(d.iso).length);
   const sat = days[5].iso;
@@ -2018,14 +2140,14 @@ function WeekView({ data, onSaveEntry, onSaveNote, scheduleProps }) {
     h("button", { style: tabBtn(tab === "semaine"), onClick: () => setTab("semaine") }, h(IconBook, { size: 13 }), "Semainier"),
     h("button", { style: tabBtn(tab === "ct"), onClick: () => setTab("ct") }, h(IconList, { size: 13 }), "Cahier de textes"),
     h("button", { style: tabBtn(tab === "edt"), onClick: () => setTab("edt") }, h(IconClock, { size: 13 }), "Emploi du temps"));
-  if (tab === "edt") return h("div", null, tabs, h(ScheduleView, scheduleProps));
+  if (tab === "edt") return h("div", null, tabs, h(ScheduleView2, scheduleProps));
   const noSlots = data.schedule.slots.length === 0;
   const weekNav = h("div", null,
     h("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 6 } },
       h("button", { style: navBtn, onClick: () => shift(-1), "aria-label": "Semaine précédente" }, "‹"),
       h("div", { style: { flex: 1, textAlign: "center" } },
         h("div", { style: { fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 600, color: COLORS.ink } }, `Du ${shortDate(days[0].iso)} au ${shortDate(sat)}`),
-        h("div", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, `Semaine ${isoWeek(monday)} · ${monday.getFullYear()}`)),
+        h("div", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, `Semaine ${isoWeek(monday)} · ${monday.getFullYear()}`, weekLetter(data, mISO) && h("span", { style: { marginLeft: 8, fontWeight: 700, color: "#fff", background: COLORS.accent, borderRadius: 999, padding: "1px 8px" } }, "Semaine " + weekLetter(data, mISO)))),
       h("button", { style: navBtn, onClick: () => shift(1), "aria-label": "Semaine suivante" }, "›")),
     h("div", { style: { display: "flex", justifyContent: "center", marginBottom: 16 } },
       h("button", { style: { ...ghostBtn, padding: "4px 12px", fontSize: 12 }, onClick: () => setMonday(mondayOf(new Date())) }, "Cette semaine")));
@@ -2035,7 +2157,7 @@ function WeekView({ data, onSaveEntry, onSaveNote, scheduleProps }) {
       h("button", { style: navBtn, onClick: () => shift(-1), "aria-label": "Semaine précédente" }, "‹"),
       h("div", { style: { flex: 1, textAlign: "center" } },
         h("div", { style: { fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 600, color: COLORS.ink } }, `Du ${shortDate(days[0].iso)} au ${shortDate(sat)}`),
-        h("div", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, `Semaine ${isoWeek(monday)} · ${monday.getFullYear()}`)),
+        h("div", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, `Semaine ${isoWeek(monday)} · ${monday.getFullYear()}`, weekLetter(data, mISO) && h("span", { style: { marginLeft: 8, fontWeight: 700, color: "#fff", background: COLORS.accent, borderRadius: 999, padding: "1px 8px" } }, "Semaine " + weekLetter(data, mISO)))),
       h("button", { style: navBtn, onClick: () => shift(1), "aria-label": "Semaine suivante" }, "›")),
     h("div", { style: { display: "flex", justifyContent: "center", marginBottom: 16 } },
       h("button", { style: { ...ghostBtn, padding: "4px 12px", fontSize: 12 }, onClick: () => setMonday(mondayOf(new Date())) }, "Cette semaine")),
@@ -4747,6 +4869,20 @@ function App() {
       }]
     }
   });
+  const updateSlot = sl => persist({
+    ...data,
+    schedule: {
+      ...data.schedule,
+      slots: data.schedule.slots.map(s => s.id === sl.id ? sl : s)
+    }
+  });
+  const setAB = ab => persist({
+    ...data,
+    schedule: {
+      ...data.schedule,
+      ab
+    }
+  });
   const deleteSlot = id => persist({
     ...data,
     schedule: {
@@ -5100,7 +5236,9 @@ function App() {
       data: data,
       onSetUrl: setScheduleUrl,
       onAddSlot: addSlot,
-      onDeleteSlot: deleteSlot
+      onUpdateSlot: updateSlot,
+      onDeleteSlot: deleteSlot,
+      onSetAB: setAB
     }
   }) : view === "evaluations" ? /*#__PURE__*/React.createElement(EvaluationsView, {
     data: data,
