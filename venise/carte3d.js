@@ -590,7 +590,7 @@
   C3.vue = (type, opts) => {
     opts = opts || {};
     cam.suivre = false;
-    if (type === 'ensemble') { cam.but.cible.set(1.2, 0, -0.3); cam.but.rayon = window.innerWidth < 760 ? 30 : 23; cam.but.phi = 0.68; }
+    if (type === 'ensemble') { cam.but.cible.set(1.2, 0, -0.3); cam.but.rayon = conteneur.clientWidth < 700 ? 30 : 23; cam.but.phi = 0.68; }
     else if (type === 'port') { const a = villes[opts.port].position; cam.but.cible.set(a.x, 0, a.z + 0.2); cam.but.rayon = opts.rayon || 3.4; cam.but.phi = 0.95; }
     else if (type === 'lieu') { const [x, z] = proj(opts.lon, opts.lat); cam.but.cible.set(x, 0, z); cam.but.rayon = opts.rayon || 6; cam.but.phi = 0.85; }
     else if (type === 'suivre') { cam.suivre = true; cam.but.rayon = opts.rayon || 5.5; cam.but.phi = 0.9; }
@@ -760,7 +760,11 @@
     brancherControles(renderer.domElement);
     C3.vue('ensemble', { immediat: true });
     horloge = new THREE.Clock();
-    window.addEventListener('resize', () => { renderer.setSize(el.clientWidth, el.clientHeight); camera.aspect = el.clientWidth / el.clientHeight; camera.updateProjectionMatrix(); });
+    const redim = () => {
+      const w = el.clientWidth, hh = el.clientHeight; if (!w || !hh) return;
+      renderer.setSize(w, hh); camera.aspect = w / hh; camera.updateProjectionMatrix();
+    };
+    if (window.ResizeObserver) new ResizeObserver(redim).observe(el); else window.addEventListener('resize', redim);
     const boucle = () => {
       const dt = Math.min(0.1, horloge.getDelta()), t = horloge.elapsedTime;
       eau.material.uniforms.uTemps.value = t; eau.material.uniforms.uCam.value.copy(camera.position);

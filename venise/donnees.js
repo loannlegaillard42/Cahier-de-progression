@@ -23,6 +23,7 @@ const INTRO = [
 ];
 
 const REGLES = [
+  ["Les habitants", "À chaque escale, parle aux personnages : leurs réponses t'aident à remplir ton carnet de bord."],
   ["Naviguer", "Clique sur le nom d'un port relié par une route dorée."],
   ["Commercer", "12 ballots maximum dans ta cale. Achète bon marché, revends cher."],
   ["Le temps", "Départ le 1er août. Rentre à Venise avant le 12 janvier, sinon tes marchandises se vendront moins cher."],
@@ -53,9 +54,9 @@ const PORTS = {
     statut: "Capitale de la République",
     titre: "Venise, capitale de la République",
     texte: [
-      "Venise est bâtie sur une centaine d'îles, au milieu d'une lagune. Elle n'a presque pas de campagnes, mais elle extrait le sel de la lagune et possède une grande flotte.",
-      "Regarde bien : aucune muraille autour de la ville. Dans l'Arsenal, le chantier naval de l'État, on construit les galères. Le doge, élu à vie, dirige la République avec les grandes familles de marchands."
+      "Venise est bâtie sur une centaine d'îles, au milieu d'une lagune. Ta galère est amarrée près de la place Saint-Marc. Observe la gravure : que remarques-tu autour de la ville ?"
     ],
+    figure: { src: "img/gravure-venise.jpg", alt: "Gravure en couleurs de Venise vue du ciel, entourée par la lagune et les navires", legende: "<b>Venise vue par un graveur</b> au XVIe siècle (Doc. 4 de ta fiche) : la ville est construite sur une lagune, sans muraille. © The Hebrew University of Jerusalem & The Jewish National & University Library." },
     notion: ["Doge", "chef de la République de Venise, élu à vie."],
     questions: ["q_sel", "q_muraille"],
     marcheTitre: "Au Rialto, achète ce que l'Orient demande",
@@ -68,8 +69,7 @@ const PORTS = {
     statut: "Sous l'autorité de Venise (1205-1358)",
     titre: "Raguse, sur la côte de Dalmatie",
     texte: [
-      "Raguse (aujourd'hui Dubrovnik) vit sous l'autorité de Venise, qui y nomme le gouverneur. Les galères longent cette côte d'escale en escale avant de traverser vers la Grèce.",
-      "Ces ports, ces îles et ces territoires tenus par Venise outre-mer forment une longue chaîne le long des routes maritimes."
+      "Sur la côte de Dalmatie, Raguse (aujourd'hui Dubrovnik) vit sous l'autorité de Venise. Les galères y font escale avant de traverser vers la Grèce."
     ],
     notion: ["Stato da Mar", "« l'État de mer » : l'ensemble des possessions de Venise outre-mer."],
     questions: ["q_stato"],
@@ -80,8 +80,7 @@ const PORTS = {
     statut: "Possession vénitienne depuis 1207",
     titre: "Modon, « l'œil de la République »",
     texte: [
-      "Au sud-ouest de la Grèce, Modon et sa voisine Coron appartiennent à Venise depuis 1207, après la quatrième croisade.",
-      "Toutes les galères y font escale : on y prend de l'eau et des vivres, on répare les navires, on apprend les nouvelles. On les appelle « les yeux de la République »."
+      "Au sud-ouest de la Grèce, la forteresse vénitienne de Modon surveille la route des galères. Sa voisine Coron appartient elle aussi à Venise."
     ],
     notion: ["Escale", "port où un navire s'arrête pour se ravitailler et se réparer."],
     questions: ["q_modon"],
@@ -93,8 +92,7 @@ const PORTS = {
     statut: "Crète · colonie vénitienne",
     titre: "Candie, capitale de la Crète vénitienne",
     texte: [
-      "Venise a acheté la Crète en 1204, puis l'a conquise ; elle la gouverne par un « duc ». Les paysans grecs de l'île y cultivent le blé, la vigne et le coton pour Venise.",
-      "Le blé crétois nourrit Venise et ses autres colonies ; son vin doux est vendu dans tout l'Occident."
+      "Candie est la capitale de la Crète, une grande île que Venise a achetée en 1204 puis conquise. Un « duc » vénitien la gouverne."
     ],
     notion: ["Colonie", "territoire dominé et exploité par une puissance étrangère."],
     questions: ["q_colonie"],
@@ -108,8 +106,7 @@ const PORTS = {
     statut: "Empire byzantin · quartier vénitien",
     titre: "Constantinople, capitale de l'Empire byzantin",
     texte: [
-      "La ville reste immense, mais l'Empire byzantin est très affaibli. Depuis 1082, l'empereur accorde aux Vénitiens un quartier au bord de la Corne d'Or et les dispense de taxes.",
-      "En face, de l'autre côté de la Corne d'Or, les Génois, grands rivaux de Venise, tiennent le quartier de Péra."
+      "Constantinople reste une ville immense, mais l'Empire byzantin est très affaibli. Les Vénitiens y ont leur propre quartier, au bord de la Corne d'Or."
     ],
     notion: ["Privilège", "droit particulier accordé par un souverain : ici, commercer sans payer de taxes."],
     questions: ["q_1204"],
@@ -122,8 +119,7 @@ const PORTS = {
     statut: "Sultanat mamelouk · fondouks vénitiens",
     titre: "Alexandrie, grand port du sultanat mamelouk",
     texte: [
-      "L'Égypte est gouvernée par les sultans mamelouks, musulmans. Les épices d'Inde arrivent par la mer Rouge, puis par le Nil jusqu'à Alexandrie.",
-      "Les Vénitiens logent dans leurs fondouks, dirigés par un consul. La nuit, les gardes du sultan en ferment les portes de l'extérieur."
+      "Alexandrie est le grand port de l'Égypte, gouvernée par les sultans mamelouks, musulmans. C'est ici qu'arrivent les épices d'Asie."
     ],
     notion: ["Fondouk (comptoir)", "bâtiment où les marchands étrangers logent, entreposent et vendent leurs marchandises."],
     questions: ["q_fondouk", "q_intermediaire"],
@@ -137,8 +133,7 @@ const PORTS = {
     statut: "Royaume chrétien de Chypre",
     titre: "Famagouste, port du royaume de Chypre",
     texte: [
-      "Chypre est un royaume chrétien, gouverné par la famille franque des Lusignan. Depuis la chute d'Acre, dernière ville des croisés (1291), Famagouste est le grand marché des Occidentaux en Orient.",
-      "On y trouve le coton et les épices de Syrie, et le sucre de l'île. Chypre deviendra vénitienne en 1489."
+      "Famagouste est le port le plus animé du royaume chrétien de Chypre, gouverné par la famille franque des Lusignan. On y entend parler toutes les langues de la Méditerranée."
     ],
     notion: ["Canne à sucre", "cultivée à Chypre dans de grands domaines ; des familles vénitiennes, comme les Cornaro, en posséderont bientôt."],
     questions: ["q_origine"],
@@ -148,12 +143,102 @@ const PORTS = {
   }
 };
 
+/* ---------- Personnages à qui parler ----------
+   Un ou deux par escale. Les faits cités viennent des documents de la fiche et des travaux d'historiens ;
+   les personnages eux-mêmes sont imaginés. port : "retour" = au retour à Venise.
+   look : peau, habit, col (liseré), coiffe (berret, toque, turban, bonnet, voile), coiffeCol, cheveux, barbe. */
+const PERSONNAGES = [
+  { id: "pietro", port: "venise", nom: "Pietro", role: "Patron de ta galère",
+    look: { peau: "#E2B48E", habit: "#7A1F1B", col: "#E3B341", coiffe: "berret", coiffeCol: "#1E1B1A", cheveux: "#3A2A20", barbe: "#3A2A20" },
+    intro: "Benvenuto ! Je suis Pietro, le patron de la galère sur laquelle tu embarques. Avant de lever l'ancre, as-tu des questions ?",
+    sujets: [
+      ["Comment Venise s'est-elle enrichie ?", "Au début, grâce au sel ! Dans les salines de la lagune, on récolte le sel, que nos bateaux vont vendre le long des fleuves et des côtes. Le sel et le navire : voilà les deux trésors de Venise."],
+      ["Pourquoi la ville n'a-t-elle pas de murailles ?", "Regarde autour de toi : de l'eau partout ! Une armée ne peut pas traverser la lagune à pied, et les bancs de vase piègent les navires qui ne connaissent pas les chenaux. Notre flotte de guerre fait le reste."],
+      ["Qui construit les galères ?", "L'Arsenal, le grand chantier naval de la République. Les galères de commerce appartiennent à l'État : il les loue aux marchands, puis elles partent ensemble, en convoi, pour se protéger."],
+      ["Qui dirige la République ?", "Le doge, élu à vie. Mais il ne décide pas seul : le Grand Conseil, formé des grandes familles de marchands, gouverne avec lui."]
+    ],
+    aurevoir: "Allez, en route ! Les rameurs attendent, et le vent est bon." },
+  { id: "nikola", port: "raguse", nom: "Nikola", role: "Pilote du port de Raguse",
+    look: { peau: "#C99A70", habit: "#5C6B4A", coiffe: "bonnet", coiffeCol: "#8E2F24", cheveux: "#2A1E16", barbe: "#2A1E16" },
+    intro: "Dobar dan ! Je suis Nikola, pilote du port de Raguse. Je guide les navires entre les rochers et les îles de la côte.",
+    sujets: [
+      ["Qui gouverne Raguse ?", "Un comte envoyé par Venise. Depuis 1205, notre ville est sous l'autorité de la République, comme beaucoup de ports de cette côte."],
+      ["Pourquoi les galères longent-elles la côte ?", "Une galère emporte plus de cent cinquante rameurs : il leur faut sans cesse de l'eau et des vivres. Alors on navigue de port en port, et on s'abrite quand le temps tourne."],
+      ["C'est quoi, le Stato da Mar ?", "« L'État de mer » : tous les ports, les îles et les territoires que Venise tient outre-mer. Mis bout à bout, ils forment une chaîne d'escales jusqu'en Orient."]
+    ],
+    aurevoir: "Bon vent ! Garde la côte à ta gauche jusqu'à la Grèce." },
+  { id: "giovanni", port: "modon", nom: "Giovanni", role: "Châtelain vénitien de Modon",
+    look: { peau: "#DDB08A", habit: "#44546A", col: "#C9C3B6", coiffe: "berret", coiffeCol: "#8E1B1B", cheveux: "#5A4032", barbe: "#5A4032" },
+    intro: "Salut, marchand ! Je suis Giovanni, le châtelain que Venise a envoyé commander la forteresse de Modon.",
+    sujets: [
+      ["Depuis quand Venise tient-elle Modon ?", "Depuis 1207. Après la prise de Constantinople par les croisés, en 1204, l'Empire byzantin a été partagé. Venise a choisi des ports bien placés sur ses routes, comme Modon et Coron."],
+      ["Pourquoi « les yeux de la République » ?", "Parce que tous les navires passent par ici ! Ils nous apportent les nouvelles d'Orient et d'Occident, que nous envoyons aussitôt à Venise : les pirates, les Génois, le prix des épices…"],
+      ["Que viennent faire les galères ici ?", "Faire le plein d'eau douce et de biscuit, réparer les coques, soigner les malades. Même les pèlerins qui partent pour Jérusalem font escale chez nous."]
+    ],
+    aurevoir: "Méfie-toi des Génois en mer Égée ! Que saint Marc te protège." },
+  { id: "eleni", port: "candie", nom: "Eleni", role: "Paysanne grecque de Crète",
+    look: { peau: "#D2A27A", habit: "#3E5F7A", coiffe: "voile", coiffeCol: "#2E2A28", cheveux: "#2A1E16" },
+    intro: "Kaliméra ! Je m'appelle Eleni. Je travaille dans les vignes d'un seigneur vénitien, près de Candie.",
+    sujets: [
+      ["À qui appartient la terre ?", "Aux colons vénitiens. La République a partagé l'île en domaines et les a donnés à des familles venues de Venise. Nous, les Grecs, nous cultivons leurs terres et nous leur devons une grande part des récoltes."],
+      ["Que produisez-vous ?", "Du blé, qui part nourrir Venise et ses autres colonies ; du vin doux, la malvoisie, vendu dans tout l'Occident ; et du coton."],
+      ["Les Crétois acceptent-ils les Vénitiens ?", "Pas toujours ! Nos maîtres sont catholiques, nous sommes orthodoxes, et ils ne parlent pas notre langue. Plusieurs fois déjà, des Crétois se sont révoltés contre Venise."]
+    ],
+    aurevoir: "Je retourne aux vendanges. Kalo taxidi : bon voyage !" },
+  { id: "marco", port: "constantinople", nom: "Marco", role: "Bayle de Venise à Constantinople",
+    look: { peau: "#E5BC98", habit: "#1E1B1A", col: "#A3201C", coiffe: "berret", coiffeCol: "#1E1B1A", cheveux: "#8C8A86", barbe: "#A8A5A0" },
+    intro: "Bienvenue au quartier vénitien ! Je suis Marco, le bayle : je représente Venise auprès de l'empereur et je règle les affaires de nos marchands.",
+    sujets: [
+      ["Pourquoi les Vénitiens ont-ils un quartier ici ?", "En 1082, l'empereur byzantin avait besoin de notre flotte contre ses ennemis. En échange, il nous a donné un quartier au bord de la Corne d'Or et le droit de commercer sans payer de taxes."],
+      ["Que s'est-il passé en 1204 ?", "Les croisés devaient une somme énorme à Venise pour leur transport. Un prétendant au trône byzantin leur a promis de l'argent : ils l'ont suivi jusqu'ici, puis ont pris et pillé la ville. Venise ne l'avait pas prévu, mais elle en a tiré un immense profit : des ports, des îles, la Crète…"],
+      ["Qui sont ces marchands, en face ?", "Les Génois, nos grands rivaux ! Ils tiennent Péra, de l'autre côté de la Corne d'Or, et veulent nous chasser du commerce de la mer Noire."],
+      ["L'Empire byzantin est-il encore puissant ?", "Plus vraiment. Il a perdu presque toutes ses provinces, et les Turcs avancent en Asie Mineure. Mais Constantinople reste un très grand marché."]
+    ],
+    aurevoir: "Fais attention aux Génois, et que Dieu te garde !" },
+  { id: "niccolo", port: "alexandrie", nom: "Niccolò", role: "Consul des Vénitiens à Alexandrie",
+    look: { peau: "#DDB08A", habit: "#6E2A3A", col: "#E3B341", coiffe: "berret", coiffeCol: "#2E2A28", cheveux: "#3A2A20" },
+    intro: "Te voilà au fondouk des Vénitiens ! Je suis Niccolò, le consul : je parle au nom de nos marchands devant les officiers du sultan.",
+    sujets: [
+      ["Comment vit-on dans le fondouk ?", "Nous avons nos entrepôts, nos chambres, un four et une chapelle. Le jour, on commerce librement. Mais le soir, les gardes du sultan ferment nos portes de l'extérieur jusqu'au matin."],
+      ["Le pape n'interdit-il pas ce commerce ?", "Le pape interdit de vendre aux musulmans du bois, du fer et des armes. Pendant des années, il a même interdit tout commerce avec l'Égypte. Venise a obtenu de lui des autorisations : sans Alexandrie, pas d'épices !"],
+      ["Pourquoi le sultan accepte-t-il des chrétiens ?", "Parce que notre commerce l'enrichit ! Il prélève des taxes sur tout ce que nous achetons et vendons. Chrétiens ou musulmans, les marchands ont besoin les uns des autres."]
+    ],
+    aurevoir: "Achète tes épices avant les autres galères : les meilleurs lots partent vite !" },
+  { id: "hasan", port: "alexandrie", nom: "Hasan", role: "Marchand d'épices égyptien",
+    look: { peau: "#A87A52", habit: "#2F6B55", col: "#E3B341", coiffe: "turban", coiffeCol: "#F2EDE3", cheveux: "#1A1410", barbe: "#1A1410" },
+    intro: "Salam, ami vénitien ! Je suis Hasan. Ma famille fait venir les épices des Indes depuis trois générations.",
+    sujets: [
+      ["D'où viennent tes épices ?", "Le poivre et le gingembre poussent en Inde, la cannelle à Ceylan, le clou de girofle encore plus loin, dans les îles d'Asie du Sud-Est. Des navires les apportent jusqu'à Aden, à l'entrée de la mer Rouge."],
+      ["Comment arrivent-elles jusqu'ici ?", "D'Aden, on remonte la mer Rouge en bateau, puis des caravanes de chameaux traversent le désert jusqu'au Nil. Des barques descendent le fleuve jusqu'au Caire, puis jusqu'à Alexandrie. Le voyage dure des mois !"],
+      ["Pourquoi sont-elles si chères ?", "À chaque étape, il faut payer les transporteurs, les taxes du sultan et les risques du voyage. Et en Occident, on les adore : pour la cuisine, les remèdes, les parfums !"]
+    ],
+    aurevoir: "Que Dieu te donne une bonne traversée !" },
+  { id: "georges", port: "famagouste", nom: "Georges", role: "Marchand chrétien venu de Syrie",
+    look: { peau: "#C08E66", habit: "#6A4A2E", col: "#C9962E", coiffe: "turban", coiffeCol: "#3A4D78", cheveux: "#1A1410", barbe: "#2A1E16" },
+    intro: "Bienvenue à Famagouste, le port le plus riche d'Orient ! Je suis Georges, marchand chrétien venu de Syrie.",
+    sujets: [
+      ["Pourquoi tant de marchands ici ?", "Depuis que les musulmans ont repris Acre, la dernière ville des croisés, en 1291, les marchands chrétiens se sont repliés ici, tout près de la Syrie. Famagouste est devenue le grand marché entre l'Orient et l'Occident."],
+      ["D'où vient la soie que tu vends ?", "De très loin à l'est : de Perse et même de Chine. Les caravanes suivent les routes de la soie à travers l'Asie jusqu'aux villes de Syrie. De là, des bateaux l'apportent ici."],
+      ["Et les épices de Syrie ?", "Elles viennent d'Inde elles aussi, par la mer jusqu'au golfe Persique, puis par caravanes jusqu'à Damas et Alep. On les achète à Beyrouth et on les apporte ici."],
+      ["Que produit Chypre ?", "Du sucre ! Dans de grands domaines, on cultive la canne à sucre et on la presse dans des moulins. Et près de Larnaca, un lac salé donne du sel en abondance."]
+    ],
+    aurevoir: "Salue Venise pour moi ! Qui sait, un jour Chypre sera peut-être à elle…" },
+  { id: "hans", port: "retour", nom: "Hans", role: "Marchand allemand du Rialto",
+    look: { peau: "#EBC6A6", habit: "#5A3A22", col: "#D8CBB0", coiffe: "toque", coiffeCol: "#2E2A28", cheveux: "#C9A060", barbe: "#C9A060" },
+    intro: "Grüß Gott ! Je suis Hans, marchand de Nuremberg. J'habite au Fondaco dei Tedeschi, la maison des marchands allemands, au pied du pont du Rialto.",
+    sujets: [
+      ["Que fais-tu de mes épices ?", "Je les charge sur des mulets, je franchis les Alpes et je les revends en Allemagne et jusqu'en Flandre. Venise est la porte par où l'Orient entre en Europe !"],
+      ["Que vends-tu aux Vénitiens ?", "L'argent et le cuivre de nos mines, des toiles, des objets en métal. Les Vénitiens les emportent ensuite vers l'Orient."],
+      ["Pourquoi tout le monde accepte-t-il le ducat ?", "Parce qu'il est en or presque pur et garde toujours le même poids depuis 1284. On peut lui faire confiance : marchands et banquiers l'acceptent dans toute la Méditerranée et au-delà."]
+    ],
+    aurevoir: "Auf Wiedersehen ! Je dois préparer mes mulets pour les Alpes." }
+];
+
 /* Prix de vente au retour à Venise */
 const RETOUR = {
   titre: "Retour au Rialto",
   texte: [
-    "Les marchands allemands et italiens t'attendent : Venise revend dans tout l'Occident les produits venus d'Orient.",
-    "C'est le cœur de sa richesse : acheter loin, transporter sur ses navires, revendre cher."
+    "De retour au Rialto, tu revends ta cargaison. Venise revend dans tout l'Occident les produits venus d'Orient : acheter loin, transporter, revendre cher."
   ],
   vente: { epices: 72, soie: 56, sucre: 32, alun: 26, coton: 21, vin: 16, ble: 9, draps: 8, metaux: 10, verre: 6, boisfer: 5 },
   questions: ["q_ducat"]

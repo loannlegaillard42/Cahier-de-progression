@@ -1,11 +1,14 @@
-/* Galère pour l'Orient — déroulé du jeu : escales, carnet de bord, marché, événements en mer,
-   retour à Venise, chronique 1378-1500, schéma bilan et carnet imprimable.
+/* Galère pour l'Orient — déroulé du jeu : escales, personnages, carnet de bord, marché, événements en mer,
+   retour à Venise, chronique 1378-1500, schéma bilan et carnet de bord final.
    Les textes sont dans donnees.js ; la carte 3D dans carte3d.js. */
 (function () {
   'use strict';
   const C3 = window.Carte3D;
   const CLE = 'galere-orient-v1';
-  const RAPIDE = new URLSearchParams(location.search).has('rapide');
+  const RAPIDE = /rapide/.test(location.search) || location.hash === '#rapide';
+  // Dans une page claude.ai, l'impression est bloquée : on propose alors de copier le carnet.
+  const DANS_CADRE = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+  const REDUIT = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $ = s => document.querySelector(s);
 
   function h(tag, props, ...enfants) {
@@ -26,8 +29,8 @@
 
   const ICONES = {
     ducat: '<svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="#E3B341" stroke="#9A6E1E" stroke-width="1.5"/><circle cx="10" cy="10" r="5.3" fill="none" stroke="#9A6E1E" stroke-width="1" stroke-dasharray="1.5 1.5"/></svg>',
-    date: '<svg class="ico" viewBox="0 0 20 20" fill="none" stroke="#55605F" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4.5" width="14" height="12.5" rx="2"/><path d="M3 8.5h14M7 2.5v4M13 2.5v4"/></svg>',
-    cale: '<svg class="ico" viewBox="0 0 20 20" fill="none" stroke="#55605F" stroke-width="1.6" aria-hidden="true"><path d="M2 11h16l-2.5 5h-11z"/><path d="M6 11V6h8v5M10 6V3"/></svg>'
+    date: '<svg class="ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4.5" width="14" height="12.5" rx="2"/><path d="M3 8.5h14M7 2.5v4M13 2.5v4"/></svg>',
+    cale: '<svg class="ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 11h16l-2.5 5h-11z"/><path d="M6 11V6h8v5M10 6V3"/></svg>'
   };
   const DUCAT_SVG = `<svg class="ducat" viewBox="0 0 250 120" role="img" aria-label="Les deux faces du ducat d'or de Venise">
   <defs><radialGradient id="orD" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#F8DF94"/><stop offset="1" stop-color="#C38F2A"/></radialGradient>
@@ -58,9 +61,9 @@
   let E = null;
   function etatInitial() {
     return {
-      version: 1, phase: 'intro', etape: 'decouverte', noms: '', classe: '', debut: new Date().toISOString(),
+      version: 2, phase: 'intro', etape: 'decouverte', noms: '', classe: '', debut: new Date().toISOString(),
       ducats: JEU.ducatsDepart, jour: 1, cale: {}, port: 'venise', visites: { venise: true }, legs: [], journal: [],
-      reponses: {}, nbRep: 0, evenements: {}, contrebande: 0, averti: false, depenses: 0, recettes: 0,
+      reponses: {}, nbRep: 0, rencontres: {}, sujetsVus: {}, evenements: {}, contrebande: 0, averti: false, depenses: 0, recettes: 0,
       chroniqueEtape: 0, chronique: {}, schema: {}, schemaVerif: null, schemaEssais: 0, schemaCorrige: false, schemaScore: null,
       etapeSchema: 'placer', redaction: '', ducatsFinaux: null
     };
@@ -72,23 +75,44 @@
 
   /* ---------- Interface commune ---------- */
   function majHUD() {
+    $('#hud').hidden = false; $('#b-carnet').hidden = false;
     $('#st-ducats').innerHTML = ICONES.ducat + '<span class="lib">Ducats</span><b>' + E.ducats + '</b>';
     const d = $('#st-date');
     d.classList.toggle('alerte', E.jour > JEU.jourLimite && E.phase !== 'chronique');
-    d.innerHTML = ICONES.date + '<b>' + (E.phase === 'chronique' ? 'Chronique · ' + CHRONIQUE[E.chroniqueEtape].date : dateDe(E.jour)) + '</b>';
+    d.innerHTML = ICONES.date + '<b>' + (E.phase === 'chronique' ? CHRONIQUE[E.chroniqueEtape].date : dateDe(E.jour)) + '</b>';
     $('#st-cale').innerHTML = ICONES.cale + '<span class="lib">Cale</span><b>' + totalCale() + '/' + JEU.cale + '</b>';
     $('#carnet-compte').textContent = Object.keys(E.reponses).length + '/' + NB_QUESTIONS;
   }
-  function panneau(blocs, garder) {
-    const p = $('#panneau'); const y = p.scrollTop;
-    p.innerHTML = ''; p.append(...blocs.filter(Boolean)); p.hidden = false;
+  function progression() {
+    if (!E || E.phase === 'intro') return null;
+    if (E.phase === 'chronique') {
+      return h('div', { class: 'progress', 'aria-label': 'Chronique' }, CHRONIQUE.map((c, i) =>
+        h('span', { class: 'pdot' + (i < E.chroniqueEtape ? ' done' : ''), 'aria-current': i === E.chroniqueEtape ? 'step' : null, title: c.date })),
+        h('small', null, 'Chronique ' + (E.chroniqueEtape + 1) + ' / ' + CHRONIQUE.length));
+    }
+    const vus = ORDRE_PORTS.filter(p => E.visites[p]).length;
+    const retour = E.phase === 'retour' || E.phase === 'fin';
+    return h('div', { class: 'progress', 'aria-label': 'Escales' },
+      ORDRE_PORTS.map(p => {
+        const actuel = !retour && p === E.port && E.phase !== 'mer';
+        const fait = E.visites[p] && !(p === 'venise' && !E.legs.length);
+        return h('span', { class: 'pdot' + (fait && !actuel ? ' done' : ''), 'aria-current': actuel ? 'step' : null, title: PORTS[p].nom });
+      }),
+      h('span', { class: 'pdot', 'aria-current': retour ? 'step' : null, title: 'Retour à Venise' }),
+      h('small', null, vus + ' / ' + ORDRE_PORTS.length + ' escales'));
+  }
+  const entete = (drapeau, texte) => h('p', { class: 'count' }, h('span', { class: 'pastille p-' + drapeau }), texte);
+  const bouton = (texte, onclick, opts) => h('button', { type: 'button', class: 'nbtn' + (opts && opts.second ? '' : ' primary'), disabled: !!(opts && opts.desactive), onclick }, texte);
+  function panneau(blocs, actions, garder) {
+    const p = $('#panneau'), corps = $('#panneau-corps'), nav = $('#panneau-nav'), y = p.scrollTop;
+    corps.innerHTML = ''; corps.append(...[progression()].concat(blocs).filter(Boolean));
+    nav.innerHTML = ''; (actions || []).filter(Boolean).forEach(a => nav.append(a)); nav.hidden = !nav.children.length;
     p.scrollTop = garder ? y : 0;
-    majDecalage();
   }
   let minuteurToast = null;
   function toast(msg, duree) {
-    const t = $('#toast'); t.textContent = msg; t.classList.add('on');
-    clearTimeout(minuteurToast); minuteurToast = setTimeout(() => t.classList.remove('on'), duree || 4200);
+    const t = $('#toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(minuteurToast); minuteurToast = setTimeout(() => { t.hidden = true; }, duree || 4200);
   }
   function ouvrirModal(contenu, opts) {
     opts = opts || {};
@@ -100,40 +124,144 @@
   }
   function fermerModal() { $('#modal').hidden = true; }
   $('#modal').addEventListener('click', e => { if (e.target.id === 'modal' && !$('#modal').dataset.bloquant) fermerModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden && !$('#modal').dataset.bloquant) fermerModal(); });
 
-  const entete = (drapeau, texte) => h('div', { class: 'chip-port' }, h('span', { class: 'pastille p-' + drapeau }), texte);
-
-  function majDecalage() {
-    const p = $('#panneau'), w = window.innerWidth, hh = window.innerHeight;
-    if (p.hidden) { C3.decalage(0, 0); return; }
-    const aspect = w / hh, t = Math.tan(20 * Math.PI / 180);
-    if (w >= 760) C3.decalage(((p.offsetWidth + 24) / 2) / (w / 2) * t * aspect, 0);
-    else C3.decalage(0, ((p.offsetHeight + 8) / 2) / (hh / 2) * t * 1.35);
+  function figure(f) {
+    return h('figure', { class: 'fig' },
+      h('button', { type: 'button', class: 'fig-btn', 'aria-label': 'Agrandir l\'image', onclick: () => {
+        $('#lb-img').src = f.src; $('#lb-img').alt = f.alt; $('#lb-legende').innerHTML = f.legende; $('#lightbox').hidden = false; $('#lb-fermer').focus();
+      } }, h('img', { src: f.src, alt: f.alt })),
+      h('figcaption', { html: f.legende }));
   }
-  new MutationObserver(majDecalage).observe($('#panneau'), { attributes: true, attributeFilter: ['hidden'] });
-  window.addEventListener('resize', majDecalage);
+  $('#lb-fermer').addEventListener('click', () => { $('#lightbox').hidden = true; });
+  $('#lightbox').addEventListener('click', e => { if (e.target.id === 'lightbox') $('#lightbox').hidden = true; });
+
+  /* ---------- Personnages ---------- */
+  function visage(l) {
+    const c = l.coiffeCol || '#333', p = l.peau;
+    let s = '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#E9DCC2"/>';
+    s += `<path d="M12 100 C14 79 29 70 50 70 C71 70 86 79 88 100 Z" fill="${l.habit}"/>`;
+    if (l.col) s += `<path d="M37 72 L50 87 L63 72" fill="none" stroke="${l.col}" stroke-width="4" stroke-linejoin="round"/>`;
+    if (l.coiffe === 'voile') s += `<path d="M22 70 C18 32 32 15 50 15 C68 15 82 32 78 70 C66 76 34 76 22 70 Z" fill="${c}"/>`;
+    s += `<rect x="43" y="57" width="14" height="15" rx="4" fill="${p}"/>`;
+    if (l.cheveux && l.coiffe !== 'voile') s += `<ellipse cx="50" cy="40" rx="20.5" ry="22" fill="${l.cheveux}"/>`;
+    s += `<ellipse cx="50" cy="44" rx="16.5" ry="19.5" fill="${p}"/>`;
+    s += '<circle cx="43.5" cy="43" r="2.1" fill="#2A1E16"/><circle cx="56.5" cy="43" r="2.1" fill="#2A1E16"/>';
+    s += `<path d="M39.5 38.3 q4 -2.6 8 0 M52.5 38.3 q4 -2.6 8 0" stroke="${l.cheveux || '#2A1E16'}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+    s += '<path d="M50 45 q-2.2 6 1 7" stroke="rgb(0 0 0 / .25)" stroke-width="1.4" fill="none" stroke-linecap="round"/>';
+    if (l.barbe) s += `<path d="M34 45 C35 62 42 69 50 69 C58 69 65 62 66 45 C62 54 57 57.5 50 57.5 C43 57.5 38 54 34 45 Z" fill="${l.barbe}"/>`;
+    s += `<path d="M45.5 ${l.barbe ? 55.2 : 54} q4.5 3 9 0" stroke="${l.barbe ? '#3A2A20' : '#9A4A3A'}" stroke-width="1.7" fill="none" stroke-linecap="round"/>`;
+    if (l.coiffe === 'berret') s += `<path d="M31 37 C30 20 41 13 52 13 C64 13 71 21 70 37 C62 31 40 31 31 37 Z" fill="${c}"/>`;
+    else if (l.coiffe === 'toque') s += `<path d="M30 35 C30 21 40 15 50 15 C60 15 70 21 70 35 Z" fill="${c}"/><rect x="28" y="30" width="44" height="9" rx="4.5" fill="#7A5A3A"/>`;
+    else if (l.coiffe === 'turban') s += `<ellipse cx="50" cy="27" rx="23" ry="13" fill="${c}"/><path d="M28 31 q22 -11 44 0 M30 24 q20 -9 40 0" stroke="rgb(0 0 0 / .14)" stroke-width="2" fill="none"/>`;
+    else if (l.coiffe === 'bonnet') s += `<path d="M32 35 C32 21 41 17 50 17 C59 17 68 21 68 35 Z" fill="${c}"/>`;
+    else if (l.coiffe === 'voile') s += `<path d="M31 41 C31 24 40 19 50 19 C60 19 69 24 69 41 C66 30 58 26 50 26 C42 26 34 30 31 41 Z" fill="${c}"/>`;
+    return s + '</svg>';
+  }
+  const persosDe = port => PERSONNAGES.filter(p => p.port === port);
+  function blocPersonnages(port) {
+    const ps = persosDe(port); if (!ps.length) return null;
+    return h('div', { class: 'npcs' }, ps.map(p => {
+      const met = !!E.rencontres[p.id], vus = (E.sujetsVus[p.id] || []).length;
+      return h('button', { type: 'button', class: 'npc-btn' + (met ? ' met' : ''), onclick: () => ouvrirDialogue(p) },
+        h('span', { class: 'npc-face', html: visage(p.look) }),
+        h('span', { class: 'npc-txt' }, h('b', null, p.nom), h('small', null, p.role)),
+        h('span', { class: 'npc-done' }, met ? vus + ' / ' + p.sujets.length : 'Parler'));
+    }));
+  }
+  const PEUT_PARLER = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+  let dialogue = null, minuteurFrappe = null;
+  function stopVoix() { if (PEUT_PARLER) { try { speechSynthesis.cancel(); } catch (e) { /* rien */ } } }
+  function lire(texte) {
+    if (!PEUT_PARLER) return;
+    stopVoix();
+    try {
+      const u = new SpeechSynthesisUtterance(texte); u.lang = 'fr-FR';
+      const v = speechSynthesis.getVoices().find(x => /^fr/i.test(x.lang)); if (v) u.voice = v;
+      speechSynthesis.speak(u);
+    } catch (e) { /* synthèse vocale indisponible */ }
+  }
+  function taper(texte) {
+    const el = $('#talk-texte');
+    clearInterval(minuteurFrappe); minuteurFrappe = null; stopVoix();
+    dialogue.texte = texte; $('#talk-lu').textContent = texte;
+    if (REDUIT) { el.textContent = texte; return; }
+    let i = 0; el.textContent = '';
+    minuteurFrappe = setInterval(() => {
+      i += 2; el.textContent = texte.slice(0, i);
+      if (i >= texte.length) { clearInterval(minuteurFrappe); minuteurFrappe = null; }
+    }, 18);
+  }
+  $('#talk-texte').addEventListener('click', () => { if (dialogue && minuteurFrappe) { clearInterval(minuteurFrappe); minuteurFrappe = null; $('#talk-texte').textContent = dialogue.texte; } });
+  $('#talk-ecouter').addEventListener('click', () => {
+    if (!dialogue) return;
+    if (PEUT_PARLER && speechSynthesis.speaking) stopVoix(); else lire(dialogue.texte);
+  });
+  function ouvrirDialogue(p) {
+    dialogue = { p, texte: '' };
+    const premiere = !E.rencontres[p.id];
+    if (premiere) { E.rencontres[p.id] = true; sauver(); }
+    $('#talk-visage').innerHTML = visage(p.look);
+    $('#talk-nom').textContent = p.nom; $('#talk-role').textContent = p.role;
+    $('#talk-ecouter').hidden = !PEUT_PARLER;
+    $('#talk').hidden = false; $('#view').classList.add('talking');
+    taper(p.intro); choixDialogue(false);
+    if (premiere) rafraichir(true);
+    if (window.innerWidth <= 900) $('#view').scrollIntoView({ behavior: REDUIT ? 'auto' : 'smooth', block: 'start' });
+  }
+  function choixDialogue(fin) {
+    const p = dialogue.p, vus = E.sujetsVus[p.id] || [], c = $('#talk-choix');
+    c.innerHTML = '';
+    if (fin) {
+      c.append(h('button', { type: 'button', class: 'bye', onclick: fermerDialogue }, h('kbd', null, '1'), 'Fermer la conversation'));
+    } else {
+      p.sujets.forEach(([q, r], i) => c.append(h('button', { type: 'button', class: vus.includes(i) ? 'seen' : null, onclick: () => {
+        if (!vus.includes(i)) { E.sujetsVus[p.id] = vus.concat(i); sauver(); rafraichir(true); }
+        taper(r); choixDialogue(false);
+      } }, h('kbd', null, String(i + 1)), q)));
+      c.append(h('button', { type: 'button', class: 'bye', onclick: () => { taper(p.aurevoir); choixDialogue(true); } }, h('kbd', null, String(p.sujets.length + 1)), 'Au revoir'));
+    }
+    const n = (E.sujetsVus[p.id] || []).length;
+    $('#talk-compte').textContent = 'Questions posées : ' + n + ' / ' + p.sujets.length;
+  }
+  function fermerDialogue() {
+    if (!dialogue) return;
+    stopVoix(); clearInterval(minuteurFrappe); minuteurFrappe = null; dialogue = null;
+    $('#talk').hidden = true; $('#view').classList.remove('talking');
+  }
+  $('#talk-fermer').addEventListener('click', fermerDialogue);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (!$('#lightbox').hidden) { $('#lightbox').hidden = true; return; }
+      if (!$('#modal').hidden) { if (!$('#modal').dataset.bloquant) fermerModal(); return; }
+      if (dialogue) fermerDialogue();
+      return;
+    }
+    if (!dialogue || !$('#modal').hidden || /INPUT|TEXTAREA/.test(e.target.tagName || '')) return;
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 9) { const b = $('#talk-choix').children[n - 1]; if (b) { e.preventDefault(); b.click(); } }
+  });
 
   /* ---------- Questions du carnet ---------- */
-  function blocQuestion(qid, apres) {
+  function blocQuestion(qid) {
     const Q = QUESTIONS[qid], r = E.reponses[qid];
     const boutons = Q.choix.map((c, i) => {
       let cls = null;
       if (r) { if (i === Q.bonne) cls = 'bonne'; else if (i === r.choix) cls = 'fausse'; }
-      return h('button', { type: 'button', class: cls, disabled: !!r, onclick: () => repondre(qid, i, apres) }, c);
+      return h('button', { type: 'button', class: cls, disabled: !!r, onclick: () => repondre(qid, i) }, c);
     });
     return h('div', { class: 'question' },
-      h('div', { class: 'q-etiq' }, 'Carnet de bord · question'),
+      h('p', { class: 'q-etiq' }, 'Carnet de bord · question'),
       h('p', { class: 'q' }, Q.q),
       h('div', { class: 'choix' }, boutons),
       r ? h('div', { class: 'explication ' + (r.ok ? 'ok' : 'ko') }, h('b', null, r.ok ? 'Bonne réponse !' : 'Pas tout à fait…'), Q.exp) : null);
   }
-  function repondre(qid, i, apres) {
+  function repondre(qid, i) {
     if (E.reponses[qid]) return;
     E.reponses[qid] = { choix: i, ok: i === QUESTIONS[qid].bonne, n: ++E.nbRep };
-    sauver(); majHUD(); (apres || rafraichir)(true);
+    sauver(); majHUD(); rafraichir(true);
   }
   function rafraichir(garder) {
+    if (!E) return;
     if (E.phase === 'port') afficherPort(garder);
     else if (E.phase === 'retour') afficherRetour(garder);
   }
@@ -159,12 +287,11 @@
     C3.itineraire(E.legs);
   }
   function clicPort(id) {
-    if (!E || E.phase === 'intro') return;
-    if (E.phase === 'mer') return;
-    if (E.phase !== 'port') { toast(PORTS[id].nom + ' — ' + PORTS[id].statut); return; }
+    if (!E || E.phase === 'intro' || E.phase === 'mer') return;
+    if (E.phase !== 'port') { toast(PORTS[id].nom + ' : ' + PORTS[id].statut); return; }
     if (id === E.port) { C3.vue('port', { port: id }); return; }
     if (E.etape !== 'depart') { toast("Termine d'abord ton escale à " + PORTS[E.port].nom + ', puis choisis ta destination.'); return; }
-    if (!C3.voisins(E.port).includes(id)) { toast("Pas de route directe de " + PORTS[E.port].nom + ' vers ' + PORTS[id].nom + '. Suis les routes dorées.'); return; }
+    if (!C3.voisins(E.port).includes(id)) { toast('Pas de route directe de ' + PORTS[E.port].nom + ' vers ' + PORTS[id].nom + '. Suis les routes dorées.'); return; }
     const pa = peutAller(id); if (!pa.ok) { toast(pa.raison, 5000); return; }
     partir(id);
   }
@@ -173,25 +300,30 @@
   function afficherPort(garder) {
     const p = PORTS[E.port];
     if (!garder) C3.vue(E.etape === 'depart' ? 'ensemble' : 'port', { port: E.port });
-    $('#bandeau').hidden = true;
     majHUD(); majCarte();
-    const blocs = [entete(p.drapeau, p.statut)];
+    const blocs = [entete(p.drapeau, p.statut)], actions = [];
     const qs = p.questions || [];
     if (E.etape === 'decouverte') {
       blocs.push(h('h2', null, p.titre));
       p.texte.forEach(t => blocs.push(h('p', null, t)));
-      if (p.notion) blocs.push(h('div', { class: 'notion', html: '<b>' + esc(p.notion[0]) + '</b> : ' + esc(p.notion[1]) }));
-      for (const q of qs) { blocs.push(blocQuestion(q)); if (!E.reponses[q]) break; }
-      if (qs.every(q => E.reponses[q])) {
-        blocs.push(h('button', { class: 'btn large', type: 'button', onclick: () => { E.etape = p.escale ? 'depart' : 'marche'; sauver(); afficherPort(); } },
-          p.escale ? 'Choisir ma prochaine escale →' : 'Aller au marché →'));
+      if (p.figure) blocs.push(figure(p.figure));
+      blocs.push(blocPersonnages(E.port));
+      if (p.notion) blocs.push(h('p', { class: 'notion', html: '<b>' + esc(p.notion[0]) + '</b> : ' + esc(p.notion[1]) }));
+      const persos = persosDe(E.port);
+      if (persos.length && !persos.some(x => E.rencontres[x.id])) {
+        blocs.push(h('p', { class: 'aide-dialogue' }, 'Parle d\'abord à ' + liste(persos.map(x => x.nom)) + ' : ' + (persos.length > 1 ? 'leurs' : 'ses') + ' réponses t\'aideront à remplir ton carnet de bord.'));
+      } else {
+        for (const q of qs) { blocs.push(blocQuestion(q)); if (!E.reponses[q]) break; }
       }
+      actions.push(bouton(p.escale ? 'Choisir ma prochaine escale →' : 'Aller au marché →', () => { fermerDialogue(); E.etape = p.escale ? 'depart' : 'marche'; sauver(); afficherPort(); }, { desactive: !qs.every(q => E.reponses[q]) }));
     } else if (E.etape === 'marche') {
       blocs.push(...blocMarche(p, false));
+      actions.push(bouton("Lever l'ancre →", () => { E.etape = 'depart'; sauver(); afficherPort(); }));
     } else {
-      blocs.push(...blocDepart(p));
+      blocs.push(...blocDepart());
+      if (!p.escale) actions.push(bouton('← Retourner au marché', () => { E.etape = 'marche'; afficherPort(); }, { second: true }));
     }
-    panneau(blocs, garder);
+    panneau(blocs, actions, garder);
   }
 
   function ligneMarche(g, prix, sens) {
@@ -210,23 +342,22 @@
   }
   function blocMarche(p, retour) {
     const out = [h('h2', null, retour ? 'Vends ta cargaison' : p.marcheTitre)];
-    if (p.conseil) out.push(h('div', { class: 'conseil' }, p.conseil));
-    out.push(h('div', { class: 'bourse', html: '<span>Ta bourse : <b>' + E.ducats + ' ducats</b></span><span>Cale : <b>' + totalCale() + '/' + JEU.cale + '</b></span>' }));
+    if (p.conseil) out.push(h('p', { class: 'conseil' }, p.conseil));
+    out.push(h('p', { class: 'bourse', html: '<span>Ta bourse : <b>' + E.ducats + ' ducats</b></span><span>Cale : <b>' + totalCale() + '/' + JEU.cale + '</b></span>' }));
     const achat = retour ? {} : (p.achat || {});
     const vente = retour ? prixRetour() : (p.vente || {});
     const ga = Object.keys(achat);
-    if (ga.length) out.push(h('div', { class: 'sous-titre-marche' }, 'Tu peux acheter'), h('div', { class: 'marche' }, ga.map(g => ligneMarche(g, achat[g], 'achat'))));
+    if (ga.length) out.push(h('p', { class: 'sous-titre-marche' }, 'Tu peux acheter'), h('div', { class: 'marche' }, ga.map(g => ligneMarche(g, achat[g], 'achat'))));
     let gv = Object.keys(vente);
     if (retour) gv = gv.filter(g => E.cale[g]);
-    if (gv.length) out.push(h('div', { class: 'sous-titre-marche' }, retour ? 'Les marchands du Rialto t\'achètent' : 'Les marchands d\'ici achètent'), h('div', { class: 'marche' }, gv.map(g => ligneMarche(g, vente[g], 'vente'))));
+    if (gv.length) out.push(h('p', { class: 'sous-titre-marche' }, retour ? 'Les marchands du Rialto t\'achètent' : 'Les marchands d\'ici achètent'), h('div', { class: 'marche' }, gv.map(g => ligneMarche(g, vente[g], 'vente'))));
     else if (retour) out.push(h('p', null, 'Ta cale est vide : tout est vendu.'));
-    if (!retour) out.push(h('button', { class: 'btn large', type: 'button', onclick: () => { E.etape = 'depart'; sauver(); afficherPort(); } }, "Lever l'ancre →"));
     return out;
   }
   function acheter(g, prix) {
     if (MARCHANDISES[g].interdit && !E.averti) {
       ouvrirModal([
-        h('div', { class: 'ev-entete' }, 'Attention'),
+        h('p', { class: 'ev-entete' }, 'Attention'),
         h('h2', null, 'Une marchandise interdite'),
         h('p', null, "Le pape interdit de vendre aux musulmans du bois, du fer et des armes : ils pourraient servir à construire des navires et des armes contre les chrétiens (conciles de Latran, 1179 et 1215)."),
         h('p', null, "À Alexandrie, ces marchandises se vendent très cher… mais tu prends un risque."),
@@ -247,7 +378,7 @@
     sauver(); majHUD(); rafraichir(true);
   }
 
-  function blocDepart(p) {
+  function blocDepart() {
     const voisins = C3.voisins(E.port);
     const reste = ORDRE_PORTS.filter(id => !E.visites[id]);
     const out = [h('h2', null, 'Où aller maintenant ?'),
@@ -256,33 +387,40 @@
       const pa = peutAller(v), P = PORTS[v], j = joursPour(C3.longueurRoute(E.port, v));
       return h('button', { class: 'dest', type: 'button', disabled: !pa.ok, onclick: () => partir(v) },
         h('span', { class: 'pastille p-' + P.drapeau }),
-        h('span', null, h('div', { class: 'd-nom' }, P.nom, E.visites[v] ? h('span', { class: 'fait' }, ' ✓') : null), h('div', { class: 'd-info' }, pa.ok ? P.statut : pa.raison)),
+        h('span', null, h('span', { class: 'd-nom' }, P.nom, E.visites[v] ? h('span', { class: 'fait' }, ' ✓') : null), h('span', { class: 'd-info', style: 'display:block' }, pa.ok ? P.statut : pa.raison)),
         h('span', { class: 'd-jours' }, '≈ ' + j + ' jours'));
     })));
-    out.push(h('p', { style: 'margin-top:14px;font-size:13px;color:var(--sub)' }, reste.length
+    out.push(h('p', { style: 'font-size:.88em;color:var(--muted)' }, reste.length
       ? 'Escales encore à découvrir : ' + liste(reste.map(id => PORTS[id].nom)) + '. Quand ton tour sera fini, rentre à Venise.'
       : 'Tu as fait le tour de toutes les escales : rentre à Venise vendre ta cargaison !'));
-    if (E.jour > JEU.jourLimite - 25) out.push(h('div', { class: 'conseil' }, E.jour > JEU.jourLimite ? "L'hiver est là : d'autres galères sont déjà rentrées. Tes marchandises se vendront moins cher." : "L'hiver approche : pense à rentrer à Venise avant le " + dateDe(JEU.jourLimite) + '.'));
-    if (!p.escale) out.push(h('button', { class: 'btn second', type: 'button', style: 'margin-top:8px', onclick: () => { E.etape = 'marche'; afficherPort(); } }, '← Retourner au marché'));
+    if (E.jour > JEU.jourLimite - 25) out.push(h('p', { class: 'conseil' }, E.jour > JEU.jourLimite ? "L'hiver est là : d'autres galères sont déjà rentrées. Tes marchandises se vendront moins cher." : "L'hiver approche : pense à rentrer à Venise avant le " + dateDe(JEU.jourLimite) + '.'));
     return out;
   }
 
   /* ---------- En mer ---------- */
+  function resumeCale() {
+    const g = Object.keys(E.cale);
+    return g.length ? 'Dans ta cale : ' + g.map(k => E.cale[k] + ' × ' + MARCHANDISES[k].nom).join(', ') + '.' : 'Ta cale est vide.';
+  }
   function partir(dest) {
     const pa = peutAller(dest); if (!pa.ok) { toast(pa.raison, 5000); return; }
+    fermerDialogue();
     const de = E.port, jours = joursPour(C3.longueurRoute(de, dest));
     const cle = ROUTES[de + '-' + dest] ? de + '-' + dest : dest + '-' + de;
     let ev = null;
     for (const id of ['tempete', 'genes']) if (!E.evenements[id] && EVENEMENTS_ROUTES[id].includes(cle)) { ev = id; break; }
     E.phase = 'mer';
-    $('#panneau').hidden = true;
     majCarte(); C3.surlignerRoutes(de, []);
-    $('#b-titre').textContent = PORTS[de].nom + ' → ' + PORTS[dest].nom;
+    panneau([entete('venise', 'En mer'), h('h2', null, PORTS[de].nom + ' → ' + PORTS[dest].nom),
+      h('p', { id: 'b-date' }), h('div', { class: 'jauge' }, h('i', { id: 'b-jauge' })),
+      h('p', null, resumeCale()),
+      h('p', { class: 'aide-dialogue' }, 'Les rameurs tirent sur les avirons, la voile se gonfle… Tu peux tourner et zoomer sur la carte pendant la traversée.')], []);
     const prog = t => {
-      $('#b-date').textContent = dateDe(E.jour + Math.floor(t * jours)) + ' · ' + Math.round(t * jours) + ' / ' + jours + ' jours de mer';
-      $('#b-jauge').style.width = (t * 100).toFixed(1) + '%';
+      const d = $('#b-date'), j = $('#b-jauge');
+      if (d) d.textContent = dateDe(E.jour + Math.floor(t * jours)) + ' · ' + Math.round(t * jours) + ' / ' + jours + ' jours de mer';
+      if (j) j.style.width = (t * 100).toFixed(1) + '%';
     };
-    prog(0); $('#bandeau').hidden = false;
+    prog(0);
     C3.naviguer(de, dest, {
       vitesse: RAPIDE ? 10 : 1.4,
       auMilieu: ev ? () => evenement(ev) : null,
@@ -315,15 +453,15 @@
       const detail = appliquer(res.effet || {});
       E.evenements[id] = { choix: c.label, resultat: res.resultat + (detail ? ' ' + detail : '') };
       ouvrirModal([
-        h('div', { class: 'ev-entete' }, 'En mer'),
+        h('p', { class: 'ev-entete' }, 'En mer'),
         h('h2', null, ev.titre),
         h('div', { class: 'resultat' }, res.resultat, detail ? h('div', { style: 'font-weight:400;margin-top:4px' }, detail) : null),
         h('div', { class: 'a-retenir' }, h('b', null, 'À retenir'), ev.aRetenir),
-        h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'button', onclick: () => { fermerModal(); C3.pause(false); } }, 'Reprendre la navigation'))
+        h('div', { class: 'actions' }, h('button', { class: 'btn or', type: 'button', onclick: () => { fermerModal(); C3.pause(false); } }, 'Reprendre la navigation'))
       ], { bloquant: true });
     };
     ouvrirModal([
-      h('div', { class: 'ev-entete' }, 'En mer'),
+      h('p', { class: 'ev-entete' }, 'En mer'),
       h('h2', null, ev.titre), h('p', null, ev.texte),
       h('div', { class: 'choix-ev' }, ev.choix.map(c => h('button', { type: 'button', onclick: () => choisir(c) }, c.label)))
     ], { bloquant: true });
@@ -333,7 +471,6 @@
     E.legs.push([de, dest]); E.port = dest;
     const premiere = !E.visites[dest]; E.visites[dest] = true;
     E.journal.push({ port: dest, jour: E.jour, premiere });
-    $('#bandeau').hidden = true;
     if (dest === 'venise') { E.phase = 'retour'; E.etape = 'vente'; sauver(); afficherRetour(); return; }
     E.phase = 'port';
     const p = PORTS[dest];
@@ -350,21 +487,23 @@
     for (const g in RETOUR.vente) out[g] = Math.round(RETOUR.vente[g] * f);
     return out;
   }
+  const chiffre = (t, v) => h('div', { class: 'chiffre' }, h('small', null, t), h('b', null, v));
   function afficherRetour(garder) {
     if (!garder) C3.vue('port', { port: 'venise' });
     majHUD(); majCarte();
-    const blocs = [entete('venise', 'Venise · retour de voyage')];
+    const blocs = [entete('venise', 'Venise · retour de voyage')], actions = [];
     if (E.etape === 'vente') {
       blocs.push(h('h2', null, RETOUR.titre));
       RETOUR.texte.forEach(t => blocs.push(h('p', null, t)));
+      blocs.push(blocPersonnages('retour'));
       if (enRetard()) blocs.push(h('div', { class: 'a-retenir' }, h('b', null, 'Retour tardif'), 'Tu rentres le ' + dateDe(E.jour) + " : d'autres galères sont arrivées avant toi. Les prix ont baissé de " + Math.round(JEU.baisseRetard * 100) + ' %.'));
       blocs.push(...blocMarche({}, true));
-      blocs.push(h('button', { class: 'btn large', type: 'button', onclick: finVentes }, totalCale() ? 'Tout vendre et continuer →' : 'Continuer →'));
+      actions.push(bouton(totalCale() ? 'Tout vendre et continuer →' : 'Continuer →', () => { fermerDialogue(); finVentes(); }));
     } else if (E.etape === 'ducat') {
       blocs.push(h('h2', null, "Payé en ducats d'or"));
-      blocs.push(h('div', { html: DUCAT_SVG }), h('div', { class: 'legende-ducat' }, 'Ducat de Venise (Doc. 3) — à gauche saint Marc remet l\'étendard au doge ; à droite le Christ.'));
+      blocs.push(h('figure', { class: 'fig' }, h('div', { html: DUCAT_SVG }), h('figcaption', null, 'Le ducat de Venise (Doc. 3 de ta fiche) : à gauche, saint Marc remet l\'étendard au doge ; à droite, le Christ.')));
       RETOUR.questions.forEach(q => blocs.push(blocQuestion(q)));
-      if (RETOUR.questions.every(q => E.reponses[q])) blocs.push(h('button', { class: 'btn large', type: 'button', onclick: () => { E.etape = 'bilan'; E.ducatsFinaux = E.ducats; sauver(); afficherRetour(); } }, 'Voir le bilan de mon voyage →'));
+      actions.push(bouton('Voir le bilan de mon voyage →', () => { E.etape = 'bilan'; E.ducatsFinaux = E.ducats; sauver(); afficherRetour(); }, { desactive: !RETOUR.questions.every(q => E.reponses[q]) }));
     } else {
       const benef = E.ducats - JEU.ducatsDepart;
       const titre = benef < 0 ? 'Voyage déficitaire… la mer est cruelle.' : benef < 300 ? 'Un marchand prudent.' : benef < 700 ? 'Un riche marchand !' : 'Un grand marchand du Rialto !';
@@ -373,13 +512,12 @@
         chiffre('Parti avec', JEU.ducatsDepart + ' d.'), chiffre('Rentré avec', E.ducats + ' d.'),
         chiffre('Bénéfice', (benef >= 0 ? '+' : '') + benef + ' d.'), chiffre('Durée', (E.jour - 1) + ' jours'),
         chiffre('Bonnes réponses', nbBonnes() + ' / ' + NB_QUESTIONS)));
-      blocs.push(h('p', { style: 'margin-top:14px;font:600 17px var(--serif);color:var(--accent)' }, titre));
+      blocs.push(h('h3', null, titre));
       blocs.push(h('p', null, "Ton voyage montre comment Venise s'enrichit : un réseau d'escales et de comptoirs, des galères, une monnaie solide… Mais cette puissance a-t-elle duré ?"));
-      blocs.push(h('button', { class: 'btn large', type: 'button', onclick: () => { E.phase = 'chronique'; E.chroniqueEtape = 0; sauver(); afficherChronique(); } }, 'Et après ? Venise face aux menaces (1378-1500) →'));
+      actions.push(bouton('Et après ? Venise face aux menaces →', () => { E.phase = 'chronique'; E.chroniqueEtape = 0; sauver(); afficherChronique(); }));
     }
-    panneau(blocs, garder);
+    panneau(blocs, actions, garder);
   }
-  const chiffre = (t, v) => h('div', { class: 'chiffre' }, h('small', null, t), h('b', null, v));
   function finVentes() {
     const prix = prixRetour();
     for (const g of Object.keys(E.cale)) vendre(g, prix[g] || 0, E.cale[g]);
@@ -391,12 +529,12 @@
       E.evenements.contrebande = { choix: 'Vente de bois et de fer à Alexandrie', resultat: puni ? 'Amende de ' + amende + ' ducats.' : 'Pas de sanction.' };
       sauver(); majHUD();
       ouvrirModal([
-        h('div', { class: 'ev-entete' }, 'Au palais des Doges'),
+        h('p', { class: 'ev-entete' }, 'Au palais des Doges'),
         h('h2', null, puni ? ev.titre : 'Contrebande… impunie'),
         puni ? h('p', null, ev.texte) : null,
         h('div', { class: 'resultat' }, puni ? 'Tu paies une amende de ' + amende + ' ducats.' : ev.impuni),
         h('div', { class: 'a-retenir' }, h('b', null, 'À retenir'), ev.aRetenir),
-        h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'button', onclick: () => { fermerModal(); suite(); } }, 'Continuer'))
+        h('div', { class: 'actions' }, h('button', { class: 'btn or', type: 'button', onclick: () => { fermerModal(); suite(); } }, 'Continuer'))
       ], { bloquant: true });
     } else suite();
   }
@@ -405,37 +543,31 @@
   function appliquerChroniqueJusqua(n) { CHRONIQUE.forEach((c, i) => C3.effet(c.effet, i <= n)); }
   function afficherChronique(garder) {
     const i = E.chroniqueEtape, c = CHRONIQUE[i], rep = E.chronique[i];
-    $('#bandeau').hidden = true;
     appliquerChroniqueJusqua(i);
     if (!garder) C3.vue('lieu', { lon: c.lon, lat: c.lat, rayon: c.effet === 'gama' ? 12 : c.effet === 'terreFerme' ? 6.5 : 5 });
     C3.etatPorts({}); C3.surlignerRoutes(E.port, []);
     majHUD();
-    const blocs = [entete('venise', 'Et après ? · ' + (i + 1) + ' / ' + CHRONIQUE.length),
-      h('div', { style: 'font:700 34px var(--serif);color:var(--rouge);margin-top:8px' }, c.date),
-      h('h2', null, c.titre), h('p', null, c.texte)];
-    const q = h('div', { class: 'question' }, h('div', { class: 'q-etiq' }, 'Ton avis'), h('p', { class: 'q' }, 'Pour la puissance de Venise, cet événement est plutôt…'));
+    const blocs = [entete('venise', 'Et après ? Venise face aux menaces'), h('p', { class: 'date-geante' }, c.date), h('h2', null, c.titre), h('p', null, c.texte)];
     const opts = [['atout', 'Un atout'], ['menace', 'Une menace']];
-    q.append(h('div', { class: 'choix' }, opts.map(([k, l]) => {
-      let cls = null; if (rep) { if (k === c.reponse) cls = 'bonne'; else if (k === rep) cls = 'fausse'; }
-      return h('button', { type: 'button', class: cls, disabled: !!rep, onclick: () => { E.chronique[i] = k; sauver(); afficherChronique(true); } }, l);
-    })));
+    const q = h('div', { class: 'question' }, h('p', { class: 'q-etiq' }, 'Ton avis'), h('p', { class: 'q' }, 'Pour la puissance de Venise, cet événement est plutôt…'),
+      h('div', { class: 'choix' }, opts.map(([k, l]) => {
+        let cls = null; if (rep) { if (k === c.reponse) cls = 'bonne'; else if (k === rep) cls = 'fausse'; }
+        return h('button', { type: 'button', class: cls, disabled: !!rep, onclick: () => { E.chronique[i] = k; sauver(); afficherChronique(true); } }, l);
+      })));
     if (rep) q.append(h('div', { class: 'explication ' + (rep === c.reponse ? 'ok' : 'ko') },
       h('b', null, rep === c.reponse ? 'Oui.' : 'Pas vraiment.'),
       c.reponse === 'menace' ? (c.effet === 'chioggia' ? "C'est une menace très grave… que Venise surmonte grâce à sa flotte." : 'Cet événement fragilise la puissance vénitienne.') : 'Cet événement renforce la puissance vénitienne.'));
     blocs.push(q);
-    if (rep) blocs.push(h('button', { class: 'btn large', type: 'button', onclick: () => {
-      if (i < CHRONIQUE.length - 1) { E.chroniqueEtape++; sauver(); afficherChronique(); }
+    const dernier = i === CHRONIQUE.length - 1;
+    panneau(blocs, [bouton(dernier ? 'Construire le schéma bilan →' : 'Suivant →', () => {
+      if (!dernier) { E.chroniqueEtape++; sauver(); afficherChronique(); }
       else { E.phase = 'schema'; sauver(); ouvrirSchema(); }
-    } }, i < CHRONIQUE.length - 1 ? 'Suivant →' : 'Construire le schéma bilan →'));
-    panneau(blocs, garder);
+    }, { desactive: !rep })], garder);
   }
 
   /* ---------- Schéma bilan ---------- */
   let choisi = null;
-  function ouvrirSchema() {
-    $('#panneau').hidden = true; $('#hud').hidden = true; $('#legende').hidden = true;
-    $('#ecran-schema').hidden = false; dessinerSchema();
-  }
+  function ouvrirSchema() { $('#ecran-schema').hidden = false; dessinerSchema(); }
   function etiquetteSchema(el) {
     const v = E.schemaVerif ? E.schemaVerif[el.id] : null;
     const cls = 'etiquette' + (choisi === el.id ? ' choisie' : '') + (v === true ? ' ok' : v === false ? ' ko' : '');
@@ -456,7 +588,7 @@
     if (E.etapeSchema === 'redaction') return dessinerRedaction();
     const libres = SCHEMA.elements.filter(e => !E.schema[e.id]);
     cont.append(h('div', { class: 'schema-tete' },
-      h('span', { class: 'niveau' }, JEU.niveau),
+      h('p', { class: 'niveau' }, JEU.niveau),
       h('h1', null, 'Schéma bilan'),
       h('p', null, 'Clique sur une étiquette, puis sur la case où elle doit aller. Pour déplacer une étiquette déjà placée, clique dessus puis sur une autre case (ou sur la réserve).')));
     cont.append(h('div', { class: 'reserve' + (choisi && E.schema[choisi] ? ' cible' : ''), onclick: () => { if (choisi && E.schema[choisi]) placer(null); } }, libres.map(etiquetteSchema)));
@@ -468,16 +600,16 @@
         h('div', { class: 'c-liste' }, dedans.map(etiquetteSchema))));
     }
     cont.append(grille);
-    const actions = h('div', { class: 'actions', style: 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px' });
+    const actions = h('div', { class: 'actions' });
     const tousPlaces = !libres.length;
     const toutJuste = E.schemaVerif && SCHEMA.elements.every(e => E.schemaVerif[e.id]);
     if (!toutJuste) actions.append(h('button', { class: 'btn', type: 'button', disabled: !tousPlaces, onclick: verifierSchema }, tousPlaces ? 'Vérifier mon schéma' : 'Place toutes les étiquettes (' + libres.length + ' restantes)'));
     if (E.schemaVerif) {
       const n = SCHEMA.elements.filter(e => E.schemaVerif[e.id]).length;
-      actions.append(h('span', { class: 'score' }, n + ' / ' + SCHEMA.elements.length + ' bien placées' + (toutJuste ? ' — bravo !' : ' : déplace les étiquettes en rouge.')));
+      actions.append(h('span', { class: 'score' }, n + ' / ' + SCHEMA.elements.length + ' bien placées' + (toutJuste ? ' : bravo !' : ' : déplace les étiquettes en rouge.')));
     }
     if (!toutJuste && E.schemaEssais >= 2) actions.append(h('button', { class: 'btn second', type: 'button', onclick: corrigerSchema }, 'Voir la correction'));
-    if (toutJuste) actions.append(h('button', { class: 'btn or', type: 'button', onclick: () => { E.etapeSchema = 'redaction'; sauver(); dessinerSchema(); window.scrollTo(0, 0); $('#ecran-schema').scrollTop = 0; } }, 'Continuer : répondre à la question de départ →'));
+    if (toutJuste) actions.append(h('button', { class: 'btn or', type: 'button', onclick: () => { E.etapeSchema = 'redaction'; sauver(); dessinerSchema(); $('#ecran-schema').scrollTop = 0; } }, 'Continuer : répondre à la question de départ →'));
     cont.append(actions);
   }
   function verifierSchema() {
@@ -495,20 +627,20 @@
   }
   function dessinerRedaction() {
     const cont = $('#schema-contenu');
-    const zone = h('textarea', { rows: '8', placeholder: 'Venise fonde sa puissance sur…' });
+    const zone = h('textarea', { id: 'redaction', rows: '8', placeholder: 'Venise fonde sa puissance sur…' });
     zone.value = E.redaction || '';
     const compteur = h('span', { class: 'score' });
     const fini = h('button', { class: 'btn or', type: 'button', onclick: () => { E.redaction = zone.value.trim(); E.phase = 'fin'; sauver(); ouvrirFin(); } }, 'Terminer : voir mon carnet de bord →');
-    const maj = () => { const n = zone.value.trim().split(/\s+/).filter(Boolean).length; compteur.textContent = n + ' mot' + (n > 1 ? 's' : ''); fini.disabled = n < 15; E.redaction = zone.value; sauver(); };
+    const maj = () => { const n = zone.value.trim().split(/\s+/).filter(Boolean).length; compteur.textContent = n + ' mot' + (n > 1 ? 's' : '') + (n < 15 ? ' (15 au moins)' : ''); fini.disabled = n < 15; E.redaction = zone.value; sauver(); };
     zone.addEventListener('input', maj);
     cont.append(h('div', { class: 'carte-intro' },
-      h('span', { class: 'niveau' }, JEU.niveau),
+      h('p', { class: 'niveau' }, JEU.niveau),
       h('h1', { style: 'font-size:28px' }, 'Réponds à la question de départ'),
       h('div', { class: 'qdepart' }, h('small', null, 'Question de départ'), h('b', null, JEU.questionDepart)),
-      h('p', { style: 'font-size:14.5px;color:var(--sub)' }, REDACTION.consigne + ' Appuie-toi sur ton voyage, sur la chronique et sur ton schéma.'),
-      h('div', { style: 'display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px' }, h('span', { style: 'font-size:12.5px;color:var(--faint);align-self:center' }, 'Mots utiles :'), REDACTION.aide.map(m => h('span', { class: 'etiquette', style: 'padding:4px 9px;font-size:12.5px' }, m))),
+      h('p', { style: 'margin:0;color:var(--muted)' }, REDACTION.consigne + ' Appuie-toi sur ton voyage, sur la chronique et sur ton schéma.'),
+      h('div', { style: 'display:flex;flex-wrap:wrap;gap:6px;align-items:center' }, h('span', { style: 'font-size:13px;color:var(--caption)' }, 'Mots utiles :'), REDACTION.aide.map(m => h('span', { class: 'etiquette', style: 'padding:4px 9px;font-size:13px' }, m))),
       zone,
-      h('div', { style: 'display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px' }, fini, compteur,
+      h('div', { class: 'actions' }, fini, compteur,
         h('button', { class: 'btn second', type: 'button', onclick: () => { E.etapeSchema = 'placer'; sauver(); dessinerSchema(); } }, '← Revoir mon schéma'))));
     maj(); zone.focus();
   }
@@ -517,125 +649,167 @@
   function construireCarnet(final, image) {
     const auj = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
     const c = h('div', { class: 'carnet' },
-      h('span', { class: 'niveau' }, JEU.niveau),
+      h('p', { class: 'niveau' }, JEU.niveau),
       h('h1', null, 'Carnet de bord'),
       h('div', { class: 'ident' }, (E.noms || 'Marchand anonyme') + (E.classe ? ' · ' + E.classe : '') + ' · ' + auj),
-      h('div', { class: 'qdepart', style: 'margin-top:14px' }, h('small', null, 'Question de départ'), h('b', null, JEU.questionDepart)));
+      h('div', { class: 'qdepart' }, h('small', null, 'Question de départ'), h('b', null, JEU.questionDepart)));
     c.append(h('h2', null, 'Mon voyage'));
-    if (image) c.append(h('img', { class: 'carte', src: image, alt: "Carte de mon itinéraire en Méditerranée" }));
+    if (image) c.append(h('img', { class: 'carte', src: image, alt: 'Carte de mon itinéraire en Méditerranée' }));
     const nbEscales = ORDRE_PORTS.filter(p => E.visites[p]).length;
-    c.append(h('div', { class: 'chiffres', style: 'margin-top:10px' },
+    c.append(h('div', { class: 'chiffres' },
       chiffre('Ducats au départ', JEU.ducatsDepart), chiffre(final ? 'Ducats au retour' : 'Ducats', E.ducats),
       chiffre('Escales', nbEscales + ' / ' + ORDRE_PORTS.length), chiffre(final ? 'Durée du voyage' : 'Date', final ? (E.jour - 1) + ' jours' : dateDe(E.jour))));
-    const etapes = h('ol', { class: 'etapes', style: 'margin-top:12px' },
-      h('li', null, h('span', { class: 'date' }, dateDe(1)), h('span', null, h('b', null, 'Venise'), ' — départ, avec ' + JEU.ducatsDepart + ' ducats.')));
+    const etapes = h('ol', { class: 'etapes' },
+      h('li', null, h('span', { class: 'date' }, dateDe(1)), h('span', null, h('b', null, 'Venise'), ' : départ, avec ' + JEU.ducatsDepart + ' ducats.')));
     for (const j of E.journal) {
       const P = PORTS[j.port];
       etapes.append(h('li', null, h('span', { class: 'date' }, dateDe(j.jour)),
-        h('span', null, h('b', null, P.nom), j.port === 'venise' ? ' — retour au Rialto.' : j.premiere && P.notion ? ' — ' + P.notion[0] + ' : ' + P.notion[1] : ' — escale.')));
+        h('span', null, h('b', null, P.nom), j.port === 'venise' ? ' : retour au Rialto.' : j.premiere && P.notion ? ' : ' + P.notion[0] + ', ' + P.notion[1] : ' : escale.')));
     }
     c.append(etapes);
+    const rencontres = PERSONNAGES.filter(p => E.rencontres[p.id]);
+    if (rencontres.length) c.append(h('p', { style: 'margin:4px 0 0;font-size:14px;color:var(--muted)' }, 'Personnes rencontrées : ' + liste(rencontres.map(p => p.nom + ' (' + p.role.charAt(0).toLowerCase() + p.role.slice(1) + ')')) + '.'));
     const evs = Object.keys(E.evenements);
     if (evs.length) {
       c.append(h('h2', null, 'Événements'));
-      c.append(h('ul', { class: 'etapes' }, evs.map(id => h('li', null, h('span', { class: 'date' }, EVENEMENTS[id].titre), h('span', null, 'Mon choix : ' + E.evenements[id].choix + ' → ' + E.evenements[id].resultat)))));
+      c.append(h('ul', { class: 'etapes' }, evs.map(id => h('li', null, h('span', { class: 'date' }, EVENEMENTS[id].titre), h('span', null, 'Mon choix : ' + E.evenements[id].choix + '. ' + E.evenements[id].resultat)))));
     }
     const rep = Object.keys(E.reponses).sort((a, b) => E.reponses[a].n - E.reponses[b].n);
     c.append(h('h2', null, 'Mes réponses (' + nbBonnes() + ' / ' + NB_QUESTIONS + ')'));
     if (rep.length) {
-      c.append(h('table', { class: 'reponses' },
+      c.append(h('div', { class: 'tableau' }, h('table', { class: 'reponses' },
         h('thead', null, h('tr', null, h('th', null, 'Question'), h('th', null, 'Ma réponse'), h('th', null, ''))),
         h('tbody', null, rep.map(q => {
           const Q = QUESTIONS[q], r = E.reponses[q];
           return h('tr', null, h('td', null, Q.q), h('td', null, Q.choix[r.choix], r.ok ? null : h('div', { style: 'color:var(--ok);margin-top:3px' }, 'Réponse attendue : ' + Q.choix[Q.bonne])),
             h('td', { class: r.ok ? 'v' : 'x' }, r.ok ? '✓' : '✗'));
-        }))));
+        })))));
     } else c.append(h('p', null, 'Aucune réponse pour le moment.'));
     if (final) {
       c.append(h('h2', null, 'Et après ? Venise face aux menaces'));
       c.append(h('ul', { class: 'etapes' }, CHRONIQUE.map((ch, i) => {
         const r = E.chronique[i];
-        return h('li', null, h('span', { class: 'date' }, ch.date), h('span', null, h('b', null, ch.titre), ' — mon avis : ' + (r === 'atout' ? 'un atout' : r === 'menace' ? 'une menace' : '—') + ' ', h('span', { class: r === ch.reponse ? 'v' : 'x' }, r === ch.reponse ? '✓' : '✗')));
+        return h('li', null, h('span', { class: 'date' }, ch.date), h('span', null, h('b', null, ch.titre), ' : mon avis, ' + (r === 'atout' ? 'un atout' : r === 'menace' ? 'une menace' : '(sans réponse)') + ' ', h('span', { class: r === ch.reponse ? 'v' : 'x' }, r === ch.reponse ? '✓' : '✗')));
       })));
       c.append(h('h2', null, 'Mon schéma' + (E.schemaScore !== null ? ' (' + E.schemaScore + ' / ' + SCHEMA.elements.length + ' au premier essai' + (E.schemaCorrige ? ', puis correction' : '') + ')' : '')));
       c.append(h('div', { class: 'schema-final' }, SCHEMA.cases.map(cs => h('div', null, h('b', null, cs.titre),
-        SCHEMA.elements.filter(e => E.schema[e.id] === cs.id).map(e => e.texte).join(' · ') || '—'))));
+        SCHEMA.elements.filter(e => E.schema[e.id] === cs.id).map(e => e.texte).join(' · ') || '(vide)'))));
       c.append(h('h2', null, 'Ma réponse à la question de départ'));
       c.append(h('div', { class: 'redaction-finale' }, E.redaction || ''));
     }
     return c;
   }
+  function carnetTexte() {
+    const L = [];
+    L.push('CARNET DE BORD · ' + JEU.titre + ' (' + JEU.niveau + ')');
+    L.push((E.noms || 'Marchand anonyme') + (E.classe ? ' · ' + E.classe : '') + ' · ' + new Date().toLocaleDateString('fr-FR'));
+    L.push('', 'Question de départ : ' + JEU.questionDepart, '');
+    L.push('MON VOYAGE : ' + JEU.ducatsDepart + ' ducats au départ, ' + E.ducats + ' ducats ' + (E.phase === 'fin' ? 'au retour' : 'aujourd\'hui') + ', ' + ORDRE_PORTS.filter(p => E.visites[p]).length + '/' + ORDRE_PORTS.length + ' escales, ' + (E.jour - 1) + ' jours.');
+    L.push('- ' + dateDe(1) + ' : Venise, départ.');
+    E.journal.forEach(j => L.push('- ' + dateDe(j.jour) + ' : ' + PORTS[j.port].nom + (j.premiere && PORTS[j.port].notion ? ' (' + PORTS[j.port].notion[0] + ')' : '')));
+    L.push('', 'MES RÉPONSES (' + nbBonnes() + '/' + NB_QUESTIONS + ')');
+    Object.keys(E.reponses).sort((a, b) => E.reponses[a].n - E.reponses[b].n).forEach(q => {
+      const Q = QUESTIONS[q], r = E.reponses[q];
+      L.push('- ' + Q.q, '  ' + (r.ok ? '[juste] ' : '[faux] ') + Q.choix[r.choix] + (r.ok ? '' : ' (attendu : ' + Q.choix[Q.bonne] + ')'));
+    });
+    if (E.phase === 'fin') {
+      L.push('', 'ET APRÈS ?');
+      CHRONIQUE.forEach((ch, i) => L.push('- ' + ch.date + ' ' + ch.titre + ' : ' + (E.chronique[i] || '?') + (E.chronique[i] === ch.reponse ? ' [juste]' : ' [faux]')));
+      L.push('', 'MON SCHÉMA' + (E.schemaScore !== null ? ' (' + E.schemaScore + '/' + SCHEMA.elements.length + ' au premier essai)' : ''));
+      SCHEMA.cases.forEach(cs => L.push('- ' + cs.titre + ' : ' + SCHEMA.elements.filter(e => E.schema[e.id] === cs.id).map(e => e.texte).join(' ; ')));
+      L.push('', 'MA RÉPONSE À LA QUESTION DE DÉPART', E.redaction || '');
+    }
+    return L.join('\n');
+  }
+  function boutonRendu() {
+    if (!DANS_CADRE) return h('button', { class: 'btn or', type: 'button', onclick: imprimer }, 'Imprimer ou enregistrer en PDF');
+    return h('button', { class: 'btn or', type: 'button', onclick: copierCarnet }, 'Copier mon carnet');
+  }
+  function copierCarnet(ev) {
+    const texte = carnetTexte(), cible = ev && ev.currentTarget;
+    const secours = () => {
+      const zone = h('textarea', { id: 'copie-secours', readonly: true }); zone.value = texte;
+      ouvrirModal([h('h2', null, 'Copie ton carnet'), h('p', null, 'Sélectionne le texte ci-dessous, copie-le, puis colle-le où ton professeur te l\'a demandé.'), zone,
+        h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'button', onclick: fermerModal }, 'Fermer'))]);
+      zone.focus(); zone.select();
+    };
+    try {
+      navigator.clipboard.writeText(texte).then(() => { if (cible) cible.textContent = 'Carnet copié'; toast('Carnet copié : colle-le où ton professeur te l\'a demandé.'); }, secours);
+    } catch (e) { secours(); }
+  }
   function ouvrirCarnet() {
     ouvrirModal([construireCarnet(false), h('div', { class: 'actions' },
-      h('button', { class: 'btn', type: 'button', onclick: fermerModal }, 'Fermer'),
-      h('button', { class: 'btn second', type: 'button', onclick: imprimer }, 'Imprimer'))], { large: true });
+      h('button', { class: 'btn', type: 'button', onclick: fermerModal }, 'Fermer'), boutonRendu())], { large: true });
   }
   let imageFinale = null;
   function ouvrirFin() {
-    $('#ecran-schema').hidden = true; $('#panneau').hidden = true; $('#hud').hidden = true; $('#legende').hidden = true;
+    fermerDialogue();
+    $('#ecran-schema').hidden = true;
     appliquerChroniqueJusqua(-1); majCarte(); C3.etatPorts({});
     imageFinale = C3.capture();
     appliquerChroniqueJusqua(CHRONIQUE.length - 1);
     const cont = $('#fin-contenu'); cont.innerHTML = '';
-    cont.append(h('div', { class: 'barre-fin' },
-      h('button', { class: 'btn or', type: 'button', onclick: imprimer }, 'Imprimer ou enregistrer en PDF'),
+    cont.append(h('div', { class: 'barre-fin' }, boutonRendu(),
       h('button', { class: 'btn second', type: 'button', onclick: revoirCarte }, 'Revoir la carte'),
-      h('button', { class: 'btn second', type: 'button', onclick: nouvellePartie }, 'Nouvelle partie')),
-      construireCarnet(true, imageFinale));
+      h('button', { class: 'btn second', type: 'button', onclick: nouvellePartie }, 'Nouvelle partie')));
+    if (DANS_CADRE) cont.append(h('p', { class: 'note-rendu' }, 'Pour rendre ton carnet : copie-le et colle-le dans l\'ENT (ou un document), ou montre cet écran à ton professeur.'));
+    cont.append(construireCarnet(true, imageFinale));
     $('#ecran-fin').hidden = false; $('#ecran-fin').scrollTop = 0;
   }
   function revoirCarte() {
-    $('#ecran-fin').hidden = true; $('#hud').hidden = false; $('#legende').hidden = window.innerWidth < 760;
+    $('#ecran-fin').hidden = true;
     C3.vue('ensemble'); majHUD();
     panneau([entete('venise', 'Fin du voyage'), h('h2', null, 'Explore la carte'),
-      h('p', null, 'Tourne, zoome, retrouve ton itinéraire en rouge et les changements survenus entre 1378 et 1500.'),
-      h('button', { class: 'btn large', type: 'button', onclick: ouvrirFin }, 'Revenir à mon carnet de bord')]);
+      h('p', null, 'Tourne, zoome, retrouve ton itinéraire en rouge et les changements survenus entre 1378 et 1500.')],
+    [bouton('Revenir à mon carnet de bord', ouvrirFin)]);
   }
-  function imprimer() {
-    remplirImpression();
-    window.print();
-  }
+  function imprimer() { remplirImpression(); window.print(); }
   function remplirImpression() {
     const zone = $('#impression'); zone.innerHTML = '';
     zone.append(E && E.phase === 'fin' ? construireCarnet(true, imageFinale) : construireCarnet(false));
   }
-  window.addEventListener('beforeprint', () => { if (E) remplirImpression(); });
+  window.addEventListener('beforeprint', () => { if (E && E.phase !== 'intro') remplirImpression(); });
   function nouvellePartie() {
-    ouvrirModal([h('h2', null, 'Nouvelle partie ?'), h('p', null, 'Ton carnet de bord actuel sera effacé. Pense à l\'imprimer ou à l\'enregistrer en PDF avant.'),
+    ouvrirModal([h('h2', null, 'Nouvelle partie ?'), h('p', null, 'Ton carnet de bord actuel sera effacé. Pense à le rendre avant.'),
       h('div', { class: 'actions' },
         h('button', { class: 'btn rouge', type: 'button', onclick: () => { fermerModal(); try { localStorage.removeItem(CLE); } catch (e) { /* rien */ } location.reload(); } }, 'Effacer et recommencer'),
         h('button', { class: 'btn second', type: 'button', onclick: fermerModal }, 'Annuler'))]);
   }
 
-  /* ---------- Aide ---------- */
+  /* ---------- Aide, plein écran ---------- */
   function ouvrirAide() {
     ouvrirModal([
       h('h2', null, 'Comment jouer'),
       h('div', { class: 'qdepart' }, h('small', null, 'Question de départ'), h('b', null, JEU.questionDepart)),
-      h('div', { class: 'regles', style: 'margin:0' }, REGLES.map(([t, d]) => h('div', { class: 'regle' }, h('b', null, t), d))),
+      h('div', { class: 'regles' }, REGLES.map(([t, d]) => h('div', { class: 'regle' }, h('b', null, t), d))),
       h('div', { class: 'actions' },
         h('button', { class: 'btn', type: 'button', onclick: fermerModal }, "C'est compris"),
         h('button', { class: 'btn second', type: 'button', onclick: () => { fermerModal(); C3.vue('ensemble'); } }, "Vue d'ensemble de la carte"),
         E && E.phase === 'port' ? h('button', { class: 'btn second', type: 'button', onclick: () => { fermerModal(); C3.vue('port', { port: E.port }); } }, 'Revenir au port') : null)
     ]);
   }
+  const fs = $('#b-fs');
+  if (!document.fullscreenEnabled) fs.hidden = true;
+  fs.addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else document.documentElement.requestFullscreen().catch(() => toast('Le plein écran n\'est pas disponible ici.'));
+  });
+  document.addEventListener('fullscreenchange', () => { fs.textContent = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran'; });
 
   /* ---------- Démarrage ---------- */
-  function montrerJeu() {
-    $('#ecran-intro').hidden = true; $('#hud').hidden = false; $('#legende').hidden = window.innerWidth < 760;
-  }
+  function montrerJeu() { $('#ecran-intro').hidden = true; $('#legende').hidden = false; }
   function afficherIntro() {
     const s = charger();
     const cont = $('#intro-contenu'); cont.innerHTML = '';
     const nom = h('input', { id: 'i-noms', autocomplete: 'off', placeholder: 'Prénom Nom (et ton binôme)' });
     const classe = h('input', { id: 'i-classe', autocomplete: 'off', placeholder: 'Ex. : 2de 4' });
-    const go = h('button', { class: 'btn large', type: 'button', disabled: true, onclick: () => {
+    const go = h('button', { class: 'btn or grand', type: 'button', disabled: true, onclick: () => {
       E = etatInitial(); E.noms = nom.value.trim(); E.classe = classe.value.trim(); E.phase = 'port';
       sauver(); montrerJeu(); C3.reinitialiserEffets(); C3.placerGalere('venise'); afficherPort();
     } }, 'Embarquer à Venise');
     nom.addEventListener('input', () => { go.disabled = nom.value.trim().length < 2; });
     const carte = h('div', { class: 'carte-intro' },
-      h('span', { class: 'niveau' }, JEU.niveau),
+      h('p', { class: 'niveau' }, JEU.niveau),
       h('h1', null, JEU.titre),
       h('p', { class: 'sous' }, JEU.sousTitre),
       h('div', { class: 'qdepart' }, h('small', null, 'Question de départ'), h('b', null, JEU.questionDepart)),
@@ -645,7 +819,7 @@
       go);
     if (s && s.phase && s.phase !== 'intro') {
       carte.append(h('div', { class: 'reprise' },
-        h('span', null, 'Partie en cours : ', h('b', null, s.noms || 'sans nom'), ' — ' + (s.phase === 'fin' ? 'voyage terminé' : dateDe(s.jour) + ', ' + ORDRE_PORTS.filter(p => s.visites && s.visites[p]).length + '/' + ORDRE_PORTS.length + ' escales') + '.'),
+        h('span', null, 'Partie en cours : ', h('b', null, s.noms || 'sans nom'), ', ' + (s.phase === 'fin' ? 'voyage terminé' : dateDe(s.jour) + ', ' + ORDRE_PORTS.filter(p => s.visites && s.visites[p]).length + '/' + ORDRE_PORTS.length + ' escales') + '.'),
         h('button', { class: 'btn or petit', type: 'button', onclick: () => reprendre(s) }, 'Reprendre')));
     }
     cont.append(carte);
@@ -659,19 +833,24 @@
     if (E.phase === 'port') afficherPort();
     else if (E.phase === 'retour') afficherRetour();
     else if (E.phase === 'chronique') afficherChronique();
-    else if (E.phase === 'schema') { appliquerChroniqueJusqua(CHRONIQUE.length - 1); majHUD(); ouvrirSchema(); }
+    else if (E.phase === 'schema') { appliquerChroniqueJusqua(CHRONIQUE.length - 1); majHUD(); panneau([entete('venise', 'Schéma bilan'), h('p', null, 'Complète ton schéma bilan.')], [bouton('Ouvrir le schéma', ouvrirSchema)]); ouvrirSchema(); }
     else if (E.phase === 'fin') { majHUD(); ouvrirFin(); }
   }
 
   $('#b-carnet').addEventListener('click', ouvrirCarnet);
   $('#b-aide').addEventListener('click', ouvrirAide);
+  panneau([h('p', { class: 'count' }, 'Préparation du voyage'), h('h2', null, 'Venise, été 1350'), h('p', null, 'Ta galère se prépare au départ.')], []);
 
-  try {
-    C3.init($('#scene'), { surClicPort: clicPort });
-  } catch (err) {
-    document.body.innerHTML = '<div style="max-width:560px;margin:60px auto;padding:24px;font-family:system-ui;line-height:1.6"><h1 style="font-size:22px">La carte 3D ne peut pas s\'afficher</h1><p>Ce navigateur ne permet pas l\'affichage 3D (WebGL). Essaie avec une version récente de Chrome, Firefox, Edge ou Safari.</p></div>';
-    throw err;
+  function demarrer() {
+    try {
+      C3.init($('#scene'), { surClicPort: clicPort });
+    } catch (err) {
+      $('#chargement').innerHTML = '<div class="load-card"><p class="load-kicker">Carte 3D indisponible</p><p class="load-title">Cet ordinateur ne peut pas afficher la 3D.</p><p>Essaie avec une version récente de Chrome, Firefox, Edge ou Safari.</p></div>';
+      throw err;
+    }
+    $('#chargement').hidden = true;
+    afficherIntro();
   }
-  afficherIntro();
+  requestAnimationFrame(() => setTimeout(demarrer, 40));
   window.__jeu = { etat: () => E };
 })();
