@@ -436,7 +436,7 @@
   const C3 = {};
   let renderer, scene, camera, conteneur, couche, terrainMat, texCarte, fonds, relief, eau, galere, horloge;
   const villes = {}, cibles = [], etiquettes = [], tubes = {}, sillage = [];
-  let voyage = null, surClicPort = null, effets = {}, territoiresActifs = {};
+  let voyage = null, surClicPort = null, effets = {}, territoiresActifs = {}, libre = null;
   const cam = { cible: new THREE.Vector3(0, 0, 0), rayon: 24, phi: 0.72, theta: 0, but: { cible: new THREE.Vector3(0, 0, 0), rayon: 24, phi: 0.72, theta: 0 }, suivre: false, dec: { x: 0, y: 0 }, decBut: { x: 0, y: 0 } };
   const vise = new THREE.Vector3();
 
@@ -660,11 +660,32 @@
     return voyage;
   };
   C3.pause = v => { if (voyage) voyage.pause = v; };
+  /* Navigation libre : la galère se dirige au clavier ou avec les flèches à l'écran */
+  C3.commande = { avant: false, arriere: false, gauche: false, droite: false, vite: false };
+  C3.navigationLibre = actif => {
+    for (const k in C3.commande) C3.commande[k] = false;
+    libre = actif ? { v: 0 } : null;
+    if (actif) { voyage = null; cam.but.theta = galere.rotation.y + Math.PI; C3.vue('suivre', { rayon: 4 }); }
+    else { cam.but.theta = Math.round(cam.theta / (2 * Math.PI)) * 2 * Math.PI; }
+  };
   C3.decalage = (x, y) => { cam.decBut.x = x; cam.decBut.y = y; };
   const tmpV = new THREE.Vector3();
+  function majLibre(dt) {
+    const c = C3.commande, vmax = c.vite ? 2.4 : 1.3;
+    const but = c.avant ? vmax : c.arriere ? -0.5 : 0;
+    libre.v += (but - libre.v) * Math.min(1, dt * 2);
+    galere.rotation.y += ((c.gauche ? 1 : 0) - (c.droite ? 1 : 0)) * dt * 1.5;
+    const ry = galere.rotation.y, nx = galere.position.x + Math.sin(ry) * libre.v * dt, nz = galere.position.z + Math.cos(ry) * libre.v * dt;
+    const dedans = nx > XMIN + 0.3 && nx < XMAX - 0.3 && nz > ZMIN + 0.3 && nz < ZMAX - 0.3;
+    if (dedans && hauteur(nx, nz) < -0.004) { galere.position.x = nx; galere.position.z = nz; }
+    else if (Math.abs(libre.v) > 0.05) { libre.v = 0; if (C3.surEchouage) C3.surEchouage(); }
+    if (Math.abs(libre.v) > 0.15) emettreSillage(dt);
+    cam.but.theta = ry + Math.PI;
+  }
   function majVoyage(dt, temps) {
     const rames = galere.userData.rames;
-    const enMouvement = voyage && !voyage.pause;
+    const enMouvement = (voyage && !voyage.pause) || (libre && Math.abs(libre.v) > 0.05);
+    if (libre) majLibre(dt);
     rames.forEach((p, i) => { const ph = temps * (enMouvement ? 5 : 1.2) + i * 0.02; p.rotation.y = p.userData.cote * Math.sin(ph) * (enMouvement ? 0.35 : 0.06); p.rotation.x = Math.cos(ph) * (enMouvement ? 0.08 : 0.02); });
     galere.position.y = 0.02 + Math.sin(temps * 1.7) * 0.006; galere.rotation.z = Math.sin(temps * 1.3) * 0.03;
     if (!voyage) return;
@@ -808,6 +829,37 @@
     return url;
   };
   C3.proj = proj;
+  /* Mode de secours : la 3D ne peut pas s'afficher. Le jeu continue avec une carte fixe. */
+  C3.modeSecours = () => {
+    const rien = () => {};
+    ['vue', 'etatPorts', 'statutPort', 'surlignerRoutes', 'itineraire', 'placerGalere', 'effet', 'reinitialiserEffets', 'galeresGenoises', 'decalage', 'navigationLibre'].forEach(k => { C3[k] = rien; });
+    C3.secours = true;
+    C3.capture = () => 'img/carte-secours.jpg';
+    C3.longueurRoute = (a, b) => {
+      const pts = ROUTES[a + '-' + b] || ROUTES[b + '-' + a]; if (!pts) return 0;
+      let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+      return L;
+    };
+    let v = null;
+    C3.pause = p => { if (v) v.pause = p; };
+    C3.naviguer = (de, vers, opts) => {
+      v = { t: 0, pause: false, milieuFait: !opts.auMilieu };
+      const duree = opts.vitesse > 5 ? 1 : 3.5;
+      let avant = performance.now();
+      const pas = () => {
+        if (!v) return;
+        const now = performance.now(), dt = (now - avant) / 1000; avant = now;
+        if (!v.pause) {
+          v.t = Math.min(1, v.t + dt / duree);
+          if (!v.milieuFait && v.t >= 0.5) { v.milieuFait = true; v.pause = true; opts.auMilieu(); }
+          if (opts.progres) opts.progres(v.t);
+        }
+        if (v.t >= 1) { v = null; if (opts.arrivee) opts.arrivee(); return; }
+        setTimeout(pas, 50);
+      };
+      pas();
+    };
+  };
 
   window.Carte3D = C3;
 })();

@@ -753,15 +753,22 @@
       h('button', { class: 'btn second', type: 'button', onclick: revoirCarte }, 'Revoir la carte'),
       h('button', { class: 'btn second', type: 'button', onclick: nouvellePartie }, 'Nouvelle partie')));
     if (DANS_CADRE) cont.append(h('p', { class: 'note-rendu' }, 'Pour rendre ton carnet : copie-le et colle-le dans l\'ENT (ou un document), ou montre cet écran à ton professeur.'));
-    cont.append(construireCarnet(true, imageFinale));
+    cont.append(construireCarnet(true, imageFinale), credits());
     $('#ecran-fin').hidden = false; $('#ecran-fin').scrollTop = 0;
   }
   function revoirCarte() {
     $('#ecran-fin').hidden = true;
     C3.vue('ensemble'); majHUD();
-    panneau([entete('venise', 'Fin du voyage'), h('h2', null, 'Explore la carte'),
-      h('p', null, 'Tourne, zoome, retrouve ton itinéraire en rouge et les changements survenus entre 1378 et 1500.')],
-    [bouton('Revenir à mon carnet de bord', ouvrirFin)]);
+    const bascule = () => { navigationLibre(!libreActif); revoirCarte2(); };
+    function revoirCarte2() {
+      panneau([entete('venise', 'Fin du voyage'), h('h2', null, libreActif ? 'Navigation libre' : 'Explore la carte'),
+        h('p', null, libreActif
+          ? 'Dirige toi-même ta galère avec les touches Z Q S D ou les flèches (Maj pour accélérer), ou avec les boutons en bas à droite de la carte. Attention aux côtes !'
+          : 'Tourne, zoome, retrouve ton itinéraire en rouge et les changements survenus entre 1378 et 1500. Tu peux aussi prendre la barre de ta galère.'),
+        C3.secours ? null : h('button', { class: 'btn' + (libreActif ? ' second' : ''), type: 'button', onclick: bascule }, libreActif ? 'Arrêter la navigation libre' : 'Naviguer librement')],
+      [bouton('Revenir à mon carnet de bord', () => { navigationLibre(false); ouvrirFin(); })]);
+    }
+    revoirCarte2();
   }
   function imprimer() { remplirImpression(); window.print(); }
   function remplirImpression() {
@@ -776,6 +783,40 @@
         h('button', { class: 'btn second', type: 'button', onclick: fermerModal }, 'Annuler'))]);
   }
 
+  /* ---------- Sources et crédits ---------- */
+  const credits = () => h('details', { class: 'credits' }, h('summary', null, 'Sources et crédits'), h('ul', null,
+    h('li', null, 'Textes et questions : d\'après la fiche « PPO : Venise, grande puissance maritime et commerciale » (entretien avec Philippe Braunstein, Les Collections de L\'Histoire, n° 71, 2016).'),
+    h('li', null, 'Personnages : imaginés ; ce qu\'ils racontent s\'appuie sur la fiche et sur les travaux d\'historiens du commerce vénitien.'),
+    h('li', null, 'Gravure de Venise (XVIe siècle) : © The Hebrew University of Jerusalem & The Jewish National & University Library.'),
+    h('li', null, 'Trait de côte : Natural Earth (domaine public). Relief exagéré et villes symboliques : reconstitution simplifiée.'),
+    h('li', null, 'Moteur 3D : three.js (licence MIT).')));
+
+  /* ---------- Navigation libre ---------- */
+  let libreActif = false, dernierEchouage = 0;
+  function navigationLibre(actif) {
+    libreActif = actif;
+    C3.navigationLibre(actif);
+    $('#dpad').hidden = !actif; $('#aide-libre').hidden = !actif;
+    $('#view').classList.toggle('libre', actif);
+    document.querySelectorAll('#dpad button').forEach(b => b.classList.remove('on'));
+  }
+  C3.surEchouage = () => { const t = Date.now(); if (t - dernierEchouage > 3000) { dernierEchouage = t; toast('Attention, la côte ! Fais demi-tour.'); } };
+  const TOUCHES = { ArrowUp: 'avant', z: 'avant', w: 'avant', ArrowDown: 'arriere', s: 'arriere', ArrowLeft: 'gauche', q: 'gauche', a: 'gauche', ArrowRight: 'droite', d: 'droite', Shift: 'vite' };
+  function toucheLibre(e, etat) {
+    if (!libreActif || /INPUT|TEXTAREA/.test(e.target.tagName || '')) return;
+    const k = TOUCHES[e.key.length === 1 ? e.key.toLowerCase() : e.key]; if (!k) return;
+    e.preventDefault(); C3.commande[k] = etat;
+    const b = document.querySelector('#dpad [data-k="' + k + '"]'); if (b) b.classList.toggle('on', etat);
+  }
+  document.addEventListener('keydown', e => toucheLibre(e, true));
+  document.addEventListener('keyup', e => toucheLibre(e, false));
+  document.querySelectorAll('#dpad button').forEach(b => {
+    const k = b.dataset.k;
+    const on = e => { e.preventDefault(); if (k === 'vite') { C3.commande.vite = !C3.commande.vite; b.classList.toggle('on', C3.commande.vite); return; } C3.commande[k] = true; b.classList.add('on'); try { b.setPointerCapture(e.pointerId); } catch (x) { /* rien */ } };
+    const off = () => { if (k === 'vite') return; C3.commande[k] = false; b.classList.remove('on'); };
+    b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('lostpointercapture', off);
+  });
+
   /* ---------- Aide, plein écran ---------- */
   function ouvrirAide() {
     ouvrirModal([
@@ -785,7 +826,8 @@
       h('div', { class: 'actions' },
         h('button', { class: 'btn', type: 'button', onclick: fermerModal }, "C'est compris"),
         h('button', { class: 'btn second', type: 'button', onclick: () => { fermerModal(); C3.vue('ensemble'); } }, "Vue d'ensemble de la carte"),
-        E && E.phase === 'port' ? h('button', { class: 'btn second', type: 'button', onclick: () => { fermerModal(); C3.vue('port', { port: E.port }); } }, 'Revenir au port') : null)
+        E && E.phase === 'port' ? h('button', { class: 'btn second', type: 'button', onclick: () => { fermerModal(); C3.vue('port', { port: E.port }); } }, 'Revenir au port') : null),
+      credits()
     ]);
   }
   const fs = $('#b-fs');
@@ -797,7 +839,7 @@
   document.addEventListener('fullscreenchange', () => { fs.textContent = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran'; });
 
   /* ---------- Démarrage ---------- */
-  function montrerJeu() { $('#ecran-intro').hidden = true; $('#legende').hidden = false; }
+  function montrerJeu() { $('#ecran-intro').hidden = true; $('#legende').hidden = !!C3.secours; }
   function afficherIntro() {
     const s = charger();
     const cont = $('#intro-contenu'); cont.innerHTML = '';
@@ -844,11 +886,17 @@
   function demarrer() {
     try {
       C3.init($('#scene'), { surClicPort: clicPort });
+      $('#chargement').hidden = true;
     } catch (err) {
-      $('#chargement').innerHTML = '<div class="load-card"><p class="load-kicker">Carte 3D indisponible</p><p class="load-title">Cet ordinateur ne peut pas afficher la 3D.</p><p>Essaie avec une version récente de Chrome, Firefox, Edge ou Safari.</p></div>';
-      throw err;
+      // Pas de 3D (WebGL bloqué ou absent) : le voyage reste possible avec une carte fixe.
+      C3.modeSecours();
+      const ch = $('#chargement'); ch.className = 'fallback'; ch.innerHTML = '';
+      ch.append(h('div', null,
+        h('p', null, h('b', null, 'La carte en 3D ne peut pas s\'afficher sur cet ordinateur.'), ' Le voyage reste possible : suis les étapes dans le panneau.'),
+        h('img', { src: 'img/carte-secours.jpg', alt: 'Carte des routes des galères vénitiennes en Méditerranée, avec les escales' })));
+      $('#badge').hidden = true;
+      if (window.console) console.warn('Mode de secours sans 3D :', err && err.message);
     }
-    $('#chargement').hidden = true;
     afficherIntro();
   }
   requestAnimationFrame(() => setTimeout(demarrer, 40));
