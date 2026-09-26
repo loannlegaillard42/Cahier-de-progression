@@ -103,13 +103,16 @@
     return s + '</svg>';
   }
 
+  // portrait rendu en 3D (si la 3D fonctionne), sinon portrait dessiné
+  const portrait = p => S.portraits && S.portraits[p.id] ? '<img src="' + S.portraits[p.id] + '" alt="">' : visage(p.look);
+
   /* ---------- Dialogues ---------- */
   function blocPersonnages(ids) {
     if (!ids.length) return null;
     return h('div', { class: 'npcs' }, ids.map(id => {
       const p = persoDe(id), met = !!E.rencontres[id], vus = (E.sujetsVus[id] || []).length;
       return h('button', { type: 'button', class: 'npc-btn' + (met ? ' met' : ''), onclick: () => ouvrirDialogue(p) },
-        h('span', { class: 'npc-face', html: visage(p.look) }),
+        h('span', { class: 'npc-face', html: portrait(p) }),
         h('span', { class: 'npc-txt' }, h('b', null, p.nom), h('small', null, p.role)),
         h('span', { class: 'npc-done' }, met ? vus + ' / ' + p.sujets.length : 'Parler'));
     }));
@@ -137,7 +140,7 @@
     dialogue = { p, texte: '' };
     const premiere = !E.rencontres[p.id];
     if (premiere) { E.rencontres[p.id] = true; sauver(); }
-    $('#talk-visage').innerHTML = visage(p.look);
+    $('#talk-visage').innerHTML = portrait(p); S.parle(p.id);
     $('#talk-nom').textContent = p.nom; $('#talk-role').textContent = p.role;
     $('#talk-ecouter').hidden = !PEUT_PARLER; $('#talk-prompt').hidden = true;
     $('#talk').hidden = false; $('#view').classList.add('talking');
@@ -160,7 +163,7 @@
   }
   function fermerDialogue() {
     if (!dialogue) return;
-    stopVoix(); clearInterval(minuteurFrappe); minuteurFrappe = null; dialogue = null;
+    stopVoix(); clearInterval(minuteurFrappe); minuteurFrappe = null; dialogue = null; S.parle(null);
     $('#talk').hidden = true; $('#view').classList.remove('talking');
     if (procheId) montrerInvite(procheId);
   }
@@ -465,7 +468,8 @@
     h('li', null, 'Sermon : phrases tirées d\'une lettre de Bernard de 1146 (lettre 363), en traduction simplifiée ; le texte du sermon de Vézelay n\'a pas été conservé.'),
     h('li', null, 'Personnages : Louis VII, Aliénor, Odon de Deuil et Éphraïm de Bonn ont existé ; les autres sont imaginés. Ce qu\'ils racontent s\'appuie sur les sources de l\'époque et les travaux d\'historiens.'),
     h('li', null, 'Itinéraires de la croisade : d\'après Odon de Deuil et J. Phillips, The Second Crusade (2007) ; tracés simplifiés. Fond de carte : Natural Earth (domaine public).'),
-    h('li', null, 'Colline, basilique et foule : reconstitution imaginée et simplifiée. Moteur 3D : three.js (licence MIT).')));
+    h('li', null, 'Colline, basilique et foule : reconstitution imaginée et simplifiée. La basilique est montrée telle qu\'on la suppose vers 1146 : nef romane achevée, avant-nef et tours encore en chantier, chœur roman (l\'actuel chœur gothique date de 1185-1215).'),
+    h('li', null, 'Personnages, costumes, décors et textures sont modélisés directement dans le navigateur. Moteur 3D : three.js (licence MIT).')));
 
   /* ---------- Aide, plein écran ---------- */
   function ouvrirAide() {

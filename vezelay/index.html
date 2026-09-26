@@ -99,7 +99,7 @@
   .talk-head { display: flex; align-items: center; gap: 12px; }
   .talk-face, .npc-face { flex: none; border-radius: 50%; overflow: hidden; background: #E9DCC2; }
   .talk-face { width: 56px; height: 56px; border: 2px solid #E3B67A; }
-  .talk-face svg, .npc-face svg { display: block; width: 100%; height: 100%; }
+  .talk-face svg, .npc-face svg, .talk-face img, .npc-face img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .talk-id { flex: 1; min-width: 0; }
   .talk-name { margin: 0; font-size: 18px; font-weight: 700; color: #E3B67A; }
   .talk-role { margin: 0; font-size: 13px; color: #C9D8DC; }
@@ -363,6 +363,7 @@
 <script src="europe.js"></script>
 <script src="carte.js"></script>
 <script src="donnees.js"></script>
+<script src="modeles.js"></script>
 <script src="scene3d.js"></script>
 <script src="jeu.js"></script>
 </body>
