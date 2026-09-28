@@ -89,13 +89,13 @@ from shapely.geometry import LineString as _LS, box as _box
 _EXT = _box(-1900, -1300, 1520, 1620)
 grat = []
 for lon in range(-10, 40, 5):
-    l = _LS([P(lon, la / 4) for la in range(33 * 4, 64 * 4)]).intersection(_EXT)
+    l = _LS([P(lon, la) for la in range(33, 64)]).intersection(_EXT)
     for m in ([l] if l.geom_type == 'LineString' else list(getattr(l, 'geoms', []))):
-        if m.length > 50: grat.append([[round(x, 1), round(y, 1)] for x, y in m.coords])
+        if m.length > 50: grat.append([[round(x), round(y)] for x, y in m.coords])
 for lat in range(35, 65, 5):
-    l = _LS([P(lo / 4, lat) for lo in range(-14 * 4, 40 * 4)]).intersection(_EXT)
+    l = _LS([P(lo, lat) for lo in range(-14, 40)]).intersection(_EXT)
     for m in ([l] if l.geom_type == 'LineString' else list(getattr(l, 'geoms', []))):
-        if m.length > 50: grat.append([[round(x, 1), round(y, 1)] for x, y in m.coords])
+        if m.length > 50: grat.append([[round(x), round(y)] for x, y in m.coords])
 topo = json.load(open('europe.topo.json'))
 eaux = json.load(open('eaux.json'))
 js = ['/* Carte de l\'Europe 1812 / 1815 — données (projection azimutale équivalente de Lambert, unités : km, y vers le bas).',

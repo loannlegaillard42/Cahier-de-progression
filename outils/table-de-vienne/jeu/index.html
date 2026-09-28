@@ -69,7 +69,8 @@
   .stage { min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) clamp(340px, 31vw, 520px); }
   .view { position: relative; min-height: 0; overflow: hidden; background: var(--mer); }
   #carte { position: absolute; inset: 0; }
-  .carte-svg { display: block; width: 100%; height: 100%; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; }
+  .carte-svg { display: block; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; will-change: transform; }
+  #carte { touch-action: none; }
   .carte-svg:active { cursor: grabbing; }
   .et { font-family: var(--fell-sc); fill: var(--encre); stroke: var(--papier); paint-order: stroke; stroke-linejoin: round; pointer-events: none; }
   .et-b { font-family: var(--fell); font-style: italic; }
@@ -79,14 +80,8 @@
   .niv1 .ville-nom { font-size: 13px; font-weight: 700; }
   .marq { pointer-events: none; }
   .marq-texte { font: 700 12px var(--font); fill: #22313A; stroke: #FFFFFF; stroke-width: 3px; paint-order: stroke; }
-  .marq-onde { fill: none; stroke: #C0492B; stroke-width: 2.5; animation: onde 1.8s ease-out infinite; transform-origin: 0 0; }
-  @keyframes onde { from { transform: scale(.5); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
   .a-negocier { cursor: pointer; }
   .a-negocier:hover { filter: brightness(.95); }
-  .pointille { animation: pointille 1.2s linear infinite; }
-  @keyframes pointille { to { stroke-dashoffset: -20; } }
-  .surbrillance { animation: halo 1.8s ease-in-out infinite; }
-  @keyframes halo { 50% { stroke-opacity: .35; } }
   .carte-info { position: absolute; left: 0; top: 0; z-index: 4; max-width: 260px; padding: 5px 10px; border-radius: 8px; background: rgb(15 36 43 / .9); color: #FBF7EF; font-size: 13px; pointer-events: none; }
   .carte-ctrl { position: absolute; right: 12px; top: 12px; z-index: 3; display: flex; flex-direction: column; gap: 6px; }
   .carte-ctrl button { width: 40px; height: 40px; border-radius: 10px; border: 1.5px solid #C9BFA8; background: rgb(251 248 240 / .95); color: #22313A; font-size: 20px; font-weight: 700; line-height: 1; box-shadow: 0 1px 4px rgb(0 0 0 / .15); }
@@ -362,7 +357,7 @@
     .bascule button { padding: 6px 9px; font-size: 13px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .npc-btn:not(.met), .pointille, .surbrillance, .marq-onde { animation: none; }
+    .npc-btn:not(.met) { animation: none; }
     .j-barre i { transition: none; }
   }
   @media print {

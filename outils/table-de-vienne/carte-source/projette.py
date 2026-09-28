@@ -45,7 +45,7 @@ for i, c in enumerate(CELLS):
 print('faces :', len(faces), ' interstices rattachés :', rattachees, '/', len(orphelines), ' (%.1fs)' % (time.time() - t0))
 
 # 1) petits morceaux : rattachés à la cellule voisine (frontière commune la plus longue) ou supprimés (îlots)
-SEUIL_ENCLAVE, SEUIL_ILE = 40.0, 25.0
+SEUIL_ENCLAVE, SEUIL_ILE = 40.0, 120.0
 morceaux = []
 for i, c in enumerate(CELLS):
     for p in parts(c['g']):
@@ -102,18 +102,20 @@ NOMS_FLEUVES = {'Rhine': 'Rhin', 'Rhein': 'Rhin', 'Danube': 'Danube', 'Donau': '
                 'Dnieper': 'Dniepr', 'Dnepr': 'Dniepr', 'Dniester': 'Dniestr', 'Neman': 'Niémen', 'Nemunas': 'Niémen', 'Weser': 'Weser', 'Main': 'Main', 'Moselle': 'Moselle', 'Mosel': 'Moselle',
                 'Meuse': 'Meuse', 'Maas': 'Meuse', 'Warta': 'Warta', 'Bug': 'Bug', 'Sava': 'Save', 'Drava': 'Drave', 'Tisza': 'Tisza', 'Inn': 'Inn', 'Thames': 'Tamise', 'Guadalquivir': 'Guadalquivir',
                 'Dvina': 'Dvina', 'Daugava': 'Dvina', 'Western Dvina': 'Dvina', 'Prut': 'Prut', 'Siret': 'Siret', 'Morava': 'Morava', 'Adige': 'Adige', 'Tiber': 'Tibre', 'Tevere': 'Tibre', 'Neckar': 'Neckar', 'Saale': 'Saale', 'Pripyat': 'Pripiat', 'Narew': 'Narew', 'San': 'San', 'Mures': 'Mureș', 'Olt': 'Olt'}
+GARDES = {'Rhin', 'Danube', 'Elbe', 'Oder', 'Vistule', 'Pô', 'Rhône', 'Seine', 'Loire', 'Garonne', 'Tage', 'Èbre', 'Dniepr', 'Dniestr', 'Niémen', 'Weser', 'Main', 'Moselle', 'Meuse', 'Save', 'Tisza', 'Bug', 'Tamise', 'Tibre'}
 lignes = {}
 for f in charge('ne_10m_rivers_lake_centerlines.geojson') + charge('ne_10m_rivers_europe.geojson'):
     p = f['properties']; n = p.get('name') or p.get('name_en') or ''
     if n not in NOMS_FLEUVES: continue
+    if NOMS_FLEUVES[n] not in GARDES: continue
     g = shape(f['geometry'])
     if not g.intersects(box(-12, 33, 38, 63)): continue
     lignes.setdefault(NOMS_FLEUVES[n], []).append(proj(g))
 fleuves = []
 for n, gs in lignes.items():
-    g = unary_union(gs).intersection(EXT).simplify(1.2)
+    g = unary_union(gs).intersection(EXT).simplify(3.0)
     ls = [g] if g.geom_type == 'LineString' else [x for x in getattr(g, 'geoms', []) if x.geom_type == 'LineString']
-    pts = [[[round(x, 1), round(-y, 1)] for x, y in l.coords] for l in ls if l.length > 15]
+    pts = [[[round(x), round(-y)] for x, y in l.coords] for l in ls if l.length > 30]
     if pts: fleuves.append({'n': n, 'l': pts})
 lacs = []
 for f in charge('ne_50m_lakes.geojson'):
@@ -121,7 +123,7 @@ for f in charge('ne_50m_lakes.geojson'):
     if not g.intersects(box(-12, 33, 38, 63)): continue
     g = proj(g).buffer(0).intersection(EXT).simplify(0.8)
     for p in parts(g):
-        if p.area < 60: continue
-        lacs.append([[round(x, 1), round(-y, 1)] for x, y in p.exterior.coords])
+        if p.area < 150: continue
+        lacs.append([[round(x), round(-y)] for x, y in p.simplify(1.5).exterior.coords])
 json.dump({'fleuves': fleuves, 'lacs': lacs}, open('eaux.json', 'w'))
 print('fleuves :', sorted(f['n'] for f in fleuves), ' lacs :', len(lacs))

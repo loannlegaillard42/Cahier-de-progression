@@ -2,7 +2,9 @@
    Les données sont dans carte-donnees.js : window.EUROPE (TopoJSON des cellules historiques),
    EAUX (fleuves, lacs), VILLES, ETIQUETTES, ZONES. Coordonnées en km (y vers le bas).
    Une « cellule » est un morceau de territoire qui a un propriétaire en 1812 (propriété a),
-   en 1815 (b), et éventuellement un dossier de négociation (d) et un groupe (g). */
+   en 1815 (b), et éventuellement un dossier de négociation (d) et un groupe (g).
+   Fluidité : pendant un glisser ou un zoom, on déplace l'image déjà dessinée (transformation CSS,
+   traitée par la carte graphique) ; la carte n'est redessinée qu'à la fin du geste. */
 (function () {
   'use strict';
   const NS = 'http://www.w3.org/2000/svg';
@@ -11,8 +13,8 @@
   const PAR_ID = {};
   GEOMS.forEach(g => { PAR_ID[g.id] = g; });
 
-  /* ---------- Palette : une carte gravée et coloriée à la main ---------- */
-  const PAPIER = '#F2EBDA', MER = '#D2E0DF', MER_TRAIT = '#A9C3C2', ENCRE = '#3D3832', ROUGE = '#C0492B';
+  /* ---------- Palette : une carte gravée et coloriée ---------- */
+  const PAPIER = '#F2EBDA', MER = '#D2E0DF', MER_TRAIT = '#B7CDCC', ENCRE = '#3D3832', ROUGE = '#C0492B';
   const COUL = {
     FRA: '#6F7FC4', GBR: '#D27389', AUT: '#DDAA2E', PRU: '#4F7FA3', RUS: '#7FA766', POL: '#A9C98C', KRA: '#B98FC0',
     ESP: '#D9985E', POR: '#8DBF82', NLD: '#EC7F2D', SUI: '#B8473D', SAR: '#5FAFA8', PAR: '#B3A1D6', MOD: '#93C5A0',
@@ -53,22 +55,21 @@
     if (mode === '1812') { const s = STATUT_1812[o]; return s ? COUL_1812[s] : '#999'; }
     return COUL[o] || '#999';
   }
+  const teinte = (o, mode, coul) => melange(coul, mode === '1812' && o === 'EMP' ? .66 : .5);
 
   /* ---------- Tracés ---------- */
-  const r1 = v => Math.round(v * 10) / 10;
+  const r0 = v => Math.round(v * 2) / 2;
   function dPoly(geom) {
     if (!geom) return '';
     const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.type === 'MultiPolygon' ? geom.coordinates : [];
     let s = '';
-    for (const p of polys) for (const ring of p) {
-      s += 'M' + ring.map(pt => r1(pt[0]) + ' ' + r1(pt[1])).join('L') + 'Z';
-    }
+    for (const p of polys) for (const ring of p) s += 'M' + ring.map(pt => r0(pt[0]) + ' ' + r0(pt[1])).join('L') + 'Z';
     return s;
   }
   function dLignes(geom) {
     if (!geom) return '';
     const ls = geom.type === 'LineString' ? [geom.coordinates] : geom.coordinates;
-    return ls.map(l => 'M' + l.map(pt => r1(pt[0]) + ' ' + r1(pt[1])).join('L')).join('');
+    return ls.map(l => 'M' + l.map(pt => r0(pt[0]) + ' ' + r0(pt[1])).join('L')).join('');
   }
   const dSuite = pts => 'M' + pts.map(p => p[0] + ' ' + p[1]).join('L');
   function el(tag, attrs, parent) {
@@ -86,36 +87,45 @@
   }
   const cellulesDe = (dossier, grp) => GEOMS.filter(g => g.properties.d === dossier && (!grp || g.properties.g === grp)).map(g => g.id);
   const fusion = ids => tj.merge(TOPO, ids.map(id => PAR_ID[id]));
+  // les tracés déjà calculés sont gardés en mémoire : changer une proposition ne recalcule que ce qui change
+  const cacheTraces = new Map();
+  function dFusion(ids) {
+    const k = ids.join(',');
+    let d = cacheTraces.get(k);
+    if (d === undefined) { d = dPoly(fusion(ids)); cacheTraces.set(k, d); }
+    return d;
+  }
 
   /* ---------- État de la carte ---------- */
   const EXT = ZONES.cadres.europe;          // [x0, y0, x1, y1]
   const LARG_REF = EXT[2] - EXT[0];
-  let hote, svg, defs, gRoot, calques = {}, tip, vb = { x: EXT[0], y: EXT[1], w: EXT[2] - EXT[0], h: EXT[3] - EXT[1] };
+  const MARGE = .25;                         // l'image déborde de 25 % de chaque côté : rien de vide pendant un glisser
+  let hote, svg, defs, gRoot, calques = {}, tip;
+  let vb = { x: EXT[0], y: EXT[1], w: EXT[2] - EXT[0], h: EXT[3] - EXT[1] };   // vue dessinée
+  let vv = null;                                                              // vue pendant un geste
   let etat = { mode: '1815', proprio: null, indecis: [], allemagne: 'confed', actif: null, villes3: [], marqueurs: [] };
-  let pxW = 800, pxH = 600;
-  let identifiant = 0;
+  let pxW = 800, pxH = 600, signature = '', sigVilles = '', dernierW = 0;
 
   function init(h, opts) {
     hote = h; opts = opts || {};
-    svg = el('svg', { class: 'carte-svg', role: 'img', 'aria-label': opts.label || "Carte de l'Europe", preserveAspectRatio: 'xMidYMid meet' });
+    svg = el('svg', { class: 'carte-svg', role: 'img', 'aria-label': opts.label || "Carte de l'Europe", preserveAspectRatio: 'none' });
     defs = el('defs', null, svg);
     // hachures des territoires à négocier
     const pat = el('pattern', { id: 'hachures', patternUnits: 'userSpaceOnUse', width: 14, height: 14, patternTransform: 'rotate(45)' }, defs);
     el('rect', { width: 14, height: 14, fill: '#F6EFE0' }, pat);
-    el('line', { x1: 0, y1: 0, x2: 0, y2: 14, stroke: ROUGE, 'stroke-width': 4.5, 'stroke-opacity': .55 }, pat);
+    el('line', { x1: 0, y1: 0, x2: 0, y2: 14, stroke: ROUGE, 'stroke-width': 4.5, 'stroke-opacity': .5 }, pat);
     gRoot = el('g', null, svg);
-    for (const n of ['mer', 'grille', 'lignesEau', 'terre', 'etats', 'liseres', 'lacs', 'fleuves', 'frontieres', 'confed', 'hachures', 'cote', 'actif', 'villes', 'etiquettes', 'marqueurs']) {
-      calques[n] = el('g', { class: 'c-' + n }, gRoot);
+    for (const n of ['mer', 'grille', 'halo', 'etats', 'lacs', 'fleuves', 'frontieres', 'confed', 'hachures', 'cote', 'actif', 'villes', 'etiquettes', 'marqueurs']) {
+      // seuls les États et les zones hachurées réagissent à la souris : le reste est ignoré par le navigateur
+      calques[n] = el('g', { class: 'c-' + n, 'pointer-events': n === 'etats' || n === 'hachures' ? null : 'none' }, gRoot);
     }
-    el('rect', { x: EXT[0] - 2000, y: EXT[1] - 2000, width: LARG_REF + 4000, height: (EXT[3] - EXT[1]) + 4000, fill: MER }, calques.mer);
-    for (const l of ZONES.graticule) el('path', { d: dSuite(l), fill: 'none', stroke: '#9DB7B6', 'stroke-width': .6, 'stroke-dasharray': '3 3', 'vector-effect': 'non-scaling-stroke', opacity: .7 }, calques.grille);
-    // côtes (lignes d'eau gravées), terre, lacs, fleuves : ne changent jamais
+    el('rect', { x: EXT[0] - 3000, y: EXT[1] - 3000, width: LARG_REF + 6000, height: (EXT[3] - EXT[1]) + 6000, fill: MER }, calques.mer);
+    el('path', { d: ZONES.graticule.map(dSuite).join(''), fill: 'none', stroke: '#A9C1C0', 'stroke-width': .6, 'vector-effect': 'non-scaling-stroke' }, calques.grille);
+    // côtes, lacs, fleuves : ne changent jamais
     const cote = dLignes(tj.mesh(TOPO, OBJ, (a, b) => a === b));
-    [[15, MER_TRAIT, .35], [12, MER, 1], [9, MER_TRAIT, .45], [6.5, MER, 1], [4, MER_TRAIT, .6]].forEach(([w, c, o]) =>
-      el('path', { d: cote, fill: 'none', stroke: c, 'stroke-width': w, 'stroke-opacity': o, 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }, calques.lignesEau));
-    el('path', { d: dPoly(tj.merge(TOPO, GEOMS)), fill: PAPIER }, calques.terre);
-    for (const l of EAUX.lacs) el('path', { d: dSuite(l) + 'Z', fill: MER, stroke: '#7F9E9D', 'stroke-width': .6, 'vector-effect': 'non-scaling-stroke' }, calques.lacs);
-    for (const f of EAUX.fleuves) for (const l of f.l) el('path', { d: dSuite(l), fill: 'none', stroke: '#7FA6B5', 'stroke-width': .9, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke', opacity: .85 }, calques.fleuves);
+    el('path', { d: cote, fill: 'none', stroke: MER_TRAIT, 'stroke-width': 7, 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }, calques.halo);
+    el('path', { d: EAUX.lacs.map(l => dSuite(l) + 'Z').join(''), fill: MER, stroke: '#7F9E9D', 'stroke-width': .6, 'vector-effect': 'non-scaling-stroke' }, calques.lacs);
+    el('path', { d: EAUX.fleuves.map(f => f.l.map(dSuite).join('')).join(''), fill: 'none', stroke: '#86A9B7', 'stroke-width': .9, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }, calques.fleuves);
     el('path', { d: cote, fill: 'none', stroke: '#5E6E6C', 'stroke-width': .8, 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }, calques.cote);
     hote.appendChild(svg);
     tip = document.createElement('div'); tip.className = 'carte-info'; tip.hidden = true; hote.appendChild(tip);
@@ -125,35 +135,41 @@
     else window.addEventListener('resize', redimensionner);
   }
 
-  /* ---------- Rendu des États ---------- */
+  /* ---------- Rendu des États (seulement si quelque chose a changé) ---------- */
   function afficher(e) {
     etat = Object.assign({}, etat, e);
     const mode = etat.mode;
     const proprio = mode === 'jeu' ? etat.proprio : proprietaires(mode);
-    etat.proprioCourant = proprio;
     const indecis = new Set(mode === 'jeu' ? (etat.indecis || []) : []);
+    const sig = mode + '|' + (mode === 'jeu' ? JSON.stringify(proprio) + '|' + [...indecis].join(',') + '|' + etat.allemagne : '');
+    let change = false;
+    if (sig !== signature) {
+      signature = sig; change = true;
+      dessinerEtats(mode, proprio, indecis);
+    }
+    surligner(etat.actif || null);
+    const sv = (etat.villes3 || []).join(',');
+    if (sv !== sigVilles || change) { sigVilles = sv; villes(); change = true; }
+    if (change) majEchelle(true);
+  }
+  function dessinerEtats(mode, proprio, indecis) {
     const parProprio = {};
     for (const g of GEOMS) {
       if (indecis.has(g.properties.d) && g.properties.d !== 'allemagne') continue;
       const o = proprio[g.id];
       (parProprio[o] = parProprio[o] || []).push(g.id);
     }
-    for (const n of ['etats', 'liseres', 'frontieres', 'confed', 'hachures', 'actif', 'etiquettes']) calques[n].replaceChildren();
-    defs.querySelectorAll('clipPath').forEach(c => c.remove());
-    identifiant++;
+    for (const n of ['etats', 'frontieres', 'confed', 'hachures', 'etiquettes']) calques[n].replaceChildren();
     for (const o in parProprio) {
       const coul = couleurDe(o, mode);
       if (!coul) continue;
-      const d = dPoly(fusion(parProprio[o]));
-      el('path', { d, fill: melange(coul, mode === '1812' && o === 'EMP' ? .62 : .42), 'data-o': o, class: 'etat' }, calques.etats);
-      const idc = 'cl' + identifiant + '-' + o;
-      const cp = el('clipPath', { id: idc }, defs);
-      el('path', { d }, cp);
-      el('path', { d, fill: 'none', stroke: coul, 'stroke-width': 7, 'stroke-opacity': .9, 'stroke-linejoin': 'round', 'clip-path': 'url(#' + idc + ')', 'vector-effect': 'non-scaling-stroke' }, calques.liseres);
+      el('path', { d: dFusion(parProprio[o]), fill: teinte(o, mode, coul), 'data-o': o }, calques.etats);
     }
-    // frontières entre États différents
+    // frontières entre États différents : un trait doux et large, puis un trait fin
     const own = g => indecis.has(g.properties.d) && g.properties.d !== 'allemagne' ? '?' + g.properties.d : proprio[g.id];
-    el('path', { d: dLignes(tj.mesh(TOPO, OBJ, (a, b) => a !== b && own(a) !== own(b))), fill: 'none', stroke: ENCRE, 'stroke-width': 1, 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke', opacity: .85 }, calques.frontieres);
+    const d = dLignes(tj.mesh(TOPO, OBJ, (a, b) => a !== b && own(a) !== own(b)));
+    el('path', { d, fill: 'none', stroke: 'rgb(70 55 40 / .22)', 'stroke-width': 4, 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }, calques.frontieres);
+    el('path', { d, fill: 'none', stroke: ENCRE, 'stroke-width': 1, 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke', opacity: .85 }, calques.frontieres);
     // Confédération du Rhin (1812) ou Confédération germanique (1815)
     let dansConf = null;
     if (mode === '1812') dansConf = g => /^CDR/.test(g.properties.a);
@@ -167,24 +183,23 @@
       if (dsr === 'allemagne') continue;
       const ids = cellulesDe(dsr);
       if (!ids.length) continue;
-      const d = dPoly(fusion(ids));
-      el('path', { d, fill: 'url(#hachures)', 'data-dossier': dsr, class: 'a-negocier' }, calques.hachures);
-      el('path', { d, fill: 'none', stroke: ROUGE, 'stroke-width': 2, 'stroke-dasharray': '6 4', 'vector-effect': 'non-scaling-stroke', class: 'pointille', 'pointer-events': 'none' }, calques.hachures);
+      const dd = dFusion(ids);
+      el('path', { d: dd, fill: 'url(#hachures)', 'data-dossier': dsr, class: 'a-negocier' }, calques.hachures);
+      el('path', { d: dd, fill: 'none', stroke: ROUGE, 'stroke-width': 2, 'stroke-dasharray': '6 4', 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none' }, calques.hachures);
     }
-    if (etat.actif) surligner(etat.actif);
     etiquettes(proprio, indecis);
-    villes();
-    majMarqueurs();
-    majEchelle();
   }
 
+  let actifCourant = null;
   function surligner(dossier) {
-    calques.actif.replaceChildren();
     etat.actif = dossier;
+    if (dossier === actifCourant && calques.actif.firstChild) return;
+    actifCourant = dossier;
+    calques.actif.replaceChildren();
     if (!dossier) return;
     const ids = dossier === 'allemagne' ? GEOMS.filter(g => g.properties.c).map(g => g.id) : cellulesDe(dossier);
     if (!ids.length) return;
-    el('path', { d: dPoly(fusion(ids)), fill: 'none', stroke: ROUGE, 'stroke-width': 4, 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke', class: 'surbrillance', 'pointer-events': 'none' }, calques.actif);
+    el('path', { d: dFusion(ids), fill: 'none', stroke: ROUGE, 'stroke-width': 3.5, 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke', opacity: .9 }, calques.actif);
   }
 
   /* ---------- Étiquettes et villes ---------- */
@@ -221,97 +236,118 @@
     const v3 = new Set(etat.villes3 || []);
     for (const v of VILLES) {
       if (v.niv === 3 && !v3.has(v.id)) continue;
-      const g = el('g', { class: 'ville niv' + v.niv, 'data-niv': v.niv, transform: 'translate(' + v.p[0] + ' ' + v.p[1] + ')' }, calques.villes);
+      const g = el('g', { class: 'ville niv' + v.niv, 'data-niv': v.niv, 'data-x': v.p[0], 'data-y': v.p[1] }, calques.villes);
       el('circle', { r: v.niv === 1 ? 3.2 : 2.5, fill: v.niv === 1 ? ENCRE : '#fff', stroke: ENCRE, 'stroke-width': 1.2 }, g);
       const t = el('text', { x: 5, y: -4, class: 'ville-nom' }, g);
       t.textContent = v.n;
     }
   }
 
-  /* ---------- Marqueurs (chronique 1815-1848) ---------- */
-  function marqueurs(liste) { etat.marqueurs = liste || []; majMarqueurs(); majEchelle(); }
+  /* ---------- Marqueurs (Cent-Jours, chronique 1815-1848) ---------- */
+  function marqueurs(liste) { etat.marqueurs = liste || []; majMarqueurs(); majEchelle(true); }
   function majMarqueurs() {
     calques.marqueurs.replaceChildren();
     const parVille = {};
     for (const v of VILLES) parVille[v.id] = v;
     for (const m of etat.marqueurs) {
       const v = parVille[m.ville]; if (!v) continue;
-      const g = el('g', { class: 'marq ' + m.type + (m.actif ? ' actif' : ''), transform: 'translate(' + v.p[0] + ' ' + v.p[1] + ')' }, calques.marqueurs);
-      const inner = el('g', { class: 'marq-in' }, g);
-      if (m.actif) el('circle', { r: 16, class: 'marq-onde' }, inner);
-      if (m.type === 'defense') el('rect', { x: -7, y: -7, width: 14, height: 14, rx: 2, transform: 'rotate(45)', fill: '#1F4E5F', stroke: '#fff', 'stroke-width': 2 }, inner);
-      else el('circle', { r: m.actif ? 9 : 8, fill: m.type === 'neutre' && !m.actif ? '#8A7F6A' : ROUGE, stroke: '#fff', 'stroke-width': 2 }, inner);
+      const g = el('g', { class: 'marq', 'data-x': v.p[0], 'data-y': v.p[1] }, calques.marqueurs);
+      if (m.actif) el('circle', { r: 15, fill: 'none', stroke: ROUGE, 'stroke-width': 2.5, opacity: .55 }, g);
+      if (m.type === 'defense') el('rect', { x: -7, y: -7, width: 14, height: 14, rx: 2, transform: 'rotate(45)', fill: '#1F4E5F', stroke: '#fff', 'stroke-width': 2 }, g);
+      else el('circle', { r: m.actif ? 9 : 8, fill: m.type === 'neutre' && !m.actif ? '#8A7F6A' : ROUGE, stroke: '#fff', 'stroke-width': 2 }, g);
       if (m.texte) {
-        const t = el('text', { x: -12, y: 5, 'text-anchor': 'end', class: 'marq-texte' }, inner);
+        const t = el('text', { x: -12, y: 5, 'text-anchor': 'end', class: 'marq-texte' }, g);
         t.textContent = m.texte;
       }
     }
   }
 
-  /* ---------- Échelle : tailles constantes à l'écran ---------- */
-  function majEchelle() {
+  /* ---------- Échelle : tailles constantes à l'écran (recalculées seulement quand le zoom change) ---------- */
+  function majEchelle(force) {
     if (!svg) return;
+    if (!force && Math.abs(vb.w - dernierW) < 1e-6) return;
+    dernierW = vb.w;
     const upp = vb.w / pxW;              // km par pixel
     const k = LARG_REF / vb.w;           // 1 = toute l'Europe
-    // hachures : même écartement à l'écran, quel que soit le zoom
     const pat = defs.querySelector('#hachures');
-    if (pat) {
-      const t = (11 * upp).toFixed(3);
-      pat.setAttribute('width', t); pat.setAttribute('height', t);
-      pat.firstChild.setAttribute('width', t); pat.firstChild.setAttribute('height', t);
-      pat.lastChild.setAttribute('y2', t); pat.lastChild.setAttribute('stroke-width', (3.4 * upp).toFixed(3));
-    }
+    const t = (11 * upp).toFixed(3);
+    pat.setAttribute('width', t); pat.setAttribute('height', t);
+    pat.firstChild.setAttribute('width', t); pat.firstChild.setAttribute('height', t);
+    pat.lastChild.setAttribute('y2', t); pat.lastChild.setAttribute('stroke-width', (3.4 * upp).toFixed(3));
     // sur une petite carte (téléphone), les noms d'États rapetissent pour ne pas se chevaucher
     const fk = Math.min(1.75, Math.max(.8, Math.sqrt(k))) * Math.min(1, Math.max(.62, pxW / 880));
-    calques.etiquettes.querySelectorAll('text').forEach(t => {
-      const s = parseFloat(t.dataset.s) || 1;
-      const style = t.classList.contains('et-A') ? 'A' : t.classList.contains('et-q') ? 'q' : 'b';
+    for (const tx of calques.etiquettes.children) {
+      const s = parseFloat(tx.dataset.s) || 1;
+      const style = tx.classList.contains('et-A') ? 'A' : tx.classList.contains('et-q') ? 'q' : 'b';
       const px = (style === 'A' ? 14 : 13) * s * fk;
-      t.style.display = px < 7.2 ? 'none' : '';
-      t.setAttribute('font-size', (px * upp).toFixed(2));
-      t.setAttribute('stroke-width', ((style === 'q' ? 4 : 3) * upp).toFixed(2));
-      t.setAttribute('letter-spacing', style === 'A' ? (px * .14 * upp).toFixed(2) : 0);
-    });
-    calques.villes.querySelectorAll('.ville').forEach(g => {
+      tx.style.display = px < 7.2 ? 'none' : '';
+      tx.setAttribute('font-size', (px * upp).toFixed(2));
+      tx.setAttribute('stroke-width', ((style === 'q' ? 4 : 3) * upp).toFixed(2));
+      tx.setAttribute('letter-spacing', style === 'A' ? (px * .14 * upp).toFixed(2) : 0);
+    }
+    const sc = ' scale(' + upp.toFixed(4) + ')';
+    for (const g of calques.villes.children) {
       const niv = +g.dataset.niv;
-      const vis = niv === 1 || niv === 3 || k >= 1.9;
-      g.style.display = vis ? '' : 'none';
-      const inner = g.firstChild;
-      g.setAttribute('transform', g.getAttribute('transform').replace(/ scale\([^)]*\)/, '') + ' scale(' + upp.toFixed(3) + ')');
-      if (inner) { /* rien : l'échelle du groupe suffit */ }
-    });
-    calques.marqueurs.querySelectorAll('.marq').forEach(g => {
-      g.setAttribute('transform', g.getAttribute('transform').replace(/ scale\([^)]*\)/, '') + ' scale(' + upp.toFixed(3) + ')');
-    });
+      g.style.display = niv === 1 || niv === 3 || k >= 1.9 ? '' : 'none';
+      g.setAttribute('transform', 'translate(' + g.dataset.x + ' ' + g.dataset.y + ')' + sc);
+    }
+    for (const g of calques.marqueurs.children) g.setAttribute('transform', 'translate(' + g.dataset.x + ' ' + g.dataset.y + ')' + sc);
   }
 
-  /* ---------- Vue : zoom et déplacement ---------- */
-  function appliquerVue() {
-    svg.setAttribute('viewBox', vb.x.toFixed(2) + ' ' + vb.y.toFixed(2) + ' ' + vb.w.toFixed(2) + ' ' + vb.h.toFixed(2));
+  /* ---------- Vue : dessin et gestes ---------- */
+  function poserSvg() {
+    // l'élément SVG est plus grand que la zone visible (MARGE de chaque côté)
+    Object.assign(svg.style, { position: 'absolute', left: (-MARGE * pxW) + 'px', top: (-MARGE * pxH) + 'px', width: (pxW * (1 + 2 * MARGE)) + 'px', height: (pxH * (1 + 2 * MARGE)) + 'px', transformOrigin: (MARGE * pxW) + 'px ' + (MARGE * pxH) + 'px' });
+  }
+  function dessinerVue() {
+    svg.style.transform = '';
+    svg.setAttribute('viewBox', (vb.x - MARGE * vb.w).toFixed(2) + ' ' + (vb.y - MARGE * vb.h).toFixed(2) + ' ' + (vb.w * (1 + 2 * MARGE)).toFixed(2) + ' ' + (vb.h * (1 + 2 * MARGE)).toFixed(2));
     majEchelle();
+  }
+  function montrerGeste() {
+    // la vue « virtuelle » vv est obtenue en transformant l'image déjà dessinée (vb)
+    const s = vb.w / vv.w;
+    const tx = (vb.x - vv.x) * pxW / vv.w, ty = (vb.y - vv.y) * pxH / vv.h;
+    svg.style.transform = 'translate(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px) scale(' + s.toFixed(4) + ')';
+  }
+  let minuteurFin = null;
+  function commencerGeste() { if (!vv) vv = Object.assign({}, vb); clearTimeout(minuteurFin); }
+  function finirGeste(delai) {
+    clearTimeout(minuteurFin);
+    const fin = () => {
+      if (!vv) return;
+      const pareil = Math.abs(vv.x - vb.x) < 1e-6 && Math.abs(vv.y - vb.y) < 1e-6 && Math.abs(vv.w - vb.w) < 1e-6;
+      vb = vv; vv = null;
+      if (pareil) { svg.style.transform = ''; return; }   // simple clic : rien à redessiner
+      dessinerVue();
+    };
+    if (delai) minuteurFin = setTimeout(fin, delai); else fin();
   }
   function redimensionner() {
     const r = hote.getBoundingClientRect();
     if (r.width < 10 || r.height < 10) return;
+    if (vv) finirGeste();
     const cx = vb.x + vb.w / 2, cy = vb.y + vb.h / 2;
     pxW = r.width; pxH = r.height;
     vb.h = vb.w * pxH / pxW;
     vb.x = cx - vb.w / 2; vb.y = cy - vb.h / 2;
-    borner(); appliquerVue();
+    borner(vb); poserSvg(); dessinerVue(); majEchelle(true);
   }
-  function borner() {
+  function borner(v) {
     const minW = 220, maxW = LARG_REF * 1.15;
-    if (vb.w < minW) { const c = vb.x + vb.w / 2, cy = vb.y + vb.h / 2; vb.w = minW; vb.h = minW * pxH / pxW; vb.x = c - vb.w / 2; vb.y = cy - vb.h / 2; }
-    if (vb.w > maxW) { const c = vb.x + vb.w / 2, cy = vb.y + vb.h / 2; vb.w = maxW; vb.h = maxW * pxH / pxW; vb.x = c - vb.w / 2; vb.y = cy - vb.h / 2; }
-    const mx = EXT[0] - vb.w * .3, Mx = EXT[2] + vb.w * .3 - vb.w, my = EXT[1] - vb.h * .3, My = EXT[3] + vb.h * .3 - vb.h;
-    vb.x = Math.min(Math.max(vb.x, Math.min(mx, Mx)), Math.max(mx, Mx));
-    vb.y = Math.min(Math.max(vb.y, Math.min(my, My)), Math.max(my, My));
+    if (v.w < minW || v.w > maxW) {
+      const c = v.x + v.w / 2, cy = v.y + v.h / 2, w = Math.min(maxW, Math.max(minW, v.w));
+      v.w = w; v.h = w * pxH / pxW; v.x = c - w / 2; v.y = cy - v.h / 2;
+    }
+    const mx = EXT[0] - v.w * .3, Mx = EXT[2] + v.w * .3 - v.w, my = EXT[1] - v.h * .3, My = EXT[3] + v.h * .3 - v.h;
+    v.x = Math.min(Math.max(v.x, Math.min(mx, Mx)), Math.max(mx, Mx));
+    v.y = Math.min(Math.max(v.y, Math.min(my, My)), Math.max(my, My));
   }
-  function zoomAutour(f, px, py) {
-    const ux = vb.x + px / pxW * vb.w, uy = vb.y + py / pxH * vb.h;
-    vb.w /= f; vb.h /= f;
-    vb.x = ux - px / pxW * vb.w; vb.y = uy - py / pxH * vb.h;
-    borner(); appliquerVue();
+  function zoomAutour(v, f, px, py) {
+    const ux = v.x + px / pxW * v.w, uy = v.y + py / pxH * v.h;
+    v.w /= f; v.h /= f;
+    v.x = ux - px / pxW * v.w; v.y = uy - py / pxH * v.h;
+    borner(v);
   }
   const REDUIT = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   let animation = null;
@@ -325,53 +361,64 @@
     let w = (b[2] - b[0]) * (1 + marge * 2), h = (b[3] - b[1]) * (1 + marge * 2);
     if (w / h < pxW / pxH) w = h * pxW / pxH; else h = w * pxH / pxW;
     const but = { x: (b[0] + b[2]) / 2 - w / 2, y: (b[1] + b[3]) / 2 - h / 2, w, h };
+    borner(but);
     cancelAnimationFrame(animation);
-    if (anim === false || REDUIT) { vb = but; borner(); appliquerVue(); return; }
-    const dep = Object.assign({}, vb), t0 = performance.now(), duree = 750;
+    const dep = vv ? Object.assign({}, vv) : Object.assign({}, vb);
+    // un dézoom important ferait apparaître des bords vides : on saute directement
+    if (anim === false || REDUIT || but.w > dep.w * 1.6) { vv = null; vb = but; dessinerVue(); return; }
+    commencerGeste();
+    const t0 = performance.now(), duree = 650;
     const pas = t => {
       const u = Math.min(1, (t - t0) / duree), e = u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
-      // interpolation « logarithmique » de la largeur : le zoom paraît régulier
       const w2 = Math.exp(Math.log(dep.w) + (Math.log(but.w) - Math.log(dep.w)) * e);
       const cx = dep.x + dep.w / 2 + ((but.x + but.w / 2) - (dep.x + dep.w / 2)) * e;
       const cy = dep.y + dep.h / 2 + ((but.y + but.h / 2) - (dep.y + dep.h / 2)) * e;
-      vb = { w: w2, h: w2 * pxH / pxW, x: cx - w2 / 2, y: cy - w2 * pxH / pxW / 2 };
-      appliquerVue();
-      if (u < 1) animation = requestAnimationFrame(pas); else { borner(); appliquerVue(); }
+      vv = { w: w2, h: w2 * pxH / pxW, x: cx - w2 / 2, y: cy - w2 * pxH / pxW / 2 };
+      montrerGeste();
+      if (u < 1) animation = requestAnimationFrame(pas); else { vv = but; finirGeste(); }
     };
     animation = requestAnimationFrame(pas);
   }
 
-  /* ---------- Souris, doigts, clavier ---------- */
+  /* ---------- Souris, doigts ---------- */
   function ecouteurs() {
     const pointeurs = new Map();
-    let dep = null, glisse = false, pince = null;
-    svg.addEventListener('wheel', e => {
+    let dep = null, glisse = false, pince = null, rafSurvol = 0;
+    hote.addEventListener('wheel', e => {
       e.preventDefault();
-      const r = svg.getBoundingClientRect();
-      zoomAutour(Math.exp(-e.deltaY * (e.deltaMode === 1 ? .05 : .0018)), e.clientX - r.left, e.clientY - r.top);
+      cancelAnimationFrame(animation);
+      commencerGeste();
+      const r = hote.getBoundingClientRect();
+      zoomAutour(vv, Math.exp(-e.deltaY * (e.deltaMode === 1 ? .05 : .0018)), e.clientX - r.left, e.clientY - r.top);
+      montrerGeste();
+      finirGeste(180);
     }, { passive: false });
-    svg.addEventListener('pointerdown', e => {
+    hote.addEventListener('pointerdown', e => {
+      if (e.target.closest && e.target.closest('button')) return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       pointeurs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      try { svg.setPointerCapture(e.pointerId); } catch (x) { /* rien */ }
-      if (pointeurs.size === 1) { dep = { x: e.clientX, y: e.clientY, vb: Object.assign({}, vb) }; glisse = false; }
+      try { hote.setPointerCapture(e.pointerId); } catch (x) { /* rien */ }
+      cancelAnimationFrame(animation);
+      commencerGeste();
+      if (pointeurs.size === 1) { dep = { x: e.clientX, y: e.clientY, v: Object.assign({}, vv) }; glisse = false; }
       if (pointeurs.size === 2) {
         const [a, b] = [...pointeurs.values()];
-        pince = { d: Math.hypot(a.x - b.x, a.y - b.y), vb: Object.assign({}, vb) };
+        pince = { d: Math.hypot(a.x - b.x, a.y - b.y), v: Object.assign({}, vv) };
       }
-      cancelAnimationFrame(animation);
     });
-    svg.addEventListener('pointermove', e => {
-      if (!pointeurs.has(e.pointerId)) { survol(e); return; }
+    hote.addEventListener('pointermove', e => {
+      if (!pointeurs.has(e.pointerId)) {
+        if (e.pointerType === 'mouse' && !rafSurvol) { const ev = e; rafSurvol = requestAnimationFrame(() => { rafSurvol = 0; survol(ev); }); }
+        return;
+      }
       pointeurs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      const r = svg.getBoundingClientRect();
+      const r = hote.getBoundingClientRect();
       if (pointeurs.size === 2 && pince) {
         const [a, b] = [...pointeurs.values()];
         const d = Math.hypot(a.x - b.x, a.y - b.y);
-        const mx = (a.x + b.x) / 2 - r.left, my = (a.y + b.y) / 2 - r.top;
-        vb = Object.assign({}, pince.vb);
-        zoomAutour(d / pince.d, mx, my);
-        glisse = true;
+        vv = Object.assign({}, pince.v);
+        zoomAutour(vv, d / pince.d, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top);
+        montrerGeste(); glisse = true;
         return;
       }
       if (!dep) return;
@@ -379,36 +426,38 @@
       if (Math.abs(dx) + Math.abs(dy) > 4) glisse = true;
       if (glisse) {
         tip.hidden = true;
-        vb.x = dep.vb.x - dx * vb.w / pxW; vb.y = dep.vb.y - dy * vb.h / pxH;
-        borner(); appliquerVue();
+        vv = Object.assign({}, dep.v, { x: dep.v.x - dx * dep.v.w / pxW, y: dep.v.y - dy * dep.v.h / pxH });
+        borner(vv); montrerGeste();
       }
     });
     const fin = e => {
+      if (!pointeurs.has(e.pointerId)) return;
       const etaitGlisse = glisse;
       pointeurs.delete(e.pointerId);
       if (pointeurs.size < 2) pince = null;
+      if (pointeurs.size === 1) { const [p] = [...pointeurs.values()]; dep = { x: p.x, y: p.y, v: Object.assign({}, vv) }; }
       if (pointeurs.size === 0) {
-        dep = null;
+        dep = null; glisse = false;
+        finirGeste();
         if (!etaitGlisse && e.type === 'pointerup') clic(e);
-        glisse = false;
       }
     };
-    svg.addEventListener('pointerup', fin);
-    svg.addEventListener('pointercancel', fin);
-    svg.addEventListener('pointerleave', () => { tip.hidden = true; });
+    hote.addEventListener('pointerup', fin);
+    hote.addEventListener('pointercancel', fin);
+    hote.addEventListener('pointerleave', () => { tip.hidden = true; });
   }
   function cibleSous(e) {
     const n = document.elementFromPoint(e.clientX, e.clientY);
     return n && n.closest ? n.closest('[data-dossier],[data-o]') : null;
   }
   function survol(e) {
-    if (e.pointerType !== 'mouse') return;
+    if (vv) { tip.hidden = true; return; }
     const c = cibleSous(e);
     if (!c) { tip.hidden = true; svg.style.cursor = ''; return; }
     const r = hote.getBoundingClientRect();
     let t;
     if (c.dataset.dossier) { t = ZONES.dossiers[c.dataset.dossier].t + ' : à négocier'; svg.style.cursor = 'pointer'; }
-    else { t = NOMS[c.dataset.o] || ''; svg.style.cursor = C.surClic ? 'pointer' : ''; }
+    else { t = NOMS[c.dataset.o] || ''; svg.style.cursor = ''; }
     if (!t) { tip.hidden = true; return; }
     tip.textContent = t; tip.hidden = false;
     const x = Math.min(e.clientX - r.left + 14, r.width - tip.offsetWidth - 6);
@@ -451,17 +500,17 @@
 
   /* ---------- Légende ---------- */
   function legende(mode) {
-    if (mode === '1812') return LEGENDE_1812.map(([k, t]) => ({ couleur: melange(COUL_1812[k], k === 'empire' ? .62 : .42), bord: COUL_1812[k], texte: t }));
+    if (mode === '1812') return LEGENDE_1812.map(([k, t]) => ({ couleur: melange(COUL_1812[k], k === 'empire' ? .66 : .5), bord: COUL_1812[k], texte: t }));
     const presents = new Set(Object.values(mode === 'jeu' ? (etat.proprio || {}) : proprietaires('1815')));
     const ordre = ['FRA', 'GBR', 'AUT', 'PRU', 'RUS', 'POL', 'POLi', 'ALL'];
-    return ordre.filter(o => presents.has(o)).map(o => ({ couleur: melange(COUL[o], .42), bord: COUL[o], texte: NOMS[o].replace(' (uni à la Russie)', ' (au tsar)') }))
-      .concat([{ couleur: melange(COUL.GER, .42), bord: COUL.GER, texte: 'Autres États' }]);
+    return ordre.filter(o => presents.has(o)).map(o => ({ couleur: melange(COUL[o], .5), bord: COUL[o], texte: NOMS[o].replace(' (uni à la Russie)', ' (au tsar)') }))
+      .concat([{ couleur: melange(COUL.GER, .5), bord: COUL.GER, texte: 'Autres États' }]);
   }
 
   const C = window.Carte = {
     init, afficher, cadrer, surligner, marqueurs, legende, proprietaires, cellulesDe, svgStatique,
-    zoom: f => zoomAutour(f, pxW / 2, pxH / 2),
-    villesEvenement: ids => { etat.villes3 = ids || []; villes(); majEchelle(); },
+    zoom: f => { cancelAnimationFrame(animation); if (vv) finirGeste(); zoomAutour(vb, f, pxW / 2, pxH / 2); dessinerVue(); },
+    villesEvenement: ids => { etat.villes3 = ids || []; const sv = etat.villes3.join(','); if (sv !== sigVilles) { sigVilles = sv; villes(); majEchelle(true); } },
     nom: o => NOMS[o] || o,
     couleur: (o, mode) => couleurDe(o, mode || '1815'),
     cellules: () => GEOMS.map(g => ({ id: g.id, a: g.properties.a, b: g.properties.b, d: g.properties.d || null, g: g.properties.g || null })),

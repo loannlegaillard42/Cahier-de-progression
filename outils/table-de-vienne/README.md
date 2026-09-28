@@ -28,6 +28,11 @@ Le carnet du secrétaire se remplit tout seul. L'élève le copie pour le rendre
 - `jeu/carte.js` : l'affichage de la carte (SVG).
 - `jeu/carte-donnees.js` : la carte elle-même, produite par les scripts de `carte-source/`.
 - `jeu/partie.js` : une partie complète jouée automatiquement (Playwright), pour vérifier qu'une modification ne casse rien. Lancer d'abord `sh fabrique-local.sh`.
+- `jeu/mesure.js` : mesure la fluidité de la carte sur un ordinateur lent simulé (processeur bridé 6 fois).
+
+## Fluidité
+
+Pendant un glisser ou un zoom, la carte est déplacée comme une image (transformation CSS) puis redessinée une seule fois à la fin du geste. Elle n'est recalculée que si un territoire change de propriétaire, et aucune animation ne tourne en permanence. Sur un ordinateur lent simulé, le glisser tourne à environ 60 images par seconde et la carte au repos n'utilise plus le processeur.
 
 ## Reconstruire la carte
 
@@ -41,7 +46,7 @@ npm install
 python3 cellules.py      # cellules et propriétaires en 1812 et en 1815
 python3 temoins.py       # vérifie 336 villes-témoins (propriétaire attendu en 1812 et en 1815)
 python3 projette.py      # projection de Lambert, pavage propre, nettoyage
-node topo.js 0.6         # TopoJSON simplifié
+node topo.js 4 1e4       # TopoJSON simplifié (4 = niveau de simplification, 1e4 = précision)
 python3 donnees_carte.py # écrit carte-donnees.js (à copier dans ../jeu/)
 ```
 
