@@ -1,0 +1,6 @@
+{
+  "name": "table-de-vienne-carte",
+  "private": true,
+  "description": "Construction de la carte Europe 1812 / 1815 du jeu La table de Vienne",
+  "dependencies": { "topojson-client": "3.1.0", "topojson-server": "3.0.1", "topojson-simplify": "3.0.3" }
+}

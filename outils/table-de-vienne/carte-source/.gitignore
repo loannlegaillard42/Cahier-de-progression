@@ -1,0 +1,7 @@
+*.geojson
+*.pkl
+node_modules/
+europe.topo.json
+eaux.json
+carte-donnees.js
+*.png
