@@ -19,13 +19,18 @@
       else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
       else e.setAttribute(k, v === true ? '' : v);
     }
-    for (const k of enfants.flat()) if (k !== null && k !== undefined && k !== false) e.append(k.nodeType ? k : document.createTextNode(k));
+    for (const k of enfants.flat(Infinity)) if (k !== null && k !== undefined && k !== false) e.append(k.nodeType ? k : document.createTextNode(k));
     return e;
   }
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const liste = arr => arr.length <= 1 ? arr.join('') : arr.slice(0, -1).join(', ') + ' et ' + arr[arr.length - 1];
   const ICONE_DATE = '<svg class="ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4.5" width="14" height="12.5" rx="2"/><path d="M3 8.5h14M7 2.5v4M13 2.5v4"/></svg>';
   const NB_QUESTIONS = ETAPES.reduce((n, e) => n + e.questions.length, 0);
+  const ICONE_LOUPE = '<svg class="ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M12.6 12.6 17 17"/></svg>';
+  const objetDe = id => OBJETS.find(o => o.id === id);
+  const THEMES = { cours: 'Cours', feodal: 'Société féodale' };
+  // **gras** et *italique* dans les textes des objets
+  const enrichi = t => esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>');
   const persoDe = id => PERSONNAGES.find(p => p.id === id);
 
   /* ---------- État ---------- */
@@ -33,7 +38,7 @@
   function etatInitial() {
     return {
       version: 1, phase: 'intro', noms: '', classe: '', etape: 0, maxEtape: 0, sousEtape: 0, sousMax: 0, sermonVu: false,
-      reponses: {}, nbRep: 0, rencontres: {}, sujetsVus: {},
+      reponses: {}, nbRep: 0, rencontres: {}, sujetsVus: {}, objets: {},
       schema: {}, schemaVerif: null, schemaEssais: 0, schemaCorrige: false, schemaScore: null, etapeSchema: 'placer', redaction: ''
     };
   }
@@ -47,6 +52,7 @@
     const et = ETAPES[E.etape];
     $('#st-date').innerHTML = ICONE_DATE + '<b>' + (E.phase === 'etapes' ? et.date : '1146-1149') + '</b>';
     $('#carnet-compte').textContent = Object.keys(E.reponses).length + '/' + NB_QUESTIONS;
+    $('#st-objets').innerHTML = ICONE_LOUPE + '<b>' + Object.keys(E.objets).length + ' / ' + OBJETS.length + '</b><span class="sr"> objets examinés</span>';
   }
   function progression() {
     return h('div', { class: 'progress', 'aria-label': 'Étapes' }, ETAPES.map((et, i) => {
@@ -120,10 +126,10 @@
   const PEUT_PARLER = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
   let dialogue = null, minuteurFrappe = null;
   function stopVoix() { if (PEUT_PARLER) { try { speechSynthesis.cancel(); } catch (e) { /* rien */ } } }
-  function lire(texte) {
+  function lire(texte, reglages) {
     if (!PEUT_PARLER) return;
     stopVoix();
-    try { const u = new SpeechSynthesisUtterance(texte); u.lang = 'fr-FR'; const v = speechSynthesis.getVoices().find(x => /^fr/i.test(x.lang)); if (v) u.voice = v; speechSynthesis.speak(u); } catch (e) { /* rien */ }
+    try { const u = new SpeechSynthesisUtterance(texte); u.lang = 'fr-FR'; if (reglages) Object.assign(u, reglages); const v = speechSynthesis.getVoices().find(x => /^fr/i.test(x.lang)); if (v) u.voice = v; speechSynthesis.speak(u); } catch (e) { /* rien */ }
   }
   function taper(texte) {
     const el = $('#talk-texte');
@@ -189,6 +195,7 @@
   /* ---------- Carte de la croisade ---------- */
   let carte = null;
   function montrerCarte(etat, animer) {
+    ambiance('carte');
     if (!carte) carte = CarteCroisade.creer($('#carte'), {});
     $('#carte').hidden = false; S.pause(true);
     carte.etat(Object.assign({}, etat, { animer: animer !== false && !REDUIT }));
@@ -206,8 +213,21 @@
   function majMarqueurs() {
     const et = ETAPES[E.etape];
     S.marquer(et.vue === '3d' ? et.persos.filter(id => !E.rencontres[id]) : []);
+    S.marquerObjets(et.vue === '3d' ? OBJETS.filter(o => o.etape === et.id && !E.objets[o.id]).map(o => o.id) : []);
   }
   function rafraichir() { if (E && E.phase === 'etapes') afficherEtape(E.etape, { garder: true }); }
+  let pointCourant = null;
+  function fondu(fn) {
+    const f = $('#fondu'); if (RAPIDE || REDUIT) { fn(); return; }
+    f.hidden = false; requestAnimationFrame(() => f.classList.add('plein'));
+    setTimeout(() => { fn(); setTimeout(() => { f.classList.remove('plein'); setTimeout(() => { f.hidden = true; }, 420); }, 120); }, 420);
+  }
+  function allerPoint(point, opts, apres) {
+    const P = S.POINTS && S.POINTS[point], dedans = !!(P && P.interieur);
+    pointCourant = point; ambiance(dedans ? 'interieur' : point);
+    if (!S.secours && dedans !== !!S.dedans) fondu(() => { S.allerA(point, opts || {}); if (apres) apres(); });
+    else { S.allerA(point, opts || {}); if (apres) apres(); }
+  }
   function afficherEtape(i, opts) {
     opts = opts || {};
     const et = ETAPES[i], change = i !== E.etape || opts.premier;
@@ -220,7 +240,7 @@
         cacherCarte(); $('#b-libre').hidden = !!S.secours; $('#hint').hidden = !!S.secours;
         const arrivee = () => { if (et.sermon && !E.sermonVu && E.etape === i && E.phase === 'etapes') lancerSermon(); };
         if (S.secours) setTimeout(arrivee, RAPIDE ? 50 : 600);
-        else S.allerA(et.point, { rapide: RAPIDE, fin: arrivee });
+        else allerPoint(et.point, { rapide: RAPIDE, fin: arrivee });
       } else {
         $('#b-libre').hidden = true; $('#hint').hidden = true;
         const etat = et.sousEtapes ? et.sousEtapes[Math.min(E.sousEtape, et.sousEtapes.length - 1)].carte : et.carte;
@@ -241,6 +261,8 @@
     if (et.citation) blocs.push(citation(et.citation));
     if (et.sermon && E.sermonVu) blocs.push(h('button', { type: 'button', class: 'btn second', onclick: lancerSermon }, 'Revoir la scène du sermon'));
     blocs.push(blocPersonnages(et.persos));
+    if (et.id === 'basilique' && S.aInterieur && S.aInterieur()) blocs.push(blocVisite());
+    blocs.push(blocObjets(et));
     if (et.notion) blocs.push(h('p', { class: 'notion', html: '<b>' + esc(et.notion[0]) + '</b> : ' + esc(et.notion[1]) }));
     const vis = questionsVisibles(et);
     if (!vis.ok && et.questions.length) blocs.push(h('p', { class: 'aide-dialogue' }, vis.raison));
@@ -252,6 +274,115 @@
     else actions.push(bouton('Construire le schéma bilan →', () => { E.phase = 'schema'; sauver(); ouvrirSchema(); }, { desactive: !fini }));
     panneau(blocs, actions, opts.garder);
   }
+  const LIEUX_INT = [['narthex', 'L\'avant-nef'], ['nef', 'La nef'], ['chapiteau', 'Un chapiteau'], ['choeur', 'Le chœur']];
+  function blocVisite() {
+    const dedans = !!S.dedans, aller = p => { if (libreActif) promenade(false, true); allerPoint(p, { rapide: RAPIDE }, rafraichir); };
+    return h('div', { class: 'visite' + (dedans ? ' dedans' : '') },
+      h('span', { class: 'v-titre' }, dedans ? 'Dans la basilique' : 'L\'intérieur de la basilique'),
+      dedans ? null : h('p', null, 'Entre voir le grand portail sculpté, la nef et les reliques de Marie-Madeleine.'),
+      h('div', { class: 'v-lieux' }, dedans
+        ? [LIEUX_INT.map(([p, n]) => h('button', { type: 'button', class: 'btn petit' + (pointCourant === p ? '' : ' second'), 'aria-pressed': String(pointCourant === p), onclick: () => aller(p) }, n)),
+          h('button', { type: 'button', class: 'btn petit second', onclick: () => aller(ETAPES[E.etape].point) }, 'Sortir')]
+        : h('button', { type: 'button', class: 'btn', onclick: () => aller('narthex') }, 'Entrer dans la basilique')));
+  }
+  function blocObjets(et) {
+    const liste = OBJETS.filter(o => o.etape === et.id); if (!liste.length) return null;
+    const n = liste.filter(o => E.objets[o.id]).length;
+    return h('div', { class: 'objets' },
+      h('p', { class: 'o-titre' }, h('span', { html: ICONE_LOUPE }), 'Objets à examiner', h('span', { class: 'o-compte' }, n + ' / ' + liste.length)),
+      liste.map(o => h('button', { type: 'button', class: 'obj-btn ' + o.theme + (E.objets[o.id] ? ' vu' : ''), onclick: () => ouvrirObjet(o.id) },
+        h('span', { class: 'obj-txt' }, h('b', null, o.nom), h('small', null, THEMES[o.theme] + ' · ' + (o.interieur && !S.dedans ? 'dans la basilique' : o.lieu.charAt(0).toLowerCase() + o.lieu.slice(1)))),
+        h('span', { class: 'obj-etat' }, E.objets[o.id] ? (E.objets[o.id].ok === undefined ? 'Vu' : E.objets[o.id].ok ? '✓' : '✗') : 'Examiner'))));
+  }
+
+  /* ---------- La vitrine : examiner un objet ---------- */
+  let objetOuvert = null;
+  function ouvrirObjet(id) {
+    const o = objetDe(id); if (!o || !E) return;
+    fermerDialogue(); objetOuvert = id;
+    if (!E.objets[id]) { E.objets[id] = { n: Object.keys(E.objets).length + 1 }; sauver(); majHUD(); majMarqueurs(); }
+    $('#vit-theme').textContent = THEMES[o.theme] + ' · ' + o.notion; $('#vit-theme').className = 'vit-theme ' + o.theme;
+    $('#vit-nom').textContent = o.nom; $('#vit-lieu').textContent = o.lieu;
+    const corps = $('#vit-corps'); corps.innerHTML = '';
+    o.textes.forEach(t => corps.append(h('p', { html: enrichi(t) })));
+    if (o.illustration) corps.append(h('figure', { class: 'vit-illus', html: illustration(o.illustration) }));
+    corps.append(blocDefi(o));
+    $('#vitrine').hidden = false; S.pause(true);
+    const ok = window.Objets && !S.secours && window.Objets.vitrine($('#vit-3d'), id);
+    $('#vit-3d').classList.toggle('sans3d', !ok);
+    if (!ok) $('#vit-3d').innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="44" cy="44" r="24" fill="none" stroke="currentColor" stroke-width="6"/><path d="M62 62 82 82" stroke="currentColor" stroke-width="8" stroke-linecap="round"/></svg>';
+    $('#vit-aide').hidden = !ok;
+    $('#vit-fermer').focus({ preventScroll: true });
+  }
+  function blocDefi(o) {
+    const Q = o.question, r = E.objets[o.id] || {};
+    return h('div', { class: 'question defi' },
+      h('p', { class: 'q-etiq' }, 'Le sais-tu ? · défi'), h('p', { class: 'q' }, Q.q),
+      h('div', { class: 'choix' }, Q.choix.map((c, i) => {
+        let cls = null; if (r.choix !== undefined) { if (i === Q.bonne) cls = 'bonne'; else if (i === r.choix) cls = 'fausse'; }
+        return h('button', { type: 'button', class: cls, disabled: r.choix !== undefined, onclick: () => {
+          E.objets[o.id] = Object.assign(E.objets[o.id] || {}, { choix: i, ok: i === Q.bonne }); sauver();
+          const b = $('#vit-corps .defi'); b.replaceWith(blocDefi(o)); rafraichir();
+        } }, c);
+      })),
+      r.choix !== undefined ? h('div', { class: 'explication ' + (r.ok ? 'ok' : 'ko') }, h('b', null, r.ok ? 'Bien vu !' : 'Pas tout à fait…'), Q.exp) : null);
+  }
+  function fermerObjet() {
+    if (!objetOuvert) return;
+    objetOuvert = null; $('#vitrine').hidden = true;
+    if (window.Objets) window.Objets.fermerVitrine();
+    const et = ETAPES[E.etape]; S.pause(et.vue !== '3d');
+    rafraichir();
+  }
+  $('#vit-fermer').addEventListener('click', fermerObjet);
+  $('#vitrine').addEventListener('click', e => { if (e.target.id === 'vitrine') fermerObjet(); });
+  // petits schémas des objets de la société féodale
+  function illustration(type) {
+    if (type === 'ordres') {
+      const ordre = (x, titre, latin, dessin) => `<g transform="translate(${x} 0)"><circle cx="60" cy="52" r="38" fill="var(--cream)" stroke="var(--teal)" stroke-width="3"/>${dessin}<text x="60" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">${titre}</text><text x="60" y="128" text-anchor="middle" font-size="11.5" font-style="italic" fill="var(--caption)">${latin}</text></g>`;
+      return `<svg viewBox="0 0 360 140" role="img" aria-label="Les trois ordres : ceux qui prient, ceux qui combattent, ceux qui travaillent">`
+        + ordre(0, 'Ceux qui prient', 'oratores', '<path d="M60 26 v52 M44 42 h32" stroke="var(--teal)" stroke-width="6" stroke-linecap="round"/>')
+        + ordre(120, 'Ceux qui combattent', 'bellatores', '<path d="M42 30 h36 v22 q0 22 -18 30 q-18 -8 -18 -30 z" fill="var(--vermilion)"/><path d="M60 34 v44" stroke="var(--cream)" stroke-width="4"/>')
+        + ordre(240, 'Ceux qui travaillent', 'laboratores', '<path d="M40 70 l30 -30 M62 32 l16 16 M36 78 h48" stroke="#7A5A38" stroke-width="6" stroke-linecap="round"/>')
+        + '</svg><figcaption>La société des trois ordres, décrite vers l\'an mil par l\'évêque Adalbéron de Laon.</figcaption>';
+    }
+    if (type === 'pyramide') {
+      const niveau = (y, l, texte, fond) => `<rect x="${180 - l / 2}" y="${y}" width="${l}" height="30" rx="5" fill="${fond}"/><text x="180" y="${y + 20}" text-anchor="middle" font-size="13" font-weight="700" fill="${fond === 'var(--teal)' ? 'var(--teal-ink)' : 'var(--ink)'}">${texte}</text>`;
+      return `<svg viewBox="0 0 360 178" role="img" aria-label="La pyramide féodale : le roi, les grands seigneurs, les chevaliers, les paysans">`
+        + niveau(4, 120, 'Le roi (suzerain)', 'var(--teal)') + niveau(42, 190, 'Ducs et comtes', 'var(--cream)') + niveau(80, 260, 'Chevaliers (vassaux)', 'var(--cream)') + niveau(118, 340, 'Paysans (tenanciers)', 'var(--gold-soft)')
+        + '<path d="M22 110 V16" stroke="var(--vermilion)" stroke-width="2.5" marker-end="url(#fl)"/><path d="M338 16 V110" stroke="var(--teal)" stroke-width="2.5" marker-end="url(#fl2)"/>'
+        + '<defs><marker id="fl" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--vermilion)"/></marker><marker id="fl2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--teal)"/></marker></defs>'
+        + '<text x="6" y="172" font-size="11.5" fill="var(--vermilion)" font-weight="700">↑ hommage, aide et conseil</text><text x="354" y="172" text-anchor="end" font-size="11.5" fill="var(--teal)" font-weight="700">fief et protection ↓</text></svg>'
+        + '<figcaption>Chacun est le vassal de celui qui est au-dessus de lui.</figcaption>';
+    }
+    if (type === 'royaume') return carteRoyaume();
+    return '';
+  }
+  function carteRoyaume() { // carte simplifiée du royaume vers 1146, sur le fond de carte du jeu
+    const K = Math.cos(42 * Math.PI / 180), P = (lon, lat) => [(lon + 12) * K * 10, (57 - lat) * 10], pts = l => l.map(([a, b]) => P(a, b).map(v => v.toFixed(1)).join(',')).join(' ');
+    const R = [
+      ['Domaine royal', '#2F5E9E', [[1.4, 49.3], [2.9, 49.4], [3.2, 48.4], [2.9, 47.2], [2.6, 46.6], [2.0, 46.8], [1.5, 47.7], [1.3, 48.6]], [2.2, 48.3]],
+      ['Aquitaine (Aliénor)', '#C0492B', [[-1.6, 47.0], [0.7, 47.1], [2.3, 46.3], [2.5, 45.3], [1.6, 44.2], [0.6, 43.3], [-0.2, 42.9], [-1.8, 43.3], [-1.3, 44.6], [-1.3, 45.8]], [0.4, 45.3]],
+      ['Normandie', '#8A8A8A', [[-1.9, 49.7], [0.2, 49.7], [1.6, 50.0], [1.7, 49.2], [0.9, 48.5], [-0.4, 48.4], [-1.5, 48.6]], [0.1, 49.1]],
+      ['Bretagne', '#A8A8A8', [[-4.8, 48.4], [-3.0, 48.8], [-1.6, 48.6], [-1.2, 48.0], [-1.4, 47.3], [-2.5, 47.3], [-4.3, 47.8]], [-2.9, 48.0]],
+      ['Anjou', '#9A9A9A', [[-1.3, 48.5], [0.8, 48.4], [0.9, 47.4], [0.1, 47.1], [-1.2, 47.1]], [-0.2, 47.7]],
+      ['Champagne', '#B5B5B5', [[3.3, 49.6], [4.9, 49.7], [5.6, 48.5], [4.8, 47.8], [3.3, 48.1], [3.0, 48.9]], [4.3, 48.8]],
+      ['Flandre', '#9A9A9A', [[2.4, 51.1], [3.9, 51.3], [4.3, 50.7], [3.2, 50.2], [2.1, 50.4]], [3.0, 50.7]],
+      ['Bourgogne', '#B0B0B0', [[3.6, 47.9], [5.3, 47.6], [5.2, 46.3], [4.4, 46.2], [3.4, 46.9]], [4.4, 47.0]],
+      ['Toulouse', '#A0A0A0', [[0.8, 44.3], [2.4, 44.9], [4.3, 44.4], [4.5, 43.4], [3.0, 42.9], [1.2, 43.0]], [2.5, 43.8]]
+    ];
+    const [px, py] = P(2.35, 48.86), [vx, vy] = P(3.75, 47.47);
+    return '<svg viewBox="52 50 100 104" role="img" aria-label="Carte simplifiée du royaume de France vers 1146">'
+      + '<defs><clipPath id="terre-roy"><path d="' + TERRES_EUROPE + '" fill-rule="evenodd"/></clipPath></defs>'
+      + '<rect x="40" y="40" width="130" height="130" fill="#BCD7DD"/><path d="' + TERRES_EUROPE + '" fill="#F1E9D6" stroke="#8F836B" stroke-width="0.35" fill-rule="evenodd"/>'
+      + '<g clip-path="url(#terre-roy)">' + R.map(([, c, l]) => '<polygon points="' + pts(l) + '" fill="' + c + '" fill-opacity="' + (c === '#2F5E9E' || c === '#C0492B' ? 0.72 : 0.4) + '" stroke="#fff" stroke-width="0.4"/>').join('') + '</g>'
+      + R.map(([n, c, , [a, b]]) => { const [x, y] = P(a, b); return '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" text-anchor="middle" font-size="' + (c === '#2F5E9E' || c === '#C0492B' ? 3.4 : 2.9) + '" font-weight="700" fill="' + (c === '#2F5E9E' ? '#12325E' : c === '#C0492B' ? '#6E1E0E' : '#3A3A3A') + '" stroke="#fff" stroke-width="0.6" paint-order="stroke">' + n + '</text>'; }).join('')
+      + '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="1" fill="#12325E"/><text x="' + (px + 1.5).toFixed(1) + '" y="' + (py - 1.2).toFixed(1) + '" font-size="2.8" fill="#12325E" stroke="#fff" stroke-width="0.5" paint-order="stroke">Paris</text>'
+      + '<path d="M' + vx.toFixed(1) + ' ' + (vy - 1.4).toFixed(1) + ' l0.4 1 1.1 0 -0.9 0.7 0.35 1.1 -0.95 -0.65 -0.95 0.65 0.35 -1.1 -0.9 -0.7 1.1 0z" fill="#C0492B"/><text x="' + (vx + 1.6).toFixed(1) + '" y="' + (vy + 0.6).toFixed(1) + '" font-size="2.8" fill="#6E1E0E" stroke="#fff" stroke-width="0.5" paint-order="stroke">Vézelay</text>'
+      + '<text x="140" y="70" font-size="3.2" font-style="italic" fill="#5E6A72">Empire</text></svg>'
+      + '<figcaption>Carte simplifiée : le domaine du roi (en bleu) est bien plus petit que l\'Aquitaine d\'Aliénor (en rouge).</figcaption>';
+  }
+
   function sousEtape(k) {
     const et = ETAPES[E.etape];
     E.sousEtape = k; E.sousMax = Math.max(E.sousMax, k); sauver();
@@ -266,25 +397,30 @@
     if (ETAPES[E.etape].point !== 'foule') return;
     sermonEnCours = true; $('#hint').classList.add('gone');
     const st = $('#sous-titres');
+    if (window.Son) Son.sermon('debut');
     S.sermon(SERMON.lignes, RAPIDE, (i, l) => {
       st.hidden = false; $('#st-qui').textContent = l.qui;
+      if (window.Son && Son.actif) {
+        if (l.foule) { Son.sermon('croix'); if (PEUT_PARLER) lire(l.texte, { pitch: 0.75, rate: 1.1 }); }
+        else if (l.croix) Son.sermon('acclamation');
+      }
       const d = $('#st-dit'); d.textContent = l.foule ? l.texte : '« ' + l.texte + ' »'; d.classList.toggle('foule', !!l.foule);
     }, () => {
-      sermonEnCours = false;
+      sermonEnCours = false; if (window.Son) Son.sermon('fin');
       setTimeout(() => { if (!sermonEnCours) st.hidden = true; }, RAPIDE ? 100 : 2500);
       if (!E.sermonVu) { E.sermonVu = true; sauver(); toast('Scène terminée : ' + SERMON.source, 7000); }
       rafraichir();
     });
   }
-  function arreterSermon() { if (sermonEnCours) { S.arreterSermon(); sermonEnCours = false; } $('#sous-titres').hidden = true; }
+  function arreterSermon() { if (sermonEnCours) { S.arreterSermon(); sermonEnCours = false; if (window.Son) Son.sermon('fin'); } $('#sous-titres').hidden = true; }
 
   /* ---------- Promenade libre ---------- */
   let libreActif = false, procheId = null;
-  function promenade(actif) {
+  function promenade(actif, sansRetour) {
     libreActif = actif;
     const et = ETAPES[E.etape];
     if (actif) { arreterSermon(); S.promenade(true); }
-    else { S.promenade(false); if (et.vue === '3d') S.allerA(et.point, { rapide: true }); }
+    else { S.promenade(false); if (et.vue === '3d' && !sansRetour) S.allerA(pointCourant || et.point, { rapide: true }); }
     $('#b-libre').setAttribute('aria-pressed', String(actif)); $('#b-libre').textContent = actif ? 'Revenir à l\'étape' : 'Se promener librement';
     $('#dpad').hidden = !actif; $('#aide-libre').hidden = !actif; $('#hint').classList.toggle('gone', actif);
     document.querySelectorAll('#dpad button').forEach(b => b.classList.remove('on'));
@@ -296,7 +432,22 @@
     if (!id || dialogue) { b.hidden = true; return; }
     b.textContent = 'Parler à ' + persoDe(id).nom; b.hidden = false; b.onclick = () => ouvrirDialogue(persoDe(id));
   }
+  let procheObjet = null;
   S.surProximite = id => { procheId = id; montrerInvite(id); };
+  S.surProximiteObjet = id => {
+    procheObjet = id; if (procheId || dialogue) return;
+    const b = $('#talk-prompt'), o = id && objetDe(id);
+    if (!o) { b.hidden = true; return; }
+    b.textContent = 'Examiner : ' + o.nom.charAt(0).toLowerCase() + o.nom.slice(1); b.hidden = false; b.onclick = () => ouvrirObjet(id);
+  };
+  S.surClicObjet = id => ouvrirObjet(id);
+  S.surSurvol = info => {
+    const el = $('#survol');
+    if (!info || dialogue || !E || E.phase !== 'etapes') { el.hidden = true; return; }
+    const o = info.type === 'objet' ? objetDe(info.id) : persoDe(info.id); if (!o) { el.hidden = true; return; }
+    el.textContent = (info.type === 'objet' ? 'Examiner : ' : 'Parler à ') + (info.type === 'objet' ? o.nom.charAt(0).toLowerCase() + o.nom.slice(1) : o.nom);
+    const r = $('#view').getBoundingClientRect(); el.style.left = (info.x - r.left + 14) + 'px'; el.style.top = (info.y - r.top + 16) + 'px'; el.hidden = false;
+  };
   S.surRegard = () => { $('#hint').classList.add('gone'); };
   const TOUCHES = { ArrowUp: 'avant', z: 'avant', w: 'avant', ArrowDown: 'arriere', s: 'arriere', ArrowLeft: 'gauche', q: 'gauche', a: 'gauche', ArrowRight: 'droite', d: 'droite', Shift: 'vite' };
   function toucheLibre(e, etat) {
@@ -308,7 +459,8 @@
   }
   document.addEventListener('keyup', e => toucheLibre(e, false));
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { if (!$('#modal').hidden) { fermerModal(); return; } if (dialogue) fermerDialogue(); return; }
+    if (e.key === 'Escape') { if (!$('#modal').hidden) { fermerModal(); return; } if (objetOuvert) { fermerObjet(); return; } if (dialogue) fermerDialogue(); return; }
+    if (objetOuvert) return;
     if (toucheLibre(e, true)) return;
     if (!dialogue || !$('#modal').hidden || /INPUT|TEXTAREA/.test(e.target.tagName || '')) return;
     const n = parseInt(e.key, 10);
@@ -323,7 +475,7 @@
 
   /* ---------- Schéma bilan ---------- */
   let choisi = null;
-  function ouvrirSchema() { fermerDialogue(); arreterSermon(); if (libreActif) promenade(false); $('#ecran-schema').hidden = false; dessinerSchema(); }
+  function ouvrirSchema() { fermerObjet(); fermerDialogue(); arreterSermon(); if (libreActif) promenade(false); $('#ecran-schema').hidden = false; dessinerSchema(); }
   function etiquetteSchema(el) {
     const v = E.schemaVerif ? E.schemaVerif[el.id] : null;
     return h('button', { type: 'button', class: 'etiquette' + (choisi === el.id ? ' choisie' : '') + (v === true ? ' ok' : v === false ? ' ko' : ''), onclick: ev => {
@@ -403,7 +555,8 @@
     c.append(h('h2', null, 'Mon parcours'));
     if (final) c.append(h('img', { class: 'carte', src: imageCarte(), alt: 'Carte de la deuxième croisade (1146-1149)' }));
     const rencontres = PERSONNAGES.filter(p => E.rencontres[p.id]);
-    c.append(h('div', { class: 'chiffres' }, chiffre('Étapes', (E.maxEtape + 1) + ' / ' + ETAPES.length), chiffre('Rencontres', rencontres.length + ' / ' + PERSONNAGES.length), chiffre('Bonnes réponses', nbBonnes() + ' / ' + NB_QUESTIONS)));
+    const vus = OBJETS.filter(o => E.objets[o.id]), defis = vus.filter(o => E.objets[o.id].choix !== undefined);
+    c.append(h('div', { class: 'chiffres' }, chiffre('Étapes', (E.maxEtape + 1) + ' / ' + ETAPES.length), chiffre('Rencontres', rencontres.length + ' / ' + PERSONNAGES.length), chiffre('Bonnes réponses', nbBonnes() + ' / ' + NB_QUESTIONS), chiffre('Objets examinés', vus.length + ' / ' + OBJETS.length)));
     c.append(h('ol', { class: 'etapes' }, ETAPES.slice(0, E.maxEtape + 1).map(et => h('li', null, h('span', { class: 'date' }, et.date), h('span', null, h('b', null, et.titre), et.notion ? ' : ' + et.notion[0] + ', ' + et.notion[1] : '')))));
     if (rencontres.length) c.append(h('p', { style: 'margin:4px 0 0;font-size:14px;color:var(--muted)' }, 'Personnes rencontrées : ' + liste(rencontres.map(p => p.nom + ' (' + p.role.charAt(0).toLowerCase() + p.role.slice(1) + ')')) + '.'));
     const rep = Object.keys(E.reponses).sort((a, b) => E.reponses[a].n - E.reponses[b].n);
@@ -412,6 +565,9 @@
       h('thead', null, h('tr', null, h('th', null, 'Question'), h('th', null, 'Ma réponse'), h('th', null, ''))),
       h('tbody', null, rep.map(q => { const Q = QUESTIONS[q], r = E.reponses[q]; return h('tr', null, h('td', null, Q.q), h('td', null, Q.choix[r.choix], r.ok ? null : h('div', { style: 'color:var(--ok);margin-top:3px' }, 'Réponse attendue : ' + Q.choix[Q.bonne])), h('td', { class: r.ok ? 'v' : 'x' }, r.ok ? '✓' : '✗')); })))));
     else c.append(h('p', null, 'Aucune réponse pour le moment.'));
+    c.append(h('h2', null, 'Objets examinés (' + vus.length + ' / ' + OBJETS.length + ')' + (defis.length ? ' · défis réussis : ' + defis.filter(o => E.objets[o.id].ok).length + ' / ' + defis.length : '')));
+    if (vus.length) c.append(h('ul', { class: 'liste-objets' }, vus.map(o => { const r = E.objets[o.id]; return h('li', { class: o.theme }, h('b', null, o.nom), h('span', null, THEMES[o.theme] + ' · ' + o.notion), r.choix === undefined ? null : h('span', { class: r.ok ? 'v' : 'x' }, r.ok ? ' ✓ défi réussi' : ' ✗ défi manqué')); })));
+    else c.append(h('p', null, 'Aucun objet examiné pour le moment.'));
     if (final) {
       c.append(h('h2', null, 'Mon schéma' + (E.schemaScore !== null ? ' (' + E.schemaScore + ' / ' + SCHEMA.elements.length + ' au premier essai' + (E.schemaCorrige ? ', puis correction' : '') + ')' : '')));
       c.append(h('div', { class: 'schema-final' }, SCHEMA.cases.map(cs => h('div', null, h('b', null, cs.titre), SCHEMA.elements.filter(e => E.schema[e.id] === cs.id).map(e => e.texte).join(' · ') || '(vide)'))));
@@ -422,6 +578,8 @@
   function carnetTexte() {
     const L = ['CARNET DE BORD · ' + JEU.titre + ' (' + JEU.niveau + ')', (E.noms || 'Pèlerin anonyme') + (E.classe ? ' · ' + E.classe : '') + ' · ' + new Date().toLocaleDateString('fr-FR'), '', 'Question de départ : ' + JEU.questionDepart, ''];
     L.push('MON PARCOURS : ' + (E.maxEtape + 1) + '/' + ETAPES.length + ' étapes, ' + PERSONNAGES.filter(p => E.rencontres[p.id]).length + ' personnes rencontrées.');
+    const vusT = OBJETS.filter(o => E.objets[o.id]);
+    L.push('OBJETS EXAMINÉS : ' + vusT.length + '/' + OBJETS.length + (vusT.length ? ' (' + vusT.map(o => o.nom + (E.objets[o.id].choix === undefined ? '' : E.objets[o.id].ok ? ' [défi réussi]' : ' [défi manqué]')).join(' ; ') + ')' : ''));
     L.push('', 'MES RÉPONSES (' + nbBonnes() + '/' + NB_QUESTIONS + ')');
     Object.keys(E.reponses).sort((a, b) => E.reponses[a].n - E.reponses[b].n).forEach(q => { const Q = QUESTIONS[q], r = E.reponses[q]; L.push('- ' + Q.q, '  ' + (r.ok ? '[juste] ' : '[faux] ') + Q.choix[r.choix] + (r.ok ? '' : ' (attendu : ' + Q.choix[Q.bonne] + ')')); });
     if (E.phase === 'fin') {
@@ -469,7 +627,29 @@
     h('li', null, 'Personnages : Louis VII, Aliénor, Odon de Deuil et Éphraïm de Bonn ont existé ; les autres sont imaginés. Ce qu\'ils racontent s\'appuie sur les sources de l\'époque et les travaux d\'historiens.'),
     h('li', null, 'Itinéraires de la croisade : d\'après Odon de Deuil et J. Phillips, The Second Crusade (2007) ; tracés simplifiés. Fond de carte : Natural Earth (domaine public).'),
     h('li', null, 'Colline, basilique et foule : reconstitution imaginée et simplifiée. La basilique est montrée telle qu\'on la suppose vers 1146 : nef romane achevée, avant-nef et tours encore en chantier, chœur roman (l\'actuel chœur gothique date de 1185-1215).'),
+    h('li', null, 'Intérieur : d\'après l\'édifice actuel (tympan de la Pentecôte vers 1130, arcs aux claveaux bicolores, chapiteau du « moulin mystique »), simplifié. Les maisons du bourg, en pierre sur caves voûtées, sont imaginées ; les étages à pans de bois sont une hypothèse.'),
+    h('li', null, 'Objets à examiner : modèles imaginés d\'après des objets de l\'époque (sceaux, bulle de plomb, épée, écu, bourdon…) ; les écritures des parchemins sont seulement suggérées.'),
+    h('li', null, 'Ambiance sonore : entièrement fabriquée par le navigateur (aucun enregistrement) ; le chant des moines est une mélodie imaginée dans le style du chant grégorien.'),
     h('li', null, 'Personnages, costumes, décors et textures sont modélisés directement dans le navigateur. Moteur 3D : three.js (licence MIT).')));
+
+  /* ---------- Ambiance sonore (son.js) : coupée par défaut, choix mémorisé ---------- */
+  let lieuSonore = 'route';
+  function ambiance(l) { lieuSonore = l; if (window.Son) Son.ambiance(l); }
+  const bSon = $('#b-son');
+  function majBoutonSon(oui) { bSon.setAttribute('aria-pressed', String(oui)); $('#b-son-txt').textContent = oui ? 'Son activé' : 'Son coupé'; }
+  if (window.Son && Son.disponible) {
+    bSon.hidden = false;
+    bSon.addEventListener('click', () => { const oui = Son.activer(bSon.getAttribute('aria-pressed') !== 'true'); if (oui) Son.ambiance(lieuSonore); majBoutonSon(oui); });
+    if (Son.choixMemorise()) { // le navigateur n'autorise le son qu'après un geste de l'élève
+      majBoutonSon(true);
+      const demarrer = e => {
+        if (e.target && e.target.closest && e.target.closest('#b-son')) return;
+        document.removeEventListener('pointerdown', demarrer, true); document.removeEventListener('keydown', demarrer, true);
+        if (bSon.getAttribute('aria-pressed') === 'true' && !Son.actif) { Son.activer(true); Son.ambiance(lieuSonore); }
+      };
+      document.addEventListener('pointerdown', demarrer, true); document.addEventListener('keydown', demarrer, true);
+    }
+  }
 
   /* ---------- Aide, plein écran ---------- */
   function ouvrirAide() {

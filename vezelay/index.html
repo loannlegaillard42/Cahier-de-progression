@@ -51,6 +51,12 @@
   .bar-tools { display: flex; flex-wrap: wrap; gap: 8px; }
   .tbtn { font-size: 14px; font-weight: 700; min-height: 36px; padding: 6px 14px; border-radius: 8px; border: 1.5px solid currentColor; background: transparent; color: #FBF7EF; }
   .tbtn:hover { background: rgb(255 255 255 / .12); }
+  .tbtn.son { display: inline-flex; align-items: center; gap: 6px; }
+  .tbtn.son svg { width: 18px; height: 18px; flex: none; }
+  .tbtn.son .ondes { display: none; }
+  .tbtn.son[aria-pressed="true"] .ondes { display: inline; }
+  .tbtn.son[aria-pressed="true"] .barre { display: none; }
+  .tbtn.son[aria-pressed="true"] { background: rgb(255 255 255 / .16); }
   .tbtn .compte { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 99px; background: rgb(255 255 255 / .2); font-size: 12px; }
 
   /* ---------- Scène ---------- */
@@ -93,6 +99,10 @@
   .fallback > div { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 760px; }
   .fallback p { margin: 0; font-size: 15px; line-height: 1.5; }
   .fallback img { max-width: 100%; border-radius: 8px; box-shadow: var(--shadow); }
+
+  .survol { position: absolute; margin: 0; padding: 5px 10px; border-radius: 8px; background: rgb(18 32 38 / .9); color: #FBF7EF; font-size: 13px; font-weight: 700; pointer-events: none; z-index: 7; white-space: nowrap; }
+  .fondu { position: absolute; inset: 0; background: #0E0B08; opacity: 0; transition: opacity .4s; z-index: 9; pointer-events: none; }
+  .fondu.plein { opacity: 1; }
 
   /* ---------- Dialogue ---------- */
   .talk { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); width: min(680px, calc(100% - 24px)); max-height: calc(100% - 28px); overflow: auto; padding: 14px 16px 12px; border-radius: 14px; background: rgb(18 32 38 / .95); color: #FBF7EF; box-shadow: 0 8px 28px rgb(0 0 0 / .35); border: 1.5px solid rgb(227 182 122 / .6); z-index: 6; }
@@ -154,6 +164,25 @@
   .npc-txt small { font-size: .8em; color: var(--caption); }
   .npc-done { flex: none; font-size: .75em; font-weight: 700; color: var(--vermilion); text-align: right; }
 
+  .visite { padding: 12px 14px; border-radius: 10px; border: 2px solid var(--teal); display: flex; flex-direction: column; gap: 8px; background: var(--surface); }
+  .visite.dedans { background: var(--cream); }
+  .visite .v-titre { font-weight: 700; color: var(--teal); }
+  .visite p { font-size: .9em; color: var(--muted); }
+  .v-lieux { display: flex; flex-wrap: wrap; gap: 6px; }
+  .objets { display: flex; flex-direction: column; gap: 7px; }
+  .o-titre { display: flex; align-items: center; gap: 7px; font-size: .78em; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--teal); }
+  .o-compte { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .obj-btn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--line); border-left: 6px solid var(--teal); background: var(--surface); color: var(--ink); }
+  .obj-btn.feodal { border-left-color: #B8892B; }
+  .obj-btn:hover { background: var(--cream); }
+  .obj-btn:not(.vu) { box-shadow: 0 0 0 0 rgb(227 179 65 / .5); animation: objPulse 2.6s ease-in-out infinite; }
+  @keyframes objPulse { 50% { box-shadow: 0 0 0 4px rgb(227 179 65 / .28); } }
+  .obj-txt { flex: 1; display: flex; flex-direction: column; line-height: 1.25; }
+  .obj-txt b { color: var(--ink); font-size: .95em; }
+  .obj-txt small { font-size: .78em; color: var(--caption); }
+  .obj-etat { flex: none; font-size: .75em; font-weight: 700; color: var(--vermilion); }
+  .obj-btn.vu .obj-etat { color: var(--ok); }
+  .question.defi { background: var(--gold-soft); border-color: #E6D2A6; }
   .question { padding: 12px 14px; border-radius: 10px; background: var(--cream); border: 1.5px solid var(--cream-line); display: flex; flex-direction: column; gap: 8px; }
   .q-etiq { margin: 0; font-size: .75em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vermilion); }
   .question .q { font-weight: 700; }
@@ -178,6 +207,36 @@
   .chiffre { background: var(--cream); border-radius: 10px; padding: 10px 12px; }
   .chiffre small { display: block; font-size: .75em; color: var(--caption); }
   .chiffre b { font-size: 1.3em; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  /* ---------- Vitrine des objets ---------- */
+  .vitrine { position: fixed; inset: 0; z-index: 28; background: rgb(8 14 18 / .74); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .vit-boite { position: relative; width: min(1060px, 100%); max-height: calc(100% - 24px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); background: var(--surface); color: var(--ink); border-radius: 16px; box-shadow: 0 24px 70px rgb(0 0 0 / .45); overflow: hidden; }
+  .vit-3d { position: relative; min-height: 440px; background: radial-gradient(ellipse at 50% 38%, #4A5A62 0%, #1E282C 72%); color: #9FB2B8; display: grid; place-items: center; }
+  .vit-3d canvas { display: block; width: 100% !important; height: 100% !important; position: absolute; inset: 0; }
+  .vit-3d.sans3d svg { width: 110px; height: 110px; }
+  .vit-aide { position: absolute; left: 0; width: 50%; bottom: 12px; margin: 0; text-align: center; font-size: 12.5px; color: #C9D6DA; pointer-events: none; }
+  .vit-texte { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: calc(100vh - 56px); font-size: 15.5px; line-height: 1.55; }
+  .vit-tete { display: flex; align-items: center; gap: 10px; }
+  .vit-theme { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: var(--cream); color: var(--teal); }
+  .vit-theme.feodal { color: #8A6418; background: var(--gold-soft); }
+  .vit-x { margin-left: auto; flex: none; width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font-size: 22px; line-height: 1; }
+  .vit-texte h3 { margin: 0; font-size: 23px; line-height: 1.2; color: var(--teal); }
+  .vit-lieu { margin: -4px 0 0; font-size: 13.5px; color: var(--caption); font-style: italic; }
+  .vit-corps { display: flex; flex-direction: column; gap: 10px; }
+  .vit-corps p { margin: 0; }
+  .vit-illus { margin: 2px 0; padding: 10px; border-radius: 10px; background: var(--cream); display: flex; flex-direction: column; gap: 6px; }
+  .vit-illus svg { width: 100%; height: auto; max-height: 300px; display: block; }
+  .vit-illus figcaption { font-size: 12.5px; color: var(--caption); }
+  .liste-objets { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13.5px; }
+  .liste-objets li { display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  .liste-objets li span:first-of-type { color: var(--caption); }
+  @media (max-width: 760px) {
+    .vitrine { padding: 0; align-items: stretch; }
+    .vit-boite { grid-template-columns: 1fr; max-height: 100%; border-radius: 0; overflow-y: auto; }
+    .vit-3d { min-height: 280px; }
+    .vit-aide { width: 100%; top: 250px; bottom: auto; }
+    .vit-texte { max-height: none; overflow: visible; }
+  }
 
   /* ---------- Fenêtres ---------- */
   .voile { position: fixed; inset: 0; background: rgb(10 22 27 / .6); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 30; }
@@ -267,12 +326,13 @@
   }
   @media (max-width: 560px) {
     .badge { display: none; }
+    #b-son-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .hint { right: auto; left: 12px; top: 12px; bottom: auto; max-width: calc(100% - 214px); }
     .champs, .cases, .schema-final { grid-template-columns: 1fr; }
     .etapes li { grid-template-columns: 1fr; gap: 2px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .npc-btn:not(.met), .load-bar div { animation: none; }
+    .npc-btn:not(.met), .load-bar div, .obj-btn:not(.vu) { animation: none; }
     .hint { transition: none; }
   }
   @media print {
@@ -295,9 +355,11 @@
     </div>
     <div class="bar-stats" id="hud" hidden>
       <span class="stat" id="st-date" title="Date"></span>
+      <span class="stat" id="st-objets" title="Objets examinés"></span>
     </div>
     <div class="bar-tools">
       <button type="button" class="tbtn" id="b-carnet" hidden>Carnet de bord<span class="compte" id="carnet-compte"></span></button>
+      <button type="button" class="tbtn son" id="b-son" aria-pressed="false" title="Ambiance sonore : vent, oiseaux, foule, cloches, chant des moines" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="ondes" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="barre" d="M16 9l6 6M22 9l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="b-son-txt">Son coupé</span></button>
       <button type="button" class="tbtn" id="b-aide">Aide</button>
       <button type="button" class="tbtn" id="b-fs">Plein écran</button>
     </div>
@@ -321,6 +383,8 @@
       </div>
       <div class="sous-titres" id="sous-titres" hidden><p class="qui" id="st-qui"></p><p class="dit" id="st-dit"></p></div>
       <p class="toast" id="toast" role="status" hidden></p>
+      <p class="survol" id="survol" hidden></p>
+      <div class="fondu" id="fondu" hidden></div>
       <button type="button" class="talk-prompt" id="talk-prompt" hidden></button>
       <div class="talk" id="talk" role="dialog" aria-labelledby="talk-nom" hidden>
         <div class="talk-head">
@@ -351,6 +415,18 @@
   </main>
 </div>
 
+<div id="vitrine" class="vitrine" hidden>
+  <div class="vit-boite" role="dialog" aria-modal="true" aria-labelledby="vit-nom">
+    <div class="vit-3d" id="vit-3d"></div>
+    <p class="vit-aide" id="vit-aide">Glisse pour faire tourner l'objet</p>
+    <div class="vit-texte">
+      <div class="vit-tete"><span class="vit-theme" id="vit-theme"></span><button type="button" class="vit-x" id="vit-fermer" aria-label="Fermer">×</button></div>
+      <h3 id="vit-nom"></h3>
+      <p class="vit-lieu" id="vit-lieu"></p>
+      <div class="vit-corps" id="vit-corps"></div>
+    </div>
+  </div>
+</div>
 <div id="modal" class="voile" hidden><div class="boite" id="modal-boite" role="dialog" aria-modal="true"></div></div>
 <section id="ecran-intro" class="plein" hidden><div class="contenu" id="intro-contenu"></div></section>
 <section id="ecran-schema" class="plein" hidden><div class="contenu" id="schema-contenu"></div></section>
@@ -364,6 +440,9 @@
 <script src="carte.js"></script>
 <script src="donnees.js"></script>
 <script src="modeles.js"></script>
+<script src="objets.js"></script>
+<script src="interieur.js"></script>
+<script src="son.js"></script>
 <script src="scene3d.js"></script>
 <script src="jeu.js"></script>
 </body>

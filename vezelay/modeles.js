@@ -255,6 +255,15 @@
     for (let k = 0; k < 160; k++) { const px = rnd() * W, l = 150 + rnd() * 105; x.strokeStyle = `rgb(${l | 0},${l | 0},${l | 0})`; x.lineWidth = 1; x.beginPath(); x.moveTo(px, 0); x.lineTo(px + (rnd() - 0.5) * 6, W); x.stroke(); }
     return c;
   }
+  function texBandes() { // bandes molletières enroulées sur les chausses
+    const W = 64, c = toile(W, W), x = c.getContext('2d');
+    x.fillStyle = 'rgb(205,205,205)'; x.fillRect(0, 0, W, W);
+    for (let k = -2; k < 6; k++) {
+      x.fillStyle = 'rgba(0,0,0,0.28)'; x.beginPath(); x.moveTo(0, k * 16); x.lineTo(W, k * 16 + 22); x.lineTo(W, k * 16 + 24); x.lineTo(0, k * 16 + 2); x.closePath(); x.fill();
+      x.fillStyle = 'rgba(255,255,255,0.18)'; x.beginPath(); x.moveTo(0, k * 16 + 3); x.lineTo(W, k * 16 + 25); x.lineTo(W, k * 16 + 28); x.lineTo(0, k * 16 + 6); x.closePath(); x.fill();
+    }
+    return c;
+  }
   M.texEcu = function (motif) { // écu peint : champ, bordure, boucle et rais
     const c = toile(128, 256), x = c.getContext('2d'), [fond, meuble] = (motif || '#8E2F24/#D9A93A').split('/');
     x.fillStyle = fond; x.fillRect(0, 0, 128, 256);
@@ -272,36 +281,63 @@
     TX.sol = { t: texRepetee(sol), gain: gainDe(sol) };
     const bois = texBois(); TX.boisMonde = { t: texRepetee(bois), gain: gainDe(bois) };
     TX.bois = texRepetee(bois, true);
+    TX.boisV = texRepetee(bois, true); TX.boisV.center.set(0.5, 0.5); TX.boisV.rotation = PI / 2; // fil du bois vertical (poteaux)
     TX.tissu = texRepetee(texTissu(), true, 2, 2);
     TX.mailles = texRepetee(texMailles(), true, 22, 14);
     TX.feuillage = texRepetee(texFeuillage(), true, 2, 2);
     TX.cheveux = texRepetee(texCheveux(), true, 3, 1);
+    TX.bandes = texRepetee(texBandes(), true, 1, 5);
     TX.touffe = new THREE.CanvasTexture(texTouffe(false)); TX.touffe.encoding = THREE.sRGBEncoding;
     TX.touffeFleurs = new THREE.CanvasTexture(texTouffe(true)); TX.touffeFleurs.encoding = THREE.sRGBEncoding;
   };
 
   /* ---------- Matériaux ---------- */
-  // matériau dont la texture est posée « au mètre », d'après la position dans le monde (murs, toits, sols)
+  // matériau dont la texture est posée « au mètre », d'après la position dans le monde (murs, toits, sols) ;
+  // options : relief (joints en creux, calculé depuis la texture), sale (coulures), mousse (toits), local (repère de l'objet : pour les objets qu'on fait tourner)
+  M.relief = true; // mis à faux si le navigateur n'a que WebGL 1
   M.matMonde = function (couleur, tx, metres, opts) {
     opts = opts || {};
     const m = new THREE.MeshLambertMaterial({ color: couleur, side: opts.double ? THREE.DoubleSide : THREE.FrontSide });
-    const u = { tMonde: { value: tx.t }, echMonde: { value: metres }, gainMonde: { value: tx.gain }, tourne: { value: opts.tourne ? 1 : 0 } };
+    const relief = M.relief ? (opts.relief === undefined ? 1.4 : opts.relief) : 0, sale = opts.sale || 0, mousse = opts.mousse || 0, local = !!opts.local;
+    const u = { tMonde: { value: tx.t }, echMonde: { value: metres }, gainMonde: { value: tx.gain }, tourne: { value: opts.tourne ? 1 : 0 },
+      reliefM: { value: relief }, tSale: { value: TX.sol.t }, saleM: { value: sale }, mousseM: { value: mousse } };
     m.onBeforeCompile = sh => {
       Object.assign(sh.uniforms, u);
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vPosM;\nvarying vec3 vNorM;')
         .replace('#include <begin_vertex>', ['#include <begin_vertex>', 'vec4 pM = vec4(transformed, 1.0); vec3 nM = objectNormal;',
           '#ifdef USE_INSTANCING', 'pM = instanceMatrix * pM; nM = mat3(instanceMatrix) * nM;', '#endif',
-          'vPosM = (modelMatrix * pM).xyz; vNorM = mat3(modelMatrix) * nM;'].join('\n'));
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vPosM;\nvarying vec3 vNorM;\nuniform sampler2D tMonde;\nuniform float echMonde;\nuniform float gainMonde;\nuniform float tourne;')
+          local ? 'vPosM = pM.xyz; vNorM = nM;' : 'vPosM = (modelMatrix * pM).xyz; vNorM = mat3(modelMatrix) * nM;'].join('\n'));
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', ['#include <common>', 'varying vec3 vPosM;', 'varying vec3 vNorM;',
+        'uniform sampler2D tMonde; uniform sampler2D tSale; uniform float echMonde; uniform float gainMonde; uniform float tourne; uniform float reliefM; uniform float saleM; uniform float mousseM;',
+        'vec3 perturbeM(vec3 p, vec3 n, vec2 dH, float fd) { vec3 sx = dFdx(p), sy = dFdy(p), r1 = cross(sy, n), r2 = cross(n, sx); float det = dot(sx, r1) * fd; vec3 g = sign(det) * (dH.x * r1 + dH.y * r2); return normalize(abs(det) * n - g); }'].join('\n'))
         .replace('#include <color_fragment>', ['#include <color_fragment>', 'vec3 aM = abs(normalize(vNorM));',
           'vec2 uvM = aM.y > 0.55 ? (tourne > 0.5 ? vPosM.zx : vPosM.xz) : (aM.x > aM.z ? vPosM.zy : vPosM.xy);',
-          'diffuseColor.rgb *= pow(texture2D(tMonde, uvM / echMonde).rgb, vec3(2.2)) * gainMonde;'].join('\n'));
+          'vec3 txM = texture2D(tMonde, uvM / echMonde).rgb;',
+          'diffuseColor.rgb *= pow(txM, vec3(2.2)) * gainMonde;',
+          sale ? 'diffuseColor.rgb *= mix(1.0, 0.7 + 0.42 * texture2D(tSale, vec2((vPosM.x + vPosM.z) * 0.09, vPosM.y * 0.012)).r, saleM * (1.0 - step(0.55, aM.y)));' : '',
+          mousse ? 'diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.6, 0.74, 0.4), mousseM * smoothstep(0.52, 0.78, texture2D(tSale, vPosM.xz * 0.045 + 0.3).g));' : ''].join('\n'))
+        .replace('#include <normal_fragment_maps>', ['#include <normal_fragment_maps>',
+          relief ? 'normal = perturbeM(-vViewPosition, normal, vec2(dFdx(dot(txM, vec3(0.333))), dFdy(dot(txM, vec3(0.333)))) * reliefM * 0.02, faceDirection);' : ''].join('\n'));
     };
+    m.customProgramCacheKey = () => 'monde' + (relief ? 'r' : '') + (sale ? 's' : '') + (mousse ? 'm' : '') + (local ? 'l' : '');
+    return m;
+  };
+  // bas des vêtements crotté : assombri et roussi près du sol, d'après la hauteur dans le repère du modèle (pieds à y = 0)
+  M.salir = function (m, force) {
+    m.onBeforeCompile = sh => {
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vPosL;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvPosL = position;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vPosL;')
+        .replace('#include <color_fragment>', ['#include <color_fragment>',
+          'float bo = 1.0 - smoothstep(0.03, 0.3 + 0.09 * sin(vPosL.x * 41.0 + vPosL.z * 27.0) + 0.05 * sin(vPosL.x * 97.0 - vPosL.z * 61.0), vPosL.y);',
+          'diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.5, 0.43, 0.34) + vec3(0.035, 0.028, 0.018), bo * ' + (force || 0.7).toFixed(2) + ');'].join('\n'));
+    };
+    m.customProgramCacheKey = () => 'boue' + (force || 0.7);
     return m;
   };
   const MATS = new Map();
   function matiere(cle) {
     let m = MATS.get(cle); if (m) return m;
+    if (cle.endsWith('|boue')) { m = matiere(cle.slice(0, -5)).clone(); M.salir(m); MATS.set(cle, m); return m; }
     const i = cle.indexOf(':'), type = i < 0 ? cle : cle.slice(0, i), c = i < 0 ? '#ffffff' : cle.slice(i + 1);
     switch (type) {
       case 'tissu': m = new THREE.MeshLambertMaterial({ color: c, map: TX.tissu, side: THREE.DoubleSide }); break;
@@ -310,7 +346,9 @@
       case 'metal': m = new THREE.MeshPhongMaterial({ color: c, specular: 0x9A9A9A, shininess: 70 }); break;
       case 'or': m = new THREE.MeshPhongMaterial({ color: c, specular: 0xFFE7A0, shininess: 90 }); break;
       case 'cuir': m = new THREE.MeshLambertMaterial({ color: c, map: TX.tissu }); break;
+      case 'bandes': m = new THREE.MeshLambertMaterial({ color: c, map: TX.bandes }); break;
       case 'bois': m = new THREE.MeshLambertMaterial({ color: c, map: TX.bois }); break;
+      case 'boisV': m = new THREE.MeshLambertMaterial({ color: c, map: TX.boisV }); break;
       case 'ecu': m = new THREE.MeshLambertMaterial({ map: M.texEcu(c) }); break;
       default: m = new THREE.MeshLambertMaterial({ color: c });
     }
@@ -320,8 +358,8 @@
   // regroupe les pièces d'un modèle par matériau, puis les fusionne
   function Kit() { this.lots = new Map(); }
   Kit.prototype.ajout = function (cle, g) { let l = this.lots.get(cle); if (!l) this.lots.set(cle, l = []); l.push(g); return g; };
-  Kit.prototype.vers = function (groupe, ombre) {
-    this.lots.forEach((geos, cle) => { const m = new THREE.Mesh(fusionner(geos), matiere(cle)); m.castShadow = ombre !== false; m.receiveShadow = true; groupe.add(m); });
+  Kit.prototype.vers = function (groupe, ombre, boue) { // boue : étoffes et cuirs crottés près du sol
+    this.lots.forEach((geos, cle) => { const m = new THREE.Mesh(fusionner(geos), matiere(boue && /^(tissu|cuir|bandes):/.test(cle) ? cle + '|boue' : cle)); m.castShadow = ombre !== false; m.receiveShadow = true; groupe.add(m); });
     return groupe;
   };
   M.Kit = Kit;
@@ -417,7 +455,8 @@
     const ph = (p.graine || 1) * 0.7;
     // pieds et jambes
     [-1, 1].forEach(s => kc.ajout('cuir:' + (p.chaussures || '#3A2A1E'), place(new THREE.SphereGeometry(0.052, 10, 6, 0, TAU, 0, PI / 2), s * 0.085, 0, 0.04, 0, 0, 0, 0.85, 0.95, 2.1)));
-    if (yb > 0.2) [-1, 1].forEach(s => kc.ajout('tissu:' + (p.chausses || '#5A4A3A'), place(new THREE.CylinderGeometry(0.063 * mg, 0.044, 0.86, 10), s * 0.088, 0.47, 0)));
+    const CH_ = (lg === 'courte' || p.bandes ? 'bandes:' : 'tissu:') + (p.chausses || '#5A4A3A'); // bandes molletières pour les gens de la terre et les pèlerins
+    if (yb > 0.2) [-1, 1].forEach(s => kc.ajout(CH_, place(new THREE.CylinderGeometry(0.063 * mg, 0.044, 0.86, 10), s * 0.088, 0.47, 0)));
     // jupe de la tunique (ou de la robe, ou du haubert)
     const pj = []; for (let k = 0; k <= 7; k++) { const t = k / 7, y = yb + (0.93 - yb) * t, e = 1 - Math.pow(1 - t, 1.8); pj.push([rO + (0.19 * mg - rO) * e, y]); }
     pj.push([0.163 * mg, 1.0]);
@@ -433,9 +472,20 @@
     kc.ajout(PEAU, place(new THREE.CylinderGeometry(0.056, 0.062, 0.1, 12), 0, 1.52, 0.004, 0, 0, 0, 1, 1, 0.92));
     if (p.bordure) kc.ajout('or:' + p.bordure, anneau(0.075, 0.009, 1.497, 1.1, 1.0, 20));
     if (p.ceinture) {
+      if (!p.cotte) kc.ajout(T, anneau(0.169 * mg, 0.013, 1.028, 1.13, 0.9, 28)); // l'étoffe blouse au-dessus de la ceinture
       kc.ajout('cuir:' + p.ceinture, anneau(0.166 * mg, p.corde ? 0.009 : 0.013, 1.0, 1.13, 0.9, 28));
       kc.ajout('cuir:' + p.ceinture, place(new THREE.BoxGeometry(0.022, p.corde ? 0.4 : 0.22, 0.008), 0.05, p.corde ? 0.8 : 0.89, 0.152 * mg));
+      if (!p.corde && !femme) { // aumônière pendue à la ceinture, et couteau dans sa gaine
+        const cuirB = 'cuir:' + (p.bourse || '#6B4A2E');
+        kc.ajout(cuirB, place(drape([[0.004, 0], [0.05, 0.015], [0.062, 0.07], [0.05, 0.12], [0.028, 0.14], [0.034, 0.155]], 12, null, [1, 0.45]), 0.135 * mg, 0.83, 0.12 * mg, 0, 0.5, 0));
+        kc.ajout(cuirB, segment(new THREE.Vector3(0.13 * mg, 0.99, 0.15 * mg), new THREE.Vector3(0.135 * mg, 0.975, 0.14 * mg), 0.006, 0.006, 4));
+        if (!(p.acc || []).includes('epee') && !p.bordure && !femme) {
+          kc.ajout('cuir:#3A2A1E', place(new THREE.BoxGeometry(0.034, 0.2, 0.016), -0.115 * mg, 0.88, 0.15 * mg, 0, -0.4, 0.22));
+          kc.ajout('bois:#5A3A20', place(new THREE.CylinderGeometry(0.011, 0.012, 0.085, 6), -0.139 * mg, 1.02, 0.153 * mg, 0, 0, 0.22));
+        }
+      }
     }
+    if (!p.corde && !p.cotte && !p.bordure && !p.pelerine) kc.ajout('tissu:#E6DFD0', anneau(0.071, 0.012, 1.495, 1.1, 1.0, 20)); // col de la chemise de lin
     // manteau agrafé sur l'épaule droite
     if (p.manteau) {
       const bas = p.manteauCourt ? 0.62 : Math.max(0.14, yb + 0.07), pm = [];
@@ -468,8 +518,15 @@
         kb.ajout(T, drape([[0.14, -0.78], [0.12, -0.55], [0.08, -0.34], [0.05, -0.22]], 12, { n: 4, amp: 0.1, haut: -0.3, bas: -0.78 }, [0.75, 1.0]).translate(0, 0, -0.04));
       } else kb.ajout(MANCHE, new THREE.CylinderGeometry(0.046 * mg, 0.036, 0.26, 10).translate(0, -0.13, 0));
       if (p.bordure && p.manches !== 'larges') kb.ajout('or:' + p.bordure, anneau(0.04, 0.008, -0.245, 1, 1, 14));
-      kb.ajout(PEAU, place(new THREE.SphereGeometry(0.038, 10, 8), 0, -0.305, 0.004, 0, 0, 0, 0.48, 1.45, 1.0));
-      kb.ajout(PEAU, place(new THREE.SphereGeometry(0.014, 6, 5), -s * 0.012, -0.285, 0.028, 0, 0, 0, 1, 1.8, 1));
+      // main : paume, quatre doigts légèrement repliés vers le corps, pouce en avant
+      const V3 = (a, b, c) => new THREE.Vector3(a, b, c);
+      kb.ajout(PEAU, place(new THREE.SphereGeometry(0.037, 10, 8), 0, -0.298, 0.004, 0, 0, 0, 0.46, 1.02, 1.0));
+      [[0.025, 0.058], [0.0085, 0.066], [-0.0085, 0.062], [-0.025, 0.05]].forEach(([dz, lg]) => {
+        const a = V3(-s * 0.003, -0.325, 0.004 + dz), b = V3(-s * (0.004 + lg * 0.38), -0.325 - lg * 0.92, 0.004 + dz * 1.12);
+        kb.ajout(PEAU, segment(a, b, 0.0088, 0.0074, 6)); kb.ajout(PEAU, place(new THREE.SphereGeometry(0.0074, 6, 4), b.x, b.y, b.z));
+      });
+      const p0 = V3(-s * 0.008, -0.278, 0.03), p1 = V3(-s * 0.022, -0.322, 0.053);
+      kb.ajout(PEAU, segment(p0, p1, 0.0108, 0.0088, 6)); kb.ajout(PEAU, place(new THREE.SphereGeometry(0.0088, 6, 4), p1.x, p1.y, p1.z));
       kb.vers(co);
       const main = new THREE.Object3D(); main.position.set(0, -0.31, 0.01); co.add(main);
       return { ep, co, main };
@@ -562,7 +619,7 @@
     }
     if (coiffe === 'chapeau') { const F = 'tissu:' + (p.coiffeCol || '#6A5A48'); kt.ajout(F, new THREE.CylinderGeometry(0.2, 0.2, 0.012, 24).translate(0, C0 + 0.07, 0)); kt.ajout(F, new THREE.CylinderGeometry(0.083, 0.095, 0.075, 16).translate(0, C0 + 0.11, 0)); }
     if (coiffe === 'pointu') { const F = 'tissu:' + (p.coiffeCol || '#C9A13A'); kt.ajout(F, new THREE.CylinderGeometry(0.105, 0.105, 0.012, 20).translate(0, C0 + 0.07, 0)); kt.ajout(F, new THREE.ConeGeometry(0.088, 0.19, 16).translate(0, C0 + 0.17, 0)); kt.ajout(F, place(new THREE.SphereGeometry(0.018, 8, 6), 0, C0 + 0.27, 0)); }
-    kc.vers(g); kt.vers(tete);
+    kc.vers(g, true, true); kt.vers(tete);
     if (femme) g.scale.setScalar(0.95);
     if (p.taille) g.scale.setScalar(p.taille);
     g.userData = { tete, epG: G.ep, coG: G.co, epD: D.ep, coD: D.co, pose, appliquer: () => { appliquer(G, pose.G); appliquer(D, pose.D); }, hauteurYeux: 1.63 * g.scale.y };
@@ -579,21 +636,24 @@
       [-1, 1].forEach(s => { add('jambes', segment(new THREE.Vector3(s * 0.12, 0.05, 0.05), new THREE.Vector3(s * 0.26, -0.3, 0.3), 0.07, 0.06, 6)); add('jambes', segment(new THREE.Vector3(s * 0.26, -0.3, 0.3), new THREE.Vector3(s * 0.26, -0.75, 0.2), 0.055, 0.045, 6)); });
       add('corps', drape([[0.3, -0.15], [0.24, 0.02], [0.17, 0.1]], 10, { n: 5, amp: 0.1, haut: 0.1, bas: -0.15 }, [1.25, 1.0]));
     } else {
-      if (yb > 0.2) [-1, 1].forEach(s => add('jambes', place(new THREE.CylinderGeometry(0.062, 0.045, 0.86, 5), s * 0.088, 0.46, 0)));
-      [-1, 1].forEach(s => add('jambes', place(new THREE.SphereGeometry(0.052, 5, 2, 0, TAU, 0, PI / 2), s * 0.085, 0, 0.04, 0, 0, 0, 0.85, 0.95, 2.1)));
-      const pj = [[rO, yb], [(rO + 0.19) / 2, (yb + 0.93) / 2], [0.19, 0.93], [0.163, 1.0]];
-      add('corps', drape(pj, 9, { n: f ? 7 : 6, amp: 0.09, haut: 0.95, bas: yb, ph: v.ph || 0 }, [1.08, 0.9]));
+      if (yb > 0.2) [-1, 1].forEach(s => add('jambes', place(new THREE.CylinderGeometry(0.062, 0.045, 0.86, 7), s * 0.088, 0.46, 0)));
+      [-1, 1].forEach(s => add('jambes', place(new THREE.SphereGeometry(0.052, 7, 3, 0, TAU, 0, PI / 2), s * 0.085, 0, 0.04, 0, 0, 0, 0.85, 0.95, 2.1)));
+      const pj = [[rO, yb], [rO * 0.8 + 0.19 * 0.2, yb + (0.93 - yb) * 0.3], [(rO + 0.19) / 2, (yb + 0.93) / 2], [0.19, 0.93], [0.163, 1.0]];
+      add('corps', drape(pj, 14, { n: f ? 7 : 6, amp: 0.09, haut: 0.95, bas: yb, ph: v.ph || 0 }, [1.08, 0.9]));
     }
     const dy = lg === 'cavalier' ? -0.9 : 0;
-    add('corps', drape([[0.163, 1.0], [0.175, 1.2], [0.18, 1.33], [0.15, 1.43], [0.06, 1.5]].map(([r, y]) => [r * (f ? 0.92 : 1), y + dy]), 9, null, [1.14, 0.8]));
-    add('peau', place(new THREE.SphereGeometry(0.1, 7, 5), 0, 1.65 + dy, 0.012, 0, 0, 0, 0.8, 1.1, 0.97));
-    add('peau', place(new THREE.CylinderGeometry(0.042, 0.047, 0.1, 5, 1, true), 0, 1.525 + dy, 0.005));
+    add('corps', drape([[0.163, 1.0], [0.175, 1.2], [0.18, 1.33], [0.15, 1.43], [0.06, 1.5]].map(([r, y]) => [r * (f ? 0.92 : 1), y + dy]), 12, null, [1.14, 0.8]));
+    add('peau', crane(0.1, 12).translate(0, 1.65 + dy - C0, 0.012)); // la tête porte le visage peint (texture commune à la foule)
+    const cou = place(new THREE.CylinderGeometry(0.042, 0.047, 0.1, 7, 1, true), 0, 1.525 + dy, 0.005), U = cou.attributes.uv;
+    for (let i = 0; i < U.count; i++) U.setXY(i, 0.75, 0.45); // le cou prend la peau de la nuque
+    add('peau', cou);
     [-1, 1].forEach(s => { // bras : origine à la hauteur des épaules pour pouvoir les lever
-      add('bras', segment(new THREE.Vector3(s * 0.19, 0, 0), new THREE.Vector3(s * 0.22, -0.29, 0.02), 0.056, 0.046, 5));
-      add('bras', segment(new THREE.Vector3(s * 0.22, -0.29, 0.02), new THREE.Vector3(s * 0.2, -0.55, 0.1), 0.046, v.manches === 'larges' ? 0.1 : 0.036, 5));
+      add('bras', segment(new THREE.Vector3(s * 0.19, 0, 0), new THREE.Vector3(s * 0.22, -0.29, 0.02), 0.056, 0.046, 6));
+      add('bras', segment(new THREE.Vector3(s * 0.22, -0.29, 0.02), new THREE.Vector3(s * 0.2, -0.55, 0.1), 0.046, v.manches === 'larges' ? 0.1 : 0.036, 6));
+      add('mains', place(new THREE.SphereGeometry(0.036, 6, 5), s * 0.2, -0.6, 0.115, 0.3, 0, 0, 0.55, 1.35, 1.0));
     });
     const c = v.coiffe, hc = 1.65 + dy;
-    const cal = (r, phi0, dphi, th0, dth) => new THREE.SphereGeometry(r, 8, 4, phi0, dphi, th0, dth).scale(0.8, 1.1, 0.97).translate(0, hc, 0.012);
+    const cal = (r, phi0, dphi, th0, dth) => new THREE.SphereGeometry(r, 10, 5, phi0, dphi, th0, dth).scale(0.8, 1.1, 0.97).translate(0, hc, 0.012);
     if (c === 'capuche') { add('coiffe', cal(0.124, PI / 2 + 0.85, TAU - 1.7, 0, 0.8 * PI)); add('coiffe', drape([[0.26, 1.24 + dy], [0.2, 1.4 + dy], [0.1, 1.55 + dy]], 9, null, [1.12, 0.95])); }
     if (c === 'cheveux') { add('coiffe', cal(0.105, 0, TAU, 0, 0.3 * PI)); add('coiffe', cal(0.104, PI / 2 + 0.55, TAU - 1.1, 0.28 * PI, 0.36 * PI)); }
     if (c === 'voile') { add('coiffe', cal(0.113, PI / 2 + 0.62, TAU - 1.24, 0, 0.62 * PI)); add('coiffe', drape([[0.22, 1.42 + dy], [0.15, 1.52 + dy], [0.11, 1.62 + dy]], 7, null, [0.95, 1.0], PI - 1.5, 3.0)); }
