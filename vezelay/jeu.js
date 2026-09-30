@@ -339,15 +339,15 @@
   // petits schémas des objets de la société féodale
   function illustration(type) {
     if (type === 'ordres') {
-      const ordre = (x, titre, latin, dessin) => `<g transform="translate(${x} 0)"><circle cx="60" cy="52" r="38" fill="var(--cream)" stroke="var(--teal)" stroke-width="3"/>${dessin}<text x="60" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">${titre}</text><text x="60" y="128" text-anchor="middle" font-size="11.5" font-style="italic" fill="var(--caption)">${latin}</text></g>`;
-      return `<svg viewBox="0 0 360 140" role="img" aria-label="Les trois ordres : ceux qui prient, ceux qui combattent, ceux qui travaillent">`
+      const ordre = (x, titre, latin, dessin) => `<g transform="translate(${x} 0)"><circle cx="60" cy="52" r="38" fill="var(--cream)" stroke="var(--teal)" stroke-width="3"/>${dessin}<text x="60" y="107" text-anchor="middle" font-size="12" fill="var(--ink)">Ceux qui</text><text x="60" y="122" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--ink)">${titre.replace('Ceux qui ', '')}</text><text x="60" y="138" text-anchor="middle" font-size="11.5" font-style="italic" fill="var(--caption)">${latin}</text></g>`;
+      return `<svg viewBox="0 0 360 146" role="img" aria-label="Les trois ordres : ceux qui prient, ceux qui combattent, ceux qui travaillent">`
         + ordre(0, 'Ceux qui prient', 'oratores', '<path d="M60 26 v52 M44 42 h32" stroke="var(--teal)" stroke-width="6" stroke-linecap="round"/>')
         + ordre(120, 'Ceux qui combattent', 'bellatores', '<path d="M42 30 h36 v22 q0 22 -18 30 q-18 -8 -18 -30 z" fill="var(--vermilion)"/><path d="M60 34 v44" stroke="var(--cream)" stroke-width="4"/>')
         + ordre(240, 'Ceux qui travaillent', 'laboratores', '<path d="M40 70 l30 -30 M62 32 l16 16 M36 78 h48" stroke="#7A5A38" stroke-width="6" stroke-linecap="round"/>')
         + '</svg><figcaption>La société des trois ordres, décrite vers l\'an mil par l\'évêque Adalbéron de Laon.</figcaption>';
     }
     if (type === 'pyramide') {
-      const niveau = (y, l, texte, fond) => `<rect x="${180 - l / 2}" y="${y}" width="${l}" height="30" rx="5" fill="${fond}"/><text x="180" y="${y + 20}" text-anchor="middle" font-size="13" font-weight="700" fill="${fond === 'var(--teal)' ? 'var(--teal-ink)' : 'var(--ink)'}">${texte}</text>`;
+      const niveau = (y, l, texte, fond) => `<rect x="${180 - l / 2}" y="${y}" width="${l}" height="30" rx="5" fill="${fond}" stroke="var(--dot)" stroke-width="1.5"/><text x="180" y="${y + 20}" text-anchor="middle" font-size="13" font-weight="700" fill="${fond === 'var(--teal)' ? 'var(--teal-ink)' : 'var(--ink)'}">${texte}</text>`;
       return `<svg viewBox="0 0 360 178" role="img" aria-label="La pyramide féodale : le roi, les grands seigneurs, les chevaliers, les paysans">`
         + niveau(4, 120, 'Le roi (suzerain)', 'var(--teal)') + niveau(42, 190, 'Ducs et comtes', 'var(--cream)') + niveau(80, 260, 'Chevaliers (vassaux)', 'var(--cream)') + niveau(118, 340, 'Paysans (tenanciers)', 'var(--gold-soft)')
         + '<path d="M22 110 V16" stroke="var(--vermilion)" stroke-width="2.5" marker-end="url(#fl)"/><path d="M338 16 V110" stroke="var(--teal)" stroke-width="2.5" marker-end="url(#fl2)"/>'

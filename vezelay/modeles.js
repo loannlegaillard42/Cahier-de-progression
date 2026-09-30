@@ -630,30 +630,30 @@
      Chaque silhouette donne des géométries par « couche » (corps, jambes, peau, coiffe, bras, manteau) colorées instance par instance. */
   M.silhouette = function (v) {
     const L = {}, add = (k, geo) => { (L[k] = L[k] || []).push(geo); };
-    const f = v.sexe === 'f', lg = v.longueur || 'courte';
+    const f = v.sexe === 'f', lg = v.longueur || 'courte', sg = n => v.grossier ? Math.max(4, Math.round(n * 0.62)) : n; // grossier : silhouettes lointaines, moins de facettes
     const yb = { courte: 0.52, mi: 0.3, longue: 0.07, cavalier: 0.62 }[lg], rO = { courte: 0.25, mi: 0.27, longue: 0.3, cavalier: 0.3 }[lg];
     if (lg === 'cavalier') { // assis en selle : l'origine est le creux de la selle
       [-1, 1].forEach(s => { add('jambes', segment(new THREE.Vector3(s * 0.12, 0.05, 0.05), new THREE.Vector3(s * 0.26, -0.3, 0.3), 0.07, 0.06, 6)); add('jambes', segment(new THREE.Vector3(s * 0.26, -0.3, 0.3), new THREE.Vector3(s * 0.26, -0.75, 0.2), 0.055, 0.045, 6)); });
       add('corps', drape([[0.3, -0.15], [0.24, 0.02], [0.17, 0.1]], 10, { n: 5, amp: 0.1, haut: 0.1, bas: -0.15 }, [1.25, 1.0]));
     } else {
-      if (yb > 0.2) [-1, 1].forEach(s => add('jambes', place(new THREE.CylinderGeometry(0.062, 0.045, 0.86, 7), s * 0.088, 0.46, 0)));
-      [-1, 1].forEach(s => add('jambes', place(new THREE.SphereGeometry(0.052, 7, 3, 0, TAU, 0, PI / 2), s * 0.085, 0, 0.04, 0, 0, 0, 0.85, 0.95, 2.1)));
+      if (yb > 0.2) [-1, 1].forEach(s => add('jambes', place(new THREE.CylinderGeometry(0.062, 0.045, 0.86, sg(7)), s * 0.088, 0.46, 0)));
+      [-1, 1].forEach(s => add('jambes', place(new THREE.SphereGeometry(0.052, sg(7), 3, 0, TAU, 0, PI / 2), s * 0.085, 0, 0.04, 0, 0, 0, 0.85, 0.95, 2.1)));
       const pj = [[rO, yb], [rO * 0.8 + 0.19 * 0.2, yb + (0.93 - yb) * 0.3], [(rO + 0.19) / 2, (yb + 0.93) / 2], [0.19, 0.93], [0.163, 1.0]];
-      add('corps', drape(pj, 14, { n: f ? 7 : 6, amp: 0.09, haut: 0.95, bas: yb, ph: v.ph || 0 }, [1.08, 0.9]));
+      add('corps', drape(pj, sg(14), { n: f ? 7 : 6, amp: 0.09, haut: 0.95, bas: yb, ph: v.ph || 0 }, [1.08, 0.9]));
     }
     const dy = lg === 'cavalier' ? -0.9 : 0;
-    add('corps', drape([[0.163, 1.0], [0.175, 1.2], [0.18, 1.33], [0.15, 1.43], [0.06, 1.5]].map(([r, y]) => [r * (f ? 0.92 : 1), y + dy]), 12, null, [1.14, 0.8]));
-    add('peau', crane(0.1, 12).translate(0, 1.65 + dy - C0, 0.012)); // la tête porte le visage peint (texture commune à la foule)
-    const cou = place(new THREE.CylinderGeometry(0.042, 0.047, 0.1, 7, 1, true), 0, 1.525 + dy, 0.005), U = cou.attributes.uv;
+    add('corps', drape([[0.163, 1.0], [0.175, 1.2], [0.18, 1.33], [0.15, 1.43], [0.06, 1.5]].map(([r, y]) => [r * (f ? 0.92 : 1), y + dy]), sg(12), null, [1.14, 0.8]));
+    add('peau', crane(0.1, sg(12)).translate(0, 1.65 + dy - C0, 0.012)); // la tête porte le visage peint (texture commune à la foule)
+    const cou = place(new THREE.CylinderGeometry(0.042, 0.047, 0.1, sg(7), 1, true), 0, 1.525 + dy, 0.005), U = cou.attributes.uv;
     for (let i = 0; i < U.count; i++) U.setXY(i, 0.75, 0.45); // le cou prend la peau de la nuque
     add('peau', cou);
     [-1, 1].forEach(s => { // bras : origine à la hauteur des épaules pour pouvoir les lever
-      add('bras', segment(new THREE.Vector3(s * 0.19, 0, 0), new THREE.Vector3(s * 0.22, -0.29, 0.02), 0.056, 0.046, 6));
-      add('bras', segment(new THREE.Vector3(s * 0.22, -0.29, 0.02), new THREE.Vector3(s * 0.2, -0.55, 0.1), 0.046, v.manches === 'larges' ? 0.1 : 0.036, 6));
-      add('mains', place(new THREE.SphereGeometry(0.036, 6, 5), s * 0.2, -0.6, 0.115, 0.3, 0, 0, 0.55, 1.35, 1.0));
+      add('bras', segment(new THREE.Vector3(s * 0.19, 0, 0), new THREE.Vector3(s * 0.22, -0.29, 0.02), 0.056, 0.046, sg(6)));
+      add('bras', segment(new THREE.Vector3(s * 0.22, -0.29, 0.02), new THREE.Vector3(s * 0.2, -0.55, 0.1), 0.046, v.manches === 'larges' ? 0.1 : 0.036, sg(6)));
+      add('mains', place(new THREE.SphereGeometry(0.036, sg(6), sg(5)), s * 0.2, -0.6, 0.115, 0.3, 0, 0, 0.55, 1.35, 1.0));
     });
     const c = v.coiffe, hc = 1.65 + dy;
-    const cal = (r, phi0, dphi, th0, dth) => new THREE.SphereGeometry(r, 10, 5, phi0, dphi, th0, dth).scale(0.8, 1.1, 0.97).translate(0, hc, 0.012);
+    const cal = (r, phi0, dphi, th0, dth) => new THREE.SphereGeometry(r, sg(10), 5, phi0, dphi, th0, dth).scale(0.8, 1.1, 0.97).translate(0, hc, 0.012);
     if (c === 'capuche') { add('coiffe', cal(0.124, PI / 2 + 0.85, TAU - 1.7, 0, 0.8 * PI)); add('coiffe', drape([[0.26, 1.24 + dy], [0.2, 1.4 + dy], [0.1, 1.55 + dy]], 9, null, [1.12, 0.95])); }
     if (c === 'cheveux') { add('coiffe', cal(0.105, 0, TAU, 0, 0.3 * PI)); add('coiffe', cal(0.104, PI / 2 + 0.55, TAU - 1.1, 0.28 * PI, 0.36 * PI)); }
     if (c === 'voile') { add('coiffe', cal(0.113, PI / 2 + 0.62, TAU - 1.24, 0, 0.62 * PI)); add('coiffe', drape([[0.22, 1.42 + dy], [0.15, 1.52 + dy], [0.11, 1.62 + dy]], 7, null, [0.95, 1.0], PI - 1.5, 3.0)); }

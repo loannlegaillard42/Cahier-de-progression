@@ -812,6 +812,9 @@
       const k = cle(Math.floor(x / C), Math.floor(z / C)); if (!grille.has(k)) grille.set(k, []); grille.get(k).push(p);
       gens.push(p); n++;
     }
+    // près de l'estrade (là où l'on regarde de près), silhouettes fines ; au loin, silhouettes allégées
+    const nV = V.length; V.slice().forEach(x => V.push(Object.assign({}, x, { v: Object.assign({ grossier: true }, x.v) })));
+    gens.forEach(p => { if (Math.hypot(p.x - EST.x, (p.z - EST.z) * 1.2) > 30) p.v += nV; });
     foule = troupe(gens, V, rnd, 1.42, true);
     foule.agitation = 0;
     placerTroupe(foule, 0, 0);
@@ -1422,5 +1425,6 @@
   S.hauteur = hauteur;
   S.POINTS = POINTS;
   S.enMouvement = () => !!cam.trajet;
+  S._rendu = () => renderer; S._scene = () => scene; // pour les tests automatiques (mesures)
   window.Scene3D = S;
 })();
