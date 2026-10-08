@@ -671,6 +671,34 @@
     maj();
   }
 
+  /* ---------- Note automatique ---------- */
+  const arr = x => Math.round(x * 4) / 4; // au quart de point
+  function noteAuto() {
+    const lignes = [];
+    const exig = E.exigScore !== null ? arr(E.exigScore / EXIGENCES.length * BAREME.exigences) : 0;
+    lignes.push(['Qui veut quoi ? (1er essai : ' + (E.exigScore ?? 0) + ' / ' + EXIGENCES.length + ')', exig, BAREME.exigences]);
+    const tab = E.tabScore !== null ? arr(E.tabScore / TABLEAU.etiquettes.length * BAREME.tableau) : 0;
+    lignes.push(['Tableau de la fiche (1er essai : ' + (E.tabScore ?? 0) + ' / ' + TABLEAU.etiquettes.length + ')', tab, BAREME.tableau]);
+    const nA = ALLIANCES.affirmations.length + 1;
+    const jA = ALLIANCES.affirmations.filter(a => E.alliances[a.id] && a.rep.includes(E.alliances[a.id])).length + (E.bilanRep === BILAN.question.bonne ? 1 : 0);
+    lignes.push(['Alliances et bilan (' + jA + ' / ' + nA + ')', arr(jA / nA * BAREME.alliances), BAREME.alliances]);
+    const jC = CHRONIQUE.filter((x, i) => juste(i)).length;
+    lignes.push(['Chronique 1815-1848 (' + jC + ' / ' + CHRONIQUE.length + ')', arr(jC / CHRONIQUE.length * BAREME.chronique), BAREME.chronique]);
+    const total = lignes.reduce((s, l) => s + l[1], 0);
+    const sur = BAREME.exigences + BAREME.tableau + BAREME.alliances + BAREME.chronique;
+    return { lignes, total: arr(total), sur };
+  }
+  const fmt = n => String(n).replace('.', ',');
+  function partiesIci() { try { return parseInt(localStorage.getItem(CLE + '-parties') || '0', 10) || 0; } catch (e) { return 0; } }
+  function compterPartie() { try { localStorage.setItem(CLE + '-parties', String(partiesIci() + 1)); } catch (e) { /* rien */ } }
+  function blocNote() {
+    const n = noteAuto();
+    return h('div', { class: 'note-auto' },
+      h('p', { class: 'note-titre' }, 'Note automatique : ', h('b', null, fmt(n.total) + ' / ' + n.sur), ' · rédaction : … / ' + BAREME.redaction + ' (corrigée par le professeur)'),
+      h('table', { class: 'reponses' }, h('tbody', null, n.lignes.map(l => h('tr', null, h('td', null, l[0]), h('td', null, fmt(l[1]) + ' / ' + l[2]))))),
+      h('p', { class: 'note-controle' }, 'Partie commencée le ' + new Date(E.debut).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) + (E.partieN ? ' · partie n° ' + E.partieN + ' sur cet ordinateur' : '') + (E.repris ? ' · reprise par code' : '')));
+  }
+
   /* ---------- Le carnet du secrétaire ---------- */
   const section = t => h('h2', null, t);
   function construireCarnet(final) {
@@ -678,6 +706,7 @@
     const c = h('div', { class: 'carnet' },
       h('p', { class: 'niveau' }, JEU.niveau), h('h1', null, 'Carnet du secrétaire'),
       h('div', { class: 'ident' }, (E.noms || 'Sans nom') + (E.classe ? ' · ' + E.classe : '') + ' · ' + auj),
+      final ? blocNote() : null,
       h('div', { class: 'qdepart' }, h('small', null, 'Question de départ'), h('b', null, JEU.questionDepart)));
     // 1. Qui veut quoi ?
     c.append(section('1. Qui veut quoi ?' + (E.exigScore !== null ? ' (' + E.exigScore + ' / ' + EXIGENCES.length + ' au premier essai' + (E.exigCorrige ? ', puis correction' : '') + ')' : '')));
@@ -735,6 +764,7 @@
       c.append(blocPlan());
       c.append(section('7. Ma conclusion'));
       c.append(h('div', { class: 'redaction-finale' }, E.redaction || ''));
+      c.append(section('Vocabulaire à retenir'), blocVocab());
     }
     return c;
   }
@@ -742,6 +772,12 @@
     const L = [], nomC = Object.fromEntries(CHOIX_CHRONIQUE);
     L.push('CARNET DU SECRÉTAIRE · ' + JEU.titre + ' (' + JEU.niveau + ')');
     L.push((E.noms || 'Sans nom') + (E.classe ? ' · ' + E.classe : '') + ' · ' + new Date().toLocaleDateString('fr-FR'));
+    if (E.phase === 'fin') {
+      const n = noteAuto();
+      L.push('', 'NOTE AUTOMATIQUE : ' + fmt(n.total) + ' / ' + n.sur + '   |   Rédaction : ... / ' + BAREME.redaction + '   |   TOTAL : ... / 20');
+      n.lignes.forEach(l => L.push('- ' + l[0] + ' : ' + fmt(l[1]) + ' / ' + l[2]));
+      L.push('Partie commencée le ' + new Date(E.debut).toLocaleString('fr-FR') + (E.partieN ? ' · partie n° ' + E.partieN + ' sur cet ordinateur' : '') + (E.repris ? ' · reprise par code' : ''));
+    }
     L.push('', 'Question de départ : ' + JEU.questionDepart, '');
     L.push('1. QUI VEUT QUOI ?' + (E.exigScore !== null ? ' (' + E.exigScore + '/' + EXIGENCES.length + ' au premier essai)' : ''));
     NEGOCIATEURS.forEach(p => L.push('- ' + p.nom + ' : ' + (EXIGENCES.filter(x => E.exig[x.id] === p.id).map(x => x.texte).join(' ; ') || '-')));
@@ -848,11 +884,21 @@
   function imprimer() { remplirImpression(); window.print(); }
   function remplirImpression() { const z = $('#impression'); z.replaceChildren(construireCarnet(E.phase === 'fin')); }
   window.addEventListener('beforeprint', () => { if (E && E.phase !== 'intro') remplirImpression(); });
-  function nouvellePartie() {
-    ouvrirModal([h('h2', null, 'Nouvelle partie ?'), h('p', null, 'Ton carnet actuel sera effacé de cet ordinateur. Pense à le rendre, ou à copier ton code de reprise, avant.'),
+  function demanderCodeProf(titre, texte, action) {
+    const champ = h('input', { id: 'i-prof', type: 'password', autocomplete: 'off', placeholder: 'Code du professeur' });
+    const err = h('p', { class: 'erreur', role: 'alert' });
+    const valider = () => { if (champ.value.trim().toUpperCase() === String(JEU.codeProf).toUpperCase()) { fermerModal(); action(); } else err.textContent = 'Code incorrect : appelle ton professeur.'; };
+    champ.addEventListener('keydown', e => { if (e.key === 'Enter') valider(); });
+    ouvrirModal([h('h2', null, titre), h('p', null, texte),
+      h('label', { for: 'i-prof', class: 'sr' }, 'Code du professeur'), champ, err,
       h('div', { class: 'actions' },
-        h('button', { class: 'btn rouge', type: 'button', onclick: () => { fermerModal(); try { localStorage.removeItem(CLE); } catch (e) { /* rien */ } location.reload(); } }, 'Effacer et recommencer'),
+        h('button', { class: 'btn rouge', type: 'button', onclick: valider }, 'Valider'),
         h('button', { class: 'btn second', type: 'button', onclick: fermerModal }, 'Annuler'))]);
+    setTimeout(() => champ.focus(), 50);
+  }
+  function nouvellePartie() {
+    demanderCodeProf('Nouvelle partie ?', 'Ton carnet actuel sera effacé de cet ordinateur. Cette partie est notée : seul ton professeur peut autoriser une nouvelle partie.',
+      () => { try { localStorage.removeItem(CLE); } catch (e) { /* rien */ } location.reload(); });
   }
 
   /* ---------- Sources ---------- */
@@ -863,11 +909,14 @@
     h('li', null, 'Populations : ordres de grandeur arrondis.')));
 
   /* ---------- Aide ---------- */
+  const blocVocab = () => h('div', { class: 'vocab' }, h('p', { class: 'vocab-titre' }, 'Vocabulaire'),
+    h('dl', null, VOCABULAIRE.flatMap(([m, d]) => [h('dt', null, m), h('dd', null, d)])));
   function ouvrirAide() {
     ouvrirModal([h('h2', null, 'Comment jouer'),
       h('div', { class: 'qdepart' }, h('small', null, 'Question de départ'), h('b', null, JEU.questionDepart)),
       h('div', { class: 'regles' }, REGLES.map(([t, d]) => h('div', { class: 'regle' }, h('b', null, t), d))),
       h('div', { class: 'jauges-aide' }, ['eq', 'leg', 'sec', 'ent'].map(g => h('p', null, h('span', { html: ICO[g] }), h('b', null, JAUGES[g].nom + ' : '), JAUGES[g].aide))),
+      blocVocab(),
       h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'button', onclick: fermerModal }, "C'est compris"),
         E && E.phase !== 'intro' ? boutonCode() : null),
       credits()]);
@@ -928,9 +977,15 @@
     const cont = $('#intro-contenu'); cont.replaceChildren();
     const nom = h('input', { id: 'i-noms', autocomplete: 'off', placeholder: 'Prénom Nom (et ton binôme)' });
     const classe = h('input', { id: 'i-classe', autocomplete: 'off', placeholder: 'Ex. : 1re 3' });
-    const go = h('button', { class: 'btn or grand', type: 'button', disabled: true, onclick: () => {
-      E = etatInitial(); E.noms = nom.value.trim(); E.classe = classe.value.trim(); E.phase = 'europe'; E.etape = 'q';
+    const demarrer = () => {
+      compterPartie();
+      E = etatInitial(); E.noms = nom.value.trim(); E.classe = classe.value.trim(); E.phase = 'europe'; E.etape = 'q'; E.partieN = partiesIci();
       sauver(); $('#ecran-intro').hidden = true; afficherEurope();
+    };
+    const enCours = s && s.phase && s.phase !== 'intro';
+    const go = h('button', { class: 'btn or grand', type: 'button', disabled: true, onclick: () => {
+      if (enCours) demanderCodeProf('Une partie est déjà en cours', 'Une partie notée a déjà commencé sur cet ordinateur (' + resumePartie(s) + '). Reprends-la avec le bouton « Reprendre ». Pour en commencer une autre, il faut le code du professeur.', demarrer);
+      else demarrer();
     } }, 'Entrer au congrès');
     nom.addEventListener('input', () => { go.disabled = nom.value.trim().length < 2; });
     nom.addEventListener('keydown', e => { if (e.key === 'Enter' && !go.disabled) go.click(); });
@@ -941,7 +996,7 @@
       h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'button', onclick: () => {
         const o = decoder(zoneCode.value);
         if (!o) { erreur.textContent = 'Ce code n\'est pas reconnu. Vérifie que tu l\'as copié en entier.'; return; }
-        reprendre(o);
+        o.repris = true; reprendre(o);
       } }, 'Reprendre la partie')), erreur);
     const carte = h('div', { class: 'carte-intro' },
       h('p', { class: 'niveau' }, JEU.niveau),

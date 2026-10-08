@@ -9,7 +9,18 @@ const JEU = {
   niveau: "1re · Thème 1, chapitre 2 · PPO Metternich et le congrès de Vienne",
   questionDepart: "Quel ordre européen les vainqueurs de Napoléon mettent-ils en place en 1815, et sur quels principes le fondent-ils ?",
   questionFinale: "L'ordre européen voulu par Metternich peut-il être durable ?",
-  motsMin: 40
+  motsMin: 40,
+  /* Code professeur : demandé pour effacer une partie et en recommencer une (note sommative). Change-le si tu veux. */
+  codeProf: "METTERNICH"
+};
+
+/* ---------- Barème (points automatiques sur 14 ; la rédaction, sur 6, est corrigée par le professeur) ---------- */
+const BAREME = {
+  exigences: 3,   // tableau « Qui veut quoi ? », score au premier essai
+  tableau: 4,     // tableau de la fiche, score au premier essai
+  alliances: 3,   // 5 affirmations + QCM du bilan
+  chronique: 4,   // 12 événements classés
+  redaction: 6    // plan + brouillon, à la main
 };
 
 const INTRO = [
@@ -124,6 +135,7 @@ const PERSONNAGES = [
     sujets: [
       ["Qu'est-ce que la légitimité ?", "Un principe simple : les trônes reviennent aux dynasties qui régnaient légalement avant la Révolution. Ainsi Louis XVIII en France… et le roi de Saxe dans son royaume.", "saxe"],
       ["Que veut la France ?", "Garder les frontières de 1792 que lui a laissées le traité de Paris. Et chasser Murat de Naples, pour rendre le trône aux Bourbons, cousins de mon roi.", "naples"],
+      ["Qui défend la légitimité ?", "On nous appelle les légitimistes : pour nous, un roi légitime ne peut être ni chassé ni remplacé par un usurpateur. C'est le fondement de toute paix durable."],
       ["Comment vous faire entendre ?", "En divisant les vainqueurs. L'Autriche et le Royaume-Uni ne veulent pas que la Russie et la Prusse s'agrandissent trop… La France peut les y aider."]
     ],
     aurevoir: "Au revoir. Ici, un secret ne dure jamais plus d'une soirée."
@@ -377,7 +389,8 @@ const ALLIANCES = {
     { id: "a2", texte: "Le Royaume-Uni en fait partie.", rep: ["quadruple"] },
     { id: "a3", texte: "Elle prévoit des réunions régulières des puissances : les congrès.", rep: ["quadruple"] },
     { id: "a4", texte: "Elle cherche à maintenir l'ordre de 1815.", rep: ["deux"] },
-    { id: "a5", texte: "Elle ne prévoit aucun moyen concret d'agir.", rep: ["sainte"] }
+    { id: "a5", texte: "Elle ne prévoit aucun moyen concret d'agir.", rep: ["sainte"] },
+    { id: "a6", texte: "Elle organise le concert européen : les grandes puissances règlent ensemble les affaires de l'Europe.", rep: ["quadruple"] }
   ],
   aRetenir: "Attention à ne pas confondre : la Sainte-Alliance est une déclaration de principes, sans moyens d'agir. C'est la Quadruple-Alliance et ses congrès (Aix-la-Chapelle 1818, Troppau 1820, Laibach 1821, Vérone 1822) qui organisent les interventions armées contre les révolutions."
 };
@@ -414,14 +427,14 @@ const TABLEAU = {
 const CHOIX_CHRONIQUE = [["defense", "Défend l'ordre de 1815"], ["liberale", "Contestation libérale"], ["nationale", "Contestation nationale"]];
 const CHRONIQUE = [
   { date: "1818", titre: "Le congrès d'Aix-la-Chapelle", villes: ["aix"], rep: ["defense"],
-    texte: "Les Alliés retirent leurs troupes de France. Louis XVIII rejoint les quatre grandes puissances : elles se réuniront désormais à cinq pour veiller sur la paix.",
+    texte: "Les Alliés retirent leurs troupes de France. Louis XVIII rejoint les quatre grandes puissances : elles se réuniront désormais à cinq pour veiller sur la paix : c'est le concert européen.",
     exp: "Le système des congrès fonctionne : les puissances se concertent pour maintenir l'ordre de 1815." },
   { date: "1819", titre: "Les décrets de Carlsbad", villes: ["carlsbad"], rep: ["defense"],
     texte: "Un étudiant nationaliste assassine l'écrivain Kotzebue, accusé d'espionner pour le tsar. Metternich fait adopter dans toute la Confédération germanique la censure de la presse et la surveillance des universités.",
     exp: "Metternich réprime les idées libérales et nationales qui circulent parmi les étudiants allemands." },
   { date: "1820", titre: "Révolutions en Espagne et à Naples", villes: ["cadix", "naples3"], rep: ["liberale"],
-    texte: "Des officiers se soulèvent et obligent les rois d'Espagne et de Naples à accorder une constitution qui limite leur pouvoir.",
-    exp: "Contestation libérale : les révolutionnaires réclament une constitution et des libertés." },
+    texte: "Des officiers, souvent membres de sociétés secrètes (les carbonari en Italie), se soulèvent et obligent les rois d'Espagne et de Naples à accorder une constitution qui limite leur pouvoir.",
+    exp: "Contestation libérale : les révolutionnaires réclament une constitution et des libertés. Comme la presse est censurée, ils s'organisent en sociétés secrètes." },
   { date: "1821", titre: "Le congrès de Laibach", villes: ["laibach", "naples3", "turin3"], rep: ["defense"],
     texte: "Réunies en congrès, les puissances chargent l'armée autrichienne d'écraser les révolutions de Naples et du Piémont (mars-avril 1821).",
     exp: "Les congrès servent à organiser des interventions armées contre les révolutions." },
@@ -454,7 +467,7 @@ const CHRONIQUE = [
 /* ---------- Réponse finale ---------- */
 const REDACTION = {
   consigne: "Écris le brouillon de ta conclusion en quelques lignes. Appuie-toi sur ton plan : des dates, des acteurs, des lieux.",
-  aide: ["équilibre", "légitimité", "congrès", "Sainte-Alliance", "Quadruple-Alliance", "libéralisme", "nation", "1830", "1848", "Metternich"],
+  aide: ["équilibre", "légitimité", "légitimisme", "concert européen", "congrès", "Sainte-Alliance", "Quadruple-Alliance", "libéralisme", "nation", "1830", "1848", "Metternich"],
   plan: [
     { titre: "Les organisateurs", sous: "Le congrès de Vienne (1814-1815)" },
     { titre: "Les défenseurs", sous: "Alliances, congrès, interventions" },
@@ -466,5 +479,9 @@ const VOCABULAIRE = [
   ["Congrès", "réunion des représentants des États pour régler ensemble les affaires européennes."],
   ["Légitimité", "principe selon lequel seules les dynasties régnant avant 1789 ont le droit de gouverner."],
   ["Équilibre européen", "répartition des territoires organisée pour qu'aucune puissance ne domine les autres."],
-  ["Sainte-Alliance", "traité du 26 septembre 1815 unissant l'Autriche, la Prusse et la Russie au nom du christianisme."]
+  ["Sainte-Alliance", "traité du 26 septembre 1815 unissant l'Autriche, la Prusse et la Russie au nom du christianisme."],
+  ["Légitimisme", "doctrine des partisans de la légitimité : défendre les dynasties « légitimes » contre les révolutions et les usurpateurs."],
+  ["Concert européen", "entente des grandes puissances, qui se réunissent en congrès pour régler ensemble les affaires de l'Europe et y maintenir l'ordre."],
+  ["Société secrète", "organisation clandestine d'opposants (carbonari, sociétés d'étudiants…) qui agit en secret parce que la presse et les réunions sont surveillées."],
+  ["Censure", "contrôle des journaux et des livres par le pouvoir avant ou après leur publication."]
 ];
