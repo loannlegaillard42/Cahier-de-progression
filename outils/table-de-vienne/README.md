@@ -19,7 +19,8 @@ Version en ligne : https://claude.ai/artifact/Hw57GCiwZvWEEjRoNtjkqX
 | 1815-1848 | Classe 12 événements (défense, contestation libérale, contestation nationale), dont Chios et les Trois Glorieuses | Question problématisée |
 | Conclusion | Reçoit un plan en trois axes et rédige un brouillon de conclusion | Étape 2 |
 
-Le carnet du secrétaire se remplit tout seul. L'élève le copie pour le rendre (ENT, document). Le code de reprise permet de finir la partie sur un autre ordinateur, par exemple à la maison.
+Le carnet du secrétaire se remplit tout seul. L'élève le copie pour le rendre (ENT, document).
+Les boutons « Copier le plan » et « Copier le tableau comparatif » (écran de conclusion, écran de fin, carnet) copient le plan et le tableau « Ma proposition / Décision de 1815 » sous forme de vrais tableaux, à coller dans un traitement de texte. Le code de reprise permet de finir la partie sur un autre ordinateur, par exemple à la maison.
 
 ## Fichiers
 

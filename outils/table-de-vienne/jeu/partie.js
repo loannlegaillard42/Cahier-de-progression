@@ -1,8 +1,8 @@
-const { chromium } = require('playwright');
+const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const W = +(process.env.W || 1366), H = +(process.env.H || 768);
 (async () => {
   const b = await chromium.launch();
-  const ctx = await b.newContext({ viewport: { width: W, height: H }, ignoreHTTPSErrors: true });
+  const ctx = await b.newContext({ viewport: { width: W, height: H }, ignoreHTTPSErrors: true, permissions: ['clipboard-read','clipboard-write'] });
   const page = await ctx.newPage();
   const errs = [];
   page.on('console', m => { if (m.type() === 'error' && !/ERR_CERT|net::/.test(m.text())) errs.push(m.text()); });
@@ -122,6 +122,11 @@ const W = +(process.env.W || 1366), H = +(process.env.H || 768);
   await bouton('Reprendre la partie');
   const ph = await page.evaluate(() => window.__jeu.etat().phase);
   console.log('reprise par code -> phase', ph, '| longueur du code', code.length);
+  for (const n of ['Copier le plan', 'Copier le tableau comparatif']) {
+    await page.getByRole('button', { name: n }).first().click(); await page.waitForTimeout(300);
+    const t = await page.evaluate(async () => { const it = (await navigator.clipboard.read())[0]; return [it.types.join(','), (await (await it.getType('text/plain')).text())]; });
+    console.log(n, '->', t[0], '\n' + t[1].slice(0, 400));
+  }
   console.log(errs.length ? 'ERREURS :\n' + errs.join('\n') : 'aucune erreur JS');
   await b.close();
 })().catch(e => { console.error('ÉCHEC', e); process.exit(1); });

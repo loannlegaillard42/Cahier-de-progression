@@ -665,7 +665,7 @@
       h('p', { class: 'sous-texte' }, REDACTION.consigne),
       h('div', { class: 'mots' }, h('span', null, 'Mots utiles :'), REDACTION.aide.map(m => h('span', { class: 'etiquette mini' }, m))),
       h('label', { for: 'redaction', class: 'sr' }, 'Ma conclusion'), zone,
-      h('div', { class: 'actions' }, fini, compteur,
+      h('div', { class: 'actions' }, fini, compteur, boutonPlan(),
         h('button', { class: 'btn second', type: 'button', onclick: () => { $('#ecran-activite').hidden = true; E.phase = 'chronique'; E.chroEtape = CHRONIQUE.length - 1; sauver(); afficherChronique(); } }, '← Revoir la chronique'))));
     $('#ecran-activite').hidden = false; $('#ecran-activite').scrollTop = 0;
     maj();
@@ -782,12 +782,46 @@
       navigator.clipboard.writeText(texte).then(() => { if (cible) cible.textContent = 'Copié'; toast(messageOk); }, secours);
     } catch (e) { secours(); }
   }
+  /* ---------- Fiches à copier : le plan et le tableau comparatif, collés comme de vrais tableaux dans Word, Docs ou l'ENT ---------- */
+  const echap = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const STYLE_TD = 'border:1px solid #999;padding:6px;vertical-align:top;';
+  function fichePlan() {
+    const P = planDonnees();
+    const tete = REDACTION.plan.map((p, i) => '<th style="' + STYLE_TD + 'background:#E7EEF0">' + ['I', 'II', 'III'][i] + '. ' + echap(p.titre) + '<br><small>' + echap(p.sous) + '</small></th>').join('');
+    const corps = P.map(col => '<td style="' + STYLE_TD + '"><ul>' + col.map(t => '<li>' + echap(t) + '</li>').join('') + '</ul></td>').join('');
+    const html = '<h3>Plan · ' + echap(JEU.questionFinale) + '</h3><table style="border-collapse:collapse;width:100%"><tr>' + tete + '</tr><tr>' + corps + '</tr></table>';
+    const L = ['PLAN · ' + JEU.questionFinale];
+    REDACTION.plan.forEach((p, i) => { L.push('', ['I', 'II', 'III'][i] + '. ' + p.titre + ' (' + p.sous + ')'); P[i].forEach(t => L.push('- ' + t)); });
+    return { html, texte: L.join('\n') };
+  }
+  function ficheComparaison() {
+    const lignes = ORDRE_DOSSIERS.filter(k => E.choix[k]).map(k => {
+      const mien = E.choixEleve[k] || E.choix[k];
+      return [DOSSIERS[k].titre, optionDe(k, mien).texte + (E.forces[k] ? ' (annulée par les événements)' : ''), optionDe(k, DOSSIERS[k].reel).texte, mien === DOSSIERS[k].reel ? 'Pareil' : 'Différent'];
+    });
+    const th = ['Dossier', 'Ma proposition', 'Décision de 1815', 'Comparaison'].map(t => '<th style="' + STYLE_TD + 'background:#E7EEF0">' + t + '</th>').join('');
+    const html = '<h3>Ma paix et la paix de Vienne</h3><table style="border-collapse:collapse;width:100%"><tr>' + th + '</tr>' + lignes.map(l => '<tr>' + l.map(c => '<td style="' + STYLE_TD + '">' + echap(c) + '</td>').join('') + '</tr>').join('') + '</table>';
+    const texte = ['MA PAIX ET LA PAIX DE VIENNE', 'Dossier\tMa proposition\tDécision de 1815\tComparaison'].concat(lignes.map(l => l.join('\t'))).join('\n');
+    return { html, texte };
+  }
+  function copierFiche(f, cible, msg) {
+    try {
+      if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+        const item = new ClipboardItem({ 'text/html': new Blob([f.html], { type: 'text/html' }), 'text/plain': new Blob([f.texte], { type: 'text/plain' }) });
+        navigator.clipboard.write([item]).then(() => { if (cible) cible.textContent = 'Copié'; toast(msg); }, () => copier(f.texte, cible, msg));
+        return;
+      }
+    } catch (e) { /* on passe au texte simple */ }
+    copier(f.texte, cible, msg);
+  }
+  const boutonPlan = () => h('button', { class: 'btn second', type: 'button', onclick: ev => copierFiche(fichePlan(), ev.currentTarget, 'Plan copié : colle-le dans un document pour le compléter.') }, 'Copier le plan');
+  const boutonComparaison = () => h('button', { class: 'btn second', type: 'button', disabled: !ORDRE_DOSSIERS.some(k => E.choix[k]), onclick: ev => copierFiche(ficheComparaison(), ev.currentTarget, 'Tableau copié : colle-le dans un document pour le compléter.') }, 'Copier le tableau comparatif');
   const boutonCopier = () => h('button', { class: 'btn or', type: 'button', onclick: ev => copier(carnetTexte(), ev.currentTarget, 'Carnet copié : colle-le où ton professeur te l\'a demandé.') }, 'Copier mon carnet');
   const boutonCode = () => h('button', { class: 'btn second', type: 'button', onclick: ev => copier(encoder(E), ev.currentTarget, 'Code de reprise copié : garde-le pour continuer ailleurs.') }, 'Copier mon code de reprise');
   function ouvrirCarnet() {
     fermerDialogue();
     ouvrirModal([construireCarnet(E.phase === 'fin'), h('div', { class: 'actions' },
-      h('button', { class: 'btn', type: 'button', onclick: fermerModal }, 'Fermer'), boutonCopier(), boutonCode()),
+      h('button', { class: 'btn', type: 'button', onclick: fermerModal }, 'Fermer'), boutonCopier(), boutonComparaison(), E.phase === 'redaction' || E.phase === 'fin' ? boutonPlan() : null, boutonCode()),
       h('p', { class: 'note-rendu' }, 'Le code de reprise permet de continuer la partie sur un autre ordinateur (par exemple à la maison) : colle-le dans l\'écran d\'accueil, bouton « Reprendre avec un code ».')], { large: true });
   }
   function ouvrirFin() {
@@ -795,7 +829,7 @@
     $('#ecran-activite').hidden = true;
     majCarte();
     const cont = $('#fin-contenu'); cont.replaceChildren();
-    cont.append(h('div', { class: 'barre-fin' }, boutonCopier(),
+    cont.append(h('div', { class: 'barre-fin' }, boutonCopier(), boutonPlan(), boutonComparaison(),
       DANS_CADRE ? null : h('button', { class: 'btn', type: 'button', onclick: imprimer }, 'Imprimer ou enregistrer en PDF'),
       h('button', { class: 'btn second', type: 'button', onclick: revoirCarte }, 'Revoir la carte'),
       boutonCode(),
