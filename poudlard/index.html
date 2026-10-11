@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Les Fragments du Temps</title>
+<meta name="description" content="Jeu de quêtes Harry Potter pour une classe de 6e en histoire-géographie : 4 sorciers, 13 quêtes alignées sur le programme." />
+<meta name="theme-color" content="#1B1F3B" />
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Noto+Sans+Egyptian+Hieroglyphs&display=swap">
+<style>
+:root {
+  /* Mise en page : grimoire à une colonne. Pierre de lune pour le cadre du jeu,
+     parchemin pour les documents remis aux élèves, une carte à jouer par sorcier. */
+  --bg: #ECEEF3; --surface: #FAFAFC; --ink: #1B1F3B; --muted: #585D78; --line: #D3D7E3;
+  --gold: #8F6E22; --gold-soft: #F1E7CC;
+  --parch: #F7F1E2; --surface-parch: #F7F1E2; --parch-line: #DDD0B0; --parch-ink: #2B2418;
+  --gry: #9B1C1C; --gry-soft: #F7E4E2; --ser: #23408E; --ser-soft: #E2E8F7;
+  --pou: #7A5800; --pou-soft: #FAF0CF; --sep: #1F6B43; --sep-soft: #DDEFE5;
+  --gry-band: #8E1A1C; --ser-band: #1F3C85; --pou-band: #E3AE1D; --sep-band: #1C6440;
+  --gry-2: #D9A92B; --ser-2: #B08A4E; --pou-2: #26221C; --sep-2: #BFC5CC;
+  --on-band: #FFFFFF; --on-pou-band: #2A2210;
+  --robe: #262A44; --wood: #8A5A2B; --wood-dark: #5E3B1A; --metal: #C9A44C;
+  --sea: #BCD5E8; --sand: #EBDDB8; --fertile: #A3C77F; --river: #2C6BA3;
+
+  --f-display: "IM Fell English", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --f-sc: "IM Fell English SC", "IM Fell English", Georgia, serif;
+  --f-body: "Lexend", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-hiero: "Noto Sans Egyptian Hieroglyphs", "Segoe UI Historic", "Noto Sans", sans-serif;
+  --t-xs: .8125rem; --t-s: .9375rem; --t-m: 1.0625rem; --t-l: 1.375rem; --t-xl: 1.875rem; --t-xxl: clamp(2.4rem, 6vw, 3.6rem);
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10132A; --surface: #191D39; --ink: #E8E6F3; --muted: #A4A7C4; --line: #2D3259;
+  --gold: #D8B65E; --gold-soft: #3A3220;
+  --parch: #23212E; --surface-parch: #23212E; --parch-line: #3E3A4C; --parch-ink: #EFE7D4;
+  --gry: #F08A7E; --gry-soft: #3A1D27; --ser: #94AEF2; --ser-soft: #1C2652;
+  --pou: #EEC85E; --pou-soft: #3A3115; --sep: #78D3A0; --sep-soft: #15352A;
+  --robe: #0B0D1E; --wood: #7A4E25; --wood-dark: #4A2E14; --metal: #CFAE5C;
+  --sea: #1F3B57; --sand: #4B4232; --fertile: #4F7A3C; --river: #7DB8EA;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #10132A; --surface: #191D39; --ink: #E8E6F3; --muted: #A4A7C4; --line: #2D3259;
+  --gold: #D8B65E; --gold-soft: #3A3220;
+  --parch: #23212E; --surface-parch: #23212E; --parch-line: #3E3A4C; --parch-ink: #EFE7D4;
+  --gry: #F08A7E; --gry-soft: #3A1D27; --ser: #94AEF2; --ser-soft: #1C2652;
+  --pou: #EEC85E; --pou-soft: #3A3115; --sep: #78D3A0; --sep-soft: #15352A;
+  --robe: #0B0D1E; --wood: #7A4E25; --wood-dark: #4A2E14; --metal: #CFAE5C;
+  --sea: #1F3B57; --sand: #4B4232; --fertile: #4F7A3C; --river: #7DB8EA;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15.5px; line-height: 1.6; padding-inline: 16px; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 36px 80px; display: grid; gap: 64px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 400; text-wrap: balance; margin: 0; line-height: 1.12; }
+p { margin: 0; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
+.ico { width: 1.15em; height: 1.15em; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.2em; }
+.eyebrow { font-family: var(--f-sc); font-size: var(--t-m); letter-spacing: .06em; color: var(--gold); }
+.sec { display: grid; gap: 22px; scroll-margin-top: 16px; }
+.sec > header { display: grid; gap: 4px; max-width: 70ch; }
+.sec h2 { font-size: var(--t-xl); }
+.lead { font-size: var(--t-m); color: var(--muted); max-width: 64ch; }
+.small { font-size: var(--t-xs); color: var(--muted); }
+
+/* ---------- héros ---------- */
+.hero { display: grid; gap: 28px; align-items: center; }
+@media (min-width: 820px) { .hero { grid-template-columns: 1.25fr 1fr; } }
+.hero-txt { display: grid; gap: 16px; min-width: 0; }
+.hero h1 { font-size: var(--t-xxl); letter-spacing: -.01em; }
+.hero h1 em { color: var(--gold); }
+.hero .thesis { font-size: var(--t-l); line-height: 1.4; max-width: 34ch; font-family: var(--f-display); font-style: italic; }
+.fiche { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 18px; margin: 4px 0 0; padding: 14px 0 0; border-top: 1px solid var(--line); }
+.fiche div { min-width: 0; }
+.fiche dt { font-family: var(--f-sc); color: var(--gold); font-size: var(--t-s); letter-spacing: .04em; }
+.fiche dd { margin: 0; font-size: var(--t-s); }
+.ring { width: 100%; max-width: 330px; justify-self: center; }
+.ring-num { font: 700 13px var(--f-body); }
+@media (prefers-reduced-motion: no-preference) {
+  .ring > g { animation: flotte 6s ease-in-out infinite alternate; transform-box: fill-box; }
+  .ring > g:nth-child(odd) { animation-duration: 7.5s; }
+  @keyframes flotte { to { translate: 0 -3px; } }
+}
+.toc { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.toc a { display: inline-block; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; font-size: var(--t-s); background: var(--surface); }
+.toc a:hover { border-color: var(--gold); }
+
+/* ---------- principe ---------- */
+.duo { display: grid; gap: 14px; }
+@media (min-width: 700px) { .duo { grid-template-columns: 1fr 1fr; } }
+.objet { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: start; padding: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.objet .ico { grid-row: span 3; width: 40px; height: 40px; color: var(--gold); stroke-width: 1.4; }
+.objet h3 { font-size: var(--t-l); }
+.objet .tag { font-family: var(--f-sc); color: var(--gold); letter-spacing: .04em; }
+.regle { font-family: var(--f-display); font-size: var(--t-l); line-height: 1.4; padding: 18px 22px; border-left: 3px solid var(--gold); background: var(--gold-soft); border-radius: 0 var(--r) var(--r) 0; max-width: 70ch; }
+.mix { display: grid; gap: 12px; }
+@media (min-width: 700px) { .mix { grid-template-columns: 1fr 1fr; } }
+.mix > div { display: grid; gap: 4px; min-width: 0; align-content: start; }
+.mix b { font-family: var(--f-sc); font-weight: 400; color: var(--gold); letter-spacing: .04em; font-size: var(--t-m); }
+.roles { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.roles li { padding: 6px 12px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); font-size: var(--t-s); }
+.roles li b { margin-right: 4px; }
+
+/* ---------- étapes d'une quête ---------- */
+.phases { display: grid; gap: 14px; }
+@media (min-width: 900px) { .phases { grid-template-columns: 3fr 2fr; } }
+.phase { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 14px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.phase-titre { font-family: var(--f-sc); color: var(--gold); letter-spacing: .04em; font-size: var(--t-m); }
+.etapes { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+@media (min-width: 560px) { .etapes { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } }
+.etape { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.etape-top { display: flex; align-items: center; gap: 10px; }
+.etape-ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); border: 1px solid var(--line); flex: none; }
+.etape-ic .ico { width: 20px; height: 20px; }
+.etape h3 { font-size: var(--t-l); }
+.etape .num { font: 700 var(--t-xs) var(--f-body); color: var(--muted); display: block; }
+.etape p { font-size: var(--t-s); }
+.duree { font-size: var(--t-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+.comp { display: inline-block; font-size: var(--t-xs); padding: 2px 8px; border-radius: 999px; background: var(--gold-soft); color: var(--ink); justify-self: start; }
+
+/* ---------- cartes des sorciers ---------- */
+.cartes { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+@media (min-width: 1000px) { .cartes { grid-template-columns: repeat(4, 1fr); } }
+.carte { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: grid; grid-template-rows: auto auto auto auto auto 1fr auto; box-shadow: 0 1px 0 var(--line); }
+.carte-band { background: var(--h-band); color: var(--h-on); display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; font-family: var(--f-sc); font-size: var(--t-m); letter-spacing: .06em; }
+.portrait { width: 100%; max-width: 150px; justify-self: center; margin-top: 10px; }
+.carte h3 { font-size: var(--t-l); text-align: center; padding-inline: 12px; color: var(--h); }
+.devise { text-align: center; font-family: var(--f-display); font-style: italic; color: var(--muted); padding: 2px 12px 10px; }
+.apt-list { list-style: none; margin: 0; padding: 10px 14px; display: grid; gap: 6px; border-block: 1px solid var(--line); }
+.apt-list li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; font-size: var(--t-s); color: var(--muted); }
+.apt-list li.main { color: var(--ink); font-weight: 700; }
+.pips { display: inline-flex; gap: 4px; vertical-align: middle; }
+.pips i { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--p); display: inline-block; }
+.pips i.on { background: var(--p); }
+.carte-info { margin: 0; padding: 10px 14px; display: grid; gap: 8px; align-content: start; }
+.carte-info dt { font-family: var(--f-sc); color: var(--gold); font-size: var(--t-s); letter-spacing: .04em; }
+.carte-info dd { margin: 0; font-size: var(--t-s); }
+.carte-etoiles { display: flex; align-items: center; gap: 3px; padding: 8px 14px; background: var(--h-soft); font-size: var(--t-xs); color: var(--muted); }
+.carte-etoiles span { margin-left: 6px; }
+.star { width: 16px; height: 16px; stroke: var(--gold); fill: none; stroke-width: 1.6; stroke-linejoin: round; }
+.star.on { fill: var(--gold); }
+
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tab { width: 100%; border-collapse: collapse; font-size: var(--t-s); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.tab th, .tab td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.tab thead th { font-family: var(--f-sc); font-weight: 400; color: var(--gold); letter-spacing: .04em; font-size: var(--t-m); }
+.tab tbody tr:last-child > * { border-bottom: 0; }
+.apt-tag { display: inline-flex; align-items: center; gap: 6px; color: var(--h); font-weight: 700; white-space: nowrap; }
+.tab.qui { min-width: 640px; }
+.tab .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+
+/* ---------- carte du temps ---------- */
+.piste { display: grid; gap: 12px; }
+.piste-titre { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-size: var(--t-l); }
+.piste-titre .ico { color: var(--gold); width: 28px; height: 28px; stroke-width: 1.5; }
+.piste-titre small { font-family: var(--f-body); font-size: var(--t-s); color: var(--muted); }
+.themes { display: grid; gap: 14px; }
+@media (min-width: 760px) { .themes.h { grid-template-columns: repeat(3, 1fr); } .themes.g { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 520px) and (max-width: 759px) { .themes.g { grid-template-columns: repeat(2, 1fr); } }
+.theme { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.theme-titre { font-size: var(--t-xs); color: var(--muted); min-height: 2.6em; }
+.theme-titre b { color: var(--ink); margin-right: 4px; }
+.sceaux { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.sceau { display: grid; grid-template-columns: auto 1fr; gap: 12px; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.sceau.ex { border: 2px solid var(--gold); }
+.sceau-num { width: 34px; height: 34px; border-radius: 50%; background: var(--h-band); color: var(--h-on); display: grid; place-items: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sceau-txt { display: grid; gap: 2px; min-width: 0; }
+.sceau-chap { font-size: var(--t-xs); color: var(--muted); }
+.sceau-mission { font-family: var(--f-display); font-size: var(--t-m); line-height: 1.25; }
+.sceau-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: var(--t-xs); color: var(--muted); margin-top: 4px; }
+.sceau-apt { display: inline-flex; align-items: center; gap: 4px; color: var(--h); font-weight: 700; }
+.sceau-ex { font-size: var(--t-xs); color: var(--gold); font-weight: 700; justify-self: start; margin-top: 4px; }
+.legende { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: var(--t-s); }
+.legende span { display: inline-flex; align-items: center; gap: 6px; color: var(--h); font-weight: 700; }
+
+/* ---------- points ---------- */
+.points { display: grid; gap: 16px; }
+@media (min-width: 860px) { .points { grid-template-columns: 1.1fr 1fr; align-items: start; } }
+.col { display: grid; gap: 14px; min-width: 0; }
+.encart { padding: 16px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); display: grid; gap: 8px; }
+.encart h3 { font-size: var(--t-l); }
+.encart p { font-size: var(--t-s); }
+.echelle { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.echelle li { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 10px 0; border-top: 1px dashed var(--line); align-items: center; font-size: var(--t-s); }
+.echelle li:first-child { border-top: 0; }
+.echelle .lvl { display: flex; gap: 2px; }
+.echelle b { font-family: var(--f-display); font-weight: 400; font-size: var(--t-m); }
+.registre td .star { width: 14px; height: 14px; }
+.registre td:first-child { font-weight: 700; color: var(--h); }
+.finale { border: 2px solid var(--gold); background: var(--gold-soft); }
+
+/* ---------- quête 3 ---------- */
+.lettre { font-family: var(--f-display); font-size: var(--t-l); line-height: 1.45; padding: 22px 24px; background: var(--parch); color: var(--parch-ink); border: 1px solid var(--parch-line); border-radius: 4px; max-width: 70ch; box-shadow: 4px 4px 0 var(--parch-line); }
+.lettre .sign { display: block; text-align: right; font-style: italic; margin-top: 8px; }
+.docs { display: grid; gap: 16px; }
+@media (min-width: 760px) { .docs { grid-template-columns: 1fr 1fr; } }
+.doc { background: var(--parch); color: var(--parch-ink); border: 1px solid var(--parch-line); border-radius: 4px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.doc-t { font-family: var(--f-display); font-size: var(--t-l); }
+.doc-t b { font-family: var(--f-sc); font-weight: 400; color: var(--gold); margin-right: 6px; }
+.doc .src { font-size: var(--t-xs); color: var(--muted); }
+.doc blockquote { margin: 0; font-family: var(--f-display); font-size: var(--t-l); line-height: 1.45; }
+.map { width: 100%; max-width: 360px; justify-self: center; border: 1px solid var(--parch-line); }
+.map text { font-family: var(--f-body); fill: var(--ink); }
+.map-sea text { font-size: 11px; letter-spacing: 2px; fill: var(--river); font-style: italic; }
+.map-zone text { font-size: 11px; letter-spacing: 3px; fill: var(--muted); }
+.map-zone .it { letter-spacing: 0; font-style: italic; }
+.map-it { font-size: 11px; font-style: italic; }
+.map-river { fill: var(--river) !important; font-weight: 700; }
+.map-city { font-size: 12px; font-weight: 700; }
+.map-small, .map-small text { font-size: 10px; }
+.map-n text { font-size: 11px; font-weight: 700; }
+.map-leg { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: var(--t-xs); }
+.map-leg span { display: inline-flex; align-items: center; gap: 6px; }
+.map-leg i { width: 14px; height: 10px; display: inline-block; border: 1px solid var(--parch-line); }
+.frise { width: 100%; min-width: 500px; }
+.frise text { font-family: var(--f-body); fill: var(--parch-ink); }
+.fr-date { font-size: 14px; font-weight: 700; }
+.fr-ev { font-size: 14px; }
+.fr-tick { font-size: 12.5px; fill: var(--muted) !important; font-variant-numeric: tabular-nums; }
+.fr-per { font-size: 10px; fill: var(--surface) !important; font-weight: 700; letter-spacing: .02em; }
+.note-prof { font-size: var(--t-xs); color: var(--muted); border: 1px dashed var(--parch-line); padding: 6px 10px; border-radius: 4px; }
+.coffre { justify-self: center; width: min(100%, 300px); display: grid; }
+.coffre-couv { height: 46px; background: var(--wood); border: 3px solid var(--wood-dark); border-bottom: 0; border-radius: 60px 60px 0 0 / 40px 40px 0 0; position: relative; }
+.coffre-corps { background: var(--wood); border: 3px solid var(--wood-dark); padding: 16px 14px 18px; display: grid; gap: 10px; justify-items: center; position: relative; }
+.coffre-couv::after, .coffre-corps::before { content: ""; position: absolute; top: 0; bottom: 0; left: 18%; width: 10px; background: var(--metal); opacity: .85; }
+.coffre-corps::after { content: ""; position: absolute; top: 0; bottom: 0; right: 18%; width: 10px; background: var(--metal); opacity: .85; }
+.coffre-couv::before { content: ""; position: absolute; top: 0; bottom: 0; right: 18%; width: 10px; background: var(--metal); opacity: .85; }
+.inscription { position: relative; z-index: 1; font-family: var(--f-hiero); font-size: 34px; line-height: 1.3; letter-spacing: 4px; padding: 6px 14px; background: var(--gold-soft); color: var(--ink); border: 2px solid var(--metal); border-radius: 4px; }
+.serrure { position: relative; z-index: 1; width: 26px; height: 32px; background: var(--metal); border-radius: 6px; display: grid; place-items: center; }
+.serrure::after { content: ""; width: 6px; height: 12px; background: var(--wood-dark); border-radius: 3px; }
+.grille { min-width: 520px; }
+.grille th { width: 52px; text-align: center !important; font-family: var(--f-display); font-size: var(--t-l); }
+.grille td.ligne { background-image: linear-gradient(transparent calc(100% - 1px), var(--line) 0); background-size: 100% 22px; height: 52px; }
+.choix-ic { white-space: nowrap; width: 1%; }
+.apt-c { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--h); color: var(--h); margin-right: 4px; }
+.phrase { font-family: var(--f-display); font-size: var(--t-l); line-height: 2; padding: 14px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.phrase .blank { display: inline-block; min-width: 9ch; border-bottom: 1.5px solid var(--muted); }
+.phrase .blank.s { min-width: 3ch; }
+.defis { display: grid; gap: 14px; align-items: start; }
+@media (min-width: 860px) { .defis { grid-template-columns: 1.4fr 1fr; } }
+.defi { padding: 16px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); display: grid; gap: 10px; align-content: start; min-width: 0; }
+.defi h3 { font-size: var(--t-l); }
+.defi ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; font-size: var(--t-s); }
+.alpha { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+@media (min-width: 620px) { .alpha { grid-template-columns: repeat(10, 1fr); } }
+.alpha li { display: grid; justify-items: center; padding: 6px 2px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); min-width: 0; }
+.hg { font-family: var(--f-hiero); font-size: 26px; line-height: 1.25; }
+.alpha b { font-size: var(--t-xs); }
+.alpha small { font-size: 10.5px; color: var(--muted); text-align: center; line-height: 1.2; }
+.mot { font-family: var(--f-hiero); font-size: 30px; letter-spacing: 6px; padding: 6px 12px; background: var(--gold-soft); border-radius: 6px; justify-self: start; }
+.reussite { font-size: var(--t-s); padding: 10px 14px; border-radius: var(--r); background: var(--gold-soft); }
+details.corrige { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+details.corrige summary { cursor: pointer; padding: 12px 16px; font-family: var(--f-sc); color: var(--gold); letter-spacing: .04em; font-size: var(--t-m); }
+details.corrige > div { padding: 0 16px 16px; display: grid; gap: 10px; font-size: var(--t-s); }
+.corr-tab td:first-child { font-family: var(--f-display); font-size: var(--t-l); width: 40px; }
+
+/* ---------- décisions ---------- */
+.decisions { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+@media (min-width: 760px) { .decisions { grid-template-columns: 1fr 1fr; } }
+.decisions li { padding: 14px 16px; border-radius: var(--r); border: 1px dashed var(--gold); display: grid; gap: 4px; }
+.decisions b { font-family: var(--f-display); font-weight: 400; font-size: var(--t-l); }
+.decisions span { font-size: var(--t-s); color: var(--muted); }
+footer.pied { font-size: var(--t-xs); color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
+
+@media print {
+  body { background: #fff; }
+  .toc, .sceau-ex { display: none; }
+  .carte, .sceau, .doc, .defi, .encart, .lettre { break-inside: avoid; }
+  .ring > g { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-courage" viewBox="0 0 24 24"><path d="M12 2.8 19.5 5.6v5.6c0 4.6-3.1 8.4-7.5 10-4.4-1.6-7.5-5.4-7.5-10V5.6Z"/><path d="M12 7v9M9 10.5h6"/></symbol>
+  <symbol id="i-savoir" viewBox="0 0 24 24"><path d="M3 5.5c3-1.2 6-1.2 9 .8 3-2 6-2 9-.8v13c-3-1.2-6-1.2-9 .8-3-2-6-2-9-.8Z"/><path d="M12 6.3v13.5"/></symbol>
+  <symbol id="i-nature" viewBox="0 0 24 24"><path d="M5 19c0-8 5.5-14 15-14 0 9.5-6 14-15 14Z"/><path d="M5 19 14 10"/></symbol>
+  <symbol id="i-ruse" viewBox="0 0 24 24"><path d="M4 5h16v10h-8l-5 4v-4H4Z"/><path d="M8.5 10h.01M12 10h.01M15.5 10h.01"/></symbol>
+  <symbol id="i-sablier" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12"/><path d="M7.5 3c0 5 3.5 6 3.5 9s-3.5 4-3.5 9M16.5 3c0 5-3.5 6-3.5 9s3.5 4 3.5 9"/><circle cx="12" cy="12" r="10.5" stroke-dasharray="2 3"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></symbol>
+  <symbol id="i-lettre" viewBox="0 0 24 24"><path d="M3 6h18v12H3Z"/><path d="m3 6 9 7 9-7"/></symbol>
+  <symbol id="i-loupe" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 6 6"/></symbol>
+  <symbol id="i-baguette" viewBox="0 0 24 24"><path d="M4 20 15 9"/><path d="M17 3v3M15.5 4.5h3M20 8v2M19 9h2"/></symbol>
+  <symbol id="i-eclair" viewBox="0 0 24 24"><path d="M13 2 5 13h6l-1 9 8-11h-6Z"/></symbol>
+  <symbol id="i-eclat" viewBox="0 0 24 24"><path d="M12 3 20 9l-3 11H7L4 9Z"/><path d="M12 3v7l8-1M12 10 7 20"/></symbol>
+  <symbol id="i-star-o" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9Z"/></symbol>
+</svg>
+<main class="wrap">
+
+<section class="hero" aria-labelledby="titre">
+  <div class="hero-txt">
+    <p class="eyebrow">Projet Poudlard · 6e · Histoire-Géographie</p>
+    <h1 id="titre">Les Fragments <em>du Temps</em></h1>
+    <p class="thesis">Le Retourneur de temps de Poudlard s'est brisé. Chaque chapitre du programme cache un de ses 13 fragments.</p>
+    <dl class="fiche">
+      <div><dt>Classe</dt><dd>6e, divisée en 4 maisons</dd></div>
+      <div><dt>Durée</dt><dd>toute l'année 2026-2027</dd></div>
+      <div><dt>Quêtes</dt><dd>9 en histoire, 4 en géographie</dd></div>
+      <div><dt>Format</dt><dd>jeu de rôle + plateau de classe</dd></div>
+    </dl>
+  </div>
+  <svg class="ring" viewBox="0 0 260 260" role="img" aria-label="Le Retourneur de temps brisé en 13 fragments, un par quête, colorés selon l'aptitude clé"><g transform="translate(0.7 -2.9)"><path d="M132.3 18.0A112 112 0 0 1 180.0 29.8L168.4 53.0A86 86 0 0 0 131.8 44.0Z" fill="var(--gry-band)"/><text x="153.7" y="37.9" fill="var(--on-band)" text-anchor="middle" class="ring-num">1</text></g><g transform="translate(4.6 -5.2)"><path d="M184.1 31.9A112 112 0 0 1 220.8 64.5L199.7 79.7A86 86 0 0 0 171.6 54.7Z" fill="var(--pou-band)"/><text x="195.6" y="59.9" fill="var(--on-pou-band)" text-anchor="middle" class="ring-num">2</text></g><g transform="translate(1.9 -0.7)"><path d="M223.5 68.3A112 112 0 0 1 240.9 114.2L215.1 117.8A86 86 0 0 0 201.8 82.6Z" fill="var(--ser-band)"/><text x="222.6" y="98.9" fill="var(--on-band)" text-anchor="middle" class="ring-num">3</text></g><g transform="translate(8.9 1.1)"><path d="M241.4 118.8A112 112 0 0 1 235.5 167.5L211.0 158.8A86 86 0 0 0 215.6 121.4Z" fill="var(--sep-band)"/><text x="228.3" y="145.9" fill="var(--on-band)" text-anchor="middle" class="ring-num">4</text></g><g transform="translate(3.3 2.3)"><path d="M233.9 171.9A112 112 0 0 1 206.0 212.3L188.4 193.2A86 86 0 0 0 209.8 162.2Z" fill="var(--gry-band)"/><text x="211.5" y="190.2" fill="var(--on-band)" text-anchor="middle" class="ring-num">5</text></g><g transform="translate(3.7 7.1)"><path d="M202.5 215.4A112 112 0 0 1 159.1 238.2L152.3 213.1A86 86 0 0 0 185.7 195.6Z" fill="var(--ser-band)"/><text x="176.0" y="221.7" fill="var(--on-band)" text-anchor="middle" class="ring-num">6</text></g><g transform="translate(0.0 3.0)"><path d="M154.5 239.3A112 112 0 0 1 105.5 239.3L111.2 213.9A86 86 0 0 0 148.8 213.9Z" fill="var(--gry-band)"/><text x="130.0" y="233.0" fill="var(--on-band)" text-anchor="middle" class="ring-num">7</text></g><g transform="translate(-4.6 8.9)"><path d="M100.9 238.2A112 112 0 0 1 57.5 215.4L74.3 195.6A86 86 0 0 0 107.7 213.1Z" fill="var(--ser-band)"/><text x="84.0" y="221.7" fill="var(--on-band)" text-anchor="middle" class="ring-num">8</text></g><g transform="translate(-4.1 2.8)"><path d="M54.0 212.3A112 112 0 0 1 26.1 171.9L50.2 162.2A86 86 0 0 0 71.6 193.2Z" fill="var(--sep-band)"/><text x="48.5" y="190.2" fill="var(--on-band)" text-anchor="middle" class="ring-num">9</text></g><g transform="translate(-2.0 0.2)"><path d="M24.5 167.5A112 112 0 0 1 18.6 118.8L44.4 121.4A86 86 0 0 0 49.0 158.8Z" fill="var(--ser-band)"/><text x="31.7" y="145.9" fill="var(--on-band)" text-anchor="middle" class="ring-num">10</text></g><g transform="translate(-7.5 -2.8)"><path d="M19.1 114.2A112 112 0 0 1 36.5 68.3L58.2 82.6A86 86 0 0 0 44.9 117.8Z" fill="var(--pou-band)"/><text x="37.4" y="98.9" fill="var(--on-pou-band)" text-anchor="middle" class="ring-num">11</text></g><g transform="translate(-2.7 -3.0)"><path d="M39.2 64.5A112 112 0 0 1 75.9 31.9L88.4 54.7A86 86 0 0 0 60.3 79.7Z" fill="var(--sep-band)"/><text x="64.4" y="59.9" fill="var(--on-band)" text-anchor="middle" class="ring-num">12</text></g><g transform="translate(-1.4 -5.8)"><path d="M80.0 29.8A112 112 0 0 1 127.7 18.0L128.2 44.0A86 86 0 0 0 91.6 53.0Z" fill="var(--pou-band)"/><text x="106.3" y="37.9" fill="var(--on-pou-band)" text-anchor="middle" class="ring-num">13</text></g><g transform="translate(130 130)" fill="none" stroke="var(--gold)"><circle r="62" stroke-width="2"/><circle r="55" stroke-width=".8"/><path d="M-20 -34H20M-20 34H20" stroke-width="3" stroke-linecap="round"/><path d="M-15 -34C-15 -10 -3 -7 -3 0C-3 7 -15 10 -15 34H15C15 10 3 7 3 0C3 -7 15 -10 15 -34Z" fill="var(--surface)" stroke-width="2"/><path d="M-10 -20C-8 -10 -2 -6 0 -4C2 -6 8 -10 10 -20Z" fill="var(--gold)" stroke="none"/><path d="M-12 30C-9 21 -3 17 0 17C3 17 9 21 12 30Z" fill="var(--gold)" stroke="none"/><path d="M0 -4V17" stroke-width="1.2" stroke-dasharray="2 2"/></g></svg>
+</section>
+
+<nav aria-label="Sommaire"><ul class="toc">
+  <li><a href="#principe">Le principe</a></li><li><a href="#quete">Une quête</a></li><li><a href="#sorciers">Les sorciers</a></li>
+  <li><a href="#carte">La Carte du Temps</a></li><li><a href="#points">Points et progression</a></li>
+  <li><a href="#quete3">Quête 3, prête à tester</a></li><li><a href="#decider">À trancher</a></li>
+</ul></nav>
+
+<section class="sec" id="principe">
+  <header><p class="eyebrow">Le principe</p><h2>Deux objets magiques, un par discipline</h2></header>
+  <div class="duo">
+    <div class="objet"><svg class="ico" aria-hidden="true"><use href="#i-sablier"/></svg><h3>Le Retourneur de temps</h3><p class="tag">Histoire · 9 quêtes</p><p>Il envoie les élèves dans le passé, de la Préhistoire à l'Empire romain.</p></div>
+    <div class="objet"><svg class="ico" aria-hidden="true"><use href="#i-globe"/></svg><h3>Le Portoloin</h3><p class="tag">Géographie · 4 quêtes</p><p>Il les transporte dans le monde actuel : métropoles, littoraux, espaces peu peuplés.</p></div>
+  </div>
+  <p class="regle">Le corpus ne dit jamais quel sorcier choisir : il montre l'obstacle. La maison le repère, choisit son sorcier, puis prouve son choix avec un document.</p>
+  <div class="mix">
+    <div><b>Jeu de rôle</b><p>Chaque maison dispose des 4 sorciers et les fait progresser : étoiles, sorts, aptitudes.</p></div>
+    <div><b>Plateau</b><p>La Carte du Temps est affichée en classe. Chaque maison y colle les fragments gagnés.</p></div>
+  </div>
+  <div class="mix">
+    <div><b>Rôles dans chaque maison</b><p class="small">Ils tournent à chaque quête. Au-delà de 7 élèves, on fait 2 équipes.</p></div>
+    <ul class="roles"><li><b>Lecteur</b>lit les documents</li><li><b>Scribe</b>remplit la grille</li><li><b>Porte-parole</b>annonce le choix</li><li><b>Gardien du temps</b>surveille la durée</li></ul>
+  </div>
+</section>
+
+<section class="sec" id="quete">
+  <header><p class="eyebrow">Les règles</p><h2>Une quête, pas à pas</h2><p class="lead">Une quête encadre un chapitre : le choix au début, l'épreuve à la fin.</p></header>
+  <div class="phases">
+    <div class="phase"><p class="phase-titre">Début du chapitre · 1 séance</p><ol class="etapes"><li class="etape"><div class="etape-top"><span class="etape-ic"><svg class="ico" aria-hidden="true"><use href="#i-lettre"/></svg></span><div><span class="num">Étape 1</span><h3>La lettre</h3></div></div><span class="duree">5 min</span><p>La directrice annonce le lieu, l'époque et le fragment à récupérer.</p></li><li class="etape"><div class="etape-top"><span class="etape-ic"><svg class="ico" aria-hidden="true"><use href="#i-loupe"/></svg></span><div><span class="num">Étape 2</span><h3>Le corpus</h3></div></div><span class="duree">25 min</span><p>3 ou 4 documents. La maison remplit la grille des indices.</p><span class="comp">Comprendre un document</span></li><li class="etape"><div class="etape-top"><span class="etape-ic"><svg class="ico" aria-hidden="true"><use href="#i-baguette"/></svg></span><div><span class="num">Étape 3</span><h3>Le choix</h3></div></div><span class="duree">10 min</span><p>Un sorcier, une phrase qui cite un document.</p><span class="comp">Raisonner, justifier</span></li></ol></div>
+    <div class="phase"><p class="phase-titre">Fin du chapitre · 1 séance</p><ol class="etapes"><li class="etape"><div class="etape-top"><span class="etape-ic"><svg class="ico" aria-hidden="true"><use href="#i-eclair"/></svg></span><div><span class="num">Étape 4</span><h3>L'épreuve</h3></div></div><span class="duree">30-40 min</span><p>L'activité-bilan du chapitre. Jokers selon le sorcier choisi.</p><span class="comp">Connaissances du chapitre</span></li><li class="etape"><div class="etape-top"><span class="etape-ic"><svg class="ico" aria-hidden="true"><use href="#i-eclat"/></svg></span><div><span class="num">Étape 5</span><h3>Le butin</h3></div></div><span class="duree">5 min</span><p>Points de maison, fragment sur la carte, étoile pour le sorcier.</p></li></ol></div>
+  </div>
+</section>
+
+<section class="sec" id="sorciers">
+  <header><p class="eyebrow">Les personnages</p><h2>Les quatre sorciers</h2><p class="lead">Des personnages inventés, un par maison. Chacun excelle dans une aptitude et peut en dépanner une autre.</p></header>
+  <div class="cartes">
+<article class="carte" style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)" id="sorcier-leo">
+  <header class="carte-band"><span>Gryffondor</span><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg></header>
+  <svg class="portrait" viewBox="0 0 120 104" aria-hidden="true"><circle cx="60" cy="58" r="46" fill="var(--h-soft)"/><path d="M24 104c2-20 17-31 36-31s34 11 36 31Z" fill="var(--robe)"/><circle cx="60" cy="55" r="14" fill="var(--robe)"/><path d="M35 43h50l-6-5H41Z" fill="var(--robe)"/><path d="M44 40C50 28 55 15 67 5C64 17 70 28 76 40Z" fill="var(--robe)"/><path d="M45.5 36.5h29l1 3h-31Z" fill="var(--c1)"/><rect x="44" y="69" width="32" height="10" rx="4" fill="var(--c1)"/><rect x="51" y="69" width="4" height="10" fill="var(--c2)"/><rect x="65" y="69" width="4" height="10" fill="var(--c2)"/><rect x="63" y="76" width="9" height="24" rx="2" fill="var(--c1)"/><rect x="63" y="84" width="9" height="3" fill="var(--c2)"/><rect x="63" y="92" width="9" height="3" fill="var(--c2)"/></svg>
+  <h3>Léo Flamberge</h3>
+  <p class="devise">« Je ne recule jamais. »</p>
+  <ul class="apt-list"><li class="main"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg><span>Courage</span><span class="pips" style="--p: var(--gry)" role="img" aria-label="3 sur 4"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></li><li class=""><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg><span>Savoir</span><span class="pips" style="--p: var(--ser)" role="img" aria-label="1 sur 4"><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></li><li class=""><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg><span>Nature</span><span class="pips" style="--p: var(--pou)" role="img" aria-label="2 sur 4"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></li><li class=""><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg><span>Ruse</span><span class="pips" style="--p: var(--sep)" role="img" aria-label="1 sur 4"><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></li></ul>
+  <dl class="carte-info">
+    <div><dt>Sort · 2e année</dt><dd><b>Protego</b> : une erreur à l&#x27;épreuve ne coûte rien.</dd></div>
+    <div><dt>Point faible</dt><dd>Fonce sans lire la consigne.</dd></div>
+  </dl>
+  <footer class="carte-etoiles" aria-label="Progression : 4 étoiles à gagner"><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><span>quêtes réussies</span></footer>
+</article>
+<article class="carte" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)" id="sorcier-iris">
+  <header class="carte-band"><span>Serdaigle</span><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg></header>
+  <svg class="portrait" viewBox="0 0 120 104" aria-hidden="true"><circle cx="60" cy="58" r="46" fill="var(--h-soft)"/><path d="M24 104c2-20 17-31 36-31s34 11 36 31Z" fill="var(--robe)"/><circle cx="60" cy="55" r="14" fill="var(--robe)"/><path d="M35 43h50l-6-5H41Z" fill="var(--robe)"/><path d="M44 40C50 28 55 15 67 5C64 17 70 28 76 40Z" fill="var(--robe)"/><path d="M45.5 36.5h29l1 3h-31Z" fill="var(--c1)"/><rect x="44" y="69" width="32" height="10" rx="4" fill="var(--c1)"/><rect x="51" y="69" width="4" height="10" fill="var(--c2)"/><rect x="65" y="69" width="4" height="10" fill="var(--c2)"/><rect x="63" y="76" width="9" height="24" rx="2" fill="var(--c1)"/><rect x="63" y="84" width="9" height="3" fill="var(--c2)"/><rect x="63" y="92" width="9" height="3" fill="var(--c2)"/></svg>
+  <h3>Iris Plumelune</h3>
+  <p class="devise">« Toute énigme a sa clé. »</p>
+  <ul class="apt-list"><li class=""><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg><span>Courage</span><span class="pips" style="--p: var(--gry)" role="img" aria-label="1 sur 4"><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></li><li class="main"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg><span>Savoir</span><span class="pips" style="--p: var(--ser)" role="img" aria-label="3 sur 4"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></li><li class=""><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg><span>Nature</span><span class="pips" style="--p: var(--pou)" role="img" aria-label="1 sur 4"><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></li><li class=""><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg><span>Ruse</span><span class="pips" style="--p: var(--sep)" role="img" aria-label="2 sur 4"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></li></ul>
+  <dl class="carte-info">
+    <div><dt>Sort · 2e année</dt><dd><b>Lumos</b> : le professeur montre où chercher la réponse.</dd></div>
+    <div><dt>Point faible</dt><dd>Perdue dès qu&#x27;il faut se salir les mains.</dd></div>
+  </dl>
+  <footer class="carte-etoiles" aria-label="Progression : 4 étoiles à gagner"><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><span>quêtes réussies</span></footer>
+</article>
+<article class="carte" style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)" id="sorcier-capucine">
+  <header class="carte-band"><span>Poufsouffle</span><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg></header>
+  <svg class="portrait" viewBox="0 0 120 104" aria-hidden="true"><circle cx="60" cy="58" r="46" fill="var(--h-soft)"/><path d="M24 104c2-20 17-31 36-31s34 11 36 31Z" fill="var(--robe)"/><circle cx="60" cy="55" r="14" fill="var(--robe)"/><path d="M35 43h50l-6-5H41Z" fill="var(--robe)"/><path d="M44 40C50 28 55 15 67 5C64 17 70 28 76 40Z" fill="var(--robe)"/><path d="M45.5 36.5h29l1 3h-31Z" fill="var(--c1)"/><rect x="44" y="69" width="32" height="10" rx="4" fill="var(--c1)"/><rect x="51" y="69" width="4" height="10" fill="var(--c2)"/><rect x="65" y="69" width="4" height="10" fill="var(--c2)"/><rect x="63" y="76" width="9" height="24" rx="2" fill="var(--c1)"/><rect x="63" y="84" width="9" height="3" fill="var(--c2)"/><rect x="63" y="92" width="9" height="3" fill="var(--c2)"/></svg>
+  <h3>Capucine Boisjoli</h3>
+  <p class="devise">« Rien ne pousse seul. »</p>
+  <ul class="apt-list"><li class=""><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg><span>Courage</span><span class="pips" style="--p: var(--gry)" role="img" aria-label="1 sur 4"><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></li><li class=""><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg><span>Savoir</span><span class="pips" style="--p: var(--ser)" role="img" aria-label="2 sur 4"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></li><li class="main"><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg><span>Nature</span><span class="pips" style="--p: var(--pou)" role="img" aria-label="3 sur 4"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></li><li class=""><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg><span>Ruse</span><span class="pips" style="--p: var(--sep)" role="img" aria-label="1 sur 4"><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></li></ul>
+  <dl class="carte-info">
+    <div><dt>Sort · 2e année</dt><dd><b>Accio</b> : 2 minutes avec le cahier ouvert.</dd></div>
+    <div><dt>Point faible</dt><dd>Trop honnête pour bluffer.</dd></div>
+  </dl>
+  <footer class="carte-etoiles" aria-label="Progression : 4 étoiles à gagner"><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><span>quêtes réussies</span></footer>
+</article>
+<article class="carte" style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)" id="sorcier-silas">
+  <header class="carte-band"><span>Serpentard</span><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg></header>
+  <svg class="portrait" viewBox="0 0 120 104" aria-hidden="true"><circle cx="60" cy="58" r="46" fill="var(--h-soft)"/><path d="M24 104c2-20 17-31 36-31s34 11 36 31Z" fill="var(--robe)"/><circle cx="60" cy="55" r="14" fill="var(--robe)"/><path d="M35 43h50l-6-5H41Z" fill="var(--robe)"/><path d="M44 40C50 28 55 15 67 5C64 17 70 28 76 40Z" fill="var(--robe)"/><path d="M45.5 36.5h29l1 3h-31Z" fill="var(--c1)"/><rect x="44" y="69" width="32" height="10" rx="4" fill="var(--c1)"/><rect x="51" y="69" width="4" height="10" fill="var(--c2)"/><rect x="65" y="69" width="4" height="10" fill="var(--c2)"/><rect x="63" y="76" width="9" height="24" rx="2" fill="var(--c1)"/><rect x="63" y="84" width="9" height="3" fill="var(--c2)"/><rect x="63" y="92" width="9" height="3" fill="var(--c2)"/></svg>
+  <h3>Silas Vifargent</h3>
+  <p class="devise">« Un bon mot vaut mieux qu&#x27;une épée. »</p>
+  <ul class="apt-list"><li class=""><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg><span>Courage</span><span class="pips" style="--p: var(--gry)" role="img" aria-label="2 sur 4"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></li><li class=""><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg><span>Savoir</span><span class="pips" style="--p: var(--ser)" role="img" aria-label="1 sur 4"><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></li><li class=""><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg><span>Nature</span><span class="pips" style="--p: var(--pou)" role="img" aria-label="1 sur 4"><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></li><li class="main"><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg><span>Ruse</span><span class="pips" style="--p: var(--sep)" role="img" aria-label="3 sur 4"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></li></ul>
+  <dl class="carte-info">
+    <div><dt>Sort · 2e année</dt><dd><b>Confundo</b> : échange une question de l&#x27;épreuve contre une autre.</dd></div>
+    <div><dt>Point faible</dt><dd>Déteste la boue et les bêtes.</dd></div>
+  </dl>
+  <footer class="carte-etoiles" aria-label="Progression : 4 étoiles à gagner"><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><span>quêtes réussies</span></footer>
+</article></div>
+  <h3 class="eyebrow" style="margin-top:8px">Qui appeler ? Les indices à repérer dans le corpus</h3>
+  <div class="scroll"><table class="tab qui">
+    <thead><tr><th scope="col">Aptitude</th><th scope="col">Indices dans les documents</th><th scope="col">Sorcier clé</th><th scope="col">Renfort</th></tr></thead>
+    <tbody><tr style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)">
+  <th scope="row"><span class="apt-tag"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg>Courage</span></th>
+  <td>armée, soldats, armes · animal sauvage · froid, tempête · combat à mener</td>
+  <td><b>Léo</b> <span class="pips" style="--p: var(--gry)" role="img" aria-label="3 sur 3"><i class="on"></i><i class="on"></i><i class="on"></i></span></td>
+  <td>Silas <span class="pips" style="--p: var(--gry)" role="img" aria-label="2 sur 3"><i class="on"></i><i class="on"></i><i class=""></i></span></td>
+</tr><tr style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)">
+  <th scope="row"><span class="apt-tag"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg>Savoir</span></th>
+  <td>écriture, inscription, code · carte ou plan à lire · date, calcul · énigme, symbole</td>
+  <td><b>Iris</b> <span class="pips" style="--p: var(--ser)" role="img" aria-label="3 sur 3"><i class="on"></i><i class="on"></i><i class="on"></i></span></td>
+  <td>Capucine <span class="pips" style="--p: var(--ser)" role="img" aria-label="2 sur 3"><i class="on"></i><i class="on"></i><i class=""></i></span></td>
+</tr><tr style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)">
+  <th scope="row"><span class="apt-tag"><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg>Nature</span></th>
+  <td>plantes, récoltes · animaux d&#x27;élevage · fleuve, eau, climat · forêt, désert, milieu</td>
+  <td><b>Capucine</b> <span class="pips" style="--p: var(--pou)" role="img" aria-label="3 sur 3"><i class="on"></i><i class="on"></i><i class="on"></i></span></td>
+  <td>Léo <span class="pips" style="--p: var(--pou)" role="img" aria-label="2 sur 3"><i class="on"></i><i class="on"></i><i class=""></i></span></td>
+</tr><tr style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)">
+  <th scope="row"><span class="apt-tag"><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg>Ruse</span></th>
+  <td>marchands, monnaie, échanges · chef ou assemblée à convaincre · port, frontière · négociation</td>
+  <td><b>Silas</b> <span class="pips" style="--p: var(--sep)" role="img" aria-label="3 sur 3"><i class="on"></i><i class="on"></i><i class="on"></i></span></td>
+  <td>Iris <span class="pips" style="--p: var(--sep)" role="img" aria-label="2 sur 3"><i class="on"></i><i class="on"></i><i class=""></i></span></td>
+</tr></tbody>
+  </table></div>
+</section>
+
+<section class="sec" id="carte">
+  <header><p class="eyebrow">Le plateau</p><h2>La Carte du Temps</h2><p class="lead">Une quête par chapitre, dans l'ordre du programme. Chaque aptitude revient 3 ou 4 fois.</p></header>
+  <p class="legende"><span style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg>Courage · Léo</span><span style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg>Savoir · Iris</span><span style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)"><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg>Nature · Capucine</span><span style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)"><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg>Ruse · Silas</span></p>
+  <div class="piste">
+    <p class="piste-titre"><svg class="ico" aria-hidden="true"><use href="#i-sablier"/></svg> Retourneur de temps <small>Histoire</small></p>
+    <div class="themes h"><div class="theme"><p class="theme-titre"><b>Thème 1</b> La longue histoire de l&#x27;humanité et des migrations</p><ol class="sceaux"><li class="sceau" style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)">
+  <span class="sceau-num">1</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">Les débuts de l&#x27;humanité</p>
+    <p class="sceau-mission">Survivre à l&#x27;ère glaciaire</p>
+    <p class="sceau-meta"><span>Paléolithique</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg>Léo</span></p>
+    
+  </div>
+</li><li class="sceau" style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)">
+  <span class="sceau-num">2</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">La « révolution » néolithique</p>
+    <p class="sceau-mission">Faire pousser les premières récoltes</p>
+    <p class="sceau-meta"><span>vers 10 000 av. J.‑C.</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg>Capucine</span></p>
+    
+  </div>
+</li><li class="sceau ex" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)">
+  <span class="sceau-num">3</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">Premiers États, premières écritures</p>
+    <p class="sceau-mission">Ouvrir le coffre du scribe</p>
+    <p class="sceau-meta"><span>vers 3300 av. J.‑C.</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg>Iris</span></p>
+    <a class="sceau-ex" href="#quete3">Exemple prêt à tester</a>
+  </div>
+</li></ol></div><div class="theme"><p class="theme-titre"><b>Thème 2</b> Récits fondateurs, croyances et citoyenneté dans la Méditerranée antique</p><ol class="sceaux"><li class="sceau" style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)">
+  <span class="sceau-num">4</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">Le monde des cités grecques</p>
+    <p class="sceau-mission">Ruser comme Ulysse jusqu&#x27;à Olympie</p>
+    <p class="sceau-meta"><span>VIIIe-Ve s. av. J.‑C.</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg>Silas</span></p>
+    
+  </div>
+</li><li class="sceau" style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)">
+  <span class="sceau-num">5</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">Rome, du mythe à l&#x27;histoire</p>
+    <p class="sceau-mission">Défendre le Capitole contre les Gaulois</p>
+    <p class="sceau-meta"><span>VIIIe-Ier s. av. J.‑C.</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg>Léo</span></p>
+    
+  </div>
+</li><li class="sceau" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)">
+  <span class="sceau-num">6</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">La naissance du monothéisme juif</p>
+    <p class="sceau-mission">Lire un rouleau de la mer Morte</p>
+    <p class="sceau-meta"><span>Ier millénaire av. J.‑C.</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg>Iris</span></p>
+    
+  </div>
+</li></ol></div><div class="theme"><p class="theme-titre"><b>Thème 3</b> L&#x27;empire romain dans le monde antique</p><ol class="sceaux"><li class="sceau" style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)">
+  <span class="sceau-num">7</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">Conquêtes, paix romaine et romanisation</p>
+    <p class="sceau-mission">Survivre au siège d&#x27;Alésia</p>
+    <p class="sceau-meta"><span>52 av. J.‑C. - IIe s.</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg>Léo</span></p>
+    
+  </div>
+</li><li class="sceau" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)">
+  <span class="sceau-num">8</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">Des chrétiens dans l&#x27;Empire</p>
+    <p class="sceau-mission">Décoder les symboles des catacombes</p>
+    <p class="sceau-meta"><span>Ier-IVe s.</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg>Iris</span></p>
+    
+  </div>
+</li><li class="sceau" style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)">
+  <span class="sceau-num">9</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">Rome et la Chine des Han</p>
+    <p class="sceau-mission">Négocier sur la route de la soie</p>
+    <p class="sceau-meta"><span>IIe s. av. - IIe s. ap. J.‑C.</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg>Silas</span></p>
+    
+  </div>
+</li></ol></div></div>
+  </div>
+  <div class="piste">
+    <p class="piste-titre"><svg class="ico" aria-hidden="true"><use href="#i-globe"/></svg> Portoloin <small>Géographie</small></p>
+    <div class="themes g"><div class="theme"><p class="theme-titre"><b>Thème 1</b> Habiter une métropole</p><ol class="sceaux"><li class="sceau" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)">
+  <span class="sceau-num">10</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">Habiter une métropole</p>
+    <p class="sceau-mission">Se repérer dans une ville géante</p>
+    <p class="sceau-meta"><span>aujourd&#x27;hui</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg>Iris</span></p>
+    
+  </div>
+</li></ol></div><div class="theme"><p class="theme-titre"><b>Thème 2</b> Habiter un espace de faible densité</p><ol class="sceaux"><li class="sceau" style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)">
+  <span class="sceau-num">11</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">Habiter un espace de faible densité</p>
+    <p class="sceau-mission">Vivre avec la nature, loin des villes</p>
+    <p class="sceau-meta"><span>aujourd&#x27;hui</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg>Capucine</span></p>
+    
+  </div>
+</li></ol></div><div class="theme"><p class="theme-titre"><b>Thème 3</b> Habiter les littoraux</p><ol class="sceaux"><li class="sceau" style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)">
+  <span class="sceau-num">12</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">Habiter les littoraux</p>
+    <p class="sceau-mission">Négocier une place dans un grand port</p>
+    <p class="sceau-meta"><span>aujourd&#x27;hui</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg>Silas</span></p>
+    
+  </div>
+</li></ol></div><div class="theme"><p class="theme-titre"><b>Thème 4</b> Le monde habité</p><ol class="sceaux"><li class="sceau" style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)">
+  <span class="sceau-num">13</span>
+  <div class="sceau-txt">
+    <p class="sceau-chap">Le monde habité</p>
+    <p class="sceau-mission">Comprendre où vivent 8 milliards d&#x27;humains</p>
+    <p class="sceau-meta"><span>aujourd&#x27;hui</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg>Capucine</span></p>
+    
+  </div>
+</li></ol></div></div>
+  </div>
+  <p class="small">Programme de cycle 3 en vigueur en 6e en 2026-2027. Le nouveau programme s'appliquera en 6e à la rentrée 2027 : la carte sera à revoir. Missions et ordre modifiables.</p>
+</section>
+
+<section class="sec" id="points">
+  <header><p class="eyebrow">Points et progression</p><h2>Ce que rapporte une quête</h2><p class="lead">Les points de comportement continuent. Les quêtes s'ajoutent à la Coupe des maisons.</p></header>
+  <div class="points">
+    <div class="col">
+      <div class="scroll"><table class="tab">
+        <thead><tr><th scope="col">La maison…</th><th scope="col" class="num">Points</th></tr></thead>
+        <tbody>
+          <tr><td>remplit toute la grille des indices</td><td class="num">+2</td></tr>
+          <tr><td>choisit le sorcier clé et le justifie par un document</td><td class="num">+3</td></tr>
+          <tr><td>choisit le renfort et le justifie par un document</td><td class="num">+1</td></tr>
+          <tr><td>réussit l'épreuve et gagne le fragment</td><td class="num">+5</td></tr>
+          <tr><td>réussit l'épreuve en partie</td><td class="num">+2</td></tr>
+          <tr><th scope="row">Maximum par quête</th><td class="num">10</td></tr>
+        </tbody>
+      </table></div>
+      <div class="encart">
+        <h3>Les jokers de l'épreuve</h3>
+        <p>Nombre de jokers = niveau du sorcier choisi dans l'aptitude de la quête. Iris en quête de Savoir : <span class="pips" style="--p: var(--ser)" role="img" aria-label="3 sur 3"><i class="on"></i><i class="on"></i><i class="on"></i></span> 3 jokers. Léo : <span class="pips" style="--p: var(--ser)" role="img" aria-label="1 sur 3"><i class="on"></i><i class=""></i><i class=""></i></span> 1 joker.</p>
+        <p>1 joker = 1 indice donné par le professeur.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="encart">
+        <h3>Le sorcier grandit</h3>
+        <p>Une étoile chaque fois qu'il réussit une épreuve, sur le registre de la maison.</p>
+        <ol class="echelle">
+          <li><span class="lvl"><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg></span><span><b>1re année</b><br>Les aptitudes de départ.</span></li>
+          <li><span class="lvl"><svg class="star on" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star on" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg></span><span><b>2e année</b><br>Il apprend son sort, utilisable une fois par quête.</span></li>
+          <li><span class="lvl"><svg class="star on" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star on" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star on" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star on" aria-hidden="true"><use href="#i-star-o"/></svg></span><span><b>3e année</b><br>+1 dans l'aptitude de son choix (4 au maximum).</span></li>
+        </ol>
+      </div>
+      <div class="encart">
+        <h3>Registre de Poufsouffle <span class="small">exemple fictif, après 6 quêtes</span></h3>
+        <div class="scroll"><table class="tab registre"><tbody><tr style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)"><td>Léo</td><td><svg class="star on" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star on" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg></td><td>2e année · Protego</td></tr><tr style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)"><td>Iris</td><td><svg class="star on" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star on" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg></td><td>2e année · Lumos</td></tr><tr style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)"><td>Capucine</td><td><svg class="star on" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg></td><td>1re année</td></tr><tr style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)"><td>Silas</td><td><svg class="star on" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg><svg class="star" aria-hidden="true"><use href="#i-star-o"/></svg></td><td>1re année</td></tr></tbody></table></div>
+      </div>
+      <div class="encart finale">
+        <h3>Juin : la quête finale</h3>
+        <p>Réparer le Retourneur de temps. Chaque maison engage ses 4 sorciers, une épreuve par aptitude : c'est la révision de l'année.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="quete3">
+  <header><p class="eyebrow">Exemple prêt à tester · Histoire, thème 1</p><h2>Quête 3 · Le coffre du scribe</h2><p class="lead">Chapitre « Premiers États, premières écritures ». Corpus et grille pour la 1re séance, épreuve pour la fin du chapitre.</p></header>
+
+  <p class="lettre">Chers élèves de 6e,<br>un fragment du Retourneur de temps est tombé en Égypte, vers 2500 avant J.‑C. Il est enfermé dans le coffre d'un scribe du pharaon. Étudiez les documents, choisissez le sorcier qui saura l'ouvrir, et prouvez-le.<span class="sign">La Directrice</span></p>
+
+  <div class="docs">
+    <figure class="doc" style="margin:0">
+      <p class="doc-t"><b>Doc A</b>Un fleuve dans le désert</p>
+      <svg class="map" viewBox="0 0 340 440" role="img" aria-label="Carte de l'Égypte ancienne : le Nil traverse le désert du sud au nord ; une étroite vallée fertile le long du fleuve ; le delta au nord ; Gizeh, Memphis, Thèbes.">
+  <rect width="340" height="440" fill="var(--sand)"/>
+  <path d="M0 0H340V58L262 60 184 62 162 49 130 46 99 52 79 64 48 72 18 79 0 82Z" fill="var(--sea)"/>
+  <path d="M190 124 188 145 199 175 233 218 247 253 252 278 267 309 293 359 319 412 330 440H340V240L315 214 306 150 298 145 290 182 266 231 245 204 214 165 197 124Z" fill="var(--sea)"/>
+  <path d="M135.9 119.6C124 96 106 74 92 57L130 46 168 50C160 72 148 96 135.9 119.6Z" fill="var(--fertile)"/>
+  <path d="M212.0 506.0C211.3 489.3 208.2 425.4 207.7 405.7C207.2 385.9 209.2 394.6 209.0 387.4C208.8 380.3 209.1 369.5 206.4 363.0C203.7 356.4 194.3 353.8 192.6 348.1C191.0 342.4 195.3 335.8 196.5 328.9C197.7 321.9 206.7 313.3 200.0 306.3C193.2 299.4 167.1 295.3 156.1 287.1C145.1 279.0 140.5 269.7 133.7 257.4C126.9 245.0 115.8 228.3 115.2 213.2C114.7 198.1 126.9 182.2 130.3 166.6C133.7 151.0 135.0 127.4 135.9 119.6" fill="none" stroke="var(--fertile)" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M212.0 506.0C211.3 489.3 208.2 425.4 207.7 405.7C207.2 385.9 209.2 394.6 209.0 387.4C208.8 380.3 209.1 369.5 206.4 363.0C203.7 356.4 194.3 353.8 192.6 348.1C191.0 342.4 195.3 335.8 196.5 328.9C197.7 321.9 206.7 313.3 200.0 306.3C193.2 299.4 167.1 295.3 156.1 287.1C145.1 279.0 140.5 269.7 133.7 257.4C126.9 245.0 115.8 228.3 115.2 213.2C114.7 198.1 126.9 182.2 130.3 166.6C133.7 151.0 135.0 127.4 135.9 119.6" fill="none" stroke="var(--river)" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M135.9 119.6C126 98 108 72 98.9 51.9M135.9 119.6C146 98 158 72 161.7 49.0" fill="none" stroke="var(--river)" stroke-width="2"/>
+  <g class="map-sea"><text x="200" y="30" text-anchor="middle">MER MÉDITERRANÉE</text>
+  <text transform="translate(304 318) rotate(63)" text-anchor="middle">MER ROUGE</text></g>
+  <g class="map-zone"><text x="64" y="262" text-anchor="middle">DÉSERT</text><text x="204" y="250" text-anchor="middle">DÉSERT</text>
+  <text x="244" y="128" text-anchor="middle" class="it">Sinaï</text></g>
+  <text x="135.9" y="86" text-anchor="middle" class="map-it">Delta</text>
+  <text x="150" y="222" class="map-it map-river">le Nil</text>
+  <path d="M119.6 127.0l6-10 6 10Z" fill="var(--ink)"/>
+  <text x="115.6" y="126.0" text-anchor="end" class="map-city">Gizeh</text>
+  <text x="115.6" y="138.0" text-anchor="end" class="map-small">(pyramides)</text>
+  <circle cx="136.8" cy="131.2" r="3.5" fill="var(--ink)"/>
+  <text x="144.8" y="135.2" class="map-city">Memphis</text>
+  <circle cx="196.5" cy="328.9" r="3.5" fill="var(--ink)"/>
+  <text x="187.5" y="332.9" text-anchor="end" class="map-city">Thèbes</text>
+  <path d="M201.7 402.7h12M201.7 407.7h12" stroke="var(--ink)" stroke-width="1.6"/>
+  <text x="197.7" y="409.7" text-anchor="end" class="map-small">1re cataracte</text>
+  <g transform="translate(30 104)" class="map-n"><path d="M0 -16 6 4 0 0 -6 4Z" fill="var(--ink)"/><text y="18" text-anchor="middle">N</text></g>
+  <g transform="translate(18 420)" class="map-small"><path d="M0 0h43" stroke="var(--ink)" stroke-width="3"/><path d="M0 -4v8M43 -4v8" stroke="var(--ink)" stroke-width="1.2"/><text x="50" y="4">100 km</text></g>
+</svg>
+      <p class="map-leg"><span><i style="background:var(--fertile)"></i>terres fertiles</span><span><i style="background:var(--sand)"></i>désert</span><span><i style="background:var(--sea)"></i>fleuve et mers</span></p>
+      <p>Hérodote, historien grec, vers 450 av. J.‑C. : « L'Égypte est un don du Nil. »</p>
+    </figure>
+    <div class="docs" style="grid-template-columns:1fr">
+      <figure class="doc" style="margin:0">
+        <p class="doc-t"><b>Doc B</b>Les premières écritures</p>
+        <div class="scroll"><svg class="frise" viewBox="0 0 560 182" role="img" aria-label="Frise : vers 3300 av. J.-C. écriture cunéiforme en Mésopotamie ; vers 3200 av. J.-C. hiéroglyphes en Égypte ; vers 2560 av. J.-C. pyramide de Khéops ; vers 1750 av. J.-C. code de Hammurabi.">
+  <rect x="30" y="78" width="70.5" height="16" fill="var(--muted)"/>
+  <rect x="100.5" y="78" width="429.5" height="16" fill="var(--gold)"/>
+  <path d="M530 72l18 14-18 14Z" fill="var(--gold)"/>
+  <text x="33" y="90" class="fr-per">Préhistoire</text>
+  <text x="286" y="90" class="fr-per">Antiquité</text>
+  <path d="M100 78V58" stroke="var(--parch-ink)" stroke-width="1.2"/><text x="100" y="18" text-anchor="start" class="fr-date">vers 3300</text><text x="100" y="35" text-anchor="start" class="fr-ev">Écriture cunéiforme</text><text x="100" y="51" text-anchor="start" class="fr-ev">(Mésopotamie)</text><path d="M124 94V122" stroke="var(--parch-ink)" stroke-width="1.2"/><text x="124" y="140" text-anchor="start" class="fr-date">vers 3200</text><text x="124" y="157" text-anchor="start" class="fr-ev">Hiéroglyphes</text><text x="124" y="173" text-anchor="start" class="fr-ev">(Égypte)</text><path d="M274 78V58" stroke="var(--parch-ink)" stroke-width="1.2"/><text x="274" y="18" text-anchor="start" class="fr-date">vers 2560</text><text x="274" y="35" text-anchor="start" class="fr-ev">Pyramide de Khéops</text><text x="274" y="51" text-anchor="start" class="fr-ev">(Égypte)</text><path d="M465 94V122" stroke="var(--parch-ink)" stroke-width="1.2"/><text x="465" y="140" text-anchor="end" class="fr-date">vers 1750</text><text x="465" y="157" text-anchor="end" class="fr-ev">Code de Hammurabi</text><text x="465" y="173" text-anchor="end" class="fr-ev">(Mésopotamie)</text><path d="M54 94v6" stroke="var(--muted)"/><text x="54" y="114" text-anchor="middle" class="fr-tick">3500</text><path d="M171 94v6" stroke="var(--muted)"/><text x="171" y="114" text-anchor="middle" class="fr-tick">3000</text><path d="M288 94v6" stroke="var(--muted)"/><text x="288" y="114" text-anchor="middle" class="fr-tick">2500</text><path d="M406 94v6" stroke="var(--muted)"/><text x="406" y="114" text-anchor="middle" class="fr-tick">2000</text><circle cx="100" cy="86" r="5" fill="var(--surface-parch)" stroke="var(--parch-ink)" stroke-width="2"/><circle cx="124" cy="86" r="5" fill="var(--surface-parch)" stroke="var(--parch-ink)" stroke-width="2"/><circle cx="274" cy="86" r="5" fill="var(--surface-parch)" stroke="var(--parch-ink)" stroke-width="2"/><circle cx="465" cy="86" r="5" fill="var(--surface-parch)" stroke="var(--parch-ink)" stroke-width="2"/>
+  <text x="548" y="114" text-anchor="end" class="fr-tick">av. J.‑C.</text>
+</svg></div>
+      </figure>
+      <figure class="doc" style="margin:0">
+        <p class="doc-t"><b>Doc C</b>Le métier de scribe</p>
+        <blockquote>« Deviens scribe ! Tu échapperas aux travaux pénibles : tu ne porteras ni la houe ni la pioche. C'est le scribe qui dirige le travail de tous. »</blockquote>
+        <p class="src">D'après la Satire des métiers, Égypte, vers 2000 av. J.‑C. Les scribes comptaient les récoltes et les impôts pour le pharaon.</p>
+        <p class="note-prof">À ajouter : photo du Scribe accroupi (musée du Louvre).</p>
+      </figure>
+      <figure class="doc" style="margin:0">
+        <p class="doc-t"><b>Doc D</b>Le coffre du scribe</p>
+        <div class="coffre" role="img" aria-label="Un coffre en bois cerclé de métal, fermé à clé, portant une inscription en hiéroglyphes"><div class="coffre-couv"></div><div class="coffre-corps"><p class="inscription" lang="egy">𓊪𓄿𓊪𓇌𓂋𓅱𓋴</p><span class="serrure"></span></div></div>
+        <p>Le fragment est enfermé dans ce coffre. Il ne s'ouvre que pour celui qui sait lire l'inscription.</p>
+      </figure>
+    </div>
+  </div>
+
+  <h3 class="eyebrow">Grille des indices · à remplir par le scribe de la maison</h3>
+  <div class="scroll"><table class="tab grille">
+    <thead><tr><th scope="col">Doc</th><th scope="col">Ce que je repère</th><th scope="col">Type d'indice (entoure)</th></tr></thead>
+    <tbody><tr><th scope="row">A</th><td class="ligne"></td><td class="choix-ic"><span class="apt-c" style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg></span><span class="apt-c" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg></span><span class="apt-c" style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)"><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg></span><span class="apt-c" style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)"><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg></span></td></tr><tr><th scope="row">B</th><td class="ligne"></td><td class="choix-ic"><span class="apt-c" style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg></span><span class="apt-c" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg></span><span class="apt-c" style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)"><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg></span><span class="apt-c" style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)"><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg></span></td></tr><tr><th scope="row">C</th><td class="ligne"></td><td class="choix-ic"><span class="apt-c" style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg></span><span class="apt-c" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg></span><span class="apt-c" style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)"><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg></span><span class="apt-c" style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)"><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg></span></td></tr><tr><th scope="row">D</th><td class="ligne"></td><td class="choix-ic"><span class="apt-c" style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg></span><span class="apt-c" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg></span><span class="apt-c" style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)"><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg></span><span class="apt-c" style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)"><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg></span></td></tr></tbody>
+  </table></div>
+  <p class="phrase">Notre sorcier : <span class="blank"></span> parce que le document <span class="blank s"></span> montre que <span class="blank" style="min-width:16ch"></span>.</p>
+
+  <h3 class="eyebrow">L'épreuve · fin du chapitre</h3>
+  <div class="defis">
+    <div class="defi">
+      <h3>Défi 1 · Lire l'inscription</h3>
+      <p class="mot" lang="egy">𓊪𓄿𓊪𓇌𓂋𓅱𓋴</p>
+      <ul class="alpha"><li><span class="hg" lang="egy">𓄿</span><b>A</b><small>vautour</small></li><li><span class="hg" lang="egy">𓃀</span><b>B</b><small>pied</small></li><li><span class="hg" lang="egy">𓎡</span><b>C / K</b><small>panier</small></li><li><span class="hg" lang="egy">𓂧</span><b>D</b><small>main</small></li><li><span class="hg" lang="egy">𓇋</span><b>E / I</b><small>roseau</small></li><li><span class="hg" lang="egy">𓆑</span><b>F / V</b><small>vipère</small></li><li><span class="hg" lang="egy">𓎼</span><b>G</b><small>support</small></li><li><span class="hg" lang="egy">𓉔</span><b>H</b><small>abri</small></li><li><span class="hg" lang="egy">𓆓</span><b>J</b><small>cobra</small></li><li><span class="hg" lang="egy">𓃭</span><b>L</b><small>lion</small></li><li><span class="hg" lang="egy">𓅓</span><b>M</b><small>chouette</small></li><li><span class="hg" lang="egy">𓈖</span><b>N</b><small>eau</small></li><li><span class="hg" lang="egy">𓅱</span><b>O / U</b><small>poussin</small></li><li><span class="hg" lang="egy">𓊪</span><b>P</b><small>tabouret</small></li><li><span class="hg" lang="egy">𓈎</span><b>Q</b><small>colline</small></li><li><span class="hg" lang="egy">𓂋</span><b>R</b><small>bouche</small></li><li><span class="hg" lang="egy">𓋴</span><b>S</b><small>tissu plié</small></li><li><span class="hg" lang="egy">𓏏</span><b>T</b><small>pain</small></li><li><span class="hg" lang="egy">𓇌</span><b>Y</b><small>2 roseaux</small></li><li><span class="hg" lang="egy">𓊃</span><b>Z</b><small>verrou</small></li></ul>
+      <p class="small">Alphabet simplifié pour la classe : les Égyptiens n'écrivaient pas les voyelles.</p>
+    </div>
+    <div class="col">
+      <div class="defi">
+        <h3>Défi 2 · Le rapport au pharaon</h3>
+        <ol>
+          <li>Qui dirige l'État égyptien ?</li>
+          <li>Donne deux usages de l'écriture pour cet État.</li>
+          <li>Pourquoi Hérodote dit-il que « l'Égypte est un don du Nil » ?</li>
+        </ol>
+      </div>
+      <div class="defi">
+        <h3>Défi 3 · Le calcul du temps</h3>
+        <p>Combien d'années séparent l'écriture cunéiforme (vers 3300 av. J.‑C.) de la pyramide de Khéops (vers 2560 av. J.‑C.) ?</p>
+      </div>
+      <p class="reussite"><b>Épreuve réussie</b> : l'inscription lue et au moins 3 bonnes réponses sur 4. Sinon, réussite partielle.</p>
+    </div>
+  </div>
+
+  <details class="corrige">
+    <summary>Corrigé pour le professeur</summary>
+    <div>
+      <div class="scroll"><table class="tab corr-tab"><tbody>
+        <tr><td>A</td><td>Nil, désert, terres fertiles, « don du Nil »</td><td><span class="apt-tag" style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)"><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg>Nature</span> le décor, pas l'obstacle</td></tr>
+        <tr><td>B</td><td>Dates des premières écritures</td><td><span class="apt-tag" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg>Savoir</span></td></tr>
+        <tr><td>C</td><td>Le scribe sait écrire et compter</td><td><span class="apt-tag" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg>Savoir</span></td></tr>
+        <tr><td>D</td><td>Une inscription à lire pour ouvrir le coffre</td><td><span class="apt-tag" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg>Savoir</span> l'obstacle</td></tr>
+      </tbody></table></div>
+      <p><b>Sorcier clé</b> : Iris Plumelune, 3 jokers. <b>Renfort</b> : Capucine Boisjoli, 2 jokers. Léo ou Silas : 1 joker.</p>
+      <p><b>Défi 1</b> : PAPYRUS. <b>Défi 2</b> : le pharaon ; compter les récoltes et les impôts, transmettre les ordres, écrire des textes religieux ; la crue du Nil dépose un limon fertile qui permet de cultiver au milieu du désert. <b>Défi 3</b> : 3300 − 2560 = environ 740 ans.</p>
+    </div>
+  </details>
+</section>
+
+<section class="sec" id="decider">
+  <header><p class="eyebrow">À trancher ensemble</p><h2>Quatre choix avant de lancer le jeu</h2></header>
+  <ul class="decisions">
+    <li><b>Maisons et aptitudes</b><span>Ici, Gryffondor = combat et Serdaigle = savoir, comme dans les livres. On garde ?</span></li>
+    <li><b>Support</b><span>Plateau papier affiché en classe, ou tableau de bord projeté (points, fragments, étoiles) ?</span></li>
+    <li><b>Projet à deux disciplines</b><span>Quelles quêtes communes avec la discipline de la collègue (ex. : l'Odyssée en français) ?</span></li>
+    <li><b>Rythme</b><span>13 quêtes = 2 séances par chapitre. Trop dense ? Possible de passer à 1 quête par thème (7).</span></li>
+  </ul>
+</section>
+
+<footer class="pied">Version de travail · octobre 2026 · personnages, missions et documents adaptés pour la classe.</footer>
+</main>
+
+</body>
+</html>
