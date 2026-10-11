@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Les Fragments du Temps</title>
-<meta name="description" content="Jeu de quêtes Harry Potter pour une classe de 6e en histoire-géographie : 4 sorciers, 13 quêtes alignées sur le programme." />
+<meta name="description" content="Jeu de quêtes Harry Potter pour une classe de 6e en histoire-géographie et en français : 4 sorciers, 13 quêtes alignées sur le programme, 5 pages du Grimoire." />
 <meta name="theme-color" content="#1B1F3B" />
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Noto+Sans+Egyptian+Hieroglyphs&display=swap">
 <style>
@@ -72,7 +72,7 @@ a { color: inherit; }
 .hero h1 { font-size: var(--t-xxl); letter-spacing: -.01em; }
 .hero h1 em { color: var(--gold); }
 .hero .thesis { font-size: var(--t-l); line-height: 1.4; max-width: 34ch; font-family: var(--f-display); font-style: italic; }
-.fiche { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 18px; margin: 4px 0 0; padding: 14px 0 0; border-top: 1px solid var(--line); }
+.fiche { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 18px; margin: 4px 0 0; padding: 14px 0 0; border-top: 1px solid var(--line); }
 .fiche div { min-width: 0; }
 .fiche dt { font-family: var(--f-sc); color: var(--gold); font-size: var(--t-s); letter-spacing: .04em; }
 .fiche dd { margin: 0; font-size: var(--t-s); }
@@ -89,7 +89,7 @@ a { color: inherit; }
 
 /* ---------- principe ---------- */
 .duo { display: grid; gap: 14px; }
-@media (min-width: 700px) { .duo { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 700px) { .duo { grid-template-columns: repeat(3, 1fr); } }
 .objet { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: start; padding: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
 .objet .ico { grid-row: span 3; width: 40px; height: 40px; color: var(--gold); stroke-width: 1.4; }
 .objet h3 { font-size: var(--t-l); }
@@ -174,6 +174,39 @@ a { color: inherit; }
 .sceau-ex { font-size: var(--t-xs); color: var(--gold); font-weight: 700; justify-self: start; margin-top: 4px; }
 .legende { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: var(--t-s); }
 .legende span { display: inline-flex; align-items: center; gap: 6px; color: var(--h); font-weight: 700; }
+
+/* ---------- grimoire (français) ---------- */
+.pages { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+@media (min-width: 600px) { .pages { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .pages { grid-template-columns: repeat(4, 1fr); } }
+.page, .aventure { background: var(--parch); color: var(--parch-ink); border: 1px solid var(--parch-line); border-top: 4px solid var(--h-band, var(--gold)); border-radius: 4px; padding: 14px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.page-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.page .apt-tag { font-size: var(--t-xs); gap: 4px; }
+.genre { font-size: var(--t-xs); padding: 1px 8px; border-radius: 999px; border: 1px solid var(--parch-line); color: var(--muted); }
+.page-entree { font-family: var(--f-display); font-size: var(--t-l); line-height: 1.2; }
+.page-mission { font-family: var(--f-display); font-style: italic; color: var(--h, var(--gold)); font-size: var(--t-m); }
+.page-info { margin: 0; display: grid; gap: 6px; font-size: var(--t-xs); }
+.page-info dt { font-family: var(--f-sc); color: var(--gold); font-size: var(--t-s); letter-spacing: .04em; }
+.page-info dd { margin: 0; }
+.aventure { border-top-color: var(--gold); }
+.aventure-ic { display: inline-flex; gap: 6px; color: var(--gold); }
+.aventure-corps { display: grid; gap: 12px; }
+@media (min-width: 760px) { .aventure-corps { grid-template-columns: 1fr 1fr; align-items: start; } }
+.aventure-corps > div { display: grid; gap: 4px; min-width: 0; }
+.journal { font-family: var(--f-display); font-style: italic; font-size: var(--t-m); line-height: 1.5; padding: 10px 14px; border-left: 3px solid var(--gold); background: var(--surface-parch); display: grid; gap: 2px; }
+.journal .small { font-family: var(--f-body); font-style: normal; }
+.trio { display: grid; gap: 14px; }
+@media (min-width: 760px) { .trio { grid-template-columns: repeat(3, 1fr); } }
+.trio ul { margin: 0; padding-left: 1.1em; display: grid; gap: 2px; font-size: var(--t-s); }
+.communes { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+@media (min-width: 860px) { .communes { grid-template-columns: repeat(3, 1fr); } }
+.commune { display: grid; grid-template-columns: auto 1fr; gap: 12px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.commune-dl { margin: 4px 0 0; display: grid; gap: 4px; font-size: var(--t-xs); }
+.commune-dl div { display: grid; grid-template-columns: 76px 1fr; gap: 6px; }
+.commune-dl dt { font-family: var(--f-sc); color: var(--gold); font-size: var(--t-s); }
+.commune-dl dd { margin: 0; }
+.commune-texte { font-size: var(--t-s); margin-top: 4px; }
+.sceau-fr { font-size: var(--t-xs); color: var(--muted); justify-self: start; margin-top: 2px; }
 
 /* ---------- points ---------- */
 .points { display: grid; gap: 16px; }
@@ -280,6 +313,7 @@ footer.pied { font-size: var(--t-xs); color: var(--muted); border-top: 1px solid
   <symbol id="i-nature" viewBox="0 0 24 24"><path d="M5 19c0-8 5.5-14 15-14 0 9.5-6 14-15 14Z"/><path d="M5 19 14 10"/></symbol>
   <symbol id="i-ruse" viewBox="0 0 24 24"><path d="M4 5h16v10h-8l-5 4v-4H4Z"/><path d="M8.5 10h.01M12 10h.01M15.5 10h.01"/></symbol>
   <symbol id="i-sablier" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12"/><path d="M7.5 3c0 5 3.5 6 3.5 9s-3.5 4-3.5 9M16.5 3c0 5-3.5 6-3.5 9s3.5 4 3.5 9"/><circle cx="12" cy="12" r="10.5" stroke-dasharray="2 3"/></symbol>
+  <symbol id="i-grimoire" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3Z"/><path d="M5 17a3 3 0 0 1 3-3h11"/><path d="m12 6.5.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 8.6l2-.3Z"/></symbol>
   <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></symbol>
   <symbol id="i-lettre" viewBox="0 0 24 24"><path d="M3 6h18v12H3Z"/><path d="m3 6 9 7 9-7"/></symbol>
   <symbol id="i-loupe" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 6 6"/></symbol>
@@ -292,13 +326,15 @@ footer.pied { font-size: var(--t-xs); color: var(--muted); border-top: 1px solid
 
 <section class="hero" aria-labelledby="titre">
   <div class="hero-txt">
-    <p class="eyebrow">Projet Poudlard · 6e · Histoire-Géographie</p>
+    <p class="eyebrow">Projet Poudlard · 6e · Histoire-géographie et français</p>
     <h1 id="titre">Les Fragments <em>du Temps</em></h1>
-    <p class="thesis">Le Retourneur de temps de Poudlard s'est brisé. Chaque chapitre du programme cache un de ses 13 fragments.</p>
+    <p class="thesis">Le Retourneur de temps de Poudlard s'est brisé. Ses 13 fragments sont cachés dans le programme d'histoire-géographie, la formule pour le réparer dans le Grimoire du cours de français.</p>
     <dl class="fiche">
       <div><dt>Classe</dt><dd>6e, divisée en 4 maisons</dd></div>
       <div><dt>Durée</dt><dd>toute l'année 2026-2027</dd></div>
-      <div><dt>Quêtes</dt><dd>9 en histoire, 4 en géographie</dd></div>
+      <div><dt>Histoire-géo</dt><dd>13 quêtes, 13 fragments</dd></div>
+      <div><dt>Français</dt><dd>5 quêtes, 5 pages du Grimoire</dd></div>
+      <div><dt>En commun</dt><dd>3 quêtes, la quête finale</dd></div>
       <div><dt>Format</dt><dd>jeu de rôle + plateau de classe</dd></div>
     </dl>
   </div>
@@ -307,15 +343,16 @@ footer.pied { font-size: var(--t-xs); color: var(--muted); border-top: 1px solid
 
 <nav aria-label="Sommaire"><ul class="toc">
   <li><a href="#principe">Le principe</a></li><li><a href="#quete">Une quête</a></li><li><a href="#sorciers">Les sorciers</a></li>
-  <li><a href="#carte">La Carte du Temps</a></li><li><a href="#points">Points et progression</a></li>
+  <li><a href="#carte">La Carte du Temps</a></li><li><a href="#grimoire">Le Grimoire</a></li><li><a href="#points">Points et progression</a></li>
   <li><a href="#quete3">Quête 3, prête à tester</a></li><li><a href="#decider">À trancher</a></li>
 </ul></nav>
 
 <section class="sec" id="principe">
-  <header><p class="eyebrow">Le principe</p><h2>Deux objets magiques, un par discipline</h2></header>
+  <header><p class="eyebrow">Le principe</p><h2>Trois objets magiques, un par discipline</h2></header>
   <div class="duo">
     <div class="objet"><svg class="ico" aria-hidden="true"><use href="#i-sablier"/></svg><h3>Le Retourneur de temps</h3><p class="tag">Histoire · 9 quêtes</p><p>Il envoie les élèves dans le passé, de la Préhistoire à l'Empire romain.</p></div>
     <div class="objet"><svg class="ico" aria-hidden="true"><use href="#i-globe"/></svg><h3>Le Portoloin</h3><p class="tag">Géographie · 4 quêtes</p><p>Il les transporte dans le monde actuel : métropoles, littoraux, espaces peu peuplés.</p></div>
+    <div class="objet"><svg class="ico" aria-hidden="true"><use href="#i-grimoire"/></svg><h3>Le Grimoire</h3><p class="tag">Français · 5 quêtes</p><p>Ses pages cachent les mots de la formule qui réparera le Retourneur.</p></div>
   </div>
   <p class="regle">Le corpus ne dit jamais quel sorcier choisir : il montre l'obstacle. La maison le repère, choisit son sorcier, puis prouve son choix avec un document.</p>
   <div class="mix">
@@ -449,7 +486,7 @@ footer.pied { font-size: var(--t-xs); color: var(--muted); border-top: 1px solid
     <p class="sceau-chap">Le monde des cités grecques</p>
     <p class="sceau-mission">Ruser comme Ulysse jusqu&#x27;à Olympie</p>
     <p class="sceau-meta"><span>VIIIe-Ve s. av. J.‑C.</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg>Silas</span></p>
-    
+    <a class="sceau-fr" href="#communes">Quête commune avec le français</a>
   </div>
 </li><li class="sceau" style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)">
   <span class="sceau-num">5</span>
@@ -457,7 +494,7 @@ footer.pied { font-size: var(--t-xs); color: var(--muted); border-top: 1px solid
     <p class="sceau-chap">Rome, du mythe à l&#x27;histoire</p>
     <p class="sceau-mission">Défendre le Capitole contre les Gaulois</p>
     <p class="sceau-meta"><span>VIIIe-Ier s. av. J.‑C.</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg>Léo</span></p>
-    
+    <a class="sceau-fr" href="#communes">Quête commune avec le français</a>
   </div>
 </li><li class="sceau" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)">
   <span class="sceau-num">6</span>
@@ -465,7 +502,7 @@ footer.pied { font-size: var(--t-xs); color: var(--muted); border-top: 1px solid
     <p class="sceau-chap">La naissance du monothéisme juif</p>
     <p class="sceau-mission">Lire un rouleau de la mer Morte</p>
     <p class="sceau-meta"><span>Ier millénaire av. J.‑C.</span><span class="sceau-apt"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg>Iris</span></p>
-    
+    <a class="sceau-fr" href="#communes">Quête commune avec le français</a>
   </div>
 </li></ol></div><div class="theme"><p class="theme-titre"><b>Thème 3</b> L&#x27;empire romain dans le monde antique</p><ol class="sceaux"><li class="sceau" style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)">
   <span class="sceau-num">7</span>
@@ -532,6 +569,71 @@ footer.pied { font-size: var(--t-xs); color: var(--muted); border-top: 1px solid
   <p class="small">Programme de cycle 3 en vigueur en 6e en 2026-2027. Le nouveau programme s'appliquera en 6e à la rentrée 2027 : la carte sera à revoir. Missions et ordre modifiables.</p>
 </section>
 
+<section class="sec" id="grimoire">
+  <header><p class="eyebrow">Avec le français</p><h2>Le Grimoire</h2><p class="lead">Le programme de français de 6e a 5 entrées. Quatre correspondent aux quatre sorciers, la cinquième est le jeu lui-même. Chaque quête réussie rapporte une page du Grimoire et un mot de la formule.</p></header>
+  <ol class="pages"><li class="page" style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)">
+  <p class="page-top"><span class="apt-tag"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg>Courage · Léo</span><span class="genre">récit</span></p>
+  <p class="page-entree">Rencontrer des monstres : expérience de l&#x27;autre, expérience de soi</p>
+  <p class="page-mission">Affronter le monstre… ou le comprendre</p>
+  <dl class="page-info"><div><dt>À lire</dt><dd>Polyphème, le Minotaure, La Belle et la Bête</dd></div><div><dt>Écho en HG</dt><dd>quête 4</dd></div></dl>
+</li><li class="page" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)">
+  <p class="page-top"><span class="apt-tag"><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg>Savoir · Iris</span><span class="genre">récit</span></p>
+  <p class="page-entree">Créer, recréer le monde : récits des origines</p>
+  <p class="page-mission">Retrouver la première page du monde</p>
+  <dl class="page-info"><div><dt>À lire</dt><dd>la Genèse, les Métamorphoses d&#x27;Ovide, des contes étiologiques</dd></div><div><dt>Écho en HG</dt><dd>quêtes 5 et 6</dd></div></dl>
+</li><li class="page" style="--h: var(--pou); --h-soft: var(--pou-soft); --h-band: var(--pou-band); --h-on: var(--on-pou-band); --c1: var(--pou-band); --c2: var(--pou-2)">
+  <p class="page-top"><span class="apt-tag"><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg>Nature · Capucine</span><span class="genre">poésie</span></p>
+  <p class="page-entree">Chanter et enchanter le monde : mots et merveilles</p>
+  <p class="page-mission">Composer un sortilège en vers</p>
+  <dl class="page-info"><div><dt>À lire</dt><dd>poèmes de la nature, haïkus</dd></div><div><dt>Écho en HG</dt><dd>quête 11</dd></div></dl>
+</li><li class="page" style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)">
+  <p class="page-top"><span class="apt-tag"><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg>Ruse · Silas</span><span class="genre">théâtre</span></p>
+  <p class="page-entree">Se masquer, jouer, déjouer : ruses en action</p>
+  <p class="page-mission">Duper le gardien en jouant la comédie</p>
+  <dl class="page-info"><div><dt>À lire</dt><dd>une farce, une comédie de Molière</dd></div><div><dt>Écho en HG</dt><dd>quête 4</dd></div></dl>
+</li></ol>
+  <div class="aventure">
+    <p class="page-top"><span class="aventure-ic"><svg class="ico" aria-hidden="true"><use href="#i-courage"/></svg><svg class="ico" aria-hidden="true"><use href="#i-savoir"/></svg><svg class="ico" aria-hidden="true"><use href="#i-nature"/></svg><svg class="ico" aria-hidden="true"><use href="#i-ruse"/></svg></span><span class="genre">récit</span></p>
+    <p class="page-entree">Partir à l'aventure !</p>
+    <div class="aventure-corps">
+      <div><p class="page-mission">Tenir le journal de bord du sorcier, toute l'année</p><p class="small">Après chaque quête, chaque élève écrit 5 à 10 lignes au nom du sorcier choisi. Écrit narratif court, évalué en français. Lecture cursive possible : <i>Harry Potter à l'école des sorciers</i>.</p></div>
+      <p class="journal">« Jour 3. Le coffre du scribe refusait de s'ouvrir. Iris a reconnu le tabouret, le vautour, la bouche… et le mot est apparu : PAPYRUS. »<span class="small">exemple</span></p>
+    </div>
+  </div>
+
+  <div class="trio">
+    <div class="encart"><h3>Histoire-géographie</h3><ul><li>les corpus documentaires</li><li>la grille des indices</li><li>les épreuves de connaissances</li><li>la Carte du Temps</li></ul></div>
+    <div class="encart"><h3>Français</h3><ul><li>les 5 quêtes du Grimoire</li><li>les lettres de mission</li><li>le journal de bord</li><li>les sortilèges en vers</li></ul></div>
+    <div class="encart finale"><h3>Ensemble</h3><ul><li>la Coupe des maisons</li><li>le registre des sorciers</li><li>3 quêtes communes</li><li>la quête finale de juin</li></ul></div>
+  </div>
+  <p class="regle">La phrase de justification de l'étape 3 sert aussi le français : le programme demande des écrits courts pour justifier ses choix.</p>
+
+  <h3 class="eyebrow" id="communes">Trois quêtes communes, à caler sur les mêmes semaines</h3>
+  <ol class="communes"><li class="commune" style="--h: var(--sep); --h-soft: var(--sep-soft); --h-band: var(--sep-band); --h-on: var(--on-band); --c1: var(--sep-band); --c2: var(--sep-2)">
+  <span class="sceau-num">4</span>
+  <div class="sceau-txt">
+    <p class="sceau-mission">Ruser comme Ulysse jusqu&#x27;à Olympie</p>
+    <dl class="commune-dl"><div><dt>Histoire</dt><dd>Le monde des cités grecques</dd></div><div><dt>Français</dt><dd>Monstres · Ruses en action</dd></div></dl>
+    <p class="commune-texte">L&#x27;Odyssée, chant IX : Ulysse face à Polyphème.</p>
+  </div>
+</li><li class="commune" style="--h: var(--gry); --h-soft: var(--gry-soft); --h-band: var(--gry-band); --h-on: var(--on-band); --c1: var(--gry-band); --c2: var(--gry-2)">
+  <span class="sceau-num">5</span>
+  <div class="sceau-txt">
+    <p class="sceau-mission">Défendre le Capitole contre les Gaulois</p>
+    <dl class="commune-dl"><div><dt>Histoire</dt><dd>Rome, du mythe à l&#x27;histoire</dd></div><div><dt>Français</dt><dd>Récits des origines</dd></div></dl>
+    <p class="commune-texte">Romulus et Rémus, d&#x27;après Tite-Live : démêler le mythe et l&#x27;histoire.</p>
+  </div>
+</li><li class="commune" style="--h: var(--ser); --h-soft: var(--ser-soft); --h-band: var(--ser-band); --h-on: var(--on-band); --c1: var(--ser-band); --c2: var(--ser-2)">
+  <span class="sceau-num">6</span>
+  <div class="sceau-txt">
+    <p class="sceau-mission">Lire un rouleau de la mer Morte</p>
+    <dl class="commune-dl"><div><dt>Histoire</dt><dd>La naissance du monothéisme juif</dd></div><div><dt>Français</dt><dd>Récits des origines</dd></div></dl>
+    <p class="commune-texte">Le récit de la Création (Genèse), lu comme texte fondateur et comme source historique.</p>
+  </div>
+</li></ol>
+  <p class="small">Programme de français de 6e : BO n° 16 du 17 avril 2025, en vigueur en 2026-2027. Textes et missions à choisir par la collègue.</p>
+</section>
+
 <section class="sec" id="points">
   <header><p class="eyebrow">Points et progression</p><h2>Ce que rapporte une quête</h2><p class="lead">Les points de comportement continuent. Les quêtes s'ajoutent à la Coupe des maisons.</p></header>
   <div class="points">
@@ -547,6 +649,7 @@ footer.pied { font-size: var(--t-xs); color: var(--muted); border-top: 1px solid
           <tr><th scope="row">Maximum par quête</th><td class="num">10</td></tr>
         </tbody>
       </table></div>
+      <p class="small">Quêtes du Grimoire : même barème, une citation du texte remplace le document.</p>
       <div class="encart">
         <h3>Les jokers de l'épreuve</h3>
         <p>Nombre de jokers = niveau du sorcier choisi dans l'aptitude de la quête. Iris en quête de Savoir : <span class="pips" style="--p: var(--ser)" role="img" aria-label="3 sur 3"><i class="on"></i><i class="on"></i><i class="on"></i></span> 3 jokers. Léo : <span class="pips" style="--p: var(--ser)" role="img" aria-label="1 sur 3"><i class="on"></i><i class=""></i><i class=""></i></span> 1 joker.</p>
@@ -569,7 +672,7 @@ footer.pied { font-size: var(--t-xs); color: var(--muted); border-top: 1px solid
       </div>
       <div class="encart finale">
         <h3>Juin : la quête finale</h3>
-        <p>Réparer le Retourneur de temps. Chaque maison engage ses 4 sorciers, une épreuve par aptitude : c'est la révision de l'année.</p>
+        <p>Réparer le Retourneur de temps. Chaque maison rassemble ses fragments et compose la formule de réparation, un poème écrit avec les mots des 5 pages du Grimoire. Ses 4 sorciers passent une épreuve chacun : c'est la révision de l'année.</p>
       </div>
     </div>
   </div>
@@ -691,12 +794,12 @@ footer.pied { font-size: var(--t-xs); color: var(--muted); border-top: 1px solid
   <ul class="decisions">
     <li><b>Maisons et aptitudes</b><span>Ici, Gryffondor = combat et Serdaigle = savoir, comme dans les livres. On garde ?</span></li>
     <li><b>Support</b><span>Plateau papier affiché en classe, ou tableau de bord projeté (points, fragments, étoiles) ?</span></li>
-    <li><b>Projet à deux disciplines</b><span>Quelles quêtes communes avec la discipline de la collègue (ex. : l'Odyssée en français) ?</span></li>
+    <li><b>Calendrier commun</b><span>Caler les quêtes 4, 5 et 6 sur les mêmes semaines en histoire et en français ? Elles tombent à des moments différents des deux progressions.</span></li>
     <li><b>Rythme</b><span>13 quêtes = 2 séances par chapitre. Trop dense ? Possible de passer à 1 quête par thème (7).</span></li>
   </ul>
 </section>
 
-<footer class="pied">Version de travail · octobre 2026 · personnages, missions et documents adaptés pour la classe.</footer>
+<footer class="pied">Version de travail 2 · octobre 2026 · personnages, missions et documents adaptés pour la classe.</footer>
 </main>
 
 </body>
