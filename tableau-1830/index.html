@@ -71,6 +71,7 @@
   .btn-m:hover { border-color: var(--gold); }
   .btn-m[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: #1A1A1A; font-weight: 600; }
   .btn-m[hidden] { display: none !important; }
+  @media (max-width: 1099px) { #b-toile { display: none !important; } }
 
   /* ---------- La scène ---------- */
   .scene { position: relative; overflow: hidden; background: radial-gradient(ellipse at 50% 45%, #232A2E 0%, var(--wall) 70%); }
@@ -160,11 +161,22 @@
   .qr-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; counter-reset: q; }
   .qr { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; counter-increment: q; }
   .qr .q { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; font-size: clamp(15px, 1.2vw, 17px); }
-  .qr-liste .qr .q span::before { content: counter(q) ". "; font-weight: 700; color: var(--hist); }
+  .qr-liste .qr .q .qt::before { content: counter(q) ". "; font-weight: 700; color: var(--hist); }
+  .refs { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: 2px; }
+  .ref { font-family: var(--f-mono); font-size: 11.5px; color: var(--hist); background: var(--histSoft); border: 0; border-radius: 4px; padding: 1px 7px; }
+  .ref:hover { outline: 1px solid var(--hist); }
+  .doc { transition: box-shadow .3s; }
+  .doc.cible { box-shadow: 0 0 0 3px var(--hist); }
+  .regard { display: flex; gap: 14px; align-items: flex-start; }
+  .regard-txt { flex: 1; min-width: 0; }
+  .vignette { display: none; flex: 0 0 auto; }
+  .vignette .det-img { height: 120px; }
+  .vignette figcaption { display: none; }
+  .sans-toile .vignette { display: block; }
   .voir { flex-shrink: 0; border: 1px solid var(--line); background: var(--panel2); color: var(--sub); border-radius: 6px; padding: 4px 10px; font-size: 12.5px; }
   .voir:hover { border-color: var(--rep); color: var(--rep); }
   .rep { display: none; margin-top: 10px; padding: 10px 12px; background: var(--repSoft); color: var(--ink); border-radius: 6px; font-size: 15px; border-left: 3px solid var(--rep); }
-  .vu > .rep, .corriges .rep { display: block; }
+  .vu > .rep, .vu > .regard-txt > .rep, .corriges .rep { display: block; }
   .corriges .voir { display: none; }
 
   .retenir { background: var(--accentSoft); border-radius: 10px; padding: 16px 18px; }
@@ -255,6 +267,24 @@
   .loupe { position: fixed; inset: 0; background: rgba(8,10,12,.94); display: grid; place-items: center; z-index: 50; padding: 24px; cursor: zoom-out; }
   .loupe img { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
 
+  /* ---------- Grand écran : documents à gauche, questions fixées à droite ---------- */
+  @media (min-width: 1100px) {
+    .salle { width: 70%; }
+    .sans-toile .salle { width: 100%; }
+    .salle-in {
+      display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
+      grid-template-areas: "tete tete" "regard q" "corpus q" "nav nav";
+      column-gap: 28px; row-gap: 22px; align-items: start;
+    }
+    .s-tete { grid-area: tete; } .c-regard { grid-area: regard; } .c-corpus { grid-area: corpus; } .s-nav { grid-area: nav; }
+    .col-q {
+      grid-area: q; position: sticky; top: 0; max-height: calc(100dvh - 150px); overflow-y: auto;
+      display: flex; flex-direction: column; gap: 18px; padding: 2px 4px 4px 0;
+    }
+    .col-q .qr .q { font-size: clamp(15px, 1.15vw, 18px); }
+  }
+  .col-q { display: flex; flex-direction: column; gap: 22px; }
+
   /* ---------- Téléphone / tablette portrait ---------- */
   @media (max-width: 760px) {
     .salle { width: 100%; top: auto; height: 60%; transform: translateY(102%); box-shadow: 0 -20px 50px rgba(0,0,0,.35); border-radius: 14px 14px 0 0; }
@@ -279,6 +309,7 @@
     </div>
     <div class="outils">
       <button class="btn-m" id="b-retour" hidden>← Revenir au tableau</button>
+      <button class="btn-m" id="b-toile" aria-pressed="false" hidden title="Raccourci : touche T">Masquer le tableau</button>
       <button class="btn-m" id="b-corr" aria-pressed="false" title="Raccourci : touche C">Corrigés</button>
       <button class="btn-m" id="b-plein" title="Raccourci : touche F">Plein écran</button>
     </div>
@@ -318,7 +349,7 @@ function det(x, y, w, h, titre, legende) {
     <figcaption><b>${titre}</b>${legende || ""}</figcaption></figure>`;
 }
 function doc(num, type, titre, corps, source, large) {
-  return `<article class="doc${large ? " large" : ""}">
+  return `<article class="doc${large ? " large" : ""}" data-doc="${num}">
     <div class="doc-tete"><span class="doc-num">Doc. ${num} · ${type}</span><h4>${titre}</h4></div>
     ${corps}
     ${source ? `<p class="source">${source}</p>` : ""}
@@ -450,8 +481,8 @@ const STATIONS = [
       doc(3, "Texte", "Delacroix écrit à son frère", cite("« J'ai entrepris un sujet moderne, une barricade… et si je n'ai pas vaincu pour la patrie, au moins peindrai-je pour elle. »"),
         "Lettre d'Eugène Delacroix à son frère, 28 octobre 1830."),
     questions: [
-      ["Que signifie le titre choisi par Delacroix : « Le 28 juillet 1830 » ?", "Le peintre date précisément la scène : la deuxième des Trois Glorieuses. Il peint l'actualité, quelques semaines seulement après l'événement."],
-      ["Delacroix a-t-il combattu ? Que veut-il faire avec ce tableau ?", "Non (« si je n'ai pas vaincu pour la patrie »). Il veut servir la cause par la peinture : l'œuvre est engagée."],
+      ["Que signifie le titre choisi par Delacroix : « Le 28 juillet 1830 » ?", "Le peintre date précisément la scène : la deuxième des Trois Glorieuses. Il peint l'actualité, quelques semaines seulement après l'événement.", [1]],
+      ["Delacroix a-t-il combattu ? Que veut-il faire avec ce tableau ?", "Non (« si je n'ai pas vaincu pour la patrie »). Il veut servir la cause par la peinture : l'œuvre est engagée.", [3]],
     ],
     retenir: "Peint à l'automne 1830 et exposé au Salon de 1831, <i>La Liberté guidant le peuple</i> d'Eugène Delacroix représente une barricade parisienne le 28 juillet 1830. C'est une grande peinture d'histoire romantique consacrée à un événement contemporain.",
   },
@@ -483,10 +514,10 @@ const STATIONS = [
         <div class="tuile"><span class="ic">III</span><b>Électeurs réduits</b><span>les patentes ne comptent plus dans le cens</span></div>
         <div class="tuile"><span class="ic">IV</span><b>Nouvelles élections</b><span>convoquées en septembre</span></div></div>`, "", true),
     questions: [
-      ["Quelle liberté garantie par la Charte de 1814 le roi supprime-t-il ?", "La liberté de la presse (article 8 de la Charte)."],
-      ["À quelle condition un journal peut-il désormais paraître ?", "Avec une autorisation du gouvernement, renouvelable tous les trois mois et révocable : c'est le retour de la censure."],
-      ["Pourquoi les journalistes estiment-ils que « l'obéissance cesse d'être un devoir » ?", "Le roi a lui-même violé la Charte : il sort de la légalité (« le régime de la force est commencé »). Résister devient légitime."],
-      ["Que décident-ils de faire, et à qui s'adressent-ils ?", "Publier sans autorisation et résister ; ils s'adressent à « la France entière », c'est-à-dire à l'opinion publique."],
+      ["Quelle liberté garantie par la Charte de 1814 le roi supprime-t-il ?", "La liberté de la presse (article 8 de la Charte).", [2]],
+      ["À quelle condition un journal peut-il désormais paraître ?", "Avec une autorisation du gouvernement, renouvelable tous les trois mois et révocable : c'est le retour de la censure.", [2]],
+      ["Pourquoi les journalistes estiment-ils que « l'obéissance cesse d'être un devoir » ?", "Le roi a lui-même violé la Charte : il sort de la légalité (« le régime de la force est commencé »). Résister devient légitime.", [3]],
+      ["Que décident-ils de faire, et à qui s'adressent-ils ?", "Publier sans autorisation et résister ; ils s'adressent à « la France entière », c'est-à-dire à l'opinion publique.", [3]],
     ],
     retenir: "Roi depuis 1824, Charles X veut renouer avec la monarchie d'Ancien Régime. Le 25 juillet 1830, après la victoire électorale des libéraux, il signe quatre ordonnances : presse suspendue, Chambre dissoute, corps électoral réduit. Les libéraux y voient une violation de la Charte ; les journalistes appellent à la résistance.",
   },
@@ -510,9 +541,9 @@ const STATIONS = [
         ${det(.0, .62, .34, .38, "Pavés et poutres", "matériaux de la barricade")}
         ${det(.78, .52, .22, .26, "Fumée", "et maisons de Paris")}</div>`),
     questions: [
-      ["Où se déroulent les combats ?", "Au centre de Paris, autour des lieux du pouvoir : Palais-Royal, Louvre, Tuileries, Hôtel de Ville."],
-      ["Comment les insurgés combattent-ils l'armée ?", "Ils élèvent des barricades dans les rues étroites, tirent des fenêtres et prennent des armes chez les armuriers."],
-      ["Pourquoi l'armée royale échoue-t-elle ?", "Elle est peu nombreuse et mal ravitaillée ; une partie des soldats refuse de tirer sur la foule et passe aux insurgés."],
+      ["Où se déroulent les combats ?", "Au centre de Paris, autour des lieux du pouvoir : Palais-Royal, Louvre, Tuileries, Hôtel de Ville.", [1]],
+      ["Comment les insurgés combattent-ils l'armée ?", "Ils élèvent des barricades dans les rues étroites, tirent des fenêtres et prennent des armes chez les armuriers.", [2, 3]],
+      ["Pourquoi l'armée royale échoue-t-elle ?", "Elle est peu nombreuse et mal ravitaillée ; une partie des soldats refuse de tirer sur la foule et passe aux insurgés.", [2]],
     ],
     retenir: "Du 27 au 29 juillet 1830, Paris se couvre de barricades. Ouvriers, artisans, étudiants et bourgeois affrontent les troupes royales : plusieurs centaines de morts. Le 29, les insurgés prennent le Louvre et les Tuileries. Charles X abdique le 2 août et part en exil.",
   },
@@ -535,9 +566,9 @@ const STATIONS = [
       doc(3, "Texte", "Le gamin devient Gavroche", cite("« Paris a un enfant et la forêt a un oiseau ; l'oiseau s'appelle le moineau ; l'enfant s'appelle le gamin. »"),
         "Victor Hugo, <i>Les Misérables</i>, 1862. Gavroche meurt sur une barricade de l'insurrection républicaine de juin 1832."),
     questions: [
-      ["Quels groupes sociaux Delacroix réunit-il sur la barricade ?", "Des ouvriers et artisans, un bourgeois, un étudiant de Polytechnique, un enfant des rues : tout le peuple de Paris."],
-      ["Pourquoi le peintre insiste-t-il sur cette union ?", "Pour montrer que c'est tout le peuple, uni, qui renverse le roi : la révolution apparaît légitime."],
-      ["Ceux qui se battent sont-ils ceux qui gouvernent ensuite ?", "Non : le peuple ouvrier fournit l'essentiel des combattants, mais c'est la bourgeoisie libérale qui profite de la victoire."],
+      ["Quels groupes sociaux Delacroix réunit-il sur la barricade ?", "Des ouvriers et artisans, un bourgeois, un étudiant de Polytechnique, un enfant des rues : tout le peuple de Paris.", [1, 2]],
+      ["Pourquoi le peintre insiste-t-il sur cette union ?", "Pour montrer que c'est tout le peuple, uni, qui renverse le roi : la révolution apparaît légitime.", [1]],
+      ["Ceux qui se battent sont-ils ceux qui gouvernent ensuite ?", "Non : le peuple ouvrier fournit l'essentiel des combattants, mais c'est la bourgeoisie libérale qui profite de la victoire.", [2]],
     ],
     retenir: "Delacroix peint un peuple uni : ouvriers, artisans, bourgeois, étudiants, enfants. En réalité, les combattants sont surtout des ouvriers et des artisans parisiens ; la bourgeoisie libérale, elle, va recueillir les fruits de la victoire.",
   },
@@ -561,9 +592,9 @@ const STATIONS = [
         ["1874", "Entre au musée du Louvre, sous la IIIe République"],
       ]), "", true),
     questions: [
-      ["La femme au centre est-elle un personnage réel ou une allégorie ? Justifie.", "Une allégorie : elle porte le bonnet phrygien et le drapeau tricolore, symboles de la Révolution, et ressemble à une statue antique. Elle incarne la Liberté qui guide le peuple."],
-      ["En quoi ce tableau rappelle-t-il la Révolution de 1789 ?", "Bonnet phrygien, drapeau tricolore, figure féminine de la Liberté : 1830 est présenté comme l'héritier de 1789."],
-      ["Pourquoi le régime né de 1830 finit-il par cacher ce tableau ?", "Il glorifie l'insurrection populaire : un régime qui veut l'ordre craint qu'il n'encourage de nouvelles révoltes."],
+      ["La femme au centre est-elle un personnage réel ou une allégorie ? Justifie.", "Une allégorie : elle porte le bonnet phrygien et le drapeau tricolore, symboles de la Révolution, et ressemble à une statue antique. Elle incarne la Liberté qui guide le peuple.", [1]],
+      ["En quoi ce tableau rappelle-t-il la Révolution de 1789 ?", "Bonnet phrygien, drapeau tricolore, figure féminine de la Liberté : 1830 est présenté comme l'héritier de 1789.", [1]],
+      ["Pourquoi le régime né de 1830 finit-il par cacher ce tableau ?", "Il glorifie l'insurrection populaire : un régime qui veut l'ordre craint qu'il n'encourage de nouvelles révoltes.", [2]],
     ],
     retenir: "Au centre, la Liberté est une allégorie : le bonnet phrygien et le drapeau tricolore rattachent 1830 à la Révolution de 1789. Œuvre romantique et engagée, le tableau glorifie le peuple insurgé, au point que le nouveau régime le retire bientôt de la vue du public.",
   },
@@ -593,10 +624,10 @@ const STATIONS = [
         <tr><td>Suffrage</td><td>Censitaire</td><td class="same">Censitaire (cens abaissé en 1831)</td></tr></tbody></table></div>`,
         "En rouge : ce qui change. En gris : ce qui ne change pas.", true),
     questions: [
-      ["Pourquoi Thiers et Mignet écartent-ils la République ?", "Elle diviserait les Français et brouillerait la France avec les monarchies d'Europe : le souvenir de 1793 fait peur."],
-      ["Quels arguments font du duc d'Orléans l'homme de la situation ?", "Il a combattu pour la Révolution (Jemmapes, 1792), porté le tricolore, ne s'est pas battu contre le peuple, accepte la Charte et tiendra sa couronne du peuple."],
-      ["Comparez les deux Chartes : qu'est-ce qui change, qu'est-ce qui ne change pas ?", "Change : Charte acceptée, roi « des Français », fin de la religion d'État, censure interdite, initiative des lois partagée, tricolore. Ne change pas : une monarchie, un roi inviolable qui détient l'exécutif, un suffrage censitaire."],
-      ["Comment Gérard présente-t-il Louis-Philippe ?", "En uniforme de la garde nationale, sans couronne ni manteau de sacre, la main sur la Charte : un « roi-citoyen » qui tient son pouvoir de la Charte, à l'opposé de Charles X."],
+      ["Pourquoi Thiers et Mignet écartent-ils la République ?", "Elle diviserait les Français et brouillerait la France avec les monarchies d'Europe : le souvenir de 1793 fait peur.", [1]],
+      ["Quels arguments font du duc d'Orléans l'homme de la situation ?", "Il a combattu pour la Révolution (Jemmapes, 1792), porté le tricolore, ne s'est pas battu contre le peuple, accepte la Charte et tiendra sa couronne du peuple.", [1]],
+      ["Comparez les deux Chartes : qu'est-ce qui change, qu'est-ce qui ne change pas ?", "Change : Charte acceptée, roi « des Français », fin de la religion d'État, censure interdite, initiative des lois partagée, tricolore. Ne change pas : une monarchie, un roi inviolable qui détient l'exécutif, un suffrage censitaire.", [4]],
+      ["Comment Gérard présente-t-il Louis-Philippe ?", "En uniforme de la garde nationale, sans couronne ni manteau de sacre, la main sur la Charte : un « roi-citoyen » qui tient son pouvoir de la Charte, à l'opposé de Charles X.", [3]],
     ],
     retenir: "Les libéraux (Thiers, La Fayette) écartent la République et appellent le duc d'Orléans. Le 9 août 1830, il devient Louis-Philippe Ier, « roi des Français ». La Charte révisée renforce les libertés et le rôle des Chambres et rétablit le drapeau tricolore, mais le suffrage reste censitaire : c'est la monarchie de Juillet.",
   },
@@ -615,10 +646,10 @@ const STATIONS = [
       doc(3, "Texte", "Guizot refuse la réforme", cite("« Enrichissez-vous par le travail et par l'épargne, et vous deviendrez électeurs. »"),
         "Formule attribuée à François Guizot, principal ministre de Louis-Philippe de 1840 à 1848, en réponse aux partisans d'un élargissement du droit de vote."),
     questions: [
-      ["Comment évolue le nombre d'électeurs entre 1830 et 1846 ?", "Il est multiplié par 2,5 environ (de 94 000 à 241 000), surtout grâce à la baisse du cens en 1831."],
-      ["Quelle part des hommes adultes vote en 1846 ?", "Environ 1 sur 40 : le droit de vote reste réservé aux plus riches, les notables."],
-      ["Que signifie l'opposition « pays légal » / « pays réel » ?", "Le pays légal, quelque 240 000 électeurs, décide pour le pays réel, 35 millions de Français exclus du vote."],
-      ["Quelle est la position de Guizot ?", "Il refuse d'abaisser le cens : seuls ceux qui ont réussi à s'enrichir méritent de voter."],
+      ["Comment évolue le nombre d'électeurs entre 1830 et 1846 ?", "Il est multiplié par 2,5 environ (de 94 000 à 241 000), surtout grâce à la baisse du cens en 1831.", [1]],
+      ["Quelle part des hommes adultes vote en 1846 ?", "Environ 1 sur 40 : le droit de vote reste réservé aux plus riches, les notables.", [2]],
+      ["Que signifie l'opposition « pays légal » / « pays réel » ?", "Le pays légal, quelque 240 000 électeurs, décide pour le pays réel, 35 millions de Français exclus du vote.", [1, 2]],
+      ["Quelle est la position de Guizot ?", "Il refuse d'abaisser le cens : seuls ceux qui ont réussi à s'enrichir méritent de voter.", [3]],
     ],
     retenir: "La monarchie de Juillet repose sur le suffrage censitaire. Même après la loi de 1831 qui abaisse le cens à 200 francs, seuls 166 000 puis environ 240 000 hommes votent. Ce « pays légal » de notables gouverne un « pays réel » de 35 millions d'habitants. Guizot, au pouvoir de 1840 à 1848, refuse toute réforme électorale.",
   },
@@ -643,10 +674,10 @@ const STATIONS = [
         cite("« Les barbares qui menacent la société ne sont point au Caucase ni dans les steppes de la Tartarie ; ils sont dans les faubourgs de nos villes manufacturières. »"),
         "Saint-Marc Girardin, <i>Journal des débats</i>, journal libéral proche du pouvoir, 8 décembre 1831."),
     questions: [
-      ["Qui sont les hommes qui sortent de leurs tombes chez Daumier ?", "Des combattants morts en juillet 1830 : la tombe porte « Morts pour la liberté, 27, 28, 29 juillet 1830 »."],
-      ["Que dénonce la légende de la caricature ?", "La trahison des idéaux de 1830 : le régime qu'ils ont porté au pouvoir réprime le peuple et supprime les libertés."],
-      ["Que réclament les canuts ?", "De pouvoir vivre de leur travail : un tarif minimum pour la façon de la soie."],
-      ["Comment la bourgeoisie au pouvoir voit-elle les ouvriers ?", "Comme des « barbares » dangereux : la peur sociale domine."],
+      ["Qui sont les hommes qui sortent de leurs tombes chez Daumier ?", "Des combattants morts en juillet 1830 : la tombe porte « Morts pour la liberté, 27, 28, 29 juillet 1830 ».", [1]],
+      ["Que dénonce la légende de la caricature ?", "La trahison des idéaux de 1830 : le régime qu'ils ont porté au pouvoir réprime le peuple et supprime les libertés.", [1, 2]],
+      ["Que réclament les canuts ?", "De pouvoir vivre de leur travail : un tarif minimum pour la façon de la soie.", [3]],
+      ["Comment la bourgeoisie au pouvoir voit-elle les ouvriers ?", "Comme des « barbares » dangereux : la peur sociale domine.", [3]],
     ],
     retenir: "Très vite, le régime déçoit. Les ouvriers, frappés par la misère, se révoltent (canuts de Lyon, 1831 et 1834) et sont durement réprimés. Après l'attentat de Fieschi, les lois de septembre 1835 rétablissent la censure. Le « roi-citoyen » devient un « roi-bourgeois » ; les républicains s'emparent de la question sociale.",
   },
@@ -676,11 +707,11 @@ const STATIONS = [
       doc(5, "Lithographie", "Une révolution qui gagne l'Europe", image("sorrieu-1848.jpg", "Frédéric Sorrieu, La République universelle démocratique et sociale. Le Pacte"),
         "Frédéric Sorrieu, <i>La République universelle démocratique et sociale. Le Pacte</i>, 1848, musée Carnavalet. Les peuples d'Europe défilent devant la statue de la Liberté.", true),
     questions: [
-      ["Pourquoi Tocqueville parle-t-il d'un « volcan » ?", "La colère des ouvriers grandit sans faire de bruit : leurs revendications deviennent sociales et le gouvernement ne voit pas le danger."],
-      ["Quel événement déclenche la révolution ?", "L'interdiction du banquet du 22 février 1848, organisé pour réclamer la réforme électorale."],
-      ["Comparez février 1848 et juillet 1830.", "Points communs : trois journées de barricades à Paris, un roi qui abdique et s'exile. Différences : la République est proclamée, le suffrage devient universel masculin et la question sociale passe au premier plan."],
-      ["Pourquoi Lamartine refuse-t-il le drapeau rouge ?", "Il veut une République d'ordre, rassembleuse : le tricolore rattache 1848 à la nation et à 1789, le drapeau rouge évoque la Terreur et la révolution sociale."],
-      ["Que montre Sorrieu ?", "Les peuples d'Europe unis autour de la Liberté : la révolution française de 1848 ouvre le « printemps des peuples »."],
+      ["Pourquoi Tocqueville parle-t-il d'un « volcan » ?", "La colère des ouvriers grandit sans faire de bruit : leurs revendications deviennent sociales et le gouvernement ne voit pas le danger.", [1]],
+      ["Quel événement déclenche la révolution ?", "L'interdiction du banquet du 22 février 1848, organisé pour réclamer la réforme électorale.", [2]],
+      ["Comparez février 1848 et juillet 1830.", "Points communs : trois journées de barricades à Paris, un roi qui abdique et s'exile. Différences : la République est proclamée, le suffrage devient universel masculin et la question sociale passe au premier plan.", [2]],
+      ["Pourquoi Lamartine refuse-t-il le drapeau rouge ?", "Il veut une République d'ordre, rassembleuse : le tricolore rattache 1848 à la nation et à 1789, le drapeau rouge évoque la Terreur et la révolution sociale.", [3]],
+      ["Que montre Sorrieu ?", "Les peuples d'Europe unis autour de la Liberté : la révolution française de 1848 ouvre le « printemps des peuples ».", [5]],
     ],
     retenir: "En 1846-1847, une crise économique aggrave la misère et l'opposition organise une campagne des banquets pour la réforme électorale. L'interdiction d'un banquet déclenche la révolution : du 22 au 24 février 1848, Louis-Philippe est renversé et la IIe République proclamée. Elle instaure le suffrage universel masculin (5 mars) et abolit l'esclavage (27 avril). La révolution gagne l'Europe : c'est le printemps des peuples.",
   },
@@ -702,7 +733,7 @@ const STATIONS = [
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="voir" id="b-copier">Copier la trace écrite</button><span class="source" id="copie-ok" aria-live="polite"></span></div>`, "", true),
     questions: [
       ["Pourquoi la révolution de 1830 débouche-t-elle sur une nouvelle révolution en 1848 ?",
-        "1830 est une révolution « confisquée » : faite par le peuple de Paris, elle profite à la bourgeoisie libérale. La monarchie de Juillet garantit davantage de libertés, mais garde un suffrage censitaire très étroit, refuse toute réforme et réprime les ouvriers. En 1848, sur fond de crise, le peuple reprend les barricades et impose la République et le suffrage universel masculin."],
+        "1830 est une révolution « confisquée » : faite par le peuple de Paris, elle profite à la bourgeoisie libérale. La monarchie de Juillet garantit davantage de libertés, mais garde un suffrage censitaire très étroit, refuse toute réforme et réprime les ouvriers. En 1848, sur fond de crise, le peuple reprend les barricades et impose la République et le suffrage universel masculin.", [1, 2, 3]],
     ],
     retenir: "Entre 1830 et 1848, la France passe d'une monarchie constitutionnelle à une autre, puis à la République. Deux révolutions parisiennes, menées au nom de la liberté et de la souveraineté nationale héritées de 1789, renversent deux rois. La seconde ouvre la voie au suffrage universel masculin et au printemps des peuples en Europe.",
   },
@@ -713,11 +744,11 @@ const STATIONS = [
    ===================================================================== */
 const $ = (s) => document.querySelector(s);
 const scene = $("#scene"), toile = $("#toile"), spot = $("#spot"), salle = $("#salle"), salleIn = $("#salle-in");
-const etat = { i: null, corriges: false, vus: new Set() };
+const etat = { i: null, corriges: false, sansToile: false, vus: new Set() };
 
 const stocke = {
   lire() { try { return JSON.parse(localStorage.getItem("liberte1830") || "{}"); } catch (e) { return {}; } },
-  ecrire() { try { localStorage.setItem("liberte1830", JSON.stringify({ corriges: etat.corriges, vus: [...etat.vus] })); } catch (e) {} },
+  ecrire() { try { localStorage.setItem("liberte1830", JSON.stringify({ corriges: etat.corriges, sansToile: etat.sansToile, vus: [...etat.vus] })); } catch (e) {} },
 };
 
 // Repères sur la toile
@@ -755,7 +786,7 @@ function cadrer(instant) {
   toile.style.width = W0 + "px"; toile.style.height = H0 + "px";
   let aw = r.width, ah = r.height;
   const st = etat.i === null ? null : STATIONS[etat.i];
-  if (st) { if (estTelephone()) ah = r.height * .40; else aw = r.width - salle.offsetWidth; }
+  if (st) { if (estTelephone()) ah = r.height * .40; else aw = Math.max(240, r.width - salle.offsetWidth); }
   const z = st ? st.zone : { x: 0, y: 0, w: 1, h: 1 };
   const marge = st ? (z.w === 1 ? .88 : .86) : 1;
   let s = st ? Math.min(aw * marge / (z.w * W0), ah * marge / (z.h * H0)) : 1;
@@ -770,17 +801,21 @@ function cadrer(instant) {
   $("#compo").classList.toggle("on", !!(st && st.compo));
 }
 
-const qr = (q, r, classe) => `<div class="qr ${classe || ""}"><div class="q"><span>${q}</span><button class="voir" data-voir>Réponse</button></div><div class="rep">${r}</div></div>`;
+// Espaces insécables de la typographie française (évite un « ? » seul en début de ligne)
+const nb = (t) => t.replace(/ ([?!:;»])/g, "\u00a0$1").replace(/« /g, "«\u00a0");
+const qr = (q, r, refs) => `<div class="qr"><div class="q"><span class="qt">${nb(q)}${refs && refs.length ? `<span class="refs">${refs.map(n => `<button class="ref" data-ref="${n}" title="Montrer le document ${n}">Doc. ${n}</button>`).join("")}</span>` : ""}</span><button class="voir" data-voir>Réponse</button></div><div class="rep">${r}</div></div>`;
 
 function rendre(i) {
   const s = STATIONS[i];
   const prev = i > 0 ? STATIONS[i - 1] : null, next = i < STATIONS.length - 1 ? STATIONS[i + 1] : null;
   salleIn.innerHTML = `
-    <div class="s-tete"><span class="eyebrow">Étape ${i} / ${STATIONS.length - 1} · ${s.date}</span><h2>${s.titre}</h2><p class="cle">${s.cle}</p></div>
-    <section><h3 class="bloc-t">Regarde le détail</h3><div class="regard qr" style="counter-increment:none"><div class="q"><p class="rq">${s.regard[0]}</p><button class="voir" data-voir>Réponse</button></div><div class="rep">${s.regard[1]}</div></div></section>
-    <section><h3 class="bloc-t">Corpus documentaire</h3><div class="corpus">${s.docs()}</div></section>
-    <section><h3 class="bloc-t">Questions</h3><div class="qr-liste">${s.questions.map(([q, r]) => qr(q, r)).join("")}</div></section>
-    <section class="retenir qr"><div class="q"><span>À retenir</span><button class="voir" data-voir>Afficher la trace écrite</button></div><div class="rep">${s.retenir}</div></section>
+    <div class="s-tete"><span class="eyebrow">Étape ${i} / ${STATIONS.length - 1} · ${s.date}</span><h2>${nb(s.titre)}</h2><p class="cle">${nb(s.cle)}</p></div>
+    <section class="c-regard"><h3 class="bloc-t">Regarde le détail</h3><div class="regard qr">${s.zone.w < 1 ? `<div class="vignette">${det(s.zone.x, s.zone.y, s.zone.w, s.zone.h, "", "")}</div>` : ""}<div class="regard-txt"><div class="q"><p class="rq">${nb(s.regard[0])}</p><button class="voir" data-voir>Réponse</button></div><div class="rep">${s.regard[1]}</div></div></div></section>
+    <section class="c-corpus"><h3 class="bloc-t">Corpus documentaire</h3><div class="corpus">${s.docs()}</div></section>
+    <aside class="col-q">
+      <section><h3 class="bloc-t">Questions</h3><div class="qr-liste">${s.questions.map(([q, r, refs]) => qr(q, r, refs)).join("")}</div></section>
+      <section class="retenir qr"><div class="q"><span>À retenir</span><button class="voir" data-voir>Afficher la trace écrite</button></div><div class="rep">${s.retenir}</div></section>
+    </aside>
     <nav class="s-nav">
       ${prev ? `<button data-aller="${i - 1}"><small>← Étape ${i - 1}</small>${prev.court}</button>` : `<button data-aller="-1"><small>←</small>Le tableau</button>`}
       ${next ? `<button data-aller="${i + 1}"><small>Étape ${i + 1} →</small>${next.court}</button>` : `<button data-aller="-1"><small>→</small>Revenir au tableau</button>`}
@@ -804,7 +839,7 @@ function ouvrir(i) {
   etat.i = i; etat.vus.add(i); stocke.ecrire();
   rendre(i);
   document.body.classList.add("station-on");
-  $("#b-retour").hidden = false;
+  $("#b-retour").hidden = false; $("#b-toile").hidden = false;
   majRail();
   requestAnimationFrame(() => cadrer());
   try { history.replaceState(null, "", "#e" + i); } catch (e) {}
@@ -812,7 +847,7 @@ function ouvrir(i) {
 function fermer() {
   etat.i = null;
   document.body.classList.remove("station-on");
-  $("#b-retour").hidden = true;
+  $("#b-retour").hidden = true; $("#b-toile").hidden = true;
   majRail(); cadrer();
   try { history.replaceState(null, "", "#tableau"); } catch (e) {}
 }
@@ -826,6 +861,12 @@ function majRail() {
   const actif = rail.querySelector('[aria-current="true"]');
   if (actif) actif.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
 }
+function sansToile(v) {
+  etat.sansToile = v; stocke.ecrire();
+  document.body.classList.toggle("sans-toile", v);
+  $("#b-toile").setAttribute("aria-pressed", v ? "true" : "false");
+  $("#b-toile").textContent = v ? "Afficher le tableau" : "Masquer le tableau";
+}
 function corriges(v) {
   etat.corriges = v; stocke.ecrire();
   document.body.classList.toggle("corriges", v);
@@ -836,6 +877,12 @@ function corriges(v) {
 salleIn.addEventListener("click", (e) => {
   const v = e.target.closest("[data-voir]");
   if (v) { const q = v.closest(".qr"); q.classList.toggle("vu"); v.textContent = q.classList.contains("vu") ? "Masquer" : (q.classList.contains("retenir") ? "Afficher la trace écrite" : "Réponse"); return; }
+  const ref = e.target.closest("[data-ref]");
+  if (ref) {
+    const d = salleIn.querySelector(`.doc[data-doc="${ref.dataset.ref}"]`);
+    if (d) { d.scrollIntoView({ behavior: "smooth", block: "start" }); d.classList.add("cible"); setTimeout(() => d.classList.remove("cible"), 1800); }
+    return;
+  }
   const a = e.target.closest("[data-aller]");
   if (a) { const n = +a.dataset.aller; n < 0 ? fermer() : ouvrir(n); return; }
   const img = e.target.closest("[data-loupe]");
@@ -846,6 +893,7 @@ salleIn.addEventListener("click", (e) => {
 });
 $("#b-retour").addEventListener("click", fermer);
 $("#b-corr").addEventListener("click", () => corriges(!etat.corriges));
+$("#b-toile").addEventListener("click", () => sansToile(!etat.sansToile));
 $("#b-plein").addEventListener("click", () => {
   const d = document;
   try {
@@ -860,6 +908,7 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowRight") ouvrir(etat.i === null ? 0 : etat.i + 1);
   else if (e.key === "ArrowLeft") { if (etat.i === null || etat.i === 0) fermer(); else ouvrir(etat.i - 1); }
   else if (e.key.toLowerCase() === "c") corriges(!etat.corriges);
+  else if (e.key.toLowerCase() === "t" && etat.i !== null) sansToile(!etat.sansToile);
   else if (e.key.toLowerCase() === "f") $("#b-plein").click();
 });
 let tRes; window.addEventListener("resize", () => { clearTimeout(tRes); tRes = setTimeout(() => cadrer(true), 80); });
@@ -892,7 +941,7 @@ document.documentElement.style.setProperty("--toile-url", "url(img/liberte.jpg)"
 (function demarrer() {
   const s = stocke.lire();
   (s.vus || []).forEach(v => etat.vus.add(v));
-  corriges(!!s.corriges);
+  corriges(!!s.corriges); sansToile(!!s.sansToile);
   const m = location.hash.match(/^#e(\d+)$/);
   cadrer(true);
   if (m) { const i = +m[1]; ouvrir(i); requestAnimationFrame(() => cadrer(true)); }
