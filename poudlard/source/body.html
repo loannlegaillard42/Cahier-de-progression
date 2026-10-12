@@ -1,0 +1,70 @@
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-sac" viewBox="0 0 24 24"><path d="M5 8h14l-1.2 12H6.2Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M9 12h6"/></symbol>
+  <symbol id="i-grimoire" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3Z"/><path d="M5 17a3 3 0 0 1 3-3h11"/><path d="m12 6.5.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 8.6l2-.3Z"/></symbol>
+  <symbol id="i-coffre" viewBox="0 0 24 24"><path d="M3 10h18v10H3Z"/><path d="M3 10a9 5 0 0 1 18 0"/><path d="M10 13h4v3h-4Z"/></symbol>
+  <symbol id="i-roue" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-cible" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8Z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 4h4v16H7ZM14 4h4v16h-4Z"/></symbol>
+  <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v5h5"/></symbol>
+  <symbol id="i-oeil" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-copie" viewBox="0 0 24 24"><path d="M8 8h12v12H8Z"/><path d="M16 8V4H4v12h4"/></symbol>
+</svg>
+
+<div id="app">
+  <canvas id="scene" aria-label="Carte 3D du domaine de Poudlard"></canvas>
+  <div id="carte2d" hidden></div>
+
+  <header class="hud hud-haut">
+    <div class="titre-jeu verre">
+      <h1>Les Reliques des Fondateurs</h1>
+      <p id="hud-chapitre">Chapitre 1 · Les Serres</p>
+      <div class="chapitre-dots" id="hud-dots" aria-hidden="true"></div>
+    </div>
+    <div class="reliques-hud verre" id="hud-reliques" aria-label="Reliques trouvées"></div>
+    <div class="droite-haut">
+      <div class="annee-hud verre">
+        <div class="l1"><b id="hud-annee">1re année</b><small id="hud-xp">0 / 150 XP</small></div>
+        <div class="barre"><i id="hud-barre"></i></div>
+        <span class="sync" id="hud-sync"><i></i><span>Sauvegarde sur cet appareil</span></span>
+      </div>
+      <button class="btn-rond" id="btn-aide" aria-label="Comment jouer"><span style="font-family:var(--f-titre);font-size:1.5rem;line-height:1">?</span></button>
+      <button class="btn-rond" id="btn-reglages" aria-label="Réglages du professeur"><svg class="ico"><use href="#i-roue"/></svg></button>
+    </div>
+  </header>
+
+  <aside class="hud hud-heros" id="hud-heros" aria-label="L'équipe"></aside>
+
+  <aside class="hud hud-droite">
+    <section class="sabliers verre" aria-label="Points des maisons">
+      <h2>Sabliers des maisons</h2>
+      <div class="sabliers-grid" id="hud-sabliers"></div>
+    </section>
+    <div class="actions-droite">
+      <button class="btn-carre verre" id="btn-sac"><svg class="ico"><use href="#i-sac"/></svg>Le sac<span class="pastille" id="pastille-sac" hidden></span></button>
+      <button class="btn-carre verre" id="btn-grimoire"><svg class="ico"><use href="#i-grimoire"/></svg>Les sorts<span class="pastille" id="pastille-sorts" hidden></span></button>
+      <button class="btn-carre verre" id="btn-defis" style="grid-column: span 2"><svg class="ico"><use href="#i-coffre"/></svg>Défis maison<span class="pastille" id="pastille-defis" hidden></span></button>
+    </div>
+  </aside>
+
+  <div class="hud hud-bas">
+    <button class="btn-rond" id="btn-centrer" aria-label="Recentrer la carte sur l'équipe"><svg class="ico"><use href="#i-cible"/></svg></button>
+    <button class="btn-etape" id="btn-etape"><span class="num" id="be-num">1</span><span><span class="t1" id="be-t1">Prochaine étape</span><span class="t2" id="be-t2">Le Parc du château</span></span></button>
+  </div>
+
+  <div id="infobulle" hidden></div>
+  <div class="toast-zone" id="toasts" aria-live="polite"></div>
+  <div id="fenetres"></div>
+  <div class="etincelles" id="etincelles"></div>
+
+  <div id="intro">
+    <div class="intro-carte parchemin">
+      <p class="surtitre">Domaine de Poudlard · Classe de 6e</p>
+      <h1>Les Reliques des Fondateurs</h1>
+      <p>Quatre reliques cachées. Quatre héros. Une Ombre qui rôde.</p>
+      <button class="serment" id="btn-serment">« Je jure solennellement que mes intentions sont mauvaises »</button>
+      <p id="intro-etat"></p>
+    </div>
+  </div>
+</div>

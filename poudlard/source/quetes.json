@@ -1,0 +1,1043 @@
+{
+ "1": {
+  "num": 1,
+  "titre": "Le Grand Dégnomage",
+  "lieu": "Le Parc du château",
+  "heros": "capucine",
+  "recit": "Un matin de novembre, le brouillard traîne encore sur le parc du château. Un hibou couleur chocolat au lait traverse le ciel en zigzaguant… et s'écrase tête la première dans le potager de Hagrid, entre deux citrouilles grosses comme des armoires. C'est Moka, le hibou de l'équipe. Il a des feuilles mortes plein les plumes, une lettre dans le bec et l'air très, très vexé.\n\nCapucine Boisjoli le ramasse avec douceur. Léo Flamberge lui gratte la tête. Iris Plumelune déchiffre l'enveloppe : « Aux quatre héros de Poudlard. URGENT. Très urgent. Encore plus urgent que ça. » Silas Vifargent, lui, recule d'un pas : « Il sent le compost. »\n\nCapucine lit à voix haute :\n« Chers héros,\nIl y a plus de mille ans, quatre grands sorciers ont fondé Poudlard : Godric Gryffondor, Rowena Serdaigle, Helga Poufsouffle et Salazar Serpentard. Avant de quitter l'école, chacun a caché dans le domaine une relique pour la protéger : une Coupe, une Épée, un Médaillon et un Diadème. Cette année, les reliques se réveillent… et quelqu'un d'autre les cherche. Vous devez les trouver les premiers. Je vous confie ce vieux parchemin. Il a l'air vide. Il ne l'est pas. Pour savoir par où commencer… »\n\nEt c'est tout. La suite a disparu ! Le bas de la lettre a été grignoté, arraché, déchiqueté en six morceaux. Dans les buissons, on entend de petits rires grinçants : les gnomes de jardin ! Hauts comme trois pommes, une tête en forme de pomme de terre et des pieds durs comme de la corne, ils agitent chacun un bout de parchemin en tirant la langue.\n\nSilas soupire : « Formidable. Des patates qui parlent. »\nCapucine retrousse ses manches : « Ma grand-mère en avait plein son jardin. Les gnomes adorent les devinettes : ils rendent ce qu'ils ont chipé à ceux qui trouvent la réponse. Ensuite, on les fait tournoyer et on les envoie par-dessus la haie. Ils ne se font aucun mal… et ils reviennent la semaine suivante, en boudant. »\nLéo sourit jusqu'aux oreilles : « Opération Grand Dégnomage ! »",
+  "message_ombre": "Quatre petits héros pour quatre vieux trésors ?\nHi hi hi ! J'en fais des loopings, j'en ricane, je m'en tords !\nCachez vos encriers, vos craies et vos chaussettes :\nL'Ombre trouvera tout avant vous… petites mauviettes !",
+  "epreuve": {
+   "type": "enigmes",
+   "titre": "Les six devinettes des gnomes",
+   "consigne": "Six gnomes de jardin ont chacun chipé un morceau de la lettre. Pour le récupérer, trouvez la réponse à leur devinette : UN SEUL MOT, écrit sur l'ardoise de votre maison. Attention, les gnomes adorent les charades : « mon premier » = la première syllabe, « mon second » = la deuxième, « mon tout » = le mot entier. Quand un nombre est indiqué entre parenthèses, c'est le nombre de lettres du mot.",
+   "deroulement": "Avant de commencer (2 min), chaque maison désigne un « gardien de l'ardoise » (celui qui écrit ; on change à chaque gnome pour que tout le monde écrive) et un « lanceur de gnome ».\n\nPour chaque gnome (environ 3 min par devinette) : le prof lit la devinette deux fois, puis les maisons réfléchissent 1 min 30 à voix basse. Dès qu'une maison pense avoir trouvé, elle pose son ardoise FACE CACHÉE sur la table et le prof note l'ordre d'arrivée. Au bout d'1 min 30 : « Ardoises en l'air ! ». Chaque maison qui a la bonne réponse gagne 1 point de maison. Parmi les maisons qui ont juste, celle qui a posé son ardoise EN PREMIER envoie son lanceur « dégnomer » : il fait tournoyer une boulette-gnome au-dessus de sa tête et la lance dans la corbeille-haie placée à 3 mètres. Si elle rentre : +1 point bonus.\n\nAprès le 6e gnome (5 min), le prof lit la fin reconstituée de la lettre : « … Pour savoir par où commencer, prenez votre BAGUETTE, laissez votre BALAI au placard (on y va à pied), éteignez le feu sous votre CHAUDRON et suivez Moka, votre HIBOU, jusqu'à la SERRE n°1 du professeur Chourave. Et regardez où vous mettez les pieds : le parc est plein de TROUS de gnomes ! Bonne chance. Albus Dumbledore. P.-S. : Pour réveiller le parchemin, posez votre baguette dessus et dites : « Je jure solennellement que mes intentions sont mauvaises. » Pour l'endormir : « Méfait accompli. » »\n\nToute la classe se lève, main sur la baguette (un crayon fait l'affaire), et prononce la formule d'une seule voix. La Carte du Maraudeur s'affiche en 3D… puis une tache d'encre y fait apparaître le premier message de l'Ombre.\n\nOnt brillé : les deux maisons qui totalisent le plus de points (bonnes réponses + gnomes lancés dans la haie).",
+   "duree": 30,
+   "questions": [
+    {
+     "q": "Gnome n°1, Radisdur : « Mon premier se porte au doigt. Mon second surveille en cachette : on dit qu'il fait le guet. Mon tout est en bois et lance des sorts. Qui suis-je ? »",
+     "choix": [],
+     "reponse": "BAGUETTE",
+     "explication": "Bague + guet = baguette. Radisdur rend le premier morceau de la lettre en ronchonnant."
+    },
+    {
+     "q": "Gnome n°2, Patatras : « Mon premier est une grande fête où l'on danse. Mon second est blanc et sort de la vache. Mon tout vole dans le ciel avec un sorcier dessus… mais chez les Moldus, il sert seulement à faire le ménage. Qui suis-je ? »",
+     "choix": [],
+     "reponse": "BALAI",
+     "explication": "Bal + lait = balai. Les Moldus, ce sont les gens sans pouvoirs magiques : eux ne font que balayer avec !"
+    },
+    {
+     "q": "Gnome n°3, Grosbulbe : « Mon premier est le contraire de froid. Mon second n'a aucun coin. Dans mon tout, Silas fait bouillir ses potions. Qui suis-je ? »",
+     "choix": [],
+     "reponse": "CHAUDRON",
+     "explication": "Chaud + rond = chaudron. Silas approuve : c'est le seul objet du parc qui ne sent pas la boue."
+    },
+    {
+     "q": "Gnome n°4, Tubercule : « Je dors le jour et je hulule la nuit. Chez les sorciers, je suis facteur. Moka, le messager de votre équipe, en est un. Quel oiseau suis-je ? (5 lettres) »",
+     "choix": [],
+     "reponse": "HIBOU",
+     "explication": "Moka est le hibou de l'équipe. Chez les sorciers, ce sont les hiboux et les chouettes qui portent le courrier."
+    },
+    {
+     "q": "Gnome n°5, Grignotin : « Au pluriel, les aigles en ont au bout des pattes. Au singulier, je suis une maison de verre où les jardiniers font pousser leurs plantes au chaud. Qui suis-je ? (5 lettres) »",
+     "choix": [],
+     "reponse": "SERRE",
+     "explication": "Les serres d'un aigle sont ses griffes ; une serre, c'est aussi une maison de verre pour les plantes. Voilà la prochaine destination !"
+    },
+    {
+     "q": "Gnome n°6, le Grand Chef Patate-Douce : « Plus on m'enlève de terre, plus je deviens grand. Mes cousins et moi, on en creuse partout dans le parc. Qui suis-je ? (4 lettres) »",
+     "choix": [],
+     "reponse": "TROU",
+     "explication": "Plus on retire de terre d'un trou, plus il grandit. Le Grand Chef rend le dernier morceau, avec la signature, puis s'envole par-dessus la haie en criant « Je reviendraaaai ! »."
+    }
+   ],
+   "paires": [],
+   "ordre": [],
+   "code": {
+    "message": "",
+    "cle": "",
+    "reponse": ""
+   },
+   "indice": "Pour les charades, découpez le mot en sons : « mon premier » donne la première syllabe, « mon second » la deuxième. Le nombre entre parenthèses, c'est le nombre de lettres du mot. Pour le dernier gnome : pensez à ce que les gnomes creusent partout dans le jardin.",
+   "reussite": "Réussite : 18 bonnes réponses ou plus sur 24 (6 devinettes × 4 maisons) : la lettre est entière et tous les gnomes filent par-dessus la haie. Partielle : 12 à 17 bonnes réponses : la lettre est reconstituée, mais un gnome a gardé un coin en souvenir (et mordillé le mollet de Léo). Échec : 11 bonnes réponses ou moins : Moka doit aller rechercher lui-même les morceaux ; l'aventure commence quand même, mais sans récompense."
+  },
+  "defi_maison": {
+   "titre": "Le poème du gnome poète",
+   "consigne": "Un gnome vexé a glissé ce poème dans la poche de Léo. Il cache un mot de passe très utile pour la prochaine mission : lis la PREMIÈRE LETTRE de chaque vers, de haut en bas. Tape ce mot dans le jeu au début de la prochaine séance.",
+   "contenu": "Le long des pots, dans l'ombre, une liane se faufile,\nUne plante qui t'enlace comme un câlin de crocodile.\nMais elle a peur d'un rien : d'un rayon, d'une étincelle…\nOse dire le bon mot, baguette pointée vers elle,\nSans demander son reste, elle lâchera tes chevilles !",
+   "mot_de_passe": "LUMOS"
+  },
+  "note_prof": "Préparez six boulettes de papier avec une tête de gnome dessinée dessus et une corbeille posée à 3 mètres (la « haie ») pour le lancer de gnome. Moment fort : faites lever toute la classe pour prononcer la formule de la Carte avant de révéler la carte 3D, lumière éteinte si possible."
+ },
+ "2": {
+  "num": 2,
+  "titre": "Le Filet du Diable",
+  "lieu": "La Serre n°1",
+  "heros": "capucine",
+  "recit": "Moka arrive en voletant, un peu de terre sur le bec, avec une lettre qui sent le terreau et la tisane de camomille.\n« Chers héros,\nBravo pour le dégnomage : les potirons de Hagrid vous remercient. Dans la Serre n°1, celle des débutants, se cache le premier indice d'Helga Poufsouffle : une feuille d'or. Je vous ouvre la porte, mais attention : cette nuit, quelqu'un a mis un bazar épouvantable dans mes pots. Ne touchez à rien sans gants, ne mordez rien, et surtout, SURTOUT, gardez votre calme.\nProfesseur Chourave »\n\nDans la serre, il fait chaud et humide comme dans une salle de bains après la douche de Hagrid. Des feuilles géantes, des fleurs qui bâillent, des cactus qui font des bulles. Capucine est aux anges. Silas essuie ses chaussures toutes les dix secondes. Iris prend des notes. Léo renifle une orchidée, qui lui éternue dessus.\n\nSoudain : BLAM ! La porte claque derrière eux. Dehors, un ricanement s'éloigne en sautillant. Les lampes s'éteignent une à une. Dans le noir, quelque chose de mou, de froid et d'un peu gluant s'enroule autour des chevilles de Léo… puis de Silas… puis d'Iris… C'est le Filet du Diable !\n« LÂCHE-MOI, ESPÈCE DE SALADE ! » hurle Léo en gigotant comme un ver de terre.\n« Mes chaussures neuves ! » gémit Silas.\nIris fouille sa mémoire à toute vitesse. Capucine, elle, ferme les yeux, prend une grande inspiration… et sort son petit carnet de Botanique, couvert de notes.\n\nÀ vous de jouer : chaque bonne réponse desserre les lianes. Chaque erreur… les fait serrer un peu plus fort !",
+  "message_ombre": "Sortis du Filet du Diable ? Zut, quelle déception !\nJ'avais soufflé les lampes en chantant ma plus belle chanson…\nRira bien qui rira le dernier, mes petits champignons :\nMes pots de fleurs volants vous attendent au plafond !",
+  "epreuve": {
+   "type": "qcm",
+   "titre": "Ficelés dans la Serre n°1",
+   "consigne": "Prisonniers du Filet du Diable ! Lisez bien chaque question : la réponse se cache souvent dans le carnet de Capucine. Chaque maison écrit sa réponse sur son ardoise. Chaque erreur fait serrer le Filet d'un anneau : à 11 anneaux, l'équipe est ficelée comme un rôti !",
+   "deroulement": "Avant la lecture, le prof dessine au coin du tableau le « Filet-o-mètre » : une liane enroulée autour des quatre héros, découpée en 11 anneaux vides numérotés de 1 à 11 (le 11e en rouge : « ficelés comme un rôti »).\n\nPour chaque question (6 au total, environ 4 min chacune) : le prof lit la question et les choix à voix haute, chaque maison discute 1 min en chuchotant (2 à 3 min pour la question 6, la plus rusée), puis « Ardoises en l'air ! ». Chaque maison qui a juste gagne 1 point de maison. Pour chaque maison qui se trompe, le prof colorie un anneau du Filet, avec un bruit de liane qui serre (au-delà de 11 erreurs, il continue à compter dans la marge).\n\nAprès chaque question, le prof demande à une maison qui a juste d'expliquer son raisonnement en une phrase : une explication claire rapporte 1 point bonus. Pour la question 6, la première maison qui vient expliquer au tableau pourquoi la clé est dans le bon pot gagne 2 points bonus.\n\nQuand la classe trouve « Lumos » (question 2), le prof rallume la lumière d'un coup : les lianes s'enfuient sous les pots ! À la fin, on compte les anneaux coloriés du Filet-o-mètre pour connaître le résultat de l'équipe.\n\nOnt brillé : les maisons qui totalisent le plus de points (bonnes réponses + explications).",
+   "duree": 30,
+   "questions": [
+    {
+     "q": "Des lianes molles et froides s'enroulent autour de vos chevilles ! Le carnet de Capucine dit : « Filet du Diable : plus on se débat, plus il serre. » Que doit faire l'équipe ?",
+     "choix": [
+      "Se débattre de toutes ses forces",
+      "Rester calme et ne plus bouger",
+      "Mordre les lianes",
+      "Appeler Moka pour qu'il tire"
+     ],
+     "reponse": "Rester calme et ne plus bouger",
+     "explication": "Le Filet du Diable serre ceux qui gigotent. Si l'on reste détendu et immobile, il relâche sa prise. Léo a eu du mal, mais il a fini par faire la statue."
+    },
+    {
+     "q": "Les lianes ont desserré, mais elles tiennent encore Silas par les pieds. Le carnet de Capucine dit : « Il aime l'ombre et l'humidité. Il déteste la lumière et la chaleur. » Quel sort Iris doit-elle lancer ? (Indice : en latin, lumen veut dire « lumière ».)",
+     "choix": [
+      "Wingardium Leviosa",
+      "Lumos",
+      "Alohomora",
+      "Expelliarmus"
+     ],
+     "reponse": "Lumos",
+     "explication": "Lumos allume le bout de la baguette comme une lampe de poche. Ébloui, le Filet du Diable se recroqueville et file se cacher sous les pots."
+    },
+    {
+     "q": "Libres ! Pour atteindre l'étagère du fond, il faut déplacer un géranium dentu : une jolie fleur rose… qui claque des dents comme une agrafeuse. Comment le déplacer sans y laisser un doigt ?",
+     "choix": [
+      "À mains nues, il a l'air gentil",
+      "Avec d'épais gants en peau de dragon",
+      "En lui tendant la main pour qu'il la renifle",
+      "En lui chatouillant les pétales"
+     ],
+     "reponse": "Avec d'épais gants en peau de dragon",
+     "explication": "Le géranium dentu mord tout ce qui passe à sa portée. Des gants bien épais, et on le tient par le pot, jamais par la tête !"
+    },
+    {
+     "q": "Sur l'étagère trône une plante qui ressemble à une grosse limace noire couverte de bosses luisantes : un Bubobulb. Son étiquette dit : « Pus de Bubobulb : contre l'acné. Ne jamais toucher pur ! » À quoi sert son pus ?",
+     "choix": [
+      "À faire repousser les cheveux",
+      "À soigner les boutons",
+      "À rendre invisible",
+      "À parfumer la Grande Salle"
+     ],
+     "reponse": "À soigner les boutons",
+     "explication": "L'acné, ce sont les boutons. Mais attention : pur, ce pus jaunâtre irrite la peau, d'où les gants. Silas, qui voulait en mettre sur son menton, a vite changé d'avis."
+    },
+    {
+     "q": "Dans un bocal d'eau salée flotte une touffe d'algues gluantes, grises et vertes : de la Branchiflore. Iris remarque que son nom ressemble à « branchies », l'organe qui permet aux poissons de respirer. Que se passe-t-il quand on en mâche ?",
+     "choix": [
+      "On devient invisible",
+      "On peut respirer sous l'eau",
+      "On peut parler aux plantes",
+      "On devient vert à pois roses"
+     ],
+     "reponse": "On peut respirer sous l'eau",
+     "explication": "Pendant environ une heure, des branchies poussent dans le cou et les mains deviennent palmées. Capucine en glisse une poignée dans sa poche : ça pourrait servir, un jour, au bord du lac…"
+    },
+    {
+     "q": "La porte est verrouillée ! La clé est cachée dans l'un des trois pots du fond. Pot A : « La clé est ici. » Pot B : « La clé n'est pas ici. » Pot C : « La clé n'est pas dans le pot A. » L'Ombre a trafiqué les étiquettes : UNE SEULE dit la vérité. Dans quel pot est la clé ?",
+     "choix": [
+      "Dans le pot A",
+      "Dans le pot B",
+      "Dans le pot C"
+     ],
+     "reponse": "Dans le pot B",
+     "explication": "Si la clé était dans le pot A, les étiquettes A et B diraient vrai : deux vérités, impossible. Si elle était dans le pot C, les étiquettes B et C diraient vrai : impossible aussi. Dans le pot B : A ment, B ment, seule C dit vrai. Et sous la clé… la première feuille d'or d'Helga !"
+    }
+   ],
+   "paires": [],
+   "ordre": [],
+   "code": {
+    "message": "",
+    "cle": "",
+    "reponse": ""
+   },
+   "indice": "Relisez la phrase du carnet de Capucine dans chaque question : la réponse y est presque toujours. Pour les pots : imaginez la clé dans le pot A, puis dans le B, puis dans le C, et comptez à chaque fois combien d'étiquettes disent vrai.",
+   "reussite": "Réussite : 0 à 5 anneaux sur le Filet-o-mètre (19 bonnes réponses ou plus sur 24) : l'équipe sort libre et trouve la feuille d'or. Partielle : 6 à 10 anneaux (14 à 18 bonnes réponses) : l'équipe s'en sort, mais ébouriffée et couverte de sève. Échec : 11 anneaux ou plus (13 bonnes réponses ou moins) : l'équipe est ficelée comme un rôti ; le professeur Chourave vient la délivrer en ronchonnant, et la feuille d'or est récupérée quand même."
+  },
+  "defi_maison": {
+   "titre": "L'étiquette à l'envers",
+   "consigne": "Sous la clé du pot B, Iris a trouvé une étiquette venue de la Serre n°3. Pour vous embrouiller, l'Ombre l'a écrite À L'ENVERS, de droite à gauche ! Lis-la en commençant par la dernière lettre : tu découvriras la règle d'or de la prochaine mission. Tape ce mot dans le jeu au début de la prochaine séance.",
+   "contenu": "Étiquette : « E C N E L I S »\n\nAstuce : recopie les lettres sur ton cahier en partant de la droite.",
+   "mot_de_passe": "SILENCE"
+  },
+  "note_prof": "Éteignez la lumière (ou fermez les volets) pendant la lecture du récit et rallumez d'un coup quand la classe trouve « Lumos » : effet garanti. La lumière du projecteur suffit pour jouer la question 1 dans la pénombre. Ceux qui ont fait le défi maison LUMOS ont la réponse de la question 2 : félicitez-les en public."
+ },
+ "3": {
+  "num": 3,
+  "titre": "Silence, ça rempote !",
+  "lieu": "La Serre n°3",
+  "heros": "capucine",
+  "recit": "Cette fois, Moka arrive avec des cache-oreilles roses à pompons sur la tête. Il a l'air parfaitement ridicule, et il le sait. Dans ses serres, une lettre qui sent le terreau :\n« Chers héros,\nLa feuille d'or de la Serre n°1 montre la Serre n°3. Mauvaise nouvelle : c'est la serre des Mandragores. Bonne nouvelle : elles sont encore toutes jeunes. Une Mandragore est une plante dont la racine ressemble à un bébé tout fripé, tout terreux et très grognon. Quand on la sort de terre, elle pousse un cri si perçant que celui qui l'entend s'endort aussitôt, pour plusieurs heures. On se réveille sans aucun mal… mais avec de la terre dans les narines et une drôle de migraine. La deuxième feuille d'or est coincée dans les racines de l'une d'elles. Il faut donc rempoter toutes mes Mandragores, une par une, avant l'hiver. Les cache-oreilles sont sur la table. Je compte sur vous.\nProfesseur Chourave\nP.-S. : Les cache-oreilles roses que porte Moka sont à moi. Il refuse de me les rendre. »\n\nDans la Serre n°3, des dizaines de pots sont alignés. Dans chacun, une petite touffe de feuilles violettes frémit doucement : les Mandragores font la sieste. Léo s'élance déjà, les mains en avant. Capucine l'attrape par la capuche : « Doucement ! Une seule erreur et on dort tous ici jusqu'à Noël. » Silas croise les bras : « Je refuse de tirer les cheveux d'un légume qui hurle. » Mais quand Iris lui rappelle qu'une Mandragore adulte sert à préparer l'une des potions les plus précieuses du monde, il remonte ses manches… du bout des doigts.\n\nSur la table, Iris trouve la fiche de rempotage du professeur Chourave… découpée en huit morceaux et toute mélangée. Au dos d'un morceau : une empreinte de pouce pleine d'encre. L'Ombre est passée par là !\nCapucine pose un doigt sur ses lèvres. À partir de maintenant : plus un mot. Les Mandragores dorment…",
+  "message_ombre": "Vous aviez vos cache-oreilles ? Quelle injustice, quel ennui !\nMoi qui flottais au plafond pour vous voir ronfler jusqu'à minuit…\nPour me venger, j'ai versé de l'encre dans tous vos arrosoirs :\nVos Mandragores auront le nez bleu jusqu'à ce soir !",
+  "epreuve": {
+   "type": "ordre",
+   "titre": "Le rempotage des Mandragores",
+   "consigne": "Les Mandragores dorment. Remettez dans le bon ordre les 8 étapes du rempotage… EN SILENCE ! Interdiction de parler : on communique par gestes et par écrit. Si la Mandragore vous entend, elle crie !",
+   "deroulement": "Phase 1 — Le grand silence (10 min) : les 8 étapes s'affichent dans le désordre. Chaque maison recopie sur son ardoise l'ordre qu'elle propose (en reprenant les numéros ou les lettres affichés). Règle des cache-oreilles : interdiction de parler ! On communique par gestes, par mimes et en écrivant sur un brouillon. Si une maison parle à voix haute, la Mandragore (le prof) pousse un petit cri suraigu et la maison perd 1 point.\n\nPhase 2 — La correction (5 min) : « Ardoises en l'air ! » Le prof dévoile le bon ordre étape par étape. Chaque étape à la bonne place rapporte 1 point à la maison (8 points maximum par maison).\n\nPhase 3 — Le rempotage chronométré (12 min) : chaque maison envoie un « jardinier » devant la classe (1 à 2 min par jardinier). Il mime les 8 gestes dans le bon ordre, en silence et le plus vite possible, avec une Mandragore imaginaire. Le prof chronomètre. Un geste oublié ou inversé ? La Mandragore crie : le jardinier s'évanouit théâtralement sur une chaise, se relève et repart avec 10 secondes de pénalité. Meilleur temps : 3 points ; deuxième : 2 points ; troisième : 1 point.\n\nBonus (facultatif, à l'oral, 1 min) : le prof demande « À quoi sert une Mandragore adulte ? A) À rendre les gens invisibles. B) À préparer une potion qui guérit les personnes pétrifiées, c'est-à-dire changées en statue. C) À faire repousser les cheveux. » Réponse : B. 1 point bonus à la première maison qui lève la main avec la bonne lettre.\n\nOnt brillé : les deux maisons qui totalisent le plus de points (ordre + mime + bonus).",
+   "duree": 30,
+   "questions": [],
+   "paires": [],
+   "ordre": [
+    "Enfiler ses cache-oreilles et bien les serrer sur les deux oreilles",
+    "Lever le pouce pour vérifier que toute l'équipe est protégée",
+    "Empoigner fermement la touffe de feuilles de la Mandragore",
+    "Tirer d'un coup sec pour la sortir de son petit pot",
+    "La déposer aussitôt dans un grand pot rempli de terreau",
+    "L'enfouir sous le terreau en ne laissant dépasser que ses feuilles",
+    "Tasser doucement la terre et arroser d'eau tiède",
+    "Attendre le signal de Capucine, puis retirer ses cache-oreilles"
+   ],
+   "code": {
+    "message": "",
+    "cle": "",
+    "reponse": ""
+   },
+   "indice": "Demandez-vous : qu'est-ce qui doit être fait AVANT que la Mandragore sorte de terre ? Et qu'est-ce qui doit attendre qu'elle soit bien enterrée et calmée ?",
+   "reussite": "Réussite : 26 étapes bien placées ou plus sur 32 (8 étapes × 4 maisons) : toutes les Mandragores sont rempotées et la feuille d'or est trouvée dans les racines de la dernière. Partielle : 18 à 25 étapes bien placées : quelques Mandragores ont crié, deux héros ont fait une petite sieste, mais la feuille d'or est là. Échec : 17 étapes bien placées ou moins : tout le monde s'endort dans la serre et se réveille deux heures plus tard… avec la feuille d'or posée sur le nez de Silas, qui est furieux."
+  },
+  "defi_maison": {
+   "titre": "Les chiffres de la feuille d'or",
+   "consigne": "Au dos de la deuxième feuille d'or, Capucine a découvert une suite de nombres gravés. Remplace chaque nombre par la lettre qui a ce rang dans l'alphabet (A=1, B=2, C=3…). Tu obtiendras le nom de l'animal qui garde le Jardin d'Helga. Tape-le dans le jeu au début de la prochaine séance.",
+   "contenu": "2 – 12 – 1 – 9 – 18 – 5 – 1 – 21\n\nIndice : cet animal noir et blanc creuse des terriers… et c'est l'emblème de la maison de Capucine.",
+   "mot_de_passe": "BLAIREAU"
+  },
+  "note_prof": "La phase 1 se joue en silence total : vous êtes la Mandragore et poussez un petit cri suraigu si une maison parle à voix haute (les élèves adorent). Prévoyez un chronomètre pour le relais mimé et une chaise pour les évanouissements théâtraux."
+ },
+ "4": {
+  "num": 4,
+  "titre": "Le Jardin secret d'Helga",
+  "lieu": "Le Jardin d'Helga",
+  "heros": "capucine",
+  "recit": "Pas de lettre aujourd'hui. Moka se pose sur l'épaule de Capucine et dépose dans sa main les deux feuilles d'or trouvées dans les serres : il les gardait au chaud dans son nid et les a astiquées toute la nuit. Capucine les place côte à côte… Elles s'emboîtent parfaitement, comme deux pièces de puzzle ! Sur la Carte du Maraudeur, un petit chemin apparaît, que personne n'avait jamais vu : il part de la Serre n°3, traverse un mur de lierre… et mène au Jardin d'Helga.\n\nLes quatre héros s'approchent. Le lierre est si épais que Léo n'arrive même pas à y passer le bras. Iris cherche un sort, Silas cherche une excuse pour ne pas se salir. Capucine, elle, pose simplement la main sur les feuilles et murmure : « Bonjour. On vient de la part d'Helga. » Le lierre frissonne… et s'écarte comme un rideau de théâtre.\n\nDerrière, un jardin secret, endormi depuis mille ans. Des citrouilles de toutes les couleurs, des rosiers qui fredonnent une berceuse, des abeilles grosses comme des bouchons qui bourdonnent en rythme. Au centre, un blaireau taillé dans le buis, haut comme Hagrid, monte la garde devant un coffre entièrement fait de racines entrelacées. Sur le couvercle, quatre gros nœuds de racines. Sur chaque nœud, une ligne de lettres incompréhensibles.\n\nLe blaireau de buis ouvre un œil (un œil en feuilles, mais un œil quand même) et parle d'une voix de vieux grand-père enrhumé :\n« Seule une équipe soudée peut ouvrir le coffre d'Helga. Chaque maison dénouera un nœud. Mais d'abord… répondez à ma devinette. »\n\nAu loin, derrière la haie, quelqu'un fredonne faux et se rapproche en ricanant. L'Ombre ! Vite, il faut ouvrir le coffre avant qu'elle n'arrive !",
+  "message_ombre": "Trop tard ?! TROP TARD ?! Je trépigne, je fulmine, je bous !\nJ'en renverse mes encriers, j'en fais des nœuds à mes genoux !\nGardez votre Coupe, petits voleurs de trésors…\nL'Épée sera pour moi, foi de courant d'air qui ricane encore !",
+  "epreuve": {
+   "type": "code",
+   "titre": "Le coffre de racines d'Helga",
+   "consigne": "Ouvrez le coffre de racines d'Helga ! 1) Résolvez la devinette du blaireau de buis pour trouver la clé du code. 2) Chaque maison décode sa ligne. 3) Réunissez les quatre lignes… et faites exactement ce qu'elles disent !",
+   "deroulement": "Maillon 1 — La devinette du blaireau (5 min) : le prof lit : « Nous étions quatre à bâtir ce château. Ne compte pas Helga : compte seulement ses amis Fondateurs. Ce nombre te dira de combien de rangs chaque lettre doit reculer dans l'alphabet. » Chaque maison écrit sa réponse sur l'ardoise (réponse : 3) ; 1 point par maison juste. Le prof écrit alors l'alphabet en grand au tableau et explique la clé avec un exemple (D se lit A, H se lit E).\n\nMaillon 2 — Les quatre nœuds (20 min) : chaque maison reçoit UNE ligne du message chiffré : ligne 1 pour Gryffondor, ligne 2 pour Poufsouffle, ligne 3 pour Serdaigle, ligne 4 pour Serpentard. Elle la décode sur son ardoise en reculant chaque lettre de 3 rangs. Règle d'Helga, la loyauté : une maison qui a fini peut envoyer deux « messagers » aider une autre maison (ils expliquent, mais n'écrivent pas à sa place). Chaque maison qui décode sa ligne sans erreur gagne 2 points ; chaque maison qui en aide une autre gagne 2 points de loyauté. L'indice peut être donné à la demande, mais pour une Réussite, la classe ne doit pas en utiliser plus d'un.\n\nMaillon 3 — Le cri de loyauté (5 min) : chaque maison lit sa ligne à voix haute, dans l'ordre 1-2-3-4. La classe découvre ce qu'il faut faire : le prof compte « 3, 2, 1… » et TOUTE la classe crie d'une seule voix « LOYAUTÉ ! ». Si le cri n'est pas parfaitement ensemble, le blaireau bâille et on recommence (3 essais maximum : au troisième, le blaireau cède toujours). Le coffre de racines s'ouvre : au fond, sur un lit de mousse, brille une petite coupe d'or à deux anses, gravée d'un blaireau. La Coupe de Poufsouffle apparaît sur la Carte du Maraudeur : checkpoint atteint !\n\nFinal (3 min) : derrière la haie, un hurlement de rage : l'Ombre arrive trop tard ! Le prof dévoile son message furieux.\n\nOnt brillé : les maisons qui ont décodé leur ligne sans erreur ET celles qui ont aidé les autres (ici, la loyauté rapporte autant que la vitesse).",
+   "duree": 35,
+   "questions": [],
+   "paires": [],
+   "ordre": [],
+   "code": {
+    "message": "VHXOV OHV DPLV ILGHOHV / RXYUHQW FH FRIIUH / FULHC WRXV HQVHPEOH / OH PRW ORBDXWH",
+    "cle": "Décalage de César de 3 rangs (3 = le nombre d'amis Fondateurs d'Helga, réponse de la devinette du blaireau). Pour chiffrer, chaque lettre a été avancée de 3 rangs dans l'alphabet : A→D, B→E, C→F… W→Z, X→A, Y→B, Z→C. Pour décoder, on recule chaque lettre de 3 rangs : D→A, E→B, F→C, G→D, H→E, I→F… et au début de l'alphabet on repart de la fin : A→X, B→Y, C→Z. Les espaces et les barres « / » (qui séparent les quatre lignes) ne changent pas.",
+    "reponse": "SEULS LES AMIS FIDELES / OUVRENT CE COFFRE / CRIEZ TOUS ENSEMBLE / LE MOT LOYAUTE"
+   },
+   "indice": "Écrivez l'alphabet en entier sur l'ardoise et reculez de 3 cases : D devient A, E devient B, H devient E. Commencez par les mots les plus courts : la ligne 4 commence par un petit mot de 2 lettres que l'on écrit des centaines de fois par jour.",
+   "reussite": "Réussite : les 4 lignes décodées sans erreur en 25 minutes maximum, avec au plus 1 indice, et un cri « LOYAUTÉ ! » bien synchronisé : la Coupe est à vous avec tous les honneurs du checkpoint. Partielle : message décodé, mais avec 2 indices ou plus, ou en plus de 25 minutes : la Coupe est à vous, mais l'Ombre a eu le temps de l'éclabousser d'encre (récompenses réduites). Échec : message pas décodé au bout de 30 minutes : le prof révèle la phrase, le blaireau de buis a pitié de vous et entrouvre le coffre ; la Coupe est attrapée de justesse sous le nez de l'Ombre, mais sans le bonus du checkpoint."
+  },
+  "defi_maison": {
+   "titre": "Ta carte de Chocogrenouille",
+   "consigne": "Pour fêter la première relique, dessine la carte de Chocogrenouille d'Helga Poufsouffle ou de Capucine Boisjoli (au choix). Le professeur valide les cartes ; les plus réussies seront affichées dans la classe.",
+   "contenu": "Format : une carte à jouer d'environ 6 cm × 9 cm.\nRecto : le portrait du personnage dans un cadre doré, avec son nom écrit en bas.\nVerso : trois lignes de biographie inventée et drôle (exemple : « Célèbre pour avoir rempoté 400 Mandragores sans jamais perdre un seul cache-oreille »), plus un détail secret que seuls les héros connaissent.",
+   "mot_de_passe": ""
+  },
+  "note_prof": "Préparez quatre bandelettes de papier portant chacune une ligne du message chiffré (une par maison) et écrivez l'alphabet en grand au tableau. Le cri collectif « LOYAUTÉ ! » est le moment fort du chapitre : recommencez-le jusqu'à ce qu'il soit parfaitement ensemble (3 essais maximum), puis révélez la Coupe sur la carte."
+ },
+ "5": {
+  "num": 5,
+  "titre": "Le livre qui mord",
+  "lieu": "La Cabane de Hagrid",
+  "heros": "leo",
+  "recit": "Janvier. La neige recouvre le parc du château, et une fumée en tire-bouchon s'échappe de la cheminée de la cabane de Hagrid. Moka se pose sur l'épaule de Léo, une lettre dans le bec : « La deuxième relique, l'Épée de Gryffondor, est cachée au cœur de la Forêt interdite. Pour y entrer, il vous faut un guide… et un bon livre. »\nLéo saute de joie : la forêt, les créatures, les crocs… c'est enfin son chapitre ! À peine a-t-il frappé que la porte s'ouvre sur Hagrid, un plateau de biscuits durs comme des galets à la main. Crockdur, son énorme chien, bondit aussitôt sur Silas pour lui débarbouiller la figure à grands coups de langue.\n— Beurk ! De la bave de molosse sur ma cape neuve !\n— Il t'aime bien, rigole Hagrid. Bon. Si vous voulez entrer dans la forêt, faut connaître ceux qui y vivent. Je vous prête mon Monstrueux Livre des Monstres. Il mord un peu, mais au fond, c'est un tendre.\nLe livre gronde, claque de la couverture et file se cacher sous le buffet. Léo plonge, le coince sous son bras et manque d'y laisser un doigt. Impossible de l'ouvrir ! Iris aperçoit une phrase griffonnée sur la tranche… noyée sous une énorme tache d'encre. Et par les côtés de la couverture dépassent des pages froissées dans tous les sens : quelqu'un les a arrachées et remises n'importe comment ! Crockdur, lui, en mâchouille déjà une avec un air ravi.\nMission : trouvez comment ouvrir ce livre sans y laisser vos doigts, puis rendez à chaque créature sa description. Sans ce livre, impossible de faire un pas de plus dans la forêt !",
+  "message_ombre": "Hi hi ! J'ai mêlé les pages du livre qui mord,\nCrockdur en a mâché trois et il en réclame encore !\nPendant que vous cherchez qui a des plumes ou des crocs,\nJe file vers l'Épée en chantant à tue-tête là-haut !",
+  "epreuve": {
+   "type": "association",
+   "titre": "Les pages arrachées du Monstrueux Livre",
+   "consigne": "Le Monstrueux Livre des Monstres a perdu ses pages ! Retrouvez quelle description va avec quelle créature. Chaque maison écrit ses 8 associations sur son ardoise (exemple : 1-C, 2-F…). Astuce de Hagrid : lisez bien les noms, ils cachent souvent un indice !",
+   "deroulement": "Manche 1 – Ouvrir le livre (3 min) : le livre refuse de s'ouvrir et claque des pages. Chaque maison écrit sur son ardoise COMMENT l'ouvrir sans se faire mordre. Indice de Hagrid (lu par le prof) : « C'est un livre, mais il a un dos… et il adore qu'on soit gentil avec lui. » Toutes les maisons qui écrivent qu'il faut lui caresser le dos (ou la tranche) gagnent 1 point. Manche 2 – Recoller les pages (14 min) : le jeu affiche les 8 créatures (numérotées) et les 8 descriptions (lettres). Chaque maison discute à voix basse et écrit ses 8 associations. Au bout de 7 minutes, le prof peut lire l'astuce de Hagrid sur les noms (l'indice). Au signal « Crockdur ! », toutes les ardoises se lèvent en même temps. Manche 3 – La correction des monstres (13 min) : pour chaque créature, le prof lit la bonne description avec la grosse voix de Hagrid, puis une maison mime la créature pendant 10 secondes, à tour de rôle (2 créatures par maison) : +1 point si la classe applaudit. Chaque paire juste rapporte 1 point (8 au maximum). Ont brillé : les 2 maisons qui ont le plus de points (toutes les maisons à égalité en cas d'ex aequo) ; leur héros gagne de l'expérience.",
+   "duree": 30,
+   "questions": [],
+   "paires": [
+    {
+     "gauche": "Hippogriffe",
+     "droite": "Avant d'aigle, arrière de cheval, et très, très fier : on le salue toujours avant de l'approcher."
+    },
+    {
+     "gauche": "Niffleur",
+     "droite": "Petite boule de poils noirs au long museau : il renifle et chipe tout ce qui brille."
+    },
+    {
+     "gauche": "Botruc",
+     "droite": "Minuscule gardien des arbres à baguettes, fait de brindilles et d'écorce, avec deux petits yeux marron. Il raffole des cloportes."
+    },
+    {
+     "gauche": "Veracrasse",
+     "droite": "Gros ver mou et baveux qui mange de la laitue toute la journée. Champion du monde de l'ennui."
+    },
+    {
+     "gauche": "Boursouf",
+     "droite": "Boule de poils couleur crème, gonflée comme un soufflé, qui fredonne quand on la câline… et qui chipe les crottes de nez des sorciers endormis avec sa longue langue !"
+    },
+    {
+     "gauche": "Sombral",
+     "droite": "Cheval tout noir aux ailes de chauve-souris, si maigre qu'on devine ses os. Beaucoup d'élèves ne le voient même pas !"
+    },
+    {
+     "gauche": "Scroutt à pétard",
+     "droite": "Bestiole bizarre inventée par Hagrid (ne lui dites pas qu'elle est ratée) : une carapace, pas de tête visible, et des étincelles qui jaillissent… par l'arrière."
+    },
+    {
+     "gauche": "Fléreur",
+     "droite": "On dirait un chat aux grandes oreilles, mais il flaire à des kilomètres les gens louches et malhonnêtes."
+    }
+   ],
+   "ordre": [],
+   "code": {
+    "message": "",
+    "cle": "",
+    "reponse": ""
+   },
+   "indice": "Chaque nom cache un indice : Sombral fait penser à « sombre », Fléreur à « flairer », Niffleur à « renifler », Veracrasse à « ver » et « crasse », Boursouf à « boursouflé », Scroutt à pétard à… un pétard ! Et « hippo » veut dire « cheval » en grec.",
+   "reussite": "Réussite : au moins 3 maisons sur 4 ont 6 paires justes ou plus. Partielle : 1 ou 2 maisons ont 6 paires justes ou plus. Échec : aucune maison n'atteint 6 paires ; Hagrid recolle les pages lui-même en soupirant, et l'équipe avance quand même."
+  },
+  "defi_maison": {
+   "titre": "La page mâchouillée par Crockdur",
+   "consigne": "Crockdur a bavé sur une page du livre : seuls des nombres sont encore lisibles. Chaque nombre correspond à une lettre de l'alphabet (A=1, B=2, C=3… Z=26). Décode le nom de la créature que l'équipe rencontrera à la prochaine étape, puis tape-le dans le jeu comme mot de passe.",
+   "contenu": "8 – 9 – 16 – 16 – 15 – 7 – 18 – 9 – 6 – 6 – 5",
+   "mot_de_passe": "HIPPOGRIFFE"
+  },
+  "note_prof": "Si possible, apportez un vieux livre ficelé avec un élastique pour jouer le Monstrueux Livre (faites-le « claquer » sur le bureau). Préparez une feuille par maison avec les numéros 1 à 8, et prenez la grosse voix de Hagrid : effet garanti."
+ },
+ "6": {
+  "num": 6,
+  "titre": "Le salut de Buck",
+  "lieu": "L'Enclos des hippogriffes",
+  "heros": "leo",
+  "recit": "Le Monstrueux Livre des Monstres ronronne maintenant au fond du sac de Léo. Hagrid conduit l'équipe jusqu'à un enclos, tout au bord de la forêt. Au milieu de la neige se dresse Buck, un hippogriffe magnifique : d'immenses ailes grises, un bec crochu et des yeux orange vif qui ne ratent rien.\n— Buck connaît le chemin du sentier des licornes, explique Hagrid. S'il vous accepte, il vous y conduira. Mais attention : un hippogriffe, c'est plus fier qu'une douzaine de rois. On ne l'approche pas n'importe comment.\nLéo n'a écouté que la moitié de la phrase. Il court déjà vers Buck, les bras grands ouverts :\n— Salut, mon grand !\nBuck se cabre, déploie ses ailes et pousse un cri qui fait dégringoler la neige des sapins. Léo recule… et atterrit sur les fesses dans une flaque de boue gelée. Silas applaudit poliment :\n— Magnifique. Du pur Gryffondor.\n— Je l'avais pourtant affiché, le Protocole du salut ! grogne Hagrid en montrant la pancarte de l'entrée.\nMais la pancarte est couverte d'encre, et quelqu'un l'a découpée en lamelles que le vent fait tourbillonner au-dessus de l'enclos. Capucine en rattrape huit au vol. Iris fronce les sourcils : elles sont dans le désordre, évidemment.\nMission : remettez le Protocole du salut dans l'ordre, puis prouvez à Buck que vous savez saluer comme de vrais sorciers. S'il s'incline devant vous, il vous ouvrira le chemin de la forêt !",
+  "message_ombre": "Courbez l'échine, petits sorciers tremblants !\nMoi, j'ai vidé mon encrier sur votre règlement.\nSi la bête à plumes vous picore une oreille,\nJe ferai des loopings de joie jusqu'au soleil !",
+  "epreuve": {
+   "type": "ordre",
+   "titre": "Le Protocole du salut",
+   "consigne": "Le vent a mélangé les 8 lamelles du Protocole du salut. Remettez-les dans le bon ordre, de l'entrée dans l'enclos jusqu'au remerciement final. Chaque maison écrit sur son ardoise l'ordre des lettres (exemple : C-A-H-…). Ensuite, place à la pratique devant Buck !",
+   "deroulement": "Manche 1 – Le protocole (10 min) : le jeu affiche les 8 lamelles mélangées. Chaque maison écrit l'ordre sur son ardoise ; au signal « Buck ! », toutes les ardoises se lèvent. 1 point par lamelle à la bonne place (8 au maximum). Manche 2 – Le duel du regard (8 min) : chaque maison envoie un champion. Les 4 champions se placent face au prof, qui joue Buck avec son regard le plus perçant. Tout le monde s'incline en même temps en gardant les yeux grands ouverts : le premier qui cligne retourne s'asseoir. Les autres élèves ont le droit de faire des grimaces… en silence et sans quitter leur place ! Le dernier champion debout rapporte 3 points à sa maison, le deuxième 2, le troisième 1. Une manche dure 1 minute au maximum : au bout d'1 minute, c'est Buck qui cligne le premier, et tous les champions encore debout gagnent 3 points. S'il reste du temps, on refait une manche avec de nouveaux champions. Manche 3 – Le grand salut (12 min) : chaque maison, au complet, vient devant le tableau et applique le protocole : approche lente, regard fixe, révérence synchronisée, immobilité. Buck (le prof) juge : salut parfait → il s'incline à son tour (+3 points) ; un rire, un geste brusque ou un regard qui se détourne → « Kriii ! » vexé, salut raté (0 point). Ont brillé : les 2 maisons qui totalisent le plus de points sur les 3 manches ; leur héros gagne de l'expérience.",
+   "duree": 30,
+   "questions": [],
+   "paires": [],
+   "ordre": [
+    "Attendre que Hagrid donne le feu vert avant d'entrer dans l'enclos.",
+    "S'approcher lentement, sans courir ni crier.",
+    "S'arrêter à quelques pas et regarder l'hippogriffe droit dans les yeux.",
+    "S'incliner bien bas, toujours sans cligner des yeux.",
+    "Rester incliné, immobile, et attendre sa réponse.",
+    "S'il s'incline à son tour, avancer doucement et lui caresser le bec.",
+    "Grimper sur son dos, juste derrière les ailes, sans arracher une seule plume.",
+    "Après l'atterrissage, descendre et le remercier d'une dernière révérence."
+   ],
+   "code": {
+    "message": "",
+    "cle": "",
+    "reponse": ""
+   },
+   "indice": "Pensez aux règles de politesse : on n'entre pas chez quelqu'un sans y être invité, on dit bonjour avant de serrer la main, et on dit merci à la fin. Et surtout : un hippogriffe déteste qu'on cligne des yeux !",
+   "reussite": "Réussite : au moins 2 maisons ont 8/8 au protocole ET au moins 3 grands saluts sont réussis → Buck s'incline devant toute l'équipe. Partielle : au moins 2 maisons ont 6/8 ou plus, OU au moins 2 grands saluts sont réussis → Buck accepte de guider l'équipe, mais en boudant un peu. Échec : moins que ça → Buck guide quand même l'équipe… en lui tournant le dos tout le long du chemin."
+  },
+  "defi_maison": {
+   "titre": "Ma créature hybride",
+   "consigne": "L'hippogriffe, c'est moitié aigle, moitié cheval. À toi d'inventer ta propre créature magique en mélangeant deux animaux ! Dessine-la, donne-lui un nom rigolo (par exemple un « Crapautruche » ou un « Lapingouin ») et écris 3 lignes : où elle vit, ce qu'elle mange, et comment il faut la saluer pour ne pas se faire mordre.",
+   "contenu": "Une feuille, un dessin en couleur, 3 lignes de texte. Les créatures validées par le professeur rejoindront le Bestiaire de l'équipe affiché en classe, et chaque création rapporte des points à sa maison.",
+   "mot_de_passe": ""
+  },
+  "note_prof": "Pour la manche 3, délimitez un « enclos » devant le tableau avec quatre chaises. Jouez Buck à fond (regard perçant, petit cri vexé) et rappelez que le duel du regard se fait sans aucun contact. Gardez un chronomètre visible pour la minute du duel."
+ },
+ "7": {
+  "num": 7,
+  "titre": "Les traces dans la neige",
+  "lieu": "Le Sentier des licornes",
+  "heros": "leo",
+  "recit": "Buck a conduit l'équipe jusqu'à l'entrée du sentier des licornes, puis il est reparti vers son enclos en secouant fièrement ses plumes. Ici, les arbres sont si serrés que la lumière passe à peine. Iris lève sa baguette : « Lumos ! » Une petite lumière blanche éclaire la neige… couverte d'empreintes dans tous les sens.\nHagrid leur a confié son vieux carnet de traces, plein de taches de thé et de miettes de biscuits. « Avec ça, vous saurez qui est passé avant vous », a-t-il promis.\nEt quelqu'un est bel et bien passé avant eux. Les panneaux du sentier ont été arrachés et replantés n'importe comment. Dans les branches, on entend un ricanement aigu, puis un petit air chantonné, puis plus rien. Silas frissonne… surtout parce qu'il vient de marcher dans une flaque de boue.\n— Par là ! s'écrie Léo en s'élançant derrière la première trace venue.\nCapucine l'attrape par la manche :\n— Dans une forêt, d'abord on lit les traces. Ensuite on fonce.\nPour une fois, Léo s'arrête. Il ouvre le carnet de Hagrid, croque une Chocogrenouille pour se donner du courage, et se penche sur la neige comme un vrai pisteur.\nTout au bout du sentier se dresse un vieil arbre tordu. Ses branches s'agitent toutes seules… et une toute petite voix grince là-haut, comme un appel au secours.\nMission : déchiffrez les traces grâce au carnet de Hagrid, retrouvez le chemin des licornes et découvrez qui se cache dans l'arbre tordu.",
+  "message_ombre": "Des traces par-ci, des traces par-là,\nJ'ai fait valser vos panneaux, cherchez-les donc, ha ha !\nPas un seul ne dit vrai : ce sont tous des farceurs…\nTiens, ça me rappelle quelqu'un… Quel honneur !",
+  "epreuve": {
+   "type": "enigmes",
+   "titre": "Le carnet de traces de Hagrid",
+   "consigne": "Résolvez les 6 énigmes de la forêt grâce au carnet de traces de Hagrid. Chaque maison écrit sa réponse sur son ardoise.\nCARNET DE TRACES DE HAGRID\n– Licorne : sabots légers, crins accrochés aux branches. Les poulains naissent dorés, deviennent argentés vers 2 ans, puis tout blancs vers 7 ans.\n– Hippogriffe : serres d'aigle à l'avant, sabots de cheval à l'arrière, plumes grises.\n– Centaure : gros sabots, branches cassées très haut (il est grand !).\n– Niffleur : petites pattes griffues, trous creusés partout, objets brillants disparus.\n– Scroutt à pétard : longue traînée sur le sol, petites brûlures, odeur de pétard.\n– Botruc : aucune trace au sol ; vit dans les arbres à baguettes, raffole des cloportes.",
+   "deroulement": "Les 6 énigmes s'affichent une par une, et le carnet de traces reste visible au tableau pendant toute l'épreuve. Temps de réflexion par maison (chuchotements autorisés) : 2 minutes pour les énigmes 1, 2 et 6, 4 minutes pour les énigmes de logique 3, 4 et 5. Au signal « Lumos ! », les 4 ardoises se lèvent en même temps, puis le prof lit l'explication. Chaque bonne réponse rapporte 2 points. Pour les énigmes de logique (3, 4 et 5), une maison tirée au sort parmi celles qui ont juste explique son raisonnement à voix haute : explication claire = +1 point bonus. Léo, le pisteur de l'équipe, permet une seule fois dans la séance de demander au prof un indice pour toute la classe. Ont brillé : les 2 maisons qui ont le plus de points ; leur héros gagne de l'expérience. Clôture : la dernière réponse révèle Brindille le Botruc, collé à sa branche par une boule de chewing-gum. Léo le décolle avec une délicatesse incroyable (oui, Léo !) et Brindille, reconnaissant, grimpe sur son épaule : il rejoint l'équipe !",
+   "duree": 30,
+   "questions": [
+    {
+     "q": "Énigme 1 – Dans la neige, à l'entrée du sentier : à l'avant, des empreintes à quatre doigts pointus, comme celles d'un oiseau géant ; à l'arrière, des sabots. Une grande plume grise est restée accrochée à une ronce. Quelle créature est passée ?",
+     "choix": [],
+     "reponse": "Un hippogriffe",
+     "explication": "Serres d'aigle devant, sabots derrière, plume grise : c'est un hippogriffe. Sûrement un cousin de Buck !"
+    },
+    {
+     "q": "Énigme 2 – Au pied d'un vieux chêne : trois trous fraîchement creusés et de toutes petites empreintes griffues. Léo baisse les yeux… la boucle dorée de sa ceinture a disparu, et son pantalon commence à glisser ! Quelle créature est passée ?",
+     "choix": [],
+     "reponse": "Un Niffleur",
+     "explication": "Des trous partout et un objet brillant envolé : c'est la signature du Niffleur, le pickpocket le plus mignon de la forêt. Retenez-le, on risque de le recroiser…"
+    },
+    {
+     "q": "Énigme 3 – Au carrefour, trois chemins partent : à gauche, tout droit et à droite. Ils mènent aux licornes, aux centaures et au lac… mais l'Ombre a échangé les panneaux : AUCUN n'indique la bonne direction ! Le panneau de gauche dit « Licornes », celui du milieu dit « Centaures », celui de droite dit « Lac ». Et sur le chemin de gauche, Léo remarque des branches cassées très haut (regardez le carnet de Hagrid !). Où sont les licornes ?",
+     "choix": [],
+     "reponse": "À droite",
+     "explication": "Les branches cassées très haut, c'est la signature des centaures (carnet de Hagrid) : le chemin de gauche mène donc aux centaures. Le panneau de droite dit « Lac » et il ment : la droite n'est donc pas le lac… il ne reste que les licornes ! Et tout droit, c'est le lac : le panneau « Centaures » mentait bien, lui aussi."
+    },
+    {
+     "q": "Énigme 4 – Sur le sentier, trois séries de traces se chevauchent : celles d'une licorne, d'un centaure et d'un Scroutt à pétard. Les traces du Scroutt écrasent celles de la licorne. Les traces du centaure sont recouvertes par toutes les autres. Qui est passé en DERNIER ?",
+     "choix": [],
+     "reponse": "Le Scroutt à pétard",
+     "explication": "Une trace qui en recouvre une autre a été faite après elle. Le centaure est passé en premier (tout le monde lui a marché dessus), puis la licorne, puis le Scroutt, qui a laissé derrière lui une délicieuse odeur de pétard brûlé."
+    },
+    {
+     "q": "Énigme 5 – Au bord du ruisseau, trois licornes boivent : Perle, Comète et Nuage. Elles ont chacune une couleur différente. Perle est plus âgée que Comète. Nuage n'est ni la plus jeune ni la plus âgée. Comète est encore toute dorée. De quelle couleur est Perle ?",
+     "choix": [],
+     "reponse": "Blanche",
+     "explication": "Nuage est au milieu. Comme Perle est plus âgée que Comète, Perle est la plus âgée et Comète la plus jeune (dorée). Nuage est donc argentée, et Perle, la plus vieille, est blanche."
+    },
+    {
+     "q": "Énigme 6 – Les traces s'arrêtent net au pied de l'arbre tordu, un arbre à baguettes. Aucune empreinte au sol. Sur une souche, tous les cloportes ont disparu. Et là-haut, une petite brindille avec deux yeux marron vous fait de grands signes : elle est coincée dans une boule de chewing-gum ! Qui est-ce ?",
+     "choix": [],
+     "reponse": "Un Botruc",
+     "explication": "Pas de trace au sol, un arbre à baguettes et des cloportes dévorés : c'est un Botruc ! Il s'appelle Brindille… et quelqu'un de très farceur l'a collé à sa branche avec du chewing-gum."
+    }
+   ],
+   "paires": [],
+   "ordre": [],
+   "code": {
+    "message": "",
+    "cle": "",
+    "reponse": ""
+   },
+   "indice": "Pour les énigmes de logique, testez chaque possibilité une par une en vous demandant : « Et si c'était ça, est-ce que tout marche ? » Et rappelez-vous : une trace qui en écrase une autre a été faite APRÈS elle.",
+   "reussite": "Une énigme compte pour l'équipe si au moins 2 maisons ont trouvé la bonne réponse. Réussite : 5 ou 6 énigmes. Partielle : 3 ou 4 énigmes. Échec : 0 à 2 énigmes ; Brindille rejoint quand même l'équipe, trop content d'être débarrassé de son chewing-gum."
+  },
+  "defi_maison": {
+   "titre": "La feuille de Brindille",
+   "consigne": "Brindille ne parle pas comme nous, mais il a gravé un message sur une feuille avec la pointe de son bras-brindille. Pour que l'Ombre ne puisse pas le lire, il a glissé une lettre-piège après chaque vraie lettre. Lis seulement une lettre sur deux, en commençant par la première (1re, 3e, 5e…) : tu sauras qui l'équipe rencontrera à la prochaine étape. Tape ce mot dans le jeu comme mot de passe.",
+   "contenu": "Message de Brindille : C C E L N O T P A O U R R T E E\n\nAttention : si tu lis les autres lettres, tu tomberas sur le plat préféré de Brindille… qui pense un peu trop à son goûter !",
+   "mot_de_passe": "CENTAURE"
+  },
+  "note_prof": "Recopiez ou projetez le carnet de traces pendant toute l'épreuve. Bonus d'ambiance : dessinez à la craie quelques empreintes (sabots, serres) devant la porte de la salle avant l'arrivée des élèves."
+ },
+ "8": {
+  "num": 8,
+  "titre": "L'Épée sous la glace",
+  "lieu": "La Clairière des centaures",
+  "heros": "leo",
+  "recit": "La nuit tombe sur la Forêt interdite. Perché sur l'épaule de Léo, Brindille tend un bras-brindille vers une clairière baignée de lune. Au centre, une mare gelée brille comme un miroir. Et tout autour, d'immenses silhouettes : des centaures, la tête levée vers le ciel, qui observent les étoiles sans un mot.\nFirenze, au pelage doré et aux cheveux presque blancs, s'avance. Derrière lui, Bane, le centaure au pelage noir, croise les bras et souffle par les naseaux.\n— Des petits humains dans notre clairière, grogne Bane. Les étoiles ne nous avaient pas annoncé une invasion de bavards.\n— Les étoiles annoncent bien des choses, répond Firenze, très calme. Ce soir, elles disent qu'une épée dort sous cette glace. Et qu'elle n'apparaîtra qu'à ceux qui ont un vrai courage.\nLéo bombe le torse :\n— Du courage ? J'en ai à revendre !\nIl pose un pied sur la mare… qui craque de partout. Iris le rattrape par la capuche juste à temps.\n— Le vrai courage, ce n'est pas foncer tête baissée, dit Firenze. Regardez plutôt cette pierre.\nAu bord de la mare, une grosse pierre plate porte une inscription gravée… qui ne veut absolument rien dire. Firenze lève les yeux vers le ciel :\n— Ce message est écrit dans la langue du ciel. Lisez d'abord les étoiles : elles vous donneront la clé.\nSoudain, une boule de neige s'écrase sur la nuque de Silas. Un ricanement file entre les arbres. L'Ombre est là, toute proche… et elle aussi veut l'Épée !\nMission : résolvez les quatre énigmes des étoiles, trouvez la clé, déchiffrez la pierre… et prouvez que l'équipe a du courage. C'est l'heure de vérité pour Léo !",
+  "message_ombre": "Une épée sous la glace ? Je l'ai vue avant vous !\nMoi, je plane au-dessus sans me mouiller les genoux.\nPendant que vous comptez les étoiles, nez en l'air,\nJe vous lance des boules de neige… la tête à l'envers !",
+  "epreuve": {
+   "type": "code",
+   "titre": "La langue du ciel",
+   "consigne": "Acte 1 : résolvez les 4 énigmes des étoiles et notez la PREMIÈRE lettre de chaque réponse, sans compter les petits mots « le », « la », « une », « des » : ensemble, ces lettres forment la clé. Acte 2 : déchiffrez le message gravé sur la pierre grâce à cette clé (chaque maison décode son morceau). Acte 3 : faites ce que dit le message pour libérer l'Épée de Gryffondor !",
+   "deroulement": "Acte 1 – Les énigmes des étoiles (10 min) : chaque énigme est confiée à une maison (énigme 1 : Gryffondor, 2 : Serdaigle, 3 : Poufsouffle, 4 : Serpentard), qui a 2 minutes pour répondre sur son ardoise : 2 points. En cas d'erreur, les autres maisons peuvent « voler » l'énigme en levant leur ardoise : 1 point. Quand les 4 réponses sont trouvées, Firenze (le prof) murmure : « Les étoiles parlent par leur première lettre… » La classe doit découvrir S-E-P-T : la clé est SEPT. Acte 2 – La pierre gravée (12 min) : le message est projeté et l'alphabet complet est écrit au tableau. Firenze explique : « Sur cette pierre, chaque lettre a avancé de SEPT places dans l'alphabet. Pour lire, faites-la reculer de sept places. » Exemple au tableau : Z recule de 7 places et devient S. Si on passe avant A, on repart de Z (B devient U). Chaque maison décode son morceau : Gryffondor « ZLBS SL », Serdaigle « JVBYHNL », Poufsouffle « IYPZL », Serpentard « SH NSHJL ». Première maison qui a fini juste : 3 points, les suivantes : 2 points ; une maison qui a fini a le droit (et le devoir !) d'aller aider les autres. La classe lit ensuite la phrase entière à voix haute et la tape dans le jeu : la pierre s'illumine. Acte 3 – Briser la glace (10 min) : « briser la glace », c'est aussi oser parler devant tout le monde ! Chaque maison envoie un volontaire (ou un duo) qui tire une carte « Acte de bravoure » dans un chapeau : imiter le cri de Buck ; faire une révérence d'hippogriffe au prof sans rire pendant 10 secondes ; chanter « Joyeux anniversaire » à Brindille ; faire un compliment sincère à une autre maison ; traverser la salle au petit trot comme un centaure ; épeler SERPENTARD à l'envers sans se tromper. Chaque acte relevé : 2 points. Si une maison ne trouve pas de volontaire, on passe à la suivante, sans pénalité. Quand toutes les maisons sont passées (ou à la fin des 10 minutes), toute la classe se lève et compte « 3, 2, 1… COURAGE ! » : la glace se brise et l'Épée de Gryffondor, aux rubis étincelants, s'élève devant Léo. Ont brillé : les 2 maisons qui ont le plus de points sur les 3 actes ; leur héros gagne de l'expérience.",
+   "duree": 35,
+   "questions": [
+    {
+     "q": "Énigme des étoiles n°1 (Gryffondor) – Je suis une étoile, la seule que vous voyez en plein jour. Sans moi : pas de lumière, pas de chaleur, et les Mandragores du professeur Chourave feraient la tête. Qui suis-je ?",
+     "choix": [],
+     "reponse": "Le Soleil",
+     "explication": "Eh oui, le Soleil est une étoile ! Première lettre : S."
+    },
+    {
+     "q": "Énigme des étoiles n°2 (Serdaigle) – Quand la Lune passe exactement devant le Soleil et le cache, il fait sombre en plein midi et tous les centaures sortent dans les clairières pour regarder le ciel. Comment appelle-t-on ce phénomène ?",
+     "choix": [],
+     "reponse": "Une éclipse",
+     "explication": "C'est une éclipse de Soleil. Première lettre : E."
+    },
+    {
+     "q": "Énigme des étoiles n°3 (Poufsouffle) – Mars, Vénus, Jupiter et la Terre tournent autour du Soleil. Elles ne brillent pas toutes seules : elles renvoient la lumière du Soleil. Ce ne sont pas des étoiles, ce sont des… ?",
+     "choix": [],
+     "reponse": "Des planètes",
+     "explication": "Ce sont des planètes ! Première lettre : P."
+    },
+    {
+     "q": "Énigme des étoiles n°4 (Serpentard) – Je suis la troisième planète en partant du Soleil, et en ce moment même, vous avez les pieds posés sur moi. Qui suis-je ?",
+     "choix": [],
+     "reponse": "La Terre",
+     "explication": "La Terre ! Première lettre : T. Et S-E-P-T, ça fait… SEPT : c'est la clé de la pierre !"
+    }
+   ],
+   "paires": [],
+   "ordre": [],
+   "code": {
+    "message": "ZLBS SL JVBYHNL IYPZL SH NSHJL",
+    "cle": "Décalage de César de 7, la « clé SEPT » : les premières lettres des réponses aux 4 énigmes des étoiles (Soleil, Éclipse, Planètes, Terre) forment le mot SEPT. Sur la pierre, chaque lettre a avancé de 7 places dans l'alphabet ; pour lire, on recule chaque lettre de 7 places (Z→S, L→E, B→U, S→L, J→C, V→O, Y→R, H→A, N→G, I→B, P→I). Si on passe avant A, on repart de Z.",
+    "reponse": "SEUL LE COURAGE BRISE LA GLACE"
+   },
+   "indice": "Les étoiles parlent par leur PREMIÈRE lettre : Soleil, Éclipse, Planètes, Terre… S-E-P-T ! Reculez chaque lettre de 7 places dans l'alphabet. Exemple : Z recule de 7 places et devient S. Attention : si on passe avant A, on repart de Z (B devient U). Le premier mot du message est SEUL.",
+   "reussite": "Réussite : au moins 3 énigmes des étoiles trouvées par la maison à qui elles étaient confiées, message entièrement déchiffré avant la fin de l'acte 2 sans afficher l'indice, et 4 actes de bravoure relevés → l'Épée jaillit de la glace, récompense maximale. Partielle : message déchiffré avant la fin de l'acte 2, mais au moins une condition de la réussite manque (indice utilisé, énigmes volées ou moins de 4 actes relevés). Échec : message non déchiffré à la fin de l'acte 2 → Firenze lit lui-même la phrase et l'Épée est récupérée de justesse, sans bonus ; la relique est quand même à l'abri et l'équipe avance."
+  },
+  "defi_maison": {
+   "titre": "Réponds à l'Ombre !",
+   "consigne": "Depuis le début de l'aventure, l'Ombre se moque de l'équipe en vers. À ton tour de lui répondre ! Écris un petit poème de 4 vers qui riment pour te moquer gentiment d'elle (sans gros mots). Bonus : cite l'Épée de Gryffondor ou Brindille le Botruc dans ton poème.",
+   "contenu": "Exemple pour démarrer : « Petite Ombre, tu fais bien la maline, / Mais l'Épée brille déjà dans notre vitrine… » À toi d'écrire la suite ! Les meilleurs poèmes, validés par le professeur, seront lus à voix haute au début de la prochaine séance et rapporteront des points à leur maison.",
+   "mot_de_passe": ""
+  },
+  "note_prof": "Préparez l'alphabet complet au tableau, les 4 morceaux du message et 6 petits papiers « Acte de bravoure » pliés dans un chapeau. Solution de la carte « épeler SERPENTARD à l'envers » : D-R-A-T-N-E-P-R-E-S. Les actes restent volontaires : un élève timide peut venir à deux ou choisir un camarade porte-voix. Si possible, cachez une épée en carton dans la salle pour la brandir au moment du « COURAGE ! »."
+ },
+ "9": {
+  "num": 9,
+  "titre": "Le plan anti-branches de Silas",
+  "lieu": "Le Saule cogneur",
+  "heros": "silas",
+  "recit": "Moka atterrit sur le bureau dans un nuage de plumes ébouriffées : il a frôlé le Saule cogneur, et il est furieux. Dans son bec, une lettre de mission fermée par un sceau vert et argent.\n\n« Bravo, héros : l'Épée de Gryffondor est à l'abri. Place à la troisième relique, le Médaillon de Serpentard. Un très vieux plan du domaine montre un serpent gravé… à l'endroit exact où pousse aujourd'hui le Saule cogneur, juste sous ses racines. »\n\nPetit problème : quelqu'un a lancé une Bombabouse au pied de l'arbre. Le Saule s'est réveillé de très, très mauvaise humeur, et ses branches fouettent l'air comme des moulins à vent en colère. Léo retrousse ses manches : « Je fonce ! » Iris le rattrape par la capuche. Capucine présente ses excuses à l'arbre au nom de toute l'école. Même Brindille le Botruc refuse de sortir de la poche de Capucine : un arbre qui distribue des claques, très peu pour lui.\n\nC'est alors que Silas lisse ses cheveux et sourit : « On ne se bat pas contre un arbre qui cogne plus fort qu'un troll. On ruse. Il y a un nœud au pied du tronc : on appuie dessus, et le Saule se fige comme une statue. J'ai tout prévu : mon plan anti-branches, en huit étapes. »\n\nIl déroule fièrement son parchemin… et pousse un cri. Le plan a été découpé en huit morceaux, tout mélangés. Pire : son précieux peigne d'argent a disparu de sa poche. Quelque part dans les arbres, quelqu'un ricane.\n\nLe Saule se penche vers vous en faisant craquer ses branches. Remettez le plan de Silas dans l'ordre avant la prochaine claque !",
+  "message_ombre": "Pauvre petit Serpentard qui a peur de la gadoue,\nLe Saule cogneur va te tirer les joues !\nQui l'a réveillé d'une Bombabouse ? Hi hi hi !\nEt ton peigne d'argent ? Envolé… parti !",
+  "epreuve": {
+   "type": "ordre",
+   "titre": "Le plan en miettes",
+   "consigne": "Le plan anti-branches de Silas a été découpé et mélangé par l'Ombre. Remettez les 8 étapes dans le bon ordre pour passer sous le Saule cogneur sans prendre une seule claque. Sur votre ardoise, écrivez les lettres (ou numéros) affichés, dans le bon ordre.",
+   "deroulement": "Phase 1 – Le plan en miettes (12 min maximum). Les 8 étapes s'affichent mélangées. Chaque maison discute à voix basse et écrit sur son ardoise la suite des étapes. Toutes les 3 minutes, le prof crie « BRANCHE ! » : les 4 maisons lèvent leur ardoise et le prof annonce pour chacune SEULEMENT combien d'étapes sont à la bonne place (« Gryffondor : 5 sur 8 ! »), sans dire lesquelles, comme au Mastermind. Les maisons corrigent et recommencent. Entre deux « BRANCHE ! », une maison sûre d'elle peut lever son ardoise en criant « Le Saule est figé ! » : le prof vérifie ; si c'est 8 sur 8, c'est gagné, sinon il répond seulement « Raté, le Saule cogne encore ! » et la maison continue. La première maison à 8 sur 8 gagne 3 points de maison ; les suivantes gagnent 2 points si elles y arrivent avant le 4e « BRANCHE ! ». Au 4e « BRANCHE ! » (12 min), le prof révèle le bon ordre.\n\nPhase 2 – 1, 2, 3… Saule cogneur ! (8 min). Le prof relit le plan dans le bon ordre ; à chaque étape, toute la classe mime l'action, assise à sa place : scruter derrière le rocher, ramasser la branche, geste de baguette « Wingardium Leviosa ! », appuyer sur le nœud, ramper avec deux doigts sur la table, « Lumos ! »… À tout moment, le prof peut crier « LE SAULE COGNE ! » : chacun doit se figer immédiatement, tête rentrée dans les épaules. Les élèves qui bougent encore ou qui éclatent de rire sont « cognés » et lèvent la main jusqu'à la fin de la phase. Faire 4 à 6 coups de Saule. La maison qui a le moins d'élèves cognés gagne 2 points.\n\nPhase 3 – Le coffret (3 min). L'équipe atteint le coffret de pierre sous la plus grosse racine : le prof annonce qu'il contient une écaille argentée et un message qui mène au lac (lu au début de la séance suivante).\n\nOnt brillé : la première maison à 8 sur 8 et la maison la moins cognée de la phase 2.",
+   "duree": 30,
+   "questions": [],
+   "paires": [],
+   "ordre": [
+    "Se cacher derrière un gros rocher et observer le Saule : repérer le nœud magique, caché sous la mousse au pied du tronc.",
+    "Maintenant qu'on sait où se cache le nœud, chercher dans l'herbe une longue branche morte, assez longue pour l'atteindre sans s'approcher.",
+    "Branche trouvée ! Pointer sa baguette vers elle et lancer « Wingardium Leviosa ! » pour la faire flotter dans les airs.",
+    "Guider la branche flottante entre les coups de fouet du Saule, puis appuyer son bout de toutes ses forces sur le nœud.",
+    "Retenir son souffle jusqu'à ce que la dernière feuille arrête de trembler : le Saule est figé comme une statue.",
+    "Profiter de cette immobilité pour se glisser à quatre pattes dans le trou entre les racines (Silas passe en premier en gémissant : « De la BOUE ! Sur ma robe neuve ! »).",
+    "Tout le monde est dans le tunnel, et il fait noir comme au fond d'un chaudron : allumer les baguettes en disant « Lumos ! ».",
+    "À la lumière des baguettes, suivre le tunnel jusqu'au coffret de pierre caché sous la plus grosse racine."
+   ],
+   "code": {
+    "message": "",
+    "cle": "",
+    "reponse": ""
+   },
+   "indice": "Cherchez les petits mots qui accrochent une étape à la précédente : « maintenant qu'on sait », « branche trouvée », « tout le monde est dans le tunnel »… Chaque étape parle de ce qui vient de se passer juste avant.",
+   "reussite": "Réussite : au moins 3 maisons sur 4 trouvent l'ordre exact avant le 3e « BRANCHE ! » (9 minutes). Partielle : 1 ou 2 maisons y parviennent avant le 3e « BRANCHE ! ». Échec : aucune maison avant le 3e « BRANCHE ! » : l'équipe passe quand même sous le Saule… couverte de feuilles, de bosses et de boue (Silas ne s'en remettra jamais)."
+  },
+  "defi_maison": {
+   "titre": "Le carnet secret de Silas",
+   "consigne": "Silas a noté dans son carnet le nom de la plante qui permettra à l'équipe de respirer sous l'eau à la prochaine séance. Comme l'Ombre lit par-dessus les épaules, il a remplacé chaque lettre par la SUIVANTE dans l'alphabet (A est devenu B, B est devenu C…). Recule chaque lettre d'un cran pour retrouver le mot : c'est le mot de passe à taper dans le jeu.",
+   "contenu": "Code de Silas : C S B O D I J G M P S F\nPour t'aider : C redevient B, S redevient R, B redevient A… à toi de finir ! Le mot fait 12 lettres.",
+   "mot_de_passe": "BRANCHIFLORE"
+  },
+  "note_prof": "Avant la séance, notez sur un post-it la bonne suite de lettres telle que le jeu l'affiche (mélangée), pour compter très vite les étapes bien placées sur chaque ardoise. Un minuteur réglé sur 3 minutes rythme les « BRANCHE ! » ; en phase 2, criez « LE SAULE COGNE ! » au moment où on s'y attend le moins."
+ },
+ "10": {
+  "num": 10,
+  "titre": "Le chant sous l'eau noire",
+  "lieu": "La Rive du lac noir",
+  "heros": "silas",
+  "recit": "Dans le coffret de pierre, sous les racines du Saule, l'équipe a trouvé une écaille argentée et quelques mots griffonnés : « Demandez à ceux qui chantent sous l'eau noire. » Ce matin, c'est Moka qui ouvre la marche, fier comme un hibou qui connaît le chemin. Direction : la rive du lac.\n\nLe vent fait clapoter les vagues. Un énorme tentacule du calmar géant sort de l'eau et vous fait coucou. Léo répond par un grand signe. Silas recule de trois pas et vérifie que ses chaussures sont toujours propres.\n\nMais la plage est criblée de trous, comme si une taupe géante y avait fait la fête. Au fond du plus gros trou, une petite boule de poils noirs au long museau fouille le sable en reniflant : un Niffleur ! Un Niffleur adore tout ce qui brille et le fourre dans sa poche ventrale. Celui-ci a le ventre rond comme un ballon… et il serre dans ses pattes le peigne d'argent de Silas, celui que l'Ombre avait volé !\n\nLéo connaît la technique (les créatures, c'est son rayon) : on attrape la bestiole et on la chatouille. Pluie de trésors ! Trois Gallions, une cuillère, une boucle d'oreille, le peigne… et la boucle dorée de la ceinture de Léo, disparue dans la Forêt interdite ! « C'ÉTAIT TOI ! » rugit Léo, qui tient son pantalon avec une ficelle depuis janvier. Au milieu du butin brillent aussi des dizaines de coquillages nacrés couverts de mots qui ne veulent rien dire. Ce sont des messages des êtres de l'eau, écrits dans leur langue.\n\nPour la comprendre, il faut écouter leur chant, et leur chant ne s'entend que sous l'eau. Capucine sort de sa poche la poignée de Branchiflore cueillie dans la Serre n°1, en novembre : « Je savais bien que ça servirait un jour ! » On la mâche, et on a des branchies pendant une heure. Silas fixe la plante gluante comme si c'était une limace. « Jamais. » Puis il soupire, se pince le nez… et plonge le premier.\n\nAu fond du lac, une voix douce chante : « Chez nous, tout s'écrit comme dans un reflet : la première lettre devient la dernière, la deuxième devient l'avant-dernière… » Attention : les Strangulots rôdent, et ils adorent chiper les coquillages !\n\nQuant au Niffleur, il a décidé que Silas Vifargent était la chose la plus brillante du domaine : il refuse de lâcher sa robe. Capucine le baptise Pépite. Silas proteste. Personne ne l'écoute. Bienvenue dans l'équipe, Pépite !",
+  "message_ombre": "Tra-la-la ! Silas a des branchies, quelle allure !\nOn dirait une sardine en robe de sorcier, je vous le jure !\nMoi, je chante au plafond et je chipe tout ce qui brille…\nMais qui m'a volé mon butin ? Une boule de poils qui frétille ?!",
+  "epreuve": {
+   "type": "code",
+   "titre": "Les coquillages des êtres de l'eau",
+   "consigne": "Les êtres de l'eau ont gravé un message sur quatre coquillages, dans leur langue « miroir ». Leur chant contient la clé : écoutez-le bien ! Déchiffrez le message avant que les Strangulots ne chipent les coquillages.",
+   "deroulement": "1. Le chant (5 min) : le prof relit lentement la phrase chantée par les êtres de l'eau et affiche le message chiffré. Chaque maison cherche la règle sur son ardoise. La première maison qui l'explique correctement (« A devient Z, B devient Y… ») gagne 2 points. Si personne ne trouve en 5 minutes, le prof lit l'indice.\n\n2. La plongée (15 min) : le message est découpé en 4 coquillages (les 4 morceaux séparés par des barres). Gryffondor déchiffre le coquillage 1, Serdaigle le 2, Poufsouffle le 3, Serpentard le 4. Conseil : écrire l'alphabet de A à Z, puis juste en dessous de Z à A. Une maison qui a fini peut aller vérifier (sans souffler la réponse) le travail d'une autre maison : +1 point de coopération.\n\n3. Attaques de Strangulots (3 fois pendant la plongée) : le prof crie « STRANGULOTS ! » et donne une lettre (« Le reflet de G ? »). La première maison qui lève la bonne réponse (T) repousse les Strangulots et gagne 1 point. Lettres conseillées : G (T), R (I), B (Y), M (N).\n\n4. La remontée (5 min) : chaque maison lit son coquillage à voix haute, dans l'ordre, et la classe reconstitue le message complet. Le prof valide.\n\nOnt brillé : la maison qui a trouvé la règle en premier, celle qui a déchiffré son coquillage sans erreur le plus vite, et celle qui a repoussé le plus de Strangulots.",
+   "duree": 30,
+   "questions": [],
+   "paires": [],
+   "ordre": [],
+   "code": {
+    "message": "OV NVWZROOLM / WLIG HLFH OV OZX / KZHHVA KZI / OVH XZXSLGH",
+    "cle": "Alphabet miroir (le « reflet dans l'eau ») : on écrit l'alphabet de A à Z, et juste en dessous de Z à A. Chaque lettre est remplacée par celle qui lui fait face : A↔Z, B↔Y, C↔X, D↔W, E↔V, F↔U, G↔T, H↔S, I↔R, J↔Q, K↔P, L↔O, M↔N. Pour déchiffrer, on fait exactement la même chose : O redevient L, V redevient E, etc.",
+    "reponse": "LE MEDAILLON / DORT SOUS LE LAC / PASSEZ PAR / LES CACHOTS"
+   },
+   "indice": "Pensez à votre reflet dans l'eau : ce qui est au début se retrouve à la fin. Si A devient Z, que devient B ? Écrivez l'alphabet sur une ligne, puis à l'envers juste en dessous, et lisez en face.",
+   "reussite": "Réussite : les 4 coquillages sont déchiffrés sans erreur en 15 minutes maximum. Partielle : le message est complet mais il a fallu plus de 15 minutes ou l'indice du prof, ou 1 coquillage reste faux. Échec : 2 coquillages ou plus restent faux à la fin du temps : les êtres de l'eau, bons joueurs, chantent la fin du message (on avance quand même, avec moins de récompenses)."
+  },
+  "defi_maison": {
+   "titre": "La carte de Chocogrenouille de Pépite",
+   "consigne": "Pépite vient d'entrer dans l'équipe : il mérite sa propre carte de Chocogrenouille ! Sur une feuille (format carte à jouer ou plus grand), dessine son portrait d'un côté et écris sa fiche de l'autre. Le professeur validera les cartes et affichera les plus réussies au tableau d'honneur de Poudlard.",
+   "contenu": "Sur ta carte : 1) le portrait de Pépite (petite boule de poils noirs, long museau, poche ventrale pleine à craquer) ; 2) son nom complet (invente-lui un deuxième prénom ridicule) ; 3) son talent magique ; 4) son plus gros défaut ; 5) la liste des 3 objets les plus bizarres retrouvés dans sa poche ; 6) une phrase de Silas à son sujet (de préférence grognon).",
+   "mot_de_passe": ""
+  },
+  "note_prof": "Écrivez le message chiffré au tableau en 4 morceaux bien séparés (ou sur 4 papiers en forme de coquillage, un par maison). Gardez sous la main les lettres des attaques de Strangulots et leurs reflets (G→T, R→I, B→Y, M→N) ; un fond sonore de bruits d'eau fait merveille pour l'ambiance."
+ },
+ "11": {
+  "num": 11,
+  "titre": "La Sifflotine de Silas",
+  "lieu": "Le Cachot des potions",
+  "heros": "silas",
+  "recit": "« Le Médaillon dort sous le lac : passez par les cachots. » Les héros descendent donc l'escalier glacé jusqu'au cachot des potions. Ça sent le chou bouilli, la chaussette mouillée et le crapaud. Silas inspire profondément, ravi : « Ah… ça sent la maison. »\n\nAu fond du cachot, derrière les étagères de bocaux, il y a un mur nu. Au milieu, un serpent de pierre sculpté ouvre un œil quand on approche… puis le referme, l'air de s'ennuyer terriblement. Iris a lu que ces serpents-là n'écoutent que ceux qui parlent leur langue : le Fourchelang. Problème : personne dans l'équipe ne parle serpent.\n\nSur la paillasse, un vieux grimoire est ouvert. Silas tourne les pages, les yeux brillants : « La Sifflotine ! Une gorgée, et on peut baragouiner quelques phrases en serpent. Avec un zézaiement affreux, d'accord, mais ça marche ! » Pour une fois, c'est lui le chef, et il adore ça. Léo doit couper les orties. Léo déteste ça.\n\nMais l'Ombre est passée avant vous. L'encre est renversée sur la recette, les lettres d'une étiquette sont mélangées, les fioles ont été trafiquées… et quelqu'un chante faux dans les tuyaux. Sur la porte, un mot du professeur Rogue : « Quiconque touche à mes fioles récurera des chaudrons jusqu'à la fin du siècle. » Silas avale sa salive.\n\nPépite, lui, essaie de voler le chaudron (il est en cuivre, il brille).\n\nÀ vous de reconstituer la recette de la Sifflotine. Si elle rate, on ne sait pas exactement ce qui arrivera… mais Silas tient beaucoup à ses cheveux.",
+  "message_ombre": "Bouillonne, bouillonne, petit chaudron de malheur !\nJ'ai renversé l'encre et mélangé les couleurs !\nUn chewing-gum dans la serrure, un chant faux dans les tuyaux…\nSi ta potion rate, Silas, tes cheveux roses seront si beaux !",
+  "epreuve": {
+   "type": "enigmes",
+   "titre": "La recette tachée d'encre",
+   "consigne": "L'Ombre a renversé de l'encre sur la recette de la Sifflotine et trafiqué les fioles. Résolvez les 6 énigmes pour retrouver les ingrédients, les quantités, l'ordre… et la bonne fiole. Chaque bonne réponse ajoute un ingrédient dans le chaudron !",
+   "deroulement": "Le prof dessine un grand chaudron au tableau. Les 6 énigmes s'affichent une par une. Chaque maison réfléchit à voix basse et écrit sa réponse sur son ardoise. Temps conseillé : 2 minutes pour les énigmes 1, 2 et 3 ; 4 minutes pour les énigmes 4 et 5 ; 8 minutes pour l'énigme 6 (les fioles). Au signal « Ardoises levées ! », le prof valide : chaque bonne réponse rapporte 1 point à la maison. Si au moins 2 maisons ont juste, l'énigme est réussie par l'équipe et on dessine l'ingrédient dans le chaudron. Pour l'énigme 6, la maison qui donne la bonne fiole ET explique pourquoi gagne 2 points de plus. Joker de Silas : une seule fois dans la séance, une maison bloquée peut crier « Silas, au secours ! » : pour l'énigme 6, le prof lit l'indice ; pour les autres énigmes, il lit le début de l'explication (sans la réponse). À la fin, on « goûte » la potion selon le nombre d'énigmes réussies. Ont brillé : les 2 maisons qui ont le plus de points sur l'ensemble des 6 énigmes.",
+   "duree": 30,
+   "questions": [
+    {
+     "q": "Premier ingrédient – La devinette de Silas : « Je suis un manteau qu'on quitte sans jamais le ranger. Quand le serpent devient trop grand pour moi, il me laisse par terre, vide, sec et léger. Qui suis-je ? »",
+     "choix": [],
+     "reponse": "Une mue de serpent (on accepte aussi « une peau de serpent » ou « une mue »)",
+     "explication": "En grandissant, le serpent se débarrasse de sa vieille peau et la laisse par terre tout entière : c'est sa mue. Parfait pour une potion qui fait parler serpent !"
+    },
+    {
+     "q": "Deuxième ingrédient – L'étiquette brouillée : sur le bocal, l'Ombre a mélangé les lettres : R – T – E – O – I. Indice : c'est une plante qui pique les mollets quand on se promène en short.",
+     "choix": [],
+     "reponse": "ORTIE",
+     "explication": "En remettant les lettres dans l'ordre, on obtient ORTIE, la plante qui pique. Léo doit maintenant la couper… avec des gants."
+    },
+    {
+     "q": "Troisième ingrédient – Les gouttes de mucus de Veracrasse (un gros ver mou et baveux) : leur nombre est caché sous une tache d'encre, mais Silas se souvient de la comptine : « Impair je suis, entre dix et vingt ; additionne mes deux chiffres : tu trouves six, et c'est certain ! » Combien de gouttes ?",
+     "choix": [],
+     "reponse": "15",
+     "explication": "Les nombres impairs entre 10 et 20 sont 11, 13, 15, 17 et 19. Le seul dont les deux chiffres additionnés font 6 est 15 (1 + 5 = 6)."
+    },
+    {
+     "q": "L'ordre des ingrédients – Dans quel ordre verser l'ortie, la mue de serpent et le mucus de Veracrasse ? La recette dit : « Jamais le mucus avant l'ortie. La mue n'est ni la première ni la dernière. »",
+     "choix": [],
+     "reponse": "Ortie, puis mue de serpent, puis mucus de Veracrasse",
+     "explication": "La mue n'est ni 1re ni 3e : elle est donc au milieu. Il reste la 1re et la 3e place pour l'ortie et le mucus ; comme le mucus ne passe jamais avant l'ortie, l'ortie est 1re et le mucus 3e."
+    },
+    {
+     "q": "Les tours de louche – Note griffonnée dans la marge : « Multiplie le nombre de reliques cachées par les quatre Fondateurs par le nombre de compagnons animaux de l'équipe (sans compter Moka, qui est le hibou de service), puis retire 1. » Combien de tours de louche faut-il donner ?",
+     "choix": [],
+     "reponse": "7",
+     "explication": "Il y a 4 reliques (Coupe, Épée, Médaillon, Diadème) et 2 compagnons (Brindille le Botruc et Pépite le Niffleur) : 4 × 2 = 8, moins 1 = 7 tours de louche."
+    },
+    {
+     "q": "La bonne fiole – La base de la potion est dans l'une des 4 fioles du professeur Rogue. L'Ombre a trafiqué les étiquettes : UNE SEULE dit la vérité. Fiole rouge : « La base est dans la fiole bleue. » Fiole bleue : « La base est dans la fiole verte. » Fiole verte : « La base n'est pas dans la fiole verte. » Fiole dorée : « La base n'est pas dans la fiole rouge. » Dans quelle fiole se trouve la base ?",
+     "choix": [],
+     "reponse": "La fiole rouge",
+     "explication": "On teste chaque fiole. Base dans la bleue : la rouge, la verte et la dorée diraient vrai (3 étiquettes vraies). Dans la verte : la bleue et la dorée diraient vrai (2). Dans la dorée : la verte et la dorée diraient vrai (2). Dans la rouge : seule la verte dit vrai (1). C'est donc la rouge ! Silas voulait absolument la verte, couleur de Serpentard… raté."
+    }
+   ],
+   "paires": [],
+   "ordre": [],
+   "code": {
+    "message": "",
+    "cle": "",
+    "reponse": ""
+   },
+   "indice": "Pour les fioles : testez-les une par une. Imaginez que la base est dans la fiole rouge : combien d'étiquettes disent vrai ? Puis recommencez avec la bleue, la verte, la dorée. La bonne fiole est la seule pour laquelle UNE SEULE étiquette dit vrai.",
+   "reussite": "Réussite : 5 ou 6 énigmes réussies par l'équipe : la Sifflotine devient vert émeraude et siffle comme une bouilloire, parfaite ! Partielle : 3 ou 4 énigmes : la potion est jaune moutarde ; elle marchera, mais Silas aura de la fumée qui lui sort des oreilles. Échec : 0 à 2 énigmes : la potion vire au rose bonbon, les cheveux de Silas aussi… La Sifflotine marchera quand même (à peu près) à la prochaine séance."
+  },
+  "defi_maison": {
+   "titre": "Le mot de passe du mur de pierre",
+   "consigne": "À la dernière page du grimoire, Silas découvre le mot de passe qui ouvre le mur nu du cachot vers la Salle sous le lac… caché dans la grille secrète des maîtres des potions ! Chaque lettre est remplacée par un nombre à deux chiffres, comme à la bataille navale : le premier chiffre donne la LIGNE, le second la COLONNE. Déchiffre le mot et tape-le dans le jeu au début de la prochaine séance.",
+   "contenu": "La grille de Silas :\nLigne 1 → A B C D E\nLigne 2 → F G H I K\nLigne 3 → L M N O P\nLigne 4 → Q R S T U\nLigne 5 → V W X Y Z\n(Dans chaque ligne, la 1re lettre est en colonne 1, la 2e en colonne 2… Le J n'a pas de case : on l'écrit comme un I.)\n\nMot de passe : 21 – 34 – 45 – 42 – 13 – 23 – 15 – 31 – 11 – 33 – 22\nExemple : 21 = ligne 2, colonne 1 = F ; 34 = ligne 3, colonne 4 = O. Le mot fait 11 lettres.",
+   "mot_de_passe": "FOURCHELANG"
+  },
+  "note_prof": "Dessinez au tableau un grand chaudron et 4 fioles (rouge, bleue, verte, dorée) avec leurs étiquettes, puis ajoutez un ingrédient dans le chaudron à chaque énigme réussie. Si vous avez de vrais flacons colorés, posez-les sur votre bureau : l'énigme 6 devient irrésistible."
+ },
+ "12": {
+  "num": 12,
+  "titre": "Le serpent aux quatre écailles",
+  "lieu": "La Salle sous le lac",
+  "heros": "silas",
+  "recit": "Le mur nu du cachot a fini par glisser sur le côté dans un long grincement. Derrière : la Salle sous le lac. Une pièce basse et allongée, éclairée par des lampes vertes, avec des fauteuils de cuir et de grandes fenêtres rondes qui donnent… sur le fond du lac ! Des algues ondulent derrière la vitre, un banc de poissons argentés passe (Pépite colle son museau au verre), et le calmar géant vient poser un œil énorme contre la fenêtre pour vous observer. Moka, perché sur un lustre, hulule d'un air inquiet : un hibou n'aime pas du tout avoir un lac entier au-dessus de la tête. Silas, lui, est aux anges : « Bienvenue chez les Serpentard. Essuyez vos pieds, merci. »\n\nAu centre de la salle se dresse un coffre de pierre, autour duquel s'enroule un gigantesque serpent sculpté. Sur le coffre : un cadenas à quatre chiffres. Sur le corps du serpent : quatre trous en forme d'écailles. Quatre écailles manquent.\n\nSilas débouche la fiole de Sifflotine et en avale une gorgée. Il tousse, ses yeux pleurent, puis il ouvre la bouche : « Sssssalut, Ssssserpent ! » Le serpent de pierre ouvre lentement les yeux et siffle une réponse que Silas traduit : « Quatre écailles j'ai perdues, dans cette salle elles sont cachées. Rapportez-les, trouvez leurs chiffres, et mon coffre sera ouvert. Mais je n'ouvre qu'à ceux qui me parlent dans ma langue. »\n\nIl ne reste que quelques minutes de Sifflotine dans la gorge de Silas. Et derrière les tentures vertes, quelqu'un ricane… quelqu'un d'invisible, qui attend sagement que vous ouvriez le coffre à sa place.\n\nSoudain, un courant d'air glacé fait trembler les lampes : le Baron Sanglant, le fantôme de Serpentard, traverse le mur dans un cliquetis de chaînes, l'air aussi joyeux qu'une porte de prison. Aussitôt, le ricanement s'étrangle en un petit « hiiip ! » et les tentures cessent de bouger. Le Baron repart sans un mot… et trente secondes plus tard, le ricanement reprend, tout bas, comme si quelqu'un avait eu très, très peur. Bizarre, non ? Gardez ça dans un coin de votre tête.\n\nGryffondor, Serdaigle, Poufsouffle, Serpentard : c'est le moment de jouer en vraie équipe !",
+  "message_ombre": "Allez, ouvrez ce coffre, mes petits héros chéris,\nJe flotte tout là-haut, invisible et ravi !\nLe Médaillon qui brille, je l'attraperai d'un bond,\nEt je filerai en chantant à travers les plafonds !",
+  "epreuve": {
+   "type": "defi_equipe",
+   "titre": "La grande épreuve des Quatre Écailles",
+   "consigne": "Le serpent de pierre a perdu ses quatre écailles, cachées dans la salle. Chaque maison doit retrouver la sienne et résoudre son énigme pour obtenir un chiffre. Ensuite, toute l'équipe doit ouvrir le cadenas du coffre et remercier le serpent dans sa langue. Ensemble, ou pas du tout !",
+   "deroulement": "Phase 1 – La Sifflotine (2 min) : toute la classe « boit » la potion en levant un gobelet imaginaire, puis fait « Ssssss » pendant 5 secondes. Le prof lit la phrase du serpent avec un zézaiement très exagéré.\n\nPhase 2 – La plongée (5 min) : chaque maison envoie un plongeur chercher l'enveloppe de sa couleur cachée dans la salle. Le prof lit les indices de cachette : Gryffondor (rouge) : « Là où l'on écrit sans encre ni plume » (près du tableau) ; Serdaigle (bleue) : « Là où dorment les livres » (étagère, armoire) ; Poufsouffle (jaune) : « Près de ce qui pousse ou de ce qui laisse entrer le soleil » (plante, fenêtre) ; Serpentard (verte) : « Sous le trône du maître des lieux » (sous le bureau ou la chaise du prof). Les plongeurs ont 2 minutes ; leur maison peut les guider en chuchotant « chaud » ou « froid ».\n\nPhase 3 – Les quatre écailles (10 min) : chaque maison résout l'énigme de son écaille (questions d'appui 1 à 4) et écrit son chiffre en grand sur l'ardoise. Le prof valide et « replace » l'écaille sur le serpent dessiné au tableau. Au bout de 4 minutes, une maison qui a fini peut aller aider une maison bloquée en expliquant (sans donner la réponse) : +1 point de coopération. Au bout de 6 minutes, une maison encore bloquée peut demander un coup de pouce au prof, qui lit le début de l'explication (sans la réponse).\n\nPhase 4 – Le cadenas (5 min) : le serpent siffle sa dernière énigme (question d'appui 5). Chaque maison écrit le code à 4 chiffres sur son ardoise ; on teste les propositions une par une, 4 essais maximum pour l'équipe. Si l'équipe bloque, le prof peut lire l'indice.\n\nPhase 5 – Le serment sifflant (6 min) : le coffre ne s'ouvre que si on remercie le serpent dans sa langue. Chaque maison invente une phrase polie pour le serpent dans laquelle CHAQUE mot contient au moins une lettre S (exemple : « Salazar, sois sympa, sors ses secrets ! »). Une phrase est valide si elle compte au moins 5 mots, tous avec un S. La maison qui présente la plus longue phrase valide gagne 2 points ; la classe vote pour la plus drôle (+1 point).\n\nPhase 6 – Coup de théâtre (5 min) : le coffre s'ouvre, le Médaillon brille… et le prof éteint la lumière quelques secondes ! On entend un ricanement (le prof ricane). La lumière revient : le Médaillon a disparu ! Panique… jusqu'à ce que Pépite fasse un petit rot satisfait : il l'a fourré dans sa poche ventrale juste avant que l'Ombre ne l'attrape. Toute la classe chatouille Pépite à distance (doigts qui gigotent, « guili-guili » général) : le Médaillon tombe dans les mains de Silas. Checkpoint atteint !\n\nOnt brillé : les maisons qui ont résolu leur écaille sans aide, celles qui ont aidé une autre maison, et la maison de la meilleure phrase sifflante.",
+   "duree": 35,
+   "questions": [
+    {
+     "q": "Écaille rouge (Gryffondor) – Le salut du calmar : dans ce jeu, le calmar géant a 10 bras. Deux Strangulots farceurs s'accrochent chacun à 2 bras, et jamais au même bras que l'autre. Avec la moitié des bras qui restent libres, le calmar salue les héros à travers la vitre. Combien de bras saluent ?",
+     "choix": [],
+     "reponse": "3",
+     "explication": "Les Strangulots bloquent 2 × 2 = 4 bras. Il reste 10 − 4 = 6 bras libres. La moitié de 6, c'est 3 : le chiffre de Gryffondor est 3."
+    },
+    {
+     "q": "Écaille bleue (Serdaigle) – Les bulles d'Iris : des bulles numérotées remontent vers la surface dans cet ordre : 1 – 1 – 2 – 3 – 5 – ? Quel chiffre porte la bulle suivante ?",
+     "choix": [],
+     "reponse": "8",
+     "explication": "Chaque bulle est la somme des deux précédentes : 1 + 1 = 2, 1 + 2 = 3, 2 + 3 = 5, donc 3 + 5 = 8. Le chiffre de Serdaigle est 8."
+    },
+    {
+     "q": "Écaille jaune (Poufsouffle) – Les pousses de Capucine : Capucine avait planté 9 pousses de Branchiflore au bord du lac. Pépite les a toutes déterrées, sauf 4. Combien de pousses reste-t-il dans la terre ?",
+     "choix": [],
+     "reponse": "4",
+     "explication": "Piège ! « Toutes sauf 4 » veut dire que 4 pousses n'ont pas été déterrées : il en reste 4 dans la terre (et pas 9 − 4 = 5). Le chiffre de Poufsouffle est 4."
+    },
+    {
+     "q": "Écaille verte (Serpentard) – La devinette du serpent : « Je suis un chiffre. Quand le serpent me retourne la tête en bas, je vaux 3 de plus. Qui suis-je ? »",
+     "choix": [],
+     "reponse": "6",
+     "explication": "Un 6 retourné tête en bas devient un 9, et 9 = 6 + 3. (Un 9 retourné devient 6, c'est 3 de moins ; 0, 1 et 8 restent identiques.) Le chiffre de Serpentard est 6."
+    },
+    {
+     "q": "Le cadenas du coffre : « Ouvrez-moi dans l'ordre où les Fondateurs vous confient leurs trésors : celui que vous avez trouvé d'abord, puis le deuxième, puis le mien, et enfin celui qui vous attend encore. Chaque trésor vaut le chiffre de l'écaille de sa maison. » Quel est le code à 4 chiffres ?",
+     "choix": [],
+     "reponse": "4368",
+     "explication": "L'équipe a trouvé d'abord la Coupe de Poufsouffle (4), puis l'Épée de Gryffondor (3) ; le serpent garde le Médaillon de Serpentard (6) ; il reste à trouver le Diadème de Serdaigle (8). Code : 4 – 3 – 6 – 8."
+    }
+   ],
+   "paires": [],
+   "ordre": [],
+   "code": {
+    "message": "",
+    "cle": "",
+    "reponse": ""
+   },
+   "indice": "Pour le cadenas : rappelez-vous l'ordre de vos aventures. Quelle relique avez-vous trouvée au chapitre 1 ? Au chapitre 2 ? Laquelle est ici ? Laquelle reste à trouver ? Remplacez chaque relique par le chiffre de l'écaille de sa maison.",
+   "reussite": "Réussite : les 4 écailles résolues sans coup de pouce du prof (l'aide entre maisons est permise), code 4368 trouvé en 2 essais maximum, et au moins 3 phrases sifflantes valides. Partielle : 1 ou 2 coups de pouce du prof, ou code trouvé au 3e ou 4e essai, ou moins de 3 phrases sifflantes valides. Échec : 3 coups de pouce ou plus, ou code non trouvé en 4 essais : le serpent soupire « Ssssi lents… » et ouvre le coffre de lui-même (le Médaillon est récupéré quand même, mais avec moins de récompenses)."
+  },
+  "defi_maison": {
+   "titre": "L'inscription au dos du Médaillon",
+   "consigne": "Au dos du Médaillon, Silas découvre une minuscule inscription laissée par les Fondateurs. Elle est écrite dans la langue miroir des êtres de l'eau. Déchiffre-la, puis prends la PREMIÈRE lettre de chaque mot : tu obtiendras le mot de passe… et le nom de la prochaine relique !",
+   "contenu": "WVIMRVI RMWRXV : ZF WVIMRVI VGZTV, NLM VXOZG\nRappel de l'alphabet miroir : A↔Z, B↔Y, C↔X, D↔W, E↔V, F↔U, G↔T, H↔S, I↔R, J↔Q, K↔P, L↔O, M↔N.",
+   "mot_de_passe": "DIADEME"
+  },
+  "note_prof": "Avant la séance, cachez 4 enveloppes de couleur (rouge, bleue, jaune, verte) contenant chacune l'énigme d'une écaille, et dessinez au tableau un serpent enroulé autour d'un coffre, avec 4 trous d'écailles. Une vraie boîte fermée par un cadenas à 4 chiffres réglé sur 4368 (avec un médaillon en papier doré dedans) rend la scène inoubliable. Pensez à éteindre la lumière quelques secondes pour le coup de théâtre final !"
+ },
+ "13": {
+  "num": 13,
+  "titre": "Le Vif d'or ensorcelé",
+  "lieu": "Le Terrain de Quidditch",
+  "heros": "iris",
+  "recit": "Moka entre par la fenêtre en zigzag, les plumes en bataille : depuis la volière, une minuscule balle dorée lui tourne autour comme une guêpe. Le Vif d'or ! Il fait trois fois le tour de la classe, frôle le nez de Silas, puis file droit vers le Terrain de Quidditch.\nLa lettre de mission est signée du professeur Flitwick, directeur de la maison Serdaigle : « Chers héros, voici votre dernier chapitre. La quatrième relique, le Diadème de Rowena Serdaigle, dort quelque part dans le château. Le premier indice est enfermé dans le Vif d'or de l'école… mais quelqu'un l'a ensorcelé : il ne s'ouvrira que si votre équipe gagne un match de Quidditch. Madame Bibine vous attend sur le terrain. »\nSur la pelouse, surprise : l'équipe adverse est déjà en place. Sept balais flottent tout seuls, sans personne dessus, avec des chaudrons cabossés en guise de têtes. Une banderole claque au vent : « LES FARFADETS DE L'OMBRE ». Léo réclame déjà une batte, Silas refuse de poser un orteil dans la boue, Capucine distribue du jus de citrouille, et Pépite le Niffleur, fou de tout ce qui brille, bondit après le Vif d'or.\nIris, elle, n'est montée qu'une seule fois sur un balai (elle a atterri dans un buisson de houx). Mais elle a lu trois fois Le Quidditch à travers les âges. Elle retrousse ses manches et sourit : « Pas besoin de voler plus vite que l'Ombre. Il suffit de réfléchir plus vite qu'elle ! »",
+  "message_ombre": "Votre Vif d'or s'envole, il a suivi mes leçons :\nIl zigzague, il ricane et fredonne mes chansons !\nMoi, je vole sans balai, la tête à l'envers…\nEssayez donc de m'attraper, mes petits vers de terre !",
+  "epreuve": {
+   "type": "qcm",
+   "titre": "Le match contre les Farfadets de l'Ombre",
+   "consigne": "Ce match de Quidditch se joue à coups de questions ! Lisez d'abord le Guide express du Quidditch d'Iris :\n• Chaque équipe a 7 joueurs sur des balais volants : 3 Poursuiveurs, 1 Gardien, 2 Batteurs et 1 Attrapeur.\n• Le Souafle (ballon rouge) : les Poursuiveurs le lancent à travers l'un des 3 anneaux adverses. Un but = 10 points. Le Gardien protège ses anneaux.\n• Les 2 Cognards (balles noires) foncent sur les joueurs pour les faire tomber de leur balai. Les Batteurs les renvoient avec une batte.\n• Le Vif d'or (petite balle dorée ailée, ultra-rapide) : l'Attrapeur qui l'attrape rapporte 150 points à son équipe, et le match s'arrête aussitôt.\nÀ chaque question, écrivez la réponse sur l'ardoise de votre maison et levez-la dès que vous êtes prêts. Chaque bonne réponse de l'équipe = un but contre les Farfadets de l'Ombre. La dernière question, c'est le Vif d'or !",
+   "deroulement": "1) Le professeur dessine au tableau le score HÉROS / FARFADETS DE L'OMBRE et un gros Vif d'or (un cercle doré avec deux ailes).\n2) Chaque question est une action de jeu. Le professeur la lit ; chaque maison écrit sa réponse sur son ardoise et la lève dès qu'elle est prête (30 secondes maximum, 1 minute pour les calculs de score). Au signal « Ardoises levées ! », toutes les ardoises doivent être en l'air et on compare.\n3) BUT ! Si au moins 3 maisons sur 4 ont juste, les Héros marquent 10 points. Sinon, le Souafle est intercepté et les Farfadets marquent 10 points.\n4) SOUAFLE D'ARGENT : la première maison qui a levé une ardoise juste gagne 1 point de maison (le professeur arbitre la rapidité, comme Madame Bibine).\n5) La question 7 est un bonus pour les fans : 1 point de maison par maison juste, mais elle ne compte pas pour le match.\n6) LE VIF D'OR (question 8) : chaque maison désigne son Attrapeur. Dès que sa maison a trouvé, l'Attrapeur apporte l'ardoise au tableau en marchant vite (on ne court pas en classe, même sur un balai !) et pose la main sur le Vif d'or dessiné. Le premier Attrapeur arrivé avec la bonne réponse l'attrape : +150 points pour les Héros et +3 points pour sa maison. Si aucune maison n'a juste, ce sont les Farfadets qui attrapent le Vif d'or (+150 pour eux).\n7) ONT BRILLÉ : la maison qui a gagné le plus de Souafles d'argent et la maison qui a attrapé le Vif d'or.",
+   "duree": 30,
+   "questions": [
+    {
+     "q": "Combien de joueurs compte une équipe de Quidditch sur le terrain ?",
+     "choix": [
+      "5",
+      "7",
+      "9",
+      "11"
+     ],
+     "reponse": "7",
+     "explication": "3 Poursuiveurs + 1 Gardien + 2 Batteurs + 1 Attrapeur = 7 joueurs."
+    },
+    {
+     "q": "Léo veut marquer 10 points. Quelle balle doit-il lancer à travers un anneau ?",
+     "choix": [
+      "Un Cognard",
+      "Le Souafle",
+      "Le Vif d'or",
+      "Un Rapeltout"
+     ],
+     "reponse": "Le Souafle",
+     "explication": "Le Souafle, le ballon rouge des Poursuiveurs. Le Rapeltout n'est pas une balle de Quidditch : c'est une boule de verre qui devient rouge quand on a oublié quelque chose !"
+    },
+    {
+     "q": "Une balle noire fonce sur Capucine pour la faire tomber de son balai ! Quel joueur doit la renvoyer d'un coup de batte ?",
+     "choix": [
+      "Le Gardien",
+      "Un Batteur",
+      "L'Attrapeur",
+      "Un Poursuiveur"
+     ],
+     "reponse": "Un Batteur",
+     "explication": "Les balles noires sont les Cognards, et ce sont les Batteurs qui les renvoient avec leur batte."
+    },
+    {
+     "q": "Combien de balles en tout sont en jeu pendant un match de Quidditch ?",
+     "choix": [
+      "3",
+      "4",
+      "5",
+      "7"
+     ],
+     "reponse": "4",
+     "explication": "1 Souafle + 2 Cognards + 1 Vif d'or = 4 balles."
+    },
+    {
+     "q": "Gryffondor a marqué 4 buts, Serpentard en a marqué 9. Puis l'Attrapeur de Gryffondor attrape le Vif d'or. Quel est le résultat ?",
+     "choix": [
+      "Serpentard gagne 90 à 40",
+      "Gryffondor gagne 190 à 90",
+      "Gryffondor gagne 150 à 90",
+      "Match nul"
+     ],
+     "reponse": "Gryffondor gagne 190 à 90",
+     "explication": "Gryffondor : 4 × 10 + 150 = 190 points. Serpentard : 9 × 10 = 90 points."
+    },
+    {
+     "q": "Piège de l'Ombre ! Serdaigle a marqué 18 buts. Poufsouffle a marqué 2 buts, puis son Attrapeur attrape le Vif d'or. Qui gagne ?",
+     "choix": [
+      "Poufsouffle, parce que le Vif d'or fait toujours gagner",
+      "Serdaigle, 180 à 170",
+      "Poufsouffle, 170 à 160",
+      "Match nul"
+     ],
+     "reponse": "Serdaigle, 180 à 170",
+     "explication": "Serdaigle : 18 × 10 = 180. Poufsouffle : 2 × 10 + 150 = 170. Attraper le Vif d'or ne suffit pas toujours ! Pour les fans : c'est arrivé à la Coupe du Monde de Quidditch, quand Viktor Krum attrapa le Vif d'or… mais l'Irlande battit quand même la Bulgarie 170 à 160."
+    },
+    {
+     "q": "BONUS POUR LES FANS (ne compte pas pour le match) : quel balai Harry Potter reçoit-il en première année pour devenir Attrapeur ? Indice pour ceux qui n'ont pas lu les livres : son nom est celui d'un gros nuage, suivi d'une année toute ronde.",
+     "choix": [
+      "Un Brossdur",
+      "Un Nimbus 2000",
+      "Un Éclair de feu",
+      "Un Comète 260"
+     ],
+     "reponse": "Un Nimbus 2000",
+     "explication": "Un Nimbus 2000 (un nimbus est un gros nuage), envoyé par le professeur McGonagall. L'Éclair de feu n'arrive qu'en troisième année."
+    },
+    {
+     "q": "LE VIF D'OR ! Score final : Poufsouffle 230 points, Serdaigle 80 points. Poufsouffle a attrapé le Vif d'or. Combien de buts Poufsouffle a-t-il marqués avec le Souafle ?",
+     "choix": [
+      "5",
+      "8",
+      "15",
+      "23"
+     ],
+     "reponse": "8",
+     "explication": "230 − 150 (le Vif d'or) = 80 points de buts. Et 80 ÷ 10 = 8 buts. Le Vif d'or s'ouvre dans un petit déclic doré…"
+    }
+   ],
+   "paires": [],
+   "ordre": [],
+   "code": {
+    "message": "",
+    "cle": "",
+    "reponse": ""
+   },
+   "indice": "Tout est dans le Guide express ! Pour les scores : 10 points par but avec le Souafle, 150 points pour le Vif d'or.",
+   "reussite": "Réussite : les Héros attrapent le Vif d'or ET marquent au moins 4 buts sur les 6 actions de match (questions 1 à 6). Partielle : le Vif d'or est attrapé mais avec 3 buts ou moins, OU le Vif d'or est manqué alors que l'équipe a marqué au moins 5 buts (les Farfadets gagnent au score, mais Madame Bibine salue le beau jeu des Héros). Échec : dans tous les autres cas, les Farfadets gagnent ; le Vif d'or s'ouvre quand même à la fin du match, mais avec moins de récompenses. La classe avance quoi qu'il arrive."
+  },
+  "defi_maison": {
+   "titre": "Le parchemin du Vif d'or",
+   "consigne": "Le Vif d'or s'est ouvert : à l'intérieur, un parchemin minuscule… brouillé par l'Ombre ! Cette fois, elle a copié le code du coffre d'Helga (chapitre 1) : chaque lettre a avancé de 3 rangs dans l'alphabet (A est devenu D, B est devenu E… et X, Y, Z sont devenus A, B, C). Recule chaque lettre de 3 rangs pour découvrir où vous attend la prochaine mission. Tape ce mot dans le jeu au début de la prochaine séance.",
+   "contenu": "UHVHUYH",
+   "mot_de_passe": "RESERVE"
+  },
+  "note_prof": "Dessinez au tableau le score HÉROS / FARFADETS et un gros Vif d'or pour la finale des Attrapeurs. Lisez les questions comme un commentateur sportif survolté : l'ambiance fait la moitié du match !"
+ },
+ "14": {
+  "num": 14,
+  "titre": "Les grimoires hurlants",
+  "lieu": "La Bibliothèque (la Réserve)",
+  "heros": "iris",
+  "recit": "Le parchemin du Vif d'or ne contenait qu'un mot : RÉSERVE. Iris en a lâché sa tartine. La Réserve, c'est le coin interdit de la bibliothèque, là où dorment les livres les plus anciens… et les plus mal élevés. Pour y entrer, il faut un mot signé par un professeur : heureusement, le professeur Flitwick en a glissé un dans la lettre apportée par Moka.\nMadame Pince, la bibliothécaire, lit l'autorisation trois fois, la renifle, la regarde à l'envers, puis grince : « Dix minutes. Pas un bruit. Pas une miette. Et si quelqu'un corne une page, je le transforme en marque-page. »\nÀ peine la grille de la Réserve ouverte : SPLATCH ! Un encrier se renverse tout seul sur le parquet. Un ricanement aigu file entre les étagères… et soudain, TOUS les livres se mettent à hurler. Un grimoire siffle comme une bouilloire, un atlas sanglote, un dictionnaire râle en latin. Le Monstrueux Livre des Monstres claque des pages vers les chevilles de Silas, qui saute sur une chaise ; Léo, qui connaît le truc, lui caresse le dos, et le livre se met à ronronner.\nIris ramasse le seul livre qui ne crie pas : le Grand Grimoire des Sortilèges. Ses pages ont été décousues et mélangées ! « Voilà le secret : si on remet chaque sort en face de son effet, les livres se calmeront. Mais vite… et EN CHUCHOTANT. Madame Pince arrive ! »",
+  "message_ombre": "Chut ! Dans la Réserve, on ne fait jamais de bruit…\nSauf moi : j'ai renversé l'encre et réveillé les manuscrits !\nLes livres hurlent, Madame Pince est verte de colère,\nEt le coupable, hi hi, fait la ronde au-dessus des étagères !",
+  "epreuve": {
+   "type": "association",
+   "titre": "Le Grand Grimoire décousu",
+   "consigne": "Les grimoires de la Réserve hurlent ! Pour les faire taire, associez chaque formule magique à son effet. Astuce d'Iris : beaucoup de sorts ressemblent à des mots que vous connaissez déjà. Règle sacrée de Madame Pince : on CHUCHOTE. La maison la plus bruyante perd 1 point. Quand tout sera remis en ordre, le grimoire révélera un mot secret… ouvrez l'œil !",
+   "deroulement": "1) Le jeu affiche les 7 formules (à gauche) et les 7 effets mélangés (à droite). Le professeur lit chaque effet à voix basse.\n2) LES GRIMOIRES (12 min) : chaque maison, EN CHUCHOTANT, écrit ses 7 associations sur une feuille. Toutes les 3 minutes, « Madame Pince » (le professeur ou un élève désigné) fait sa ronde : la maison la plus bruyante perd 1 point de maison.\n3) CORRECTION (8 min) : paire par paire, chaque maison lève sa feuille. Une paire est validée pour l'équipe si au moins 3 maisons sur 4 l'ont trouvée ; à chaque paire validée, toute la classe fait « Chuuut ! » et un grimoire se tait (barrer un des 7 livres dessinés au tableau).\n4) LE CODE CACHÉ (5 min) : le professeur glisse un seul conseil : « Dans le Grand Grimoire, les sorts sont rangés dans cet ordre : Expelliarmus, Wingardium Leviosa, Silencio, Accio, Lumos, Alohomora, Protego. Regardez bien la première lettre de chaque effet… » Chaque maison cherche le mot secret ; la première qui le chuchote correctement à l'oreille du professeur gagne 2 points de maison. (Solution : D-E-M-A-N-D-E = DEMANDE. Iris s'exclame : « Demande… comme la Salle sur Demande ! » C'est la prochaine destination.)\n5) ONT BRILLÉ : les maisons qui ont 7 bonnes associations sur 7, la maison qui a trouvé le mot secret en premier, et la maison la plus silencieuse (prix « Madame Pince », 1 point).",
+   "duree": 30,
+   "questions": [],
+   "paires": [
+    {
+     "gauche": "Expelliarmus",
+     "droite": "Désarme l'adversaire : sa baguette lui saute des mains"
+    },
+    {
+     "gauche": "Lumos",
+     "droite": "N'importe quel recoin sombre s'éclaire : le bout de la baguette s'allume comme une lampe de poche"
+    },
+    {
+     "gauche": "Accio",
+     "droite": "Attire un objet vers soi, même s'il est à l'autre bout de la pièce"
+    },
+    {
+     "gauche": "Alohomora",
+     "droite": "Déverrouille une porte ou un cadenas"
+    },
+    {
+     "gauche": "Wingardium Leviosa",
+     "droite": "Élève un objet dans les airs et le fait flotter"
+    },
+    {
+     "gauche": "Silencio",
+     "droite": "Met la personne visée en mode muet : plus un son ne sort de sa bouche"
+    },
+    {
+     "gauche": "Protego",
+     "droite": "Entoure le sorcier d'un bouclier invisible"
+    }
+   ],
+   "ordre": [],
+   "code": {
+    "message": "",
+    "cle": "",
+    "reponse": ""
+   },
+   "indice": "Lumos ressemble à « lumière », Silencio à « silence », Protego à « protéger », Leviosa à « léviter », et dans Expelliarmus on entend « expulser » et « arme ». Pour les deux derniers, procédez par élimination ! Et pour le mot secret : première lettre de chaque effet, dans l'ordre du grimoire.",
+   "reussite": "Réussite : au moins 6 paires validées sur 7 ET le mot secret DEMANDE trouvé. Partielle : 4 ou 5 paires validées, OU 6-7 paires mais mot secret non trouvé. Échec : 3 paires validées ou moins : Madame Pince met tout le monde dehors, mais Iris a juste eu le temps de recopier le mot DEMANDE sur sa main (moins de récompenses). La classe avance quoi qu'il arrive."
+  },
+  "defi_maison": {
+   "titre": "Ton sort à toi",
+   "consigne": "Invente un sortilège qui n'existe pas encore ! Sur une feuille, écris : sa formule (inspire-toi d'un vrai mot, comme Lumos vient de « lumière »), son effet, le geste de baguette à faire (dessine-le avec une flèche), et une petite scène où l'un des quatre héros l'utilise. Le professeur valide les sorts les plus astucieux : ils seront lus devant la classe à la prochaine séance.",
+   "contenu": "Exemple : « Chaussettus Retrouvum » : retrouve instantanément la chaussette perdue d'une paire. Geste : un huit couché dans les airs. Attention : ne fonctionne pas sur les chaussettes de Rusard.",
+   "mot_de_passe": ""
+  },
+  "note_prof": "Dessinez 7 grimoires au tableau, à barrer un par un pendant la correction. Règle d'or : on chuchote, et l'effet est irrésistible si le professeur chuchote lui aussi pendant toute la séance."
+ },
+ "15": {
+  "num": 15,
+  "titre": "La montagne aux mille secrets",
+  "lieu": "La Salle sur Demande",
+  "heros": "iris",
+  "recit": "Sur la main d'Iris, le mot secret du grimoire brille encore : DEMANDE. Et sous la reliure du Grand Grimoire, Capucine a trouvé un billet à l'encre bleue : « Le Diadème ne se montre qu'à qui sait réveiller l'aigle. Cherchez la plume de bronze, là où l'on cache ce qu'on veut cacher. R.S. »\n« R.S. ? Rowena Serdaigle ! s'écrie Iris. Un endroit où l'on cache ce qu'on veut cacher, et un grimoire qui nous souffle DEMANDE… c'est la Salle sur Demande ! »\nMoka file aussitôt dans l'escalier pour montrer le chemin. Au septième étage, face à la tapisserie de Barnabas le Follet (un sorcier qui essaie, sans grand succès, d'apprendre la danse classique à des trolls), il n'y a qu'un mur tout nu. Le secret ? Passer trois fois devant en pensant très fort à ce qu'on cherche. Léo passe en courant, Silas en bâillant, Capucine en s'excusant poliment auprès du mur. Rien. Iris soupire : « Il faut y penser TOUS ENSEMBLE. »\nAlors, lentement, une porte se dessine dans la pierre… Derrière : une salle haute comme une cathédrale, remplie d'une montagne d'objets cachés là par des générations d'élèves. Balais tordus, chaudrons cabossés, livres interdits, chaussettes orphelines… Certains objets flottent encore en l'air et, quelque part, une chaussette chante faux. L'Ombre est passée avant eux ! Iris, qui déteste se salir les mains, enfile les gants de Botanique de Capucine. Pépite le Niffleur, lui, plonge déjà dans la montagne, le museau frémissant : il a senti du bronze.",
+  "message_ombre": "Dans votre montagne d'objets, j'ai semé la pagaille,\nLes chaussettes volent, les chaudrons se livrent bataille !\nJe ne crains ni les profs ni le concierge grognon…\nEnfin… presque : chut ! Ne parlez pas du Baron !",
+  "epreuve": {
+   "type": "defi_equipe",
+   "titre": "Mémoire de Pensine et œil d'aigle",
+   "consigne": "Pour retrouver la plume de bronze dans cette montagne, il faut une mémoire d'éléphant… et l'œil d'un aigle !\nManche 1 – Ouvrir la porte : toute la classe doit « penser ensemble », trois fois de suite.\nManche 2 – L'inventaire : écoutez la liste des objets de la montagne UNE SEULE FOIS, sans rien écrire, puis notez tout ce dont vous vous souvenez.\nManche 3 – Qui suis-je ? : des objets magiques se décrivent eux-mêmes. Retrouvez-les dans l'inventaire… et découvrez dans lequel l'Ombre a caché la plume de bronze !",
+   "deroulement": "MANCHE 1 – LA PORTE (5 min). La classe doit « passer trois fois devant le mur ». 1er passage : 20 secondes de silence total, yeux fermés, en pensant « plume de bronze ». 2e passage : chaque maison, à tour de rôle, chuchote « Nous avons besoin de trouver la plume de bronze ». 3e passage : toute la classe dit la phrase d'une seule voix, parfaitement ensemble. Si un passage est raté (fou rire, décalage), on le recommence : la porte n'apparaît qu'à une équipe unie.\nMANCHE 2 – L'INVENTAIRE (10 min). Ardoises retournées, stylos posés. Le professeur lit UNE fois, lentement : 1. un balai Brossdur tordu en forme de S ; 2. une Beuglante rouge qui fume encore ; 3. un Rapeltout, boule de verre pleine de fumée blanche ; 4. un sablier doré au bout d'une chaîne ; 5. une toupie de verre qui siffle toute seule ; 6. une vieille botte trouée, couverte de boue ; 7. une fiole de potion couleur or ; 8. un petit objet argenté qui ressemble à un briquet ; 9. trois chaussettes dépareillées : une rose, une verte, une à pois ; 10. un chaudron cabossé rempli de Dragées surprises de Bertie Crochue ; 11. un miroir de poche fêlé ; 12. un trophée de Quidditch tout cabossé. Chaque maison a ensuite 2 minutes pour écrire tous les objets dont elle se souvient. Puis questions de mémoire 1 à 3 sur ardoise. Enfin, le professeur dévoile l'inventaire complet (préparé à l'avance au dos du tableau ou sur une affiche) et chaque maison compte ses objets justes.\nMANCHE 3 – QUI SUIS-JE ? (12 min). Le professeur lit les devinettes 4 à 9 ; chaque maison écrit sur son ardoise quel objet de l'inventaire parle (le nom de l'objet ou son numéro suffit). Puis la question 10 : dans quel objet est cachée la plume de bronze ? Une question est gagnée par l'équipe si au moins 3 maisons sur 4 ont juste ; chaque maison juste gagne 1 point de maison.\nONT BRILLÉ : la maison qui a retenu le plus d'objets (prix « Mémoire de Pensine », 2 points) et la ou les maisons qui ont le plus de bonnes réponses aux devinettes.",
+   "duree": 30,
+   "questions": [
+    {
+     "q": "MÉMOIRE – De quelle couleur était la Beuglante ?",
+     "choix": [
+      "Rouge",
+      "Verte",
+      "Bleue",
+      "Noire"
+     ],
+     "reponse": "Rouge",
+     "explication": "Une Beuglante est toujours rouge… et elle fumait encore !"
+    },
+    {
+     "q": "MÉMOIRE – Combien de chaussettes dépareillées y avait-il dans la montagne ?",
+     "choix": [
+      "2",
+      "3",
+      "4",
+      "5"
+     ],
+     "reponse": "3",
+     "explication": "Une rose, une verte et une à pois. Personne ne sait où sont passées leurs jumelles."
+    },
+    {
+     "q": "MÉMOIRE – Que contenait le chaudron cabossé ?",
+     "choix": [
+      "Des Chocogrenouilles",
+      "Des Dragées surprises de Bertie Crochue",
+      "Du jus de citrouille",
+      "Une Mandragore endormie"
+     ],
+     "reponse": "Des Dragées surprises de Bertie Crochue",
+     "explication": "Des Dragées surprises : attention, certaines ont un goût de chou de Bruxelles… ou pire !"
+    },
+    {
+     "q": "QUI SUIS-JE ? « Je suis une boule de verre pleine de fumée. Si tu as oublié quelque chose, je deviens toute rouge. »",
+     "choix": [],
+     "reponse": "Le Rapeltout",
+     "explication": "Objet n°3 : le Rapeltout. Silas en aurait bien besoin pour ses devoirs."
+    },
+    {
+     "q": "QUI SUIS-JE ? « On me boit pour avoir de la chance toute une journée. Je suis dorée comme le soleil. »",
+     "choix": [],
+     "reponse": "La fiole de potion couleur or (du Felix Felicis)",
+     "explication": "Objet n°7 : la fiole dorée contient du Felix Felicis, la potion de chance."
+    },
+    {
+     "q": "QUI SUIS-JE ? « J'ai l'air d'un simple briquet, mais clic ! j'aspire toutes les lumières de la pièce, et re-clic ! je les rends. »",
+     "choix": [],
+     "reponse": "Le petit objet argenté (un Déluminateur)",
+     "explication": "Objet n°8 : ce faux briquet est un Déluminateur, qui vole et rend les lumières."
+    },
+    {
+     "q": "QUI SUIS-JE ? « Je tourne et je siffle dès qu'une personne louche (un menteur, un tricheur… ou un sacré farceur) s'approche de moi. Et depuis que vous êtes entrés, je n'arrête pas de siffler… »",
+     "choix": [],
+     "reponse": "La toupie de verre (un Scrutoscope)",
+     "explication": "Objet n°5 : le Scrutoscope, détecteur de personnes louches. S'il siffle sans arrêt, c'est qu'un grand farceur rôde tout près… Indice précieux sur l'Ombre !"
+    },
+    {
+     "q": "QUI SUIS-JE ? « Je suis un sablier doré au bout d'une chaîne. Fais-moi tourner, et tu remontes le temps. »",
+     "choix": [],
+     "reponse": "Le sablier doré (un Retourneur de temps)",
+     "explication": "Objet n°4 : le Retourneur de temps. Pratique pour refaire un contrôle raté… mais strictement interdit !"
+    },
+    {
+     "q": "QUI SUIS-JE ? « Je suis une lettre, mais personne n'a besoin de me lire : je crie mon message toute seule, si fort que les murs tremblent. »",
+     "choix": [],
+     "reponse": "La Beuglante",
+     "explication": "Objet n°2 : la Beuglante. Mieux vaut l'ouvrir vite, sinon elle explose de colère."
+    },
+    {
+     "q": "LA PLUME DE BRONZE – L'Ombre a laissé un dernier mot : « J'ai caché votre plume dans un objet tout bête, qu'on met au pied pour patauger dans la boue. Mais si on le touche à l'heure pile, il vous emmène à l'autre bout du pays : c'est un Portoloin ! » Dans quel objet est la plume ?",
+     "choix": [],
+     "reponse": "La vieille botte trouée",
+     "explication": "Objet n°6 : la vieille botte boueuse est un Portoloin, un objet ordinaire qui transporte celui qui le touche. Pépite plonge dedans… et ressort avec la plume de bronze !"
+    }
+   ],
+   "paires": [],
+   "ordre": [],
+   "code": {
+    "message": "",
+    "cle": "",
+    "reponse": ""
+   },
+   "indice": "Pour la mémoire : essayez de « voir » les objets dans votre tête pendant la lecture, et répartissez-vous les numéros dans votre maison (un élève retient 1 à 4, un autre 5 à 8…).",
+   "reussite": "Score mémoire : un objet compte pour l'équipe s'il a été noté par au moins 2 maisons (sur 12). Questions : une question est gagnée si au moins 3 maisons sur 4 ont juste (sur 10). Réussite : au moins 9 objets ET au moins 8 questions gagnées, dont la dernière (la botte). Partielle : au moins 6 objets ET au moins 5 questions gagnées. Échec : en dessous ; Pépite finit par flairer la plume tout seul, mais refuse de la rendre avant qu'on lui donne trois Gallions (moins de récompenses). La classe avance quoi qu'il arrive."
+  },
+  "defi_maison": {
+   "titre": "Le message du miroir fêlé",
+   "consigne": "Dans le miroir fêlé de la montagne, l'Ombre a écrit un message… à l'envers ! Chaque lettre a été remplacée par sa lettre « miroir » : A↔Z, B↔Y, C↔X, D↔W, E↔V, F↔U, G↔T, H↔S, I↔R, J↔Q, K↔P, L↔O, M↔N. Décode le message : son dernier mot est le mot de passe qui réveillera le heurtoir de la Tour de Serdaigle. Tape-le dans le jeu au début de la prochaine séance.",
+   "contenu": "OV NLG VHG : ZRTOV",
+   "mot_de_passe": "AIGLE"
+  },
+  "note_prof": "Préparez avant la séance l'inventaire des 12 objets au dos du tableau ou sur une affiche, à dévoiler après la manche 2. Lisez l'inventaire une seule fois, lentement, comme un commissaire-priseur, et interdisez les stylos pendant la lecture. Effet garanti si vous cachez sous un drap quelques vrais objets (une vieille chaussure, une petite fiole, des chaussettes dépareillées) à dévoiler à la fin."
+ },
+ "16": {
+  "num": 16,
+  "titre": "Le Diadème et le nom de l'Ombre",
+  "lieu": "La Tour de Serdaigle puis la Grande Salle",
+  "heros": "iris",
+  "recit": "La plume de bronze était cachée dans la vieille botte : Pépite l'en a sortie, très fier, une chaussette à pois sur la tête. Ce soir, toute l'équipe grimpe l'interminable escalier en colimaçon de la Tour de Serdaigle. Tout en haut : une porte sans poignée ni serrure. Juste un heurtoir de bronze en forme d'aigle.\nIris approche la plume. L'aigle ouvre un œil, puis l'autre, s'ébroue dans un petit nuage de poussière et déclare d'une voix de vieux professeur : « Chez Serdaigle, on n'entre pas avec une clé. On entre avec une idée. Écoutez mon énigme… »\nDerrière cette porte se trouvent la salle commune bleu et bronze, son plafond semé d'étoiles… et peut-être le Diadème de Rowena Serdaigle, qui rend plus sage quiconque le porte. La dernière relique !\nLéo serre son écharpe, Capucine serre Brindille, Silas ne serre rien du tout et fait semblant de ne pas avoir le trac. Iris ferme les yeux. Huit mois d'aventures pour en arriver là. « On y va. Tous les quatre. »",
+  "message_ombre": "Bravo, petits malins, vous avez grimpé tout l'escalier !\nMais ce joli Diadème, c'est moi qui vais le porter !\nJe passe à travers les murs, mais je chipe tout ce qui brille…\nTrouvez mon nom, ou le Diadème ira nager avec les anguilles !",
+  "epreuve": {
+   "type": "code",
+   "titre": "Les quatre cadenas de l'Ombre",
+   "consigne": "LA GRANDE FINALE ! Quatre actes, une seule équipe.\nActe 1 – Le heurtoir : résolvez l'énigme de l'aigle pour entrer dans la Tour de Serdaigle.\nActe 2 – L'accusation : l'Ombre s'est enfuie avec le Diadème dans la Grande Salle ! Étudiez le dossier de l'Ombre et désignez le coupable… en secret.\nActe 3 – Les quatre cadenas : l'Ombre a enfermé le Diadème dans un coffre volant à quatre cadenas, un par héros (créatures, sortilèges, botanique, potions). Chaque cadenas s'ouvre avec un nombre.\nActe 4 – Le nom de l'Ombre : sur le coffre est gravé un message. Remplacez chaque héros par le nombre de son cadenas, puis chaque nombre par une lettre (A=1, B=2… Z=26). Criez le nom tous ensemble… et l'Ombre sera démasquée !",
+   "deroulement": "ACTE 1 – LA TOUR (6 min). Le professeur lit l'énigme de l'aigle (question 1). Chaque maison écrit sa réponse sur son ardoise (2 min). Si au moins une maison a juste, la porte s'ouvre ; 1 point de maison par maison juste. Si personne ne trouve, l'aigle souffle un indice (« Regardez les LETTRES des mots… ») et on relance 1 minute ; si la porte résiste encore, Iris trouve la réponse et la porte s'ouvre (sans points). À lire ensuite : « La porte s'ouvre sur une salle bleu et bronze. Sur la statue de marbre de Rowena Serdaigle, le Diadème scintille. Iris tend la main… quand un ricanement éclate ! Une silhouette masquée fond du plafond, attrape le Diadème et file par la fenêtre en chantant à tue-tête. Direction : la Grande Salle ! »\nACTE 2 – L'ACCUSATION (6 min). Dans la Grande Salle, l'Ombre flotte sous le plafond magique, le Diadème de travers sur la tête, et laisse tomber son dernier message en vers : le professeur affiche MAINTENANT le message de l'Ombre (et non en fin de séance). Puis il affiche le dossier de l'Ombre (question 2). Chaque maison discute à voix basse puis écrit SON suspect sur son ardoise, et la pose face cachée sur le bureau du professeur. On ne révèle rien pour l'instant !\nACTE 3 – LES QUATRE CADENAS (14 min). Chaque cadenas a une maison gardienne : Gryffondor pour Léo (question 3), Serdaigle pour Iris (question 4), Poufsouffle pour Capucine (question 5), Serpentard pour Silas (question 6). Pour chaque cadenas (3 min) : toutes les maisons cherchent sur leur ardoise, mais c'est la maison gardienne qui donne la réponse officielle (elle peut écouter les conseils des autres). Bonne réponse : cadenas ouvert, +2 points pour la maison gardienne et +1 pour chaque autre maison juste. Mauvaise réponse : une autre maison peut tenter de sauver le cadenas (une seule fois). Si le cadenas résiste encore, le professeur donne le nombre (le cadenas compte comme raté). Le professeur écrit les 4 nombres au tableau sous le nom des héros.\nACTE 4 – LE NOM DE L'OMBRE (5 min). Le professeur affiche le message gravé sur le coffre et l'alphabet A=1 … Z=26. Chaque maison décode sur son ardoise. Quand toutes les ardoises sont levées : 3, 2, 1… toute la classe crie le nom ENSEMBLE. Puis on retourne les ardoises de l'Acte 2 : chaque maison qui avait déjà accusé Peeves gagne 3 points (prix « Flair de détective »).\nÉPILOGUE (à lire, 4 min) : « Au cri de PEEVES !, le masque tombe avec un PLOC ridicule. L'esprit frappeur apparaît, rouge jusqu'aux oreilles. — Bon, bon, d'accord, c'était moi ! Depuis novembre ! Les lampes de la serre, l'encre partout, les pages du livre qui mord, le chewing-gum, la Bombabouse sous le Saule, le peigne de Silas… tout ! Je voulais réunir les quatre reliques pour faire la plus grande farce de l'histoire de Poudlard : faire danser tous les escaliers du château en même temps ! Au même instant, une silhouette argentée traverse le mur dans un cliquetis de chaînes : le Baron Sanglant. Peeves rend le Diadème en une demi-seconde et file se cacher dans une armure, qui se met à claquer des dents. Pépite tente aussitôt de fourrer le Diadème dans sa poche ; Silas le rattrape de justesse. Iris pose le Diadème sur la table, à côté de la Coupe de Poufsouffle, de l'Épée de Gryffondor et du Médaillon de Serpentard. Les quatre reliques s'illuminent ensemble, et le plafond magique explose en un feu d'artifice aux couleurs des quatre maisons. Poudlard est protégé. Alors Moka entre par la plus haute fenêtre, rate son looping et dépose une dernière lettre devant les héros : « Chers héros, seuls, aucun de vous n'y serait arrivé. Ensemble, vous êtes devenus dignes des quatre Fondateurs. Il ne vous reste qu'une chose à faire : endormir la Carte. Albus Dumbledore. » » Toute la classe se lève, main sur la baguette comme au tout premier jour, et prononce d'une seule voix : « Méfait accompli ! » La Carte du Maraudeur s'efface doucement. Le professeur annonce ensuite le total des points de chaque maison (la maison en tête reçoit la Coupe des Maisons), puis proclame TOUTE la classe « Gardiens des Reliques de Poudlard » : la victoire appartient à l'équipe entière.\nONT BRILLÉ : les maisons qui ont ouvert leur cadenas du premier coup, et celles qui avaient accusé Peeves avant le décodage.",
+   "duree": 35,
+   "questions": [
+    {
+     "q": "ACTE 1 – L'ÉNIGME DE L'AIGLE : « Je commence la nuit et je termine le matin. On me trouve deux fois dans l'année, mais jamais dans le mois. Qui suis-je ? »",
+     "choix": [],
+     "reponse": "La lettre N",
+     "explication": "NUIT commence par N, MATIN finit par N, ANNÉE contient deux N, et MOIS n'en a aucun. L'aigle claque du bec, ravi : on n'entre pas chez Serdaigle avec une clé, mais avec une idée !"
+    },
+    {
+     "q": "ACTE 2 – LE DOSSIER DE L'OMBRE. Indices récoltés depuis novembre : (1) Elle vole dans les airs, fait des loopings et passe à travers les murs et les plafonds. (2) Elle renverse l'encre, colle du chewing-gum, lance des Bombabouses, fait voler les livres et les chaussettes : elle peut TOUCHER les objets. (3) Elle signe ses farces avec des vers moqueurs, des chansons et des ricanements. (4) Elle a peur d'un seul habitant du château : le Baron Sanglant (dans la Salle sous le lac, son ricanement s'est arrêté net quand il a traversé le mur). SUSPECTS : Argus Rusard, le concierge (un humain sans pouvoirs magiques, qui ne vole pas et déteste les farces) ; Nick Quasi-Sans-Tête et Mimi Geignarde (deux fantômes : leurs mains passent à travers les objets, ils ne peuvent rien attraper) ; Peeves, l'esprit frappeur (il flotte, traverse les murs, attrape tout ce qui lui tombe sous la main, adore les farces… et n'obéit qu'au Baron Sanglant, qui le terrifie). Qui est l'Ombre ?",
+     "choix": [
+      "Argus Rusard, le concierge",
+      "Nick Quasi-Sans-Tête, le fantôme de Gryffondor",
+      "Mimi Geignarde, le fantôme des toilettes des filles",
+      "Peeves, l'esprit frappeur"
+     ],
+     "reponse": "Peeves, l'esprit frappeur",
+     "explication": "Rusard ne vole pas (indice 1). Les fantômes ne peuvent pas toucher les objets (indice 2). Il ne reste que Peeves, le plus grand farceur de Poudlard… et le seul à trembler devant le Baron Sanglant (indice 4) ! Le coffre va le confirmer."
+    },
+    {
+     "q": "ACTE 3 – CADENAS DE LÉO (créatures) : l'Ombre a lâché une ménagerie dans la Grande Salle ! Il y a 3 hippogriffes (un hippogriffe a 4 pattes : 2 pattes avant d'aigle et 2 pattes arrière de cheval), Pépite le Niffleur (4 pattes), Moka le hibou qui tourne au plafond sans jamais se poser, et Brindille le Botruc, bien caché dans la poche de Capucine. Combien de pattes d'animaux touchent le sol de la Grande Salle ?",
+     "choix": [],
+     "reponse": "16",
+     "explication": "3 hippogriffes × 4 pattes = 12, plus les 4 pattes de Pépite = 16. Moka vole et Brindille est dans une poche : leurs pattes ne touchent pas le sol ! Léo salue les hippogriffes d'une belle révérence (la politesse, avec eux, c'est sacré) : premier cadenas ouvert."
+    },
+    {
+     "q": "ACTE 3 – CADENAS D'IRIS (sortilèges) : la Grande Salle est plongée dans le noir ! Parmi les sorts débloqués par l'équipe (Lumos, Wingardium Leviosa, Alohomora, Expelliarmus, Accio, Protego, Spero Patronum), Iris doit lancer celui qui allume le bout de sa baguette. Le nombre de LETTRES de ce sort ouvre son cadenas. Quel est ce nombre ?",
+     "choix": [],
+     "reponse": "5",
+     "explication": "Le sort de lumière est LUMOS (comme « lumière ») : L-U-M-O-S, 5 lettres. Une petite lumière blanche jaillit de la baguette d'Iris."
+    },
+    {
+     "q": "ACTE 3 – CADENAS DE CAPUCINE (botanique) : sur les 4 longues tables de la Grande Salle, l'Ombre a posé des pots de Mandragores (des plantes qui crient très fort : Capucine distribue des cache-oreilles !). Il y a 6 pots sur chaque table. Mais en tout, 2 pots sont vides : deux bébés Mandragores se sont sauvés sous les bancs. Combien de Mandragores reste-t-il dans les pots ?",
+     "choix": [],
+     "reponse": "22",
+     "explication": "4 tables × 6 pots = 24 pots, moins les 2 pots vides = 22 Mandragores. (Les deux fugueuses seront retrouvées le lendemain, endormies dans la corbeille à pain.)"
+    },
+    {
+     "q": "ACTE 3 – CADENAS DE SILAS (potions) : Silas doit préparer un Philtre Démasqueur. Recette : 1) Verser 2 louches d'eau du lac noir. 2) Tourner 7 fois dans le sens des aiguilles d'une montre. 3) Ajouter 3 plumes de Moka (tombées toutes seules, promis). 4) Tourner 12 fois dans l'autre sens. 5) Laisser reposer 5 minutes. Le cadenas s'ouvre avec le nombre TOTAL de tours de louche (dans un sens comme dans l'autre, chaque tour compte). Quel est ce nombre ?",
+     "choix": [],
+     "reponse": "19",
+     "explication": "Seuls les tours comptent : 7 + 12 = 19. Les 2 louches, les 3 plumes et les 5 minutes sont des pièges ! Silas sourit d'un air rusé : il l'avait vu tout de suite (enfin, c'est ce qu'il dit)."
+    }
+   ],
+   "paires": [],
+   "ordre": [],
+   "code": {
+    "message": "LÉO – IRIS – IRIS – CAPUCINE – IRIS – SILAS",
+    "cle": "Remplacez chaque héros par le nombre qui a ouvert son cadenas (Acte 3), puis chaque nombre par la lettre qui a ce rang dans l'alphabet : A=1, B=2, C=3, D=4, E=5… Z=26.",
+    "reponse": "PEEVES"
+   },
+   "indice": "Comptez sur vos doigts : A=1, B=2, C=3, D=4, E=5… Et pour l'accusation, posez-vous une seule question : qui peut à la fois voler dans les airs ET attraper un encrier ?",
+   "reussite": "Réussite : le nom PEEVES est décodé, au moins 3 cadenas sur 4 ont été ouverts du premier coup par leur maison gardienne, ET au moins 2 maisons avaient accusé Peeves à l'Acte 2. Partielle : le nom est décodé, mais moins de 3 cadenas ont été ouverts du premier coup, OU moins de 2 maisons avaient accusé Peeves. Échec : le nom n'est pas décodé dans le temps ; le Baron Sanglant surgit et démasque Peeves à la place de l'équipe. Le Diadème est sauvé, mais les récompenses sont réduites. Dans tous les cas, on lit l'épilogue : l'aventure se termine en beauté."
+  },
+  "defi_maison": {
+   "titre": "La carte de Chocogrenouille des héros",
+   "consigne": "Dernière mission, pour la gloire ! Fabrique une carte de Chocogrenouille (format carte à jouer) en l'honneur du héros de ta maison : son portrait au recto ; au verso, son nom, sa maison, sa spécialité et ses trois plus beaux exploits de l'année. Bonus : une carte spéciale « Peeves » avec sa farce la plus réussie. Le professeur valide les cartes : elles formeront la galerie des Héros de Poudlard dans la classe.",
+   "contenu": "Modèle du verso : NOM – MAISON – SPÉCIALITÉ – 3 EXPLOITS DE L'ANNÉE – UNE PHRASE CÉLÈBRE (inventée par toi).",
+   "mot_de_passe": ""
+  },
+  "note_prof": "Préparez avant la séance l'alphabet numéroté A=1…Z=26 caché sous une feuille et 4 cadenas dessinés au tableau, un par héros. Si possible, apportez une petite boîte fermée (le coffre) contenant un diadème en papier doré. Gardez 4 minutes pour l'épilogue, le « Méfait accompli ! » collectif (lumière éteinte, comme à la toute première séance) et la remise de la Coupe des Maisons."
+ }
+}
