@@ -20,50 +20,142 @@ const quete = (n) => (typeof QUETES !== "undefined" && QUETES[n]) || null;
 function melangeFixe(liste, graine) { const a = liste.map((v, i) => [v, i]); let s = graine * 9301 + 49297; for (let i = a.length - 1; i > 0; i--) { s = (s * 9301 + 49297) % 233280; const j = Math.floor((s / 233280) * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } if (a.length > 2 && a.every(([, i], k) => i === k)) a.push(a.shift()); return a; }
 
 /* ================= État et sauvegarde ================= */
+/* Une partie par classe. En ligne : jeu/classes (la liste), parties/<id> (la partie),
+   parties/<id>/sauvegardes (les points de sauvegarde). Sinon : le navigateur. */
 const CLE = "reliques-fondateurs-v1";
+const CLE2 = "reliques-v2";
 function etatNeuf() {
   return { v: 1, rev: 0, etape: 0, xp: 0, maitrise: { leo: 0, iris: 0, capucine: 0, silas: 0 }, points: { gry: 0, ser: 0, pou: 0, sep: 0 },
-    sac: { chocogrenouille: 1 }, compagnons: [], reliques: [], resultats: {}, defis: {}, usages: {}, destins: [], journal: [], pile: [] };
+    sac: { chocogrenouille: 1 }, compagnons: [], reliques: [], resultats: {}, defis: {}, usages: {}, destins: [], journal: [], pile: [], introVue: false, scenes: {} };
 }
 function completer(e) { const n = etatNeuf(); for (const k of Object.keys(n)) if (e[k] == null) e[k] = n[k]; return e; }
+const ls = {
+  lire(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+  ecrire(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  oublier(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
 let etat = etatNeuf();
-const prefs = (() => { try { return JSON.parse(localStorage.getItem(CLE + "-prefs")) || {}; } catch (e) { return {}; } })();
-const sauverPrefs = () => { try { localStorage.setItem(CLE + "-prefs", JSON.stringify(prefs)); } catch (e) {} };
+let registre = { rev: 0, liste: [{ id: "c1", nom: "6e A" }, { id: "c2", nom: "6e B" }] };
+const parties = {};
+let courante = null;
+const nomClasse = (id) => (registre.liste.find((c) => c.id === id) || { nom: "" }).nom;
+const partieDe = (id) => (id === courante ? etat : parties[id]);
+const prefs = ls.lire(CLE + "-prefs") || {};
+const sauverPrefs = () => ls.ecrire(CLE + "-prefs", prefs);
+
+/* Un document synchronisé : la version la plus récente (rev) gagne, une écriture à la fois. */
+function creerLien(chemin, cleLie, lire, adopter) {
+  const L = { ref: null, unsub: null, ecrit: false, attente: false, reessai: false };
+  L.brancher = () => {
+    L.ref = Store.db.doc(chemin); let lie = ls.lire(cleLie) === 1;
+    L.unsub = L.ref.onSnapshot((snap) => {
+      if (snap.metadata && snap.metadata.fromCache) return;
+      const d = snap.exists ? snap.data() : null, loc = lire(); if (!loc) return;
+      const rd = d ? d.rev || 0 : 0, rl = loc.rev || 0;
+      const ecarter = !lie && d && rd < rl && (d.maj || "") > (loc.maj || "");
+      if (!lie) { lie = true; ls.ecrire(cleLie, 1); }
+      if (!d) { if (rl > 0) L.ecrire(); return; }
+      if (rd > rl || ecarter) adopter(JSON.parse(JSON.stringify(d)));
+      else if (rd < rl) L.ecrire();
+    }, (e) => Store.perdu(e));
+  };
+  L.ecrire = async () => {
+    if (!L.ref || Store.lecture) return;
+    if (L.ecrit) { L.attente = true; return; }
+    const d = lire(); if (!d) return;
+    L.ecrit = true;
+    try { await L.ref.set(JSON.parse(JSON.stringify(d))); L.reessai = false; }
+    catch (e) { const c = (e && e.code) || "unavailable"; if (c === "invalid_argument" || c === "transform_error") { Store.lecture = true; majSync(); } else if (c === "revoked" || c === "not_granted" || c === "capability_disabled" || c === "capability_removed") Store.perdu(e); else if (c !== "quota_exceeded" && !L.reessai) { L.reessai = true; setTimeout(() => L.ecrire(), 1500 + Math.random() * 2000); } }
+    L.ecrit = false;
+    if (L.attente) { L.attente = false; L.ecrire(); }
+  };
+  L.couper = () => { if (L.unsub) L.unsub(); L.unsub = null; L.ref = null; };
+  return L;
+}
 
 const Store = {
-  mode: "local", ref: null, ecrit: false, attente: false, lecture: false,
-  charger() { try { const s = localStorage.getItem(CLE); if (s) etat = completer(JSON.parse(s)); } catch (e) {} },
+  mode: "local", db: null, lecture: false, liens: {},
+  charger() {
+    const r = ls.lire(CLE2 + "-classes");
+    if (r && r.liste && r.liste.length) registre = r;
+    else {
+      const v1 = ls.lire(CLE);
+      if (v1) { const e = completer(v1); e.introVue = e.etape > 0; ls.ecrire(CLE2 + "-partie-" + registre.liste[0].id, e); }
+      ls.ecrire(CLE2 + "-classes", registre);
+    }
+    this.relier();
+  },
+  relier() {
+    const ids = registre.liste.map((c) => c.id);
+    ids.forEach((id) => { if (!parties[id]) parties[id] = completer(ls.lire(CLE2 + "-partie-" + id) || etatNeuf()); });
+    Object.keys(parties).forEach((id) => { if (!ids.includes(id)) delete parties[id]; });
+    if (this.db) {
+      ids.forEach((id) => { if (!this.liens[id]) { const l = creerLien("parties/" + id, CLE2 + "-lie-" + id, () => partieDe(id), (d) => this.adopter(id, d)); this.liens[id] = l; l.brancher(); } });
+      Object.keys(this.liens).forEach((id) => { if (id !== "registre" && !ids.includes(id)) { this.liens[id].couper(); delete this.liens[id]; } });
+    }
+    if (courante && !ids.includes(courante)) afficherAccueil();
+  },
+  adopter(id, d) {
+    const e = completer(d); parties[id] = e; ls.ecrire(CLE2 + "-partie-" + id, e);
+    if (id === courante) { etat = e; rendreTout(); }
+    rendreAccueil();
+  },
   async brancher() {
     try {
       if (!window.claude || !window.claude.use) return;
       const db = await window.claude.use("db"); if (!db) return;
-      this.ref = db.doc("jeu/partie"); this.mode = "db"; majSync();
-      this.ref.onSnapshot((snap) => {
-        if (!snap.exists) { if (etat.rev > 0) this.ecrire(); return; }
-        const d = snap.data();
-        if ((d.rev || 0) > (etat.rev || 0)) { etat = completer(JSON.parse(JSON.stringify(d))); this.local(); rendreTout(); }
-        else if ((d.rev || 0) < (etat.rev || 0)) this.ecrire();
-      }, () => { this.mode = "local"; this.ref = null; majSync(); });
+      this.db = db; this.mode = "db"; majSync();
+      try { // la partie de la version précédente (jeu/partie) devient celle de la première classe
+        const r = await db.doc("jeu/classes").get();
+        if (!r.exists) { const a = await db.doc("jeu/partie").get(); const id = registre.liste[0].id;
+          if (a.exists && (a.data().rev || 0) > (parties[id].rev || 0)) { const e = completer(JSON.parse(JSON.stringify(a.data()))); e.introVue = e.etape > 0; parties[id] = e; if (courante === id) etat = e; ls.ecrire(CLE2 + "-partie-" + id, e); rendreAccueil(); } }
+      } catch (e) {}
+      if (!this.db) return;
+      this.liens.registre = creerLien("jeu/classes", CLE2 + "-lie-classes", () => registre, (d) => { if (!Array.isArray(d.liste) || !d.liste.length) return; registre = d; ls.ecrire(CLE2 + "-classes", registre); this.relier(); rendreAccueil(); if (courante) $("#hud-classe").textContent = nomClasse(courante); });
+      this.liens.registre.brancher();
+      this.relier();
     } catch (e) {}
   },
-  local() { try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch (e) {} },
-  sauver() { etat.rev = (etat.rev || 0) + 1; etat.maj = new Date().toISOString(); this.local(); this.ecrire(); },
-  async ecrire() {
-    if (!this.ref || this.lecture) return;
-    if (this.ecrit) { this.attente = true; return; }
-    this.ecrit = true;
-    try { await this.ref.set(JSON.parse(JSON.stringify(etat))); }
-    catch (e) { if (e && e.code === "invalid_argument") { this.lecture = true; majSync(); } }
-    this.ecrit = false;
-    if (this.attente) { this.attente = false; this.ecrire(); }
+  perdu() { this.mode = "local"; Object.values(this.liens).forEach((l) => l.couper()); this.liens = {}; this.db = null; majSync(); },
+  sauver(id = courante) {
+    if (!id) return; if (id === courante) parties[id] = etat;
+    const e = parties[id]; if (!e) return;
+    e.rev = (e.rev || 0) + 1; e.maj = new Date().toISOString(); ls.ecrire(CLE2 + "-partie-" + id, e);
+    const l = this.liens[id]; if (l) l.ecrire();
+  },
+  sauverRegistre() { registre.rev = (registre.rev || 0) + 1; registre.maj = new Date().toISOString(); ls.ecrire(CLE2 + "-classes", registre); if (this.liens.registre) this.liens.registre.ecrire(); },
+  /* Points de sauvegarde : 25 par classe, dans le navigateur et en ligne. */
+  instantane(label, id = courante) {
+    const e = partieDe(id); if (!e) return;
+    const s = { cle: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), date: new Date().toISOString(), label, etape: e.etape, xp: e.xp, reliques: e.reliques.length, etat: JSON.stringify({ ...e, pile: [] }) };
+    ls.ecrire(CLE2 + "-sauv-" + id, [s, ...(ls.lire(CLE2 + "-sauv-" + id) || [])].slice(0, 25));
+    if (this.db && !this.lecture) {
+      const coll = this.db.collection("parties/" + id + "/sauvegardes");
+      coll.doc(s.cle).set(s).then(async () => { const q = await coll.orderBy("date", "desc").limit(60).get(); q.docs.slice(25).forEach((d) => coll.doc(d.id).delete().catch(() => {})); }).catch(() => {});
+    }
+  },
+  async sauvegardes(id) {
+    const liste = ls.lire(CLE2 + "-sauv-" + id) || [];
+    if (this.db) {
+      try { const q = await this.db.collection("parties/" + id + "/sauvegardes").orderBy("date", "desc").limit(25).get(); const vus = new Set(liste.map((s) => s.cle)); q.docs.forEach((d) => { const s = d.data(); if (s && s.etat && !vus.has(s.cle)) liste.push(s); }); } catch (e) {}
+    }
+    return liste.sort((a, b) => (b.date > a.date ? 1 : -1)).slice(0, 25);
   },
 };
 function majSync() {
   const s = $("#hud-sync"); if (!s) return;
   s.classList.toggle("db", Store.mode === "db" && !Store.lecture);
-  s.lastChild.textContent = Store.lecture ? "Lecture seule" : Store.mode === "db" ? "Partie partagée et sauvegardée" : "Sauvegarde sur cet appareil";
+  s.lastChild.textContent = Store.lecture ? "Lecture seule" : Store.mode === "db" ? "Parties partagées et sauvegardées en ligne" : "Parties sauvegardées sur cet appareil";
 }
-function noter(t) { etat.journal.unshift({ t, d: new Date().toISOString() }); etat.journal = etat.journal.slice(0, 80); }
+function noter(t, e = etat) { e.journal.unshift({ t, d: new Date().toISOString() }); e.journal = e.journal.slice(0, 80); }
+/* Remplace la partie d'une classe (restauration, remise à zéro) en gardant son numéro de version. */
+function remplacerPartie(id, n, message) {
+  const ancien = partieDe(id); n.rev = (ancien && ancien.rev) || 0; noter(message, n);
+  parties[id] = n; if (id === courante) etat = n;
+  Store.sauver(id);
+  if (id === courante) { rendreTout(); if (Scene3D.ok) Scene3D.suivreEquipe(); }
+  rendreAccueil();
+}
 
 /* ================= Sons ================= */
 const Son = {
@@ -80,6 +172,9 @@ const Son = {
       if (type === "magie") for (let i = 0; i < 9; i++) note(900 + Math.random() * 1400, 0.35, 0.05, "sine", i * 0.05);
       if (type === "cloche") [880, 880, 880].forEach((f, i) => note(f, 0.5, 0.14, "square", i * 0.35));
       if (type === "page") note(180, 0.12, 0.05, "triangle");
+      if (type === "sifflet") { note(698, 1.3, 0.06, "triangle"); note(880, 1.3, 0.05, "triangle"); note(1047, 1.3, 0.03, "sine"); }
+      if (type === "feu") { note(70 + Math.random() * 40, 0.5, 0.16, "sine"); for (let i = 0; i < 6; i++) note(1800 + Math.random() * 2400, 0.12, 0.025, "square", 0.08 + i * 0.05); }
+      if (type === "vague") [140, 110, 90].forEach((f, i) => note(f, 1.2, 0.1, "sine", i * 0.25));
     } catch (e) {}
   },
 };
@@ -89,13 +184,13 @@ const Fen = {
   pile: [],
   ouvrir(contenu, { classe = "parchemin", etroite = false, bloquante = false, onFermer } = {}) {
     const voile = el("div", { class: "voile" });
-    const f = el("div", { class: `fenetre ${classe}${etroite ? " etroite" : ""}`, role: "dialog", "aria-modal": "true" });
+    const f = el("div", { class: `fenetre ${classe}${etroite ? " etroite" : ""}`, role: "dialog", "aria-modal": "true", tabindex: "-1" });
     const x = el("button", { class: "fermer", "aria-label": "Fermer", onclick: () => this.fermer() }, ico("x"));
     if (!bloquante) voile.addEventListener("pointerdown", (e) => { if (e.target === voile) this.fermer(); });
     f.append(x, contenu); voile.append(f); $("#fenetres").append(voile);
-    this.pile.push({ voile, onFermer, bloquante }); setTimeout(() => x.focus({ preventScroll: true }), 30); return f;
+    this.pile.push({ voile, onFermer, bloquante }); Scene3D.pause = true; setTimeout(() => (bloquante ? f : x).focus({ preventScroll: true }), 30); return f;
   },
-  fermer() { const t = this.pile.pop(); if (!t) return; t.voile.remove(); if (t.onFermer) t.onFermer(); },
+  fermer() { const t = this.pile.pop(); if (!t) return; t.voile.remove(); Scene3D.pause = this.pile.length > 0; if (t.onFermer) t.onFermer(); },
   tout() { while (this.pile.length) this.fermer(); },
 };
 document.addEventListener("keydown", (e) => { const t = Fen.pile[Fen.pile.length - 1]; if (e.key === "Escape" && t && !t.bloquante) Fen.fermer(); });
@@ -108,8 +203,9 @@ function etincelles(n = 120) {
 /* ================= Règles ================= */
 const chapCourant = () => chapitreDe(Math.min(16, etat.etape + 1)).n;
 function sortDispo(s) {
-  if (anneeDe(etat.xp) < s.annee) return false;
   const u = etat.usages[s.id];
+  if (s.freq === "finale") return etat.etape === 15 && !u;
+  if (anneeDe(etat.xp) < s.annee) return false;
   if (s.freq === "etape") return u !== "e" + (etat.etape + 1);
   if (s.freq === "chapitre") return u !== "c" + chapCourant();
   if (s.freq === "finale") return etat.etape === 15 && !u;
@@ -126,37 +222,34 @@ function gagnerXP(n, raison) {
   if (apres > avant) { const s = SORTS.find((x) => x.annee === apres); setTimeout(() => { Son.jouer("fanfare"); toast(`Passage en ${nomAnnee(apres)} ! Nouveau sort : ${s ? s.nom : ""}`); etincelles(70); }, 400); }
   return apres > avant ? apres : 0;
 }
-const defisEnAttente = () => { const l = []; for (let n = 1; n <= Math.min(15, etat.etape); n++) { const q = quete(n); if (q && q.defi_maison && q.defi_maison.titre && !etat.defis[n]) l.push(n); } return l; };
+const defisEnAttente = () => { const l = []; for (let n = Math.max(1, etat.etape); n <= Math.min(16, etat.etape); n++) { const q = quete(n); if (q && q.defi_maison && q.defi_maison.titre && !etat.defis[n]) l.push(n); } return l; };
 
 /* ================= HUD ================= */
 function rendreHud() {
   const prochaine = Math.min(16, etat.etape + 1); const ch = chapitreDe(prochaine); const fini = etat.etape >= 16;
-  $("#hud-chapitre").textContent = fini ? "Aventure terminée · Méfait accompli" : `Chapitre ${ch.n} · ${ch.titre} · ${ch.mois}`;
-  const dots = $("#hud-dots"); dots.replaceChildren(...Array.from({ length: 16 }, (_, i) => el("i", { class: i < etat.etape ? "ok" : i === etat.etape ? "cur" : "" })));
-  $("#hud-reliques").replaceChildren(...ORDRE_RELIQUES.map((r) => el("div", { class: "slot" + (etat.reliques.includes(r) ? " ok" : ""), title: RELIQUES[r].nom, html: ICONES[r] })));
   const a = anneeDe(etat.xp); const bas = XP_ANNEES[a - 1], haut = XP_ANNEES[a] ?? null;
-  $("#hud-annee").textContent = nomAnnee(a);
-  $("#hud-xp").textContent = haut ? `${etat.xp} / ${haut} XP` : `${etat.xp} XP · niveau max`;
-  $("#hud-barre").style.width = (haut ? Math.round(((etat.xp - bas) / (haut - bas)) * 100) : 100) + "%";
+  $("#hud-classe").textContent = nomClasse(courante);
+  $("#hud-chapitre").textContent = fini ? "Méfait accompli !" : `Chapitre ${ch.n} · ${ch.titre}`;
+  $("#hud-sous").replaceChildren(el("span", {}, `${nomAnnee(a)} · ${etat.xp} XP`), el("span", { class: "barre" }, el("i", { style: `width:${haut ? Math.round(((etat.xp - bas) / (haut - bas)) * 100) : 100}%` })));
+  $("#hud-piste").replaceChildren(...CHAPITRES.map((c) => el("div", { class: "piste-chap" }, [1, 2, 3, 4].map((k) => {
+    const n = (c.n - 1) * 4 + k; const e = n <= etat.etape ? " ok" : n === etat.etape + 1 ? " cur" : "";
+    const titre = `Étape ${n} · ${nomVisible(n)}`;
+    return LIEUX[n].cp ? el("span", { class: "noeud cp" + e + (etat.reliques.includes(c.relique) ? " gagne" : ""), title: `${titre} · ${RELIQUES[c.relique].nom}`, html: ICONES[c.relique] }) : el("i", { class: "noeud" + e, title: titre });
+  }))));
   const lead = ch.heros;
   $("#hud-heros").replaceChildren(...ORDRE_HEROS.map((h) => {
     const H = HEROS[h], M = MAISONS[H.maison], pts = etat.maitrise[h];
-    const prochainRang = RANGS.find((r) => r[0] > pts); const base = [...RANGS].reverse().find((r) => r[0] <= pts)[0];
-    const nb = prochainRang ? prochainRang[0] - base : 1, fait = prochainRang ? pts - base : 1;
-    return el("div", { class: "heros verre" + (h === lead && !fini ? " lead" : ""), style: `--hc:${M.c};--hcc:${M.clair}`, title: `${H.nom} · ${M.nom} · ${H.spe}` },
-      el("span", { html: portraitSVG(H.maison), style: "display:contents" }),
-      el("div", {}, el("div", { class: "nom" }, H.court), el("div", { class: "meta" }, `${M.nom} · ${H.spe}`),
-        el("div", { class: "rang" }, el("span", {}, rangDe(h, pts)), el("span", {}, `${pts} ★`)),
-        el("div", { class: "pips" }, Array.from({ length: nb }, (_, i) => el("i", { class: i < fait ? "on" : "" })))));
+    return el("div", { class: "heros-mini" + (h === lead && !fini ? " lead" : ""), style: `--hc:${M.c};--hcc:${M.clair}`, title: `${H.nom} · ${M.nom} · ${H.spe} · ${pts} ★` },
+      el("span", { html: portraitSVG(H.maison), style: "display:contents" }), el("b", {}, H.court), el("small", {}, rangDe(h, pts)));
   }));
   const max = Math.max(100, ...Object.values(etat.points));
-  $("#hud-sabliers").replaceChildren(...ORDRE_MAISONS.map((m) => el("button", { class: "sablier", title: `Points de ${MAISONS[m].nom}`, onclick: (e) => popoverMaison(m, e.currentTarget) },
-    el("span", { html: sablierSVG(MAISONS[m].c, etat.points[m] / max), style: "display:contents" }), el("b", {}, etat.points[m]), el("small", {}, MAISONS[m].nom.slice(0, 5) + "."))));
-  const pastille = (id, n) => { const p = $(id); p.hidden = !n; p.textContent = n; };
-  pastille("#pastille-sac", nbObjets()); pastille("#pastille-defis", defisEnAttente().length);
-  pastille("#pastille-sorts", SORTS.filter((s) => s.freq !== "finale" && sortDispo(s)).length);
+  $("#hud-sabliers").replaceChildren(...ORDRE_MAISONS.map((m) => el("button", { class: "sablier", title: `Points de ${MAISONS[m].nom} : cliquer pour en ajouter ou en retirer`, onclick: (e) => popoverMaison(m, e.currentTarget) },
+    el("span", { html: sablierSVG(MAISONS[m].c, etat.points[m] / max), style: "display:contents" }), el("b", {}, etat.points[m]))));
+  const defis = defisEnAttente().length;
+  $("#btn-defi-attente").hidden = !defis;
+  const p = $("#pastille-menu"); p.hidden = !defis; p.textContent = defis;
   $("#be-num").textContent = fini ? "★" : prochaine;
-  $("#be-t1").textContent = fini ? "Aventure terminée" : `Étape ${prochaine} sur 16 · ${LIEUX[prochaine].cp ? "relique en jeu" : "chapitre " + ch.n}`;
+  $("#be-t1").textContent = fini ? "Aventure terminée" : `Étape ${prochaine} sur 16${LIEUX[prochaine].cp ? " · relique en jeu" : ""}`;
   $("#be-t2").textContent = fini ? "Revoir la finale" : LIEUX[prochaine].nom;
 }
 function rendreTout() { rendreHud(); Scene3D.majEtat(etat, { prep: prefs.prep }); if (!Scene3D.ok) carte2D(); }
@@ -164,9 +257,9 @@ function rendreTout() { rendreHud(); Scene3D.majEtat(etat, { prep: prefs.prep })
 function popoverMaison(m, ancre) {
   document.querySelectorAll(".popover-maison").forEach((p) => p.remove());
   const r = ancre.getBoundingClientRect();
-  const p = el("div", { class: "popover-maison verre", style: `top:${r.bottom + 6}px;left:${Math.max(8, r.right - 200)}px` },
+  const p = el("div", { class: "popover-maison verre", style: `bottom:${innerHeight - r.top + 8}px;left:${Math.max(8, Math.min(innerWidth - 208, r.right - 200))}px` },
     el("div", { class: "panneau-t" }, `${MAISONS[m].nom} · ${etat.points[m]} points`),
-    el("div", { class: "rangee" }, [-10, -5, 5, 10].map((d) => el("button", { class: "b", onclick: () => { etat.points[m] = Math.max(0, etat.points[m] + d); noter(`${d > 0 ? "+" : ""}${d} points pour ${MAISONS[m].nom}`); Store.sauver(); rendreHud(); p.querySelector(".panneau-t").textContent = `${MAISONS[m].nom} · ${etat.points[m]} points`; Son.jouer(d > 0 ? "tinte" : "page"); } }, (d > 0 ? "+" : "") + d))));
+    el("div", { class: "rangee" }, [-5, -1, 1, 2, 3, 5, 10].map((d) => el("button", { class: "b", onclick: () => { etat.points[m] = Math.max(0, etat.points[m] + d); noter(`${d > 0 ? "+" : ""}${d} points pour ${MAISONS[m].nom}`); Store.sauver(); rendreHud(); p.querySelector(".panneau-t").textContent = `${MAISONS[m].nom} · ${etat.points[m]} points`; Son.jouer(d > 0 ? "tinte" : "page"); } }, (d > 0 ? "+" : "") + d))));
   document.body.append(p);
   setTimeout(() => document.addEventListener("pointerdown", function f(e) { if (!p.contains(e.target)) { p.remove(); document.removeEventListener("pointerdown", f); } }), 0);
 }
@@ -188,7 +281,7 @@ function nomVisible(n) { return n <= etat.etape + 1 || prefs.prep ? LIEUX[n].nom
 function clicLieu(n) {
   if (n === 0) return;
   if (n <= etat.etape) return ouvrirQuete(n, "revoir");
-  if (n === etat.etape + 1) return ouvrirQuete(n, "jouer");
+  if (n === etat.etape + 1) return lancerEtape();
   if (prefs.prep) return ouvrirQuete(n, "apercu");
   Son.jouer("page"); toast("Ce lieu est encore caché dans la brume… Terminez d'abord l'étape " + (etat.etape + 1) + ".");
 }
@@ -202,12 +295,14 @@ function survolLieu(n, x, y) {
 
 /* ================= La quête ================= */
 const TYPES = { qcm: "Questionnaire", enigmes: "Énigmes", association: "Associations", ordre: "Remettre dans l'ordre", code: "Message codé", defi_equipe: "Défi d'équipe" };
+const SEANCE = { n: 0, loc: null };
 function ouvrirQuete(n, mode) {
   const q = quete(n); const L = LIEUX[n], ch = chapitreDe(n), H = HEROS[(q && q.heros) || ch.heros];
   const M = MAISONS[H.maison];
   const corps = el("div", { class: "f-corps" });
   const fen = Fen.ouvrir(corps, { bloquante: mode === "jouer" });
-  const loc = { onglet: mode === "revoir" ? "epreuve" : "lettre", chrono: null, indice: false, revele: new Set(), toutRevele: false, resultat: null, maisons: new Set(), felix: false, protego: false, patronum: false };
+  const loc = (mode === "jouer" && SEANCE.n === n && SEANCE.loc) || { onglet: mode === "revoir" ? "epreuve" : "lettre", chrono: null, indice: false, revele: new Set(), toutRevele: false, resultat: null, maisons: new Set(), felix: false, protego: false, patronum: false };
+  if (mode === "jouer") { SEANCE.n = n; SEANCE.loc = loc; }
   const tete = el("div", { class: "q-tete" },
     el("div", {}, el("div", { class: "surtitre" }, `Étape ${n} sur 16 · Chapitre ${ch.n} · ${ch.titre}`), el("h2", {}, (q && q.titre) || L.nom), el("div", { class: "surtitre", style: "font-size:.95rem;margin-top:4px" }, L.nom + (L.cp ? " · relique en jeu" : ""))),
     el("div", { class: "chips" }, el("span", { class: "chip h", style: `--hc:${M.c}` }, `En tête : ${H.court} (${M.nom})`), q && el("span", { class: "chip" }, `${TYPES[q.epreuve.type] || "Épreuve"} · ${q.epreuve.duree} min`)));
@@ -228,7 +323,9 @@ function ouvrirQuete(n, mode) {
       el("div", { class: "lettre" }, q.recit),
       q.message_ombre && (loc.ombre || mode === "revoir" ? el("div", { class: "ombre" }, el("small", {}, "Un parchemin noir était glissé dans l'enveloppe"), q.message_ombre)
         : el("div", {}, el("button", { class: "b", onclick: () => { loc.ombre = true; Son.jouer("grave"); rendre(); } }, "Un parchemin noir dépasse de l'enveloppe… le lire maintenant"), el("small", { style: "display:block;margin-top:6px;color:var(--parch-doux)" }, n === 16 ? "" : "Sinon, il s'affichera à la fin de la séance, après le résultat."))),
-      mode !== "revoir" && el("div", { class: "rangee", style: "justify-content:flex-end" }, el("button", { class: "b or", onclick: () => { loc.onglet = "epreuve"; Son.jouer("magie"); rendre(); } }, "Passer à l'épreuve →")));
+      el("div", { class: "rangee", style: "justify-content:flex-end" },
+        SCENES_ETAPE[n] && Scene3D.ok && mode !== "apercu" && el("button", { class: "b", onclick: () => { Fen.fermer(); jouerScene(SCENES_ETAPE[n], () => ouvrirQuete(n, mode)); } }, ico("film"), "Revoir la scène"),
+        mode !== "revoir" && el("button", { class: "b or", onclick: () => { loc.onglet = "epreuve"; Son.jouer("magie"); rendre(); } }, "Passer à l'épreuve →")));
   }
 
   function revelee(k) { return loc.toutRevele || loc.revele.has(k); }
@@ -236,7 +333,7 @@ function ouvrirQuete(n, mode) {
   function vueEpreuve() {
     const E = q.epreuve; const contenu = el("div", { style: "display:grid;gap:16px;min-width:0" });
     contenu.append(el("h3", {}, E.titre), el("p", { class: "consigne" }, E.consigne));
-    if (E.deroulement || q.note_prof) contenu.append(el("details", { class: "prof" }, el("summary", {}, "Pour le professeur : déroulement"), el("p", { class: "deroulement" }, E.deroulement), q.note_prof && el("p", { class: "note-prof" }, q.note_prof), E.reussite && el("p", { class: "deroulement" }, el("b", {}, "Critères : "), E.reussite)));
+    if (E.deroulement || q.note_prof) contenu.append(el("details", { class: "prof" }, el("summary", {}, mode === "jouer" ? "Pour le professeur : déroulement (contient des réponses, ne pas ouvrir devant la classe)" : "Pour le professeur : déroulement"), el("p", { class: "deroulement" }, E.deroulement), q.note_prof && el("p", { class: "note-prof" }, q.note_prof), E.reussite && el("p", { class: "deroulement" }, el("b", {}, "Critères : "), E.reussite)));
     if (E.code && E.code.message) {
       contenu.append(el("div", { class: "code-msg" }, E.code.message));
       if (E.code.cle) contenu.append(loc.cle || loc.toutRevele || mode === "revoir" ? el("div", { class: "cle" }, el("b", {}, "La clé : "), E.code.cle) : el("div", {}, el("button", { class: "b", onclick: () => { loc.cle = true; Son.jouer("magie"); rendre(); } }, ico("oeil"), "Montrer la clé du code")));
@@ -252,23 +349,26 @@ function ouvrirQuete(n, mode) {
     }
     if (E.ordre && E.ordre.length) {
       const m = melangeFixe(E.ordre, n + 7); const lettre = (i) => String.fromCharCode(65 + i);
-      contenu.append(el("div", { class: "assoc" }, el("ol", {}, m.map(([t], i) => el("li", {}, el("b", {}, lettre(i)), t)))));
+      contenu.append(el("div", { class: "assoc", style: "grid-template-columns:1fr" }, el("ol", {}, m.map(([t], i) => el("li", {}, el("b", {}, lettre(i)), t)))));
       contenu.append(revelee("ordre") ? el("div", { class: "reponse", style: "padding-left:14px" }, el("b", {}, "Le bon ordre : "), E.ordre.map((_, i) => lettre(m.findIndex(([, j]) => j === i))).join(" → ")) : el("div", {}, boutonReveler("ordre")));
     }
     if (E.questions && E.questions.length) {
-      contenu.append(el("ol", { class: "questions" }, E.questions.map((Q, i) => {
+      const nbVis = mode === "jouer" && !loc.toutRevele ? (loc.nbQ || 1) : E.questions.length;
+      contenu.append(el("ol", { class: "questions" }, E.questions.slice(0, nbVis).map((Q, i) => {
         const r = revelee("q" + i); const lettre = (k) => String.fromCharCode(65 + k);
         const juste = (c) => normaliser(c) === normaliser(Q.reponse);
         return el("li", { class: "question" }, el("div", { class: "qq" }, el("span", {}, Q.q)),
           Q.choix && Q.choix.length ? el("div", { class: "choix" }, Q.choix.map((c, k) => el("span", { class: r && juste(c) ? "juste" : "" }, el("b", {}, lettre(k) + "."), c))) : null,
           r ? el("div", { class: "reponse" }, el("b", {}, Q.reponse), Q.explication && el("small", {}, Q.explication)) : el("div", { class: "q-actions" }, boutonReveler("q" + i)));
       })));
+      if (nbVis < E.questions.length) contenu.append(el("div", {}, el("button", { class: "b or", onclick: () => { loc.nbQ = nbVis + 1; Son.jouer("page"); rendre(); } }, `Afficher la question suivante (${nbVis + 1} sur ${E.questions.length})`)));
     }
     if (loc.indice && E.indice) contenu.append(el("div", { class: "indice" }, el("b", {}, "Indice : "), E.indice));
     if (mode !== "jouer") { if (E.indice && !loc.indice) contenu.append(el("div", {}, el("button", { class: "b", onclick: () => { loc.indice = true; rendre(); } }, "Voir l'indice"))); }
     const cote = el("div", { class: "ep-cote" }, vueChrono(E), mode === "jouer" ? vueJokers(E) : null,
       el("div", { class: "boite" }, el("button", { class: "b", onclick: () => { loc.toutRevele = !loc.toutRevele; rendre(); } }, ico("oeil"), loc.toutRevele ? "Masquer les réponses" : "Tout révéler"),
         el("button", { class: "b", title: "Copie l'épreuve sans les réponses, pour la donner à faire à la maison", onclick: () => copier(texteEpreuve(n, q)) }, ico("copie"), "Copier pour la maison"),
+        (mode !== "jouer" || prefs.prep) && el("button", { class: "b", title: "Déroulement, matériel, critères, indice et réponses : à imprimer avant la séance", onclick: () => copier(ficheProf(n, q)) }, ico("copie"), "Copier la fiche du professeur"),
         mode === "jouer" && el("button", { class: "b or", onclick: () => { loc.onglet = "resultat"; rendre(); } }, "Résultat de l'épreuve →")));
     return el("div", { class: "ep-grille" }, contenu, cote);
   }
@@ -278,7 +378,7 @@ function ouvrirQuete(n, mode) {
     const c = loc.chrono; const aff = el("div", { class: "chrono" + (c.reste <= 0 ? " fini" : "") });
     const maj = () => { const m = Math.floor(Math.max(0, c.reste) / 60), s = Math.max(0, c.reste) % 60; aff.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`; aff.classList.toggle("fini", c.reste <= 0); };
     maj();
-    const tic = () => { c.reste--; maj(); if (c.reste === 0) { Son.jouer("cloche"); toast("Le temps est écoulé !"); } if (c.reste <= 0) { clearInterval(c.id); c.actif = false; } };
+    const tic = () => { c.reste--; maj(); if (c.reste === 0) { Son.jouer("cloche"); toast("Le temps est écoulé !"); } if (c.reste <= 0) { clearInterval(c.id); c.actif = false; bascule.replaceChildren(ico("play"), "Lancer"); } };
     const bascule = el("button", { class: "b plein", onclick: () => { if (c.actif) { clearInterval(c.id); c.actif = false; } else if (c.reste > 0) { c.id = setInterval(tic, 1000); c.actif = true; } bascule.replaceChildren(ico(c.actif ? "pause" : "play"), c.actif ? "Pause" : "Lancer"); } }, ico(c.actif ? "pause" : "play"), c.actif ? "Pause" : "Lancer");
     if (c.actif) { clearInterval(c.id); c.id = setInterval(tic, 1000); }
     loc.majChrono = maj;
@@ -287,7 +387,7 @@ function ouvrirQuete(n, mode) {
 
   function vueJokers(E) {
     const lignes = [];
-    const ligne = (svg, titre, texte, action, label = "Utiliser") => el("div", { class: "joker" }, el("span", { html: svg, style: "display:contents" }), el("div", {}, el("b", {}, titre), el("small", {}, texte)), action ? el("button", { class: "b", onclick: action }, label) : el("span", {}));
+    const ligne = (svg, titre, texte, action, label = "Utiliser") => el("div", { class: "joker" }, el("span", { html: svg, style: "display:contents" }), el("div", {}, el("b", {}, titre), el("small", {}, texte)), action ? el("button", { class: "b", onclick: (ev) => { if (ev.detail > 1) return; action(ev); } }, label) : el("span", {}));
     ["rapeltout", "plume", "retourneur", "cape", "pimentine"].forEach((id) => {
       if (!etat.sac[id]) return; const O = OBJETS[id];
       lignes.push(ligne(ICONES[id], `${O.nom} ×${etat.sac[id]}`, O.effet, () => {
@@ -328,7 +428,7 @@ function ouvrirQuete(n, mode) {
       if (L.cp) resume.push(RELIQUES[ch.relique].nom);
     }
     v.append(el("p", { class: "consigne" }, r ? "Gains : " + resume.join(" · ") : "Choisissez un résultat pour voir les gains."));
-    v.append(el("button", { class: "b or valider", disabled: !r, onclick: () => { Fen.fermer(); if (loc.chrono && loc.chrono.id) clearInterval(loc.chrono.id); validerEtape(n, { resultat: r, maisons: [...loc.maisons], felix: loc.felix, protego: loc.protego, patronum: loc.patronum }); } }, n === 16 ? "Valider la grande finale" : "Valider l'étape et avancer"));
+    v.append(el("button", { class: "b or valider", disabled: !r, onclick: () => { SEANCE.loc = null; Fen.fermer(); if (loc.chrono && loc.chrono.id) clearInterval(loc.chrono.id); validerEtape(n, { resultat: r, maisons: [...loc.maisons], felix: loc.felix, protego: loc.protego, patronum: loc.patronum }); } }, n === 16 ? "Valider la grande finale" : "Valider l'étape et avancer"));
     return v;
   }
   rendre();
@@ -344,6 +444,23 @@ function texteEpreuve(n, q) {
   if (E.paires && E.paires.length) { const d = melangeFixe(E.paires.map((p) => p.droite), n); E.paires.forEach((p, i) => L.push(`${i + 1}. ${p.gauche}`)); L.push(""); d.forEach(([t], i) => L.push(`${String.fromCharCode(65 + i)}. ${t}`)); L.push(""); }
   if (E.ordre && E.ordre.length) { melangeFixe(E.ordre, n + 7).forEach(([t], i) => L.push(`${String.fromCharCode(65 + i)}. ${t}`)); L.push(""); }
   (E.questions || []).forEach((Q, i) => { L.push(`${i + 1}. ${Q.q}`); (Q.choix || []).forEach((c, k) => L.push(`   ${String.fromCharCode(65 + k)}. ${c}`)); });
+  return L.join("\n");
+}
+
+function ficheProf(n, q) {
+  const E = q.epreuve, L = [texteEpreuve(n, q), "", "FICHE DU PROFESSEUR (ne pas projeter)"];
+  const lettre = (i) => String.fromCharCode(65 + i);
+  if (q.note_prof) L.push("", "À PRÉPARER : " + q.note_prof);
+  if (E.deroulement) L.push("", "DÉROULEMENT :", E.deroulement);
+  if (E.reussite) L.push("", "CRITÈRES : " + E.reussite);
+  if (E.indice) L.push("", "INDICE (affiché seulement avec un Rapeltout ou Brindille) : " + E.indice);
+  L.push("", "RÉPONSES :");
+  if (E.code && E.code.cle) L.push("Clé du code : " + E.code.cle);
+  if (E.code && E.code.reponse) L.push("Message déchiffré : " + E.code.reponse);
+  if (E.paires && E.paires.length) { const d = melangeFixe(E.paires.map((p) => p.droite), n); L.push(E.paires.map((p, i) => `${i + 1} → ${lettre(d.findIndex(([, j]) => j === i))}`).join("   ")); }
+  if (E.ordre && E.ordre.length) { const m = melangeFixe(E.ordre, n + 7); L.push("Bon ordre : " + E.ordre.map((_, i) => lettre(m.findIndex(([, j]) => j === i))).join(" → ")); }
+  (E.questions || []).forEach((Q, i) => L.push(`${i + 1}. ${Q.reponse}${Q.explication ? " · " + Q.explication : ""}`));
+  if (q.defi_maison && q.defi_maison.titre) L.push("", "DÉFI MAISON : " + q.defi_maison.titre + (q.defi_maison.mot_de_passe ? " · mot de passe : " + q.defi_maison.mot_de_passe : " · création à valider"));
   return L.join("\n");
 }
 
@@ -367,8 +484,10 @@ function validerEtape(n, { resultat, maisons, felix, protego, patronum }) {
   noter(`Étape ${n} (${L.nom}) : ${({ reussite: "réussite", partielle: "partielle", echec: "échec" })[resultat]}`);
   gains.annee = gagnerXP(gains.xp, `étape ${n}`);
   Store.sauver();
+  Store.instantane(`Après l'étape ${n} · ${L.nom}`);
   Son.jouer(resultat === "echec" ? "grave" : "tinte");
-  const suite = () => { rendreTout(); if (gains.relique) fenetreRelique(gains.relique, () => fenetreRecompenses(n, gains)); else fenetreRecompenses(n, gains); };
+  const bloc = el("div", { class: "voile", style: "background:transparent;backdrop-filter:none" }); $("#fenetres").append(bloc);
+  const suite = () => { bloc.remove(); rendreTout(); if (gains.relique) fenetreRelique(gains.relique, () => fenetreRecompenses(n, gains)); else fenetreRecompenses(n, gains); };
   if (Scene3D.ok) { Scene3D.majEtat({ ...etat, etape: n - 1, reliques: etat.reliques.filter((r) => r !== gains.relique) }); Scene3D.avancer(n - 1, n, () => { Scene3D.majEtat(etat); Scene3D.eclat(n); L.cp ? Scene3D.cinematique(n, suite) : suite(); }); }
   else suite();
   rendreHud();
@@ -394,10 +513,10 @@ function fenetreRecompenses(n, gains) {
     items.length ? el("div", { class: "gains" }, items) : null,
     s && el("div", { class: "annee-up" }, el("h3", {}, `Passage en ${nomAnnee(gains.annee)} !`), el("p", {}, `Nouveau sort : `, el("b", {}, s.nom), ` · ${s.effet}`)),
     q && q.message_ombre && n < 16 && el("div", { class: "ombre", style: "text-align:left;width:100%" }, el("small", {}, "Avant de partir, un parchemin noir tombe du plafond…"), q.message_ombre),
-    D && D.titre && n < 16 && el("div", { class: "boite", style: "text-align:left;width:100%;background:rgba(255,255,255,.05);border-color:var(--filet)" }, el("h3", {}, "Défi maison pour la prochaine fois"), el("b", {}, D.titre), el("p", { style: "margin:0;white-space:pre-line" }, D.consigne), D.contenu && el("p", { style: "margin:0;white-space:pre-line;font-size:1.05rem" }, D.contenu),
-      el("div", { class: "rangee" }, el("button", { class: "b", onclick: () => copier(`${D.titre}\n\n${D.consigne}\n\n${D.contenu || ""}`) }, ico("copie"), "Copier le défi (ENT, mail)"), el("small", { style: "color:var(--doux)" }, D.mot_de_passe ? "Récompense : un objet, avec le mot de passe trouvé." : "Récompense : un objet, si le professeur valide la création."))),
+    D && D.titre && el("div", { class: "boite", style: "text-align:left;width:100%;background:rgba(255,255,255,.05);border-color:var(--filet)" }, el("h3", {}, n === 16 ? "Dernier défi, pour la galerie des héros" : "Défi maison pour la prochaine fois"), el("b", {}, D.titre), el("p", { style: "margin:0;white-space:pre-line" }, D.consigne), D.contenu && el("p", { style: "margin:0;white-space:pre-line;font-size:1.05rem" }, D.contenu),
+      el("div", { class: "rangee" }, el("button", { class: "b", onclick: () => copier(`${D.titre}\n\n${D.consigne}\n\n${D.contenu || ""}`) }, ico("copie"), "Copier le défi (ENT, mail)"), el("small", { style: "color:var(--doux)" }, !GAINS[n][1] ? "Pas de coffre : le professeur affiche les plus belles cartes." : D.mot_de_passe ? "Récompense : un objet, avec le mot de passe trouvé." : "Récompense : un objet, si le professeur valide la création."))),
     el("div", { class: "rangee", style: "justify-content:center" }, n === 16
-      ? el("button", { class: "b or", onclick: () => { Fen.fermer(); fenetreFinale(); } }, "La grande finale")
+      ? el("button", { class: "b or", onclick: () => { Fen.fermer(); jouerScene("feux", fenetreFinale); } }, "La grande finale")
       : LIEUX[n].cp ? el("button", { class: "b or", onclick: () => Fen.fermer() }, "Continuer l'aventure")
         : el("button", { class: "b or", onclick: () => { Fen.fermer(); fenetreDestin(); } }, "Tirer la carte du destin")));
   Fen.ouvrir(c, { classe: "sombre", etroite: false, bloquante: true });
@@ -443,17 +562,18 @@ function fenetreDestin(dejaRetire = false) {
       face.append(el("p", { class: "effet" }, "Quelle maison ?"), el("div", { class: "rangee", style: "justify-content:center" }, ORDRE_MAISONS.map((m) => el("button", { class: "b", style: `border-color:${MAISONS[m].c}`, onclick: () => { etat.points[m] += carte.effet.choix; noter(`Choixpeau : +${carte.effet.choix} pour ${MAISONS[m].nom}`); Store.sauver(); rendreHud(); Son.jouer("tinte"); face.querySelector(".rangee").replaceWith(el("p", { class: "effet" }, `+${carte.effet.choix} points pour ${MAISONS[m].nom}`)); finir(); } }, MAISONS[m].nom))));
       actions.replaceChildren(); return;
     }
+    const ex = SORTS.find((s) => s.id === "expelliarmus"), exDispo = sortDispo(ex);
     appliquer();
     face.append(el("p", { class: "effet" }, texteEffet(carte.effet, detail)));
     const prot = [];
     if (carte.nefaste) {
       const annuler = (label, consommer) => prot.push(el("button", { class: "b", onclick: () => { const rev = etat.rev; etat = completer(JSON.parse(avant)); etat.rev = rev; consommer(); noter(`${label} annule « ${carte.titre} »`); Store.sauver(); rendreTout(); Son.jouer("magie"); face.querySelector(".effet").textContent = `Annulé grâce à : ${label} !`; actions.replaceChildren(boutonFin()); } }, `Annuler avec ${label}`));
       if (etat.sac.bezoard) annuler("le Bézoard", () => retirerObjet("bezoard"));
-      const ex = SORTS.find((s) => s.id === "expelliarmus"); if (sortDispo(ex)) annuler("Expelliarmus", () => marquerSort(ex));
+      if (exDispo) annuler("Expelliarmus", () => marquerSort(ex));
       if (etat.reliques.includes("epee") && etat.usages.epee !== "c" + chapCourant()) annuler("l'Épée de Gryffondor", () => { etat.usages.epee = "c" + chapCourant(); });
     }
     if (!dejaRetire && etat.reliques.includes("medaillon") && etat.usages.medaillon !== "c" + chapCourant()) prot.push(el("button", { class: "b", onclick: () => { const rev = etat.rev; etat = completer(JSON.parse(avant)); etat.rev = rev; etat.usages.medaillon = "c" + chapCourant(); noter("Le Médaillon fait tirer une nouvelle carte"); Store.sauver(); rendreTout(); Fen.fermer(); fenetreDestin(true); } }, "Médaillon : tirer une autre carte"));
-    actions.replaceChildren(...prot, boutonFin());
+    actions.replaceChildren(...prot, boutonFin()); actions.style.pointerEvents = "none"; setTimeout(() => { actions.style.pointerEvents = ""; }, 600);
   }
   function boutonFin() { return el("button", { class: "b or", onclick: () => Fen.fermer() }, "Continuer"); }
   function finir() { actions.replaceChildren(boutonFin()); }
@@ -518,7 +638,7 @@ function fenetreSorts() {
 function fenetreDefis() {
   const corps = el("div", { class: "f-corps" });
   const rendre = () => {
-    const liste = []; for (let n = 1; n <= Math.min(15, etat.etape); n++) { const q = quete(n); if (q && q.defi_maison && q.defi_maison.titre) liste.push(n); }
+    const liste = []; for (let n = 1; n <= Math.min(16, etat.etape); n++) { const q = quete(n); if (q && q.defi_maison && q.defi_maison.titre) liste.push(n); }
     const alohomora = SORTS.find((s) => s.id === "alohomora");
     corps.replaceChildren(el("h2", {}, "Les défis maison"), el("p", { style: "margin:0;color:var(--parch-doux)" }, "À faire chez soi entre deux séances. Un défi réussi rapporte un objet et " + XP_DEFI + " XP."),
       liste.length ? el("div", { class: "liste-defis" }, liste.reverse().map((n) => {
@@ -526,7 +646,7 @@ function fenetreDefis() {
         const recompense = GAINS[n][1];
         return el("div", { class: "defi" + (fait ? " fait" : "") }, el("div", { class: "surtitre" }, `Étape ${n} · ${LIEUX[n].nom}${fait ? " · coffre ouvert" : ""}`), el("b", { style: "font-size:1.15rem" }, D.titre),
           el("details", {}, el("summary", {}, "Afficher le défi"), el("p", { style: "white-space:pre-line;font-size:1.1rem" }, D.consigne), D.contenu && el("p", { style: "white-space:pre-line;font-size:1.1rem" }, D.contenu), el("button", { class: "b", onclick: () => copier(`${D.titre}\n\n${D.consigne}\n\n${D.contenu || ""}`) }, ico("copie"), "Copier le défi")),
-          fait ? el("p", { style: "margin:0" }, "Défi réussi. Récompense déjà reçue.") : el("div", { style: "display:grid;gap:8px" },
+          fait ? el("p", { style: "margin:0" }, "Défi réussi. Récompense déjà reçue.") : n < etat.etape ? el("p", { style: "margin:0" }, "Coffre refermé : ce défi était à rendre à la séance suivante.") : el("div", { style: "display:grid;gap:8px" },
             recompense && el("small", {}, "Dans le coffre : " + OBJETS[recompense].nom),
             D.mot_de_passe ? el("div", { class: "champ-mdp" }, champ, el("button", { class: "b plein", onclick: () => { if (normaliser(champ.value) === normaliser(D.mot_de_passe)) reussirDefi(n, "mot de passe", rendre); else { Son.jouer("grave"); champ.value = ""; champ.placeholder = "RATÉ, ESSAYEZ ENCORE"; champ.animate([{ transform: "translateX(-8px)" }, { transform: "translateX(8px)" }, { transform: "none" }], { duration: 300 }); } } }, ico("coffre"), "Ouvrir le coffre"))
               : el("button", { class: "b plein", onclick: () => reussirDefi(n, "création validée", rendre) }, "Valider la création (professeur)"),
@@ -551,20 +671,14 @@ function montrerTexte(t) { const ta = el("textarea", { class: "sauvegarde", read
 function fenetreReglages() {
   const corps = el("div", { class: "f-corps" });
   const rendre = () => {
-    const code = btoa(unescape(encodeURIComponent(JSON.stringify({ ...etat, pile: [] }))));
-    const restaurer = el("textarea", { class: "sauvegarde", id: "restaurer", placeholder: "Collez ici un code de sauvegarde" });
-    const confirmer = el("input", { type: "text", id: "confirmer-raz", placeholder: "Tapez RECOMMENCER", style: "padding:8px 10px;border-radius:8px;border:1px solid var(--filet);background:rgba(0,0,0,.3);color:var(--texte)" });
     corps.replaceChildren(el("h2", {}, "Réglages du professeur"),
       el("div", { class: "reglages" },
         el("div", { class: "reglage" }, el("div", {}, el("b", {}, "Mode préparation"), el("p", {}, "Affiche le nom des lieux à venir et permet d'ouvrir leurs épreuves en aperçu. À couper avant de projeter.")), el("button", { class: "b" + (prefs.prep ? " or" : ""), onclick: () => { prefs.prep = !prefs.prep; sauverPrefs(); rendreTout(); rendre(); } }, prefs.prep ? "Activé" : "Désactivé")),
-        el("div", { class: "reglage" }, el("div", {}, el("b", {}, "Sons"), el("p", {}, "Carillons, fanfares et cloche du chronomètre.")), el("button", { class: "b" + (!prefs.muet ? " or" : ""), onclick: () => { prefs.muet = !prefs.muet; sauverPrefs(); rendre(); } }, prefs.muet ? "Coupés" : "Activés")),
+        el("div", { class: "reglage" }, el("div", {}, el("b", {}, "Sons"), el("p", {}, "Carillons, fanfares, sifflet du train et cloche du chronomètre.")), el("button", { class: "b" + (!prefs.muet ? " or" : ""), onclick: () => { prefs.muet = !prefs.muet; sauverPrefs(); rendre(); } }, prefs.muet ? "Coupés" : "Activés")),
         el("div", { class: "reglage" }, el("div", {}, el("b", {}, "Annuler la dernière étape"), el("p", {}, etat.pile.length ? "Revient à la situation d'avant la dernière validation (erreur de clic, mauvais résultat)." : "Rien à annuler pour l'instant.")), el("button", { class: "b", disabled: !etat.pile.length, onclick: () => { const rev = etat.rev; const pile = etat.pile.slice(1); etat = completer(JSON.parse(etat.pile[0])); etat.pile = pile; etat.rev = rev; noter("Dernière étape annulée"); Store.sauver(); rendreTout(); Scene3D.ok && Scene3D.suivreEquipe(); toast("Dernière étape annulée."); rendre(); } }, "Annuler")),
-        el("div", { class: "reglage" }, el("div", {}, el("b", {}, "Plein écran"), el("p", {}, "Pour projeter la carte au tableau.")), el("button", { class: "b", onclick: () => { const d = document.documentElement; (document.fullscreenElement ? document.exitFullscreen() : d.requestFullscreen && d.requestFullscreen()).catch(() => toast("Le plein écran n'est pas disponible ici.")); } }, "Basculer")),
-        el("div", { class: "reglage" }, el("div", { style: "flex:1 1 100%" }, el("b", {}, "Sauvegarde"), el("p", {}, Store.mode === "db" ? "La partie est enregistrée en ligne et partagée avec les personnes qui ont accès au jeu. Ce code sert de copie de secours." : "La partie est enregistrée dans ce navigateur. Copiez ce code pour la reprendre sur un autre ordinateur.")),
-          el("button", { class: "b", onclick: () => copier(code) }, ico("copie"), "Copier le code"), restaurer,
-          el("button", { class: "b", onclick: () => { try { const e = JSON.parse(decodeURIComponent(escape(atob(restaurer.value.trim())))); if (e.v !== 1) throw 0; const rev = etat.rev; etat = completer(e); etat.rev = rev; noter("Partie restaurée"); Store.sauver(); rendreTout(); toast("Partie restaurée."); rendre(); } catch (er) { toast("Ce code de sauvegarde n'est pas valide."); } } }, "Restaurer ce code")),
-        el("div", { class: "reglage" }, el("div", {}, el("b", {}, "Méfait accompli"), el("p", {}, "Referme la carte en fin de séance.")), el("button", { class: "b", onclick: () => { Fen.tout(); const i = $("#intro"); i.hidden = false; i.classList.remove("part"); majIntro(); } }, "Refermer la carte")),
-        el("div", { class: "reglage" }, el("div", {}, el("b", {}, "Recommencer la partie"), el("p", {}, "Efface toute la progression. Tapez RECOMMENCER pour confirmer.")), confirmer, el("button", { class: "b", onclick: () => { if (confirmer.value.trim().toUpperCase() !== "RECOMMENCER") { toast("Tapez RECOMMENCER pour confirmer."); return; } const rev = etat.rev; etat = etatNeuf(); etat.rev = rev; noter("Nouvelle partie"); Store.sauver(); rendreTout(); Scene3D.ok && Scene3D.suivreEquipe(); toast("Nouvelle partie."); rendre(); } }, "Recommencer")),
+        el("div", { class: "reglage" }, el("div", {}, el("b", {}, "Plein écran"), el("p", {}, "Pour projeter la carte au tableau.")), el("button", { class: "b", onclick: () => { const d = document.documentElement; (document.fullscreenElement ? document.exitFullscreen() : d.requestFullscreen ? d.requestFullscreen() : Promise.reject()).catch(() => toast("Le plein écran n'est pas disponible ici.")); } }, "Basculer")),
+        !Scene3D.ok && el("div", { class: "reglage" }, el("div", {}, el("b", {}, "Carte 3D"), el("p", {}, prefs.force3d ? "La 3D est forcée sur cet ordinateur. Si elle est trop lente, revenez à la carte 2D." : "Cet ordinateur n'a pas d'accélération graphique : le jeu affiche la carte 2D, sans les scènes animées. Vous pouvez forcer la 3D (elle risque d'être lente).")), el("button", { class: "b", onclick: () => { prefs.force3d = !prefs.force3d; sauverPrefs(); location.reload(); } }, prefs.force3d ? "Revenir à la 2D" : "Forcer la 3D")),
+        Scene3D.ok && prefs.force3d && el("div", { class: "reglage" }, el("div", {}, el("b", {}, "Carte 3D forcée"), el("p", {}, "Si la carte est trop lente sur cet ordinateur, revenez à la carte 2D.")), el("button", { class: "b", onclick: () => { prefs.force3d = false; sauverPrefs(); location.reload(); } }, "Revenir à la 2D")),
         el("div", { class: "reglage", style: "display:grid" }, el("b", {}, "Journal de la partie"), el("ul", { class: "journal" }, etat.journal.length ? etat.journal.map((j) => el("li", {}, new Date(j.d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) + " · " + j.t)) : el("li", {}, "Rien pour l'instant.")))));
   };
   rendre(); Fen.ouvrir(corps, { classe: "sombre" });
@@ -574,44 +688,203 @@ function fenetreAide() {
   const etape = (n, t, d) => el("div", { class: "sort" }, el("span", { class: "an" }, n), el("div", {}, el("b", { style: "font-size:1.15rem" }, t), el("small", {}, d)), el("span", {}));
   const c = el("div", { class: "f-corps" },
     el("h2", {}, "Comment jouer"),
-    el("p", { style: "margin:0;color:var(--doux)" }, "Une séance d'1 h tous les 15 jours, de novembre à juin : 16 étapes, 4 chapitres, 4 reliques. Toute la classe forme une seule équipe de 4 héros ; chaque maison incarne le sien."),
+    el("p", { style: "margin:0;color:var(--doux)" }, "Une séance d'1 h tous les 15 jours, de novembre à juin : 16 étapes, 4 chapitres, 4 reliques. Toute la classe forme une seule équipe de 4 héros ; chaque maison incarne le sien. Chaque classe a sa propre partie."),
     el("h3", {}, "Une séance"),
-    etape(1, "Ouvrir la carte", "Toute la classe prononce la formule. La carte montre où en est l'équipe."),
-    etape(2, "La lettre (5 min)", "Bouton doré en bas : on lit la lettre de Moka et le message de l'Ombre."),
+    etape(1, "Choisir la classe", "Sur la page d'accueil, « Ouvrir la carte ». La première fois, le Poudlard Express dépose les élèves au château."),
+    etape(2, "La lettre (5 min)", "Bouton doré en bas : on lit la lettre de Moka. Certains lieux s'ouvrent sur une scène animée."),
     etape(3, "L'épreuve (25-35 min)", "Chronomètre, réponses à révéler une par une, jokers. Les maisons répondent sur leur ardoise. Une épreuve peut aussi partir à la maison avec « Copier pour la maison »."),
     etape(4, "Le résultat (5 min)", "Réussite, partielle ou échec, et les maisons qui ont brillé. L'équipe avance quoi qu'il arrive."),
-    etape(5, "Récompenses et destin (5 min)", "XP, objets, sorts, reliques aux étapes 4, 8, 12 et 16, puis une carte du destin. On annonce le défi maison."),
-    el("h3", {}, "Ce qui fait progresser l'équipe"),
+    etape(5, "Récompenses et destin (5 min)", "XP, objets, reliques aux étapes 4, 8, 12 et 16, puis une carte du destin. On annonce le défi maison."),
+    el("h3", {}, "À l'écran"),
     el("div", { class: "grille-objets" },
-      el("div", { class: "objet" }, el("span", { html: ICONES.retourneur, style: "display:contents" }), el("div", {}, el("b", {}, "Les années"), el("small", {}, "L'XP fait passer l'équipe de la 1re à la 7e année. Chaque année débloque un sort."))),
-      el("div", { class: "objet" }, el("span", { html: portraitSVG("pou"), style: "display:contents" }), el("div", {}, el("b", {}, "Les héros"), el("small", {}, "Une maison qui brille donne +1 ★ à son héros. Novice, Adepte, Expert, Légende."))),
-      el("div", { class: "objet" }, el("span", { html: ICONES.rapeltout, style: "display:contents" }), el("div", {}, el("b", {}, "Le sac"), el("small", {}, "Objets et potions servent de jokers pendant les épreuves, au résultat ou face au destin."))),
-      el("div", { class: "objet" }, el("span", { html: ICONES.coupe, style: "display:contents" }), el("div", {}, el("b", {}, "Les reliques"), el("small", {}, "Une par chapitre, chacune avec un pouvoir. Les quatre réunies : la finale."))),
-      el("div", { class: "objet" }, el("span", { html: sablierSVG("#E2B12C", 0.6), style: "display:contents" }), el("div", {}, el("b", {}, "Les sabliers"), el("small", {}, "Les points des maisons. Cliquez sur un sablier pour ajouter ou retirer des points (comportement, participation)."))),
-      el("div", { class: "objet" }, el("span", { html: '<svg viewBox="0 0 64 64"><path d="M8 26h48v30H8Z" fill="#8A5A2B"/><path d="M8 26a24 12 0 0 1 48 0" fill="#A87442"/><rect x="27" y="34" width="10" height="10" rx="2" fill="#E2B74A"/></svg>', style: "display:contents" }), el("div", {}, el("b", {}, "Les défis maison"), el("small", {}, "Facultatifs, entre deux séances. Le mot de passe trouvé ouvre un coffre au début de la séance suivante.")))),
+      el("div", { class: "objet" }, el("span", { html: ICONES.coupe, style: "display:contents" }), el("div", {}, el("b", {}, "En haut"), el("small", {}, "La classe, le chapitre, l'année et les 16 étapes ; les 4 grands ronds sont les reliques."))),
+      el("div", { class: "objet" }, el("span", { html: portraitSVG("pou"), style: "display:contents" }), el("div", {}, el("b", {}, "En bas à gauche"), el("small", {}, "Les 4 héros. Une maison qui brille donne +1 ★ à son héros : Novice, Adepte, Expert, Légende."))),
+      el("div", { class: "objet" }, el("span", { html: sablierSVG("#E2B12C", 0.6), style: "display:contents" }), el("div", {}, el("b", {}, "En bas à droite"), el("small", {}, "Les sabliers des maisons. Cliquez sur un sablier pour ajouter ou retirer des points."))),
+      el("div", { class: "objet" }, el("span", { html: '<svg viewBox="0 0 64 64"><rect x="10" y="16" width="44" height="6" rx="3" fill="#E8C978"/><rect x="10" y="29" width="44" height="6" rx="3" fill="#E8C978"/><rect x="10" y="42" width="44" height="6" rx="3" fill="#E8C978"/></svg>', style: "display:contents" }), el("div", {}, el("b", {}, "Le menu ☰"), el("small", {}, "Défis maison, sac, sorts, sauvegardes, scènes à revoir et réglages.")))),
     el("h3", {}, "Pour le professeur"),
-    el("p", { style: "margin:0;color:var(--doux);line-height:1.5" }, "Le mode préparation (⚙) permet de lire les épreuves à l'avance. « Annuler la dernière étape » répare une erreur de clic. La partie est sauvegardée automatiquement ; le code de sauvegarde permet de la reprendre sur un autre ordinateur."));
+    el("p", { style: "margin:0;color:var(--doux);line-height:1.5" }, "Avant chaque séance : menu ☰ › Réglages › mode préparation, ouvrez l'étape suivante (bouton doré), onglet « L'épreuve », « Copier la fiche du professeur », imprimez-la et préparez le matériel ; coupez le mode préparation avant de projeter. La sauvegarde est automatique et un point de sauvegarde est créé après chaque étape : menu ☰ › Sauvegardes pour revenir en arrière ou recommencer à zéro."));
   Fen.ouvrir(c, { classe: "sombre" });
 }
 
+/* ================= Accueil : une carte par classe ================= */
+function rendreAccueil() {
+  const box = $("#liste-classes"); if (!box) return;
+  box.replaceChildren(...registre.liste.map((c) => {
+    const e = partieDe(c.id) || etatNeuf(); const fini = e.etape >= 16, prochaine = Math.min(16, e.etape + 1);
+    const res = e.resultats && e.resultats[e.etape]; const derniere = res && res.d ? new Date(res.d) : null;
+    return el("article", { class: "carte-classe verre" },
+      el("div", { class: "cc-tete" }, el("h2", {}, c.nom), el("button", { class: "btn-rond petit", "aria-label": `Options de la classe ${c.nom}`, title: "Options", onclick: (ev) => menuClasse(c, ev.currentTarget) }, ico("points"))),
+      el("p", { class: "cc-etat" }, e.etape === 0 ? "Nouvelle aventure" : fini ? "Aventure terminée" : `Étape ${prochaine} sur 16`),
+      el("p", { class: "cc-lieu" }, e.etape === 0 ? (e.introVue ? "L'équipe attend au Grand Hall" : "Départ en Poudlard Express") : fini ? "Les quatre reliques sont réunies" : LIEUX[prochaine].nom),
+      el("span", { class: "barre" }, el("i", { style: `width:${Math.round((e.etape / 16) * 100)}%` })),
+      el("div", { class: "cc-bas" },
+        el("div", { class: "cc-reliques" }, ORDRE_RELIQUES.map((r) => el("span", { class: "slot" + (e.reliques.includes(r) ? " ok" : ""), title: RELIQUES[r].nom, html: ICONES[r] }))),
+        el("small", {}, derniere ? "Dernière séance : " + derniere.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }) : nomAnnee(anneeDe(e.xp)))),
+      el("button", { class: "btn-ouvrir", onclick: () => ouvrirClasse(c.id) }, !e.introVue && Scene3D.ok ? "Monter dans le train" : "Ouvrir la carte"));
+  }));
+}
+function menuClasse(c, ancre) {
+  document.querySelectorAll(".popover-menu").forEach((p) => p.remove());
+  const r = ancre.getBoundingClientRect();
+  const fermer = () => p.remove();
+  const item = (texte, action) => el("button", { class: "lien", onclick: () => { fermer(); action(); } }, texte);
+  const p = el("div", { class: "popover-menu verre", style: `top:${r.bottom + 6}px;left:${Math.max(8, Math.min(innerWidth - 248, r.right - 240))}px` },
+    item("Renommer", () => fenetreNomClasse(c)),
+    item("Sauvegardes", () => fenetreSauvegardes(c.id)),
+    Scene3D.ok && item("Revoir l'arrivée en train", () => ouvrirClasse(c.id, { train: true })),
+    item("Recommencer à zéro", () => fenetreRaz(c.id)),
+    registre.liste.length > 1 && item("Supprimer la classe", () => fenetreSupprimer(c)));
+  document.body.append(p);
+  setTimeout(() => document.addEventListener("pointerdown", function f(e) { if (!p.contains(e.target)) { fermer(); document.removeEventListener("pointerdown", f); } }), 0);
+}
+function fenetreNomClasse(c) {
+  const champ = el("input", { class: "champ", type: "text", value: c ? c.nom : "", placeholder: "Par exemple : 6e C", maxlength: "24", "aria-label": "Nom de la classe" });
+  const valider = () => {
+    const nom = champ.value.trim(); if (!nom) { champ.focus(); return; }
+    if (c) c.nom = nom; else { const id = "c" + Date.now().toString(36); registre.liste.push({ id, nom }); parties[id] = etatNeuf(); ls.ecrire(CLE2 + "-partie-" + id, parties[id]); }
+    Store.sauverRegistre(); Store.relier(); rendreAccueil(); if (courante) rendreHud(); Fen.fermer();
+  };
+  champ.addEventListener("keydown", (e) => { if (e.key === "Enter") valider(); });
+  Fen.ouvrir(el("div", { class: "f-corps" }, el("h2", {}, c ? "Renommer la classe" : "Nouvelle classe"), champ, el("div", { class: "rangee" }, el("button", { class: "b or", onclick: valider }, c ? "Renommer" : "Créer la classe"))), { classe: "sombre", etroite: true });
+  setTimeout(() => { champ.focus(); champ.select(); }, 60);
+}
+function fenetreSupprimer(c) {
+  const champ = el("input", { class: "champ", type: "text", placeholder: "Tapez SUPPRIMER", "aria-label": "Confirmation" });
+  Fen.ouvrir(el("div", { class: "f-corps" }, el("h2", {}, `Supprimer la classe ${c.nom}`), el("p", { style: "margin:0;color:var(--doux)" }, "Sa partie disparaîtra de la page d'accueil. Tapez SUPPRIMER pour confirmer."), champ,
+    el("div", { class: "rangee" }, el("button", { class: "b", onclick: () => {
+      if (champ.value.trim().toUpperCase() !== "SUPPRIMER") { toast("Tapez SUPPRIMER pour confirmer."); return; }
+      registre.liste = registre.liste.filter((x) => x.id !== c.id); ls.oublier(CLE2 + "-partie-" + c.id);
+      Store.sauverRegistre(); Store.relier(); rendreAccueil(); Fen.fermer(); toast(`Classe ${c.nom} supprimée.`);
+    } }, "Supprimer"))), { classe: "sombre", etroite: true });
+}
+function fenetreRaz(id) {
+  const champ = el("input", { class: "champ", type: "text", placeholder: "Tapez RECOMMENCER", "aria-label": "Confirmation" });
+  Fen.ouvrir(el("div", { class: "f-corps" }, el("h2", {}, `Recommencer à zéro · ${nomClasse(id)}`),
+    el("p", { style: "margin:0;color:var(--doux)" }, "La classe repart du Poudlard Express : étapes, XP, objets, reliques et points des maisons reviennent à zéro. Un point de sauvegarde est créé juste avant : vous pourrez revenir en arrière. Tapez RECOMMENCER pour confirmer."), champ,
+    el("div", { class: "rangee" }, el("button", { class: "b or", onclick: () => {
+      if (champ.value.trim().toUpperCase() !== "RECOMMENCER") { toast("Tapez RECOMMENCER pour confirmer."); return; }
+      Store.instantane("Avant la remise à zéro", id); remplacerPartie(id, etatNeuf(), "Nouvelle partie");
+      Fen.tout(); toast(`${nomClasse(id)} : nouvelle partie.`); if (id === courante) afficherAccueil();
+    } }, "Recommencer à zéro"))), { classe: "sombre", etroite: true });
+}
+
+/* ================= Sauvegardes ================= */
+function fenetreSauvegardes(id) {
+  const corps = el("div", { class: "f-corps" });
+  Fen.ouvrir(corps, { classe: "sombre" });
+  const date = (d) => new Date(d).toLocaleString("fr-FR", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const resume = (s) => `${s.etape === 0 ? "Départ" : s.etape >= 16 ? "Aventure terminée" : `Étape ${s.etape} franchie`} · ${s.xp} XP · ${s.reliques} relique${s.reliques > 1 ? "s" : ""}`;
+  const rendre = async () => {
+    const e = partieDe(id);
+    corps.replaceChildren(el("h2", {}, `Sauvegardes · ${nomClasse(id)}`), el("p", { style: "margin:0;color:var(--doux)" }, "Chargement…"));
+    const liste = await Store.sauvegardes(id);
+    const code = btoa(unescape(encodeURIComponent(JSON.stringify({ ...e, pile: [] }))));
+    const zone = el("textarea", { class: "sauvegarde", placeholder: "Collez ici un code de secours" });
+    corps.replaceChildren(el("h2", {}, `Sauvegardes · ${nomClasse(id)}`),
+      el("p", { style: "margin:0;color:var(--doux)" }, `Aujourd'hui : ${resume({ etape: e.etape, xp: e.xp, reliques: e.reliques.length })}. Un point de sauvegarde est créé automatiquement après chaque étape.`),
+      el("div", { class: "rangee" },
+        el("button", { class: "b or", onclick: () => { Store.instantane("Sauvegarde manuelle", id); toast("Point de sauvegarde créé."); rendre(); } }, ico("disque"), "Sauvegarder maintenant"),
+        el("button", { class: "b", onclick: () => { Fen.fermer(); fenetreRaz(id); } }, ico("reset"), "Recommencer à zéro")),
+      el("h3", {}, "Revenir à un point de sauvegarde"),
+      liste.length ? el("div", { class: "liste-sauv" }, liste.map((s) => el("div", { class: "sauv" },
+        el("div", {}, el("b", {}, s.label), el("small", {}, `${date(s.date)} · ${resume(s)}`)),
+        el("button", { class: "b", onclick: () => {
+          let n; try { n = completer(JSON.parse(s.etat)); } catch (er) { toast("Cette sauvegarde est illisible."); return; }
+          Store.instantane("Avant la restauration", id); n.introVue = true; remplacerPartie(id, n, `Retour à la sauvegarde : ${s.label}`);
+          toast(`Retour à : ${s.label}`); rendre();
+        } }, "Restaurer"))))
+        : el("p", { style: "margin:0;color:var(--doux)" }, "Aucun point de sauvegarde pour l'instant."),
+      el("details", { class: "secours" }, el("summary", {}, "Code de secours (pour changer d'ordinateur)"),
+        el("div", { style: "display:grid;gap:8px;margin-top:10px" },
+          el("button", { class: "b", onclick: () => copier(code) }, ico("copie"), "Copier le code de cette partie"), zone,
+          el("button", { class: "b", onclick: () => { try { const n = JSON.parse(decodeURIComponent(escape(atob(zone.value.trim())))); if (n.v !== 1) throw 0; Store.instantane("Avant la restauration", id); remplacerPartie(id, completer(n), "Partie restaurée depuis un code"); toast("Partie restaurée."); rendre(); } catch (er) { toast("Ce code de sauvegarde n'est pas valide."); } } }, "Restaurer ce code"))));
+  };
+  rendre();
+}
+
+/* ================= Scènes animées ================= */
+const SCENES_ETAPE = { 6: "hippogriffe", 9: "saule", 10: "calmar", 12: "plongee", 13: "vif" };
+const NOMS_SCENES = { express: ["L'arrivée en Poudlard Express", 0], hippogriffe: ["Le vol de l'hippogriffe", 6], saule: ["La colère du Saule cogneur", 9], calmar: ["Le monstre du lac", 10], plongee: ["Plongée sous le lac noir", 12], vif: ["La chasse au Vif d'or", 13], feux: ["Les feux de la victoire", 17] };
+function jouerScene(id, fin) {
+  if (!Scene3D.ok) { if (fin) fin(); return; }
+  const cin = $("#cinema"), txt = $("#cinema-texte"), hud = $("#hud");
+  hud.hidden = true; cin.hidden = false; txt.textContent = ""; txt.classList.remove("on"); $("#infobulle").hidden = true;
+  const touche = (e) => { if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); Scene3D.passerScene(); } };
+  document.addEventListener("keydown", touche);
+  $("#btn-passer").onclick = () => Scene3D.passerScene();
+  setTimeout(() => $("#btn-passer").focus({ preventScroll: true }), 50);
+  Scene3D.jouerScene(id, {
+    classe: nomClasse(courante),
+    son: (s) => Son.jouer(s),
+    texte: (t) => { if (t) { txt.textContent = t; txt.classList.remove("on"); void txt.offsetWidth; txt.classList.add("on"); } else txt.classList.remove("on"); },
+    fin: () => { document.removeEventListener("keydown", touche); cin.hidden = true; if (courante && $("#accueil").hidden) hud.hidden = false; if (fin) fin(); },
+  });
+}
+function lancerEtape() {
+  if (etat.etape >= 16) return fenetreFinale();
+  const n = etat.etape + 1, sc = SCENES_ETAPE[n];
+  if (sc && Scene3D.ok && !etat.scenes[n]) { etat.scenes[n] = 1; Store.sauver(); jouerScene(sc, () => ouvrirQuete(n, "jouer")); }
+  else ouvrirQuete(n, "jouer");
+}
+function fenetreScenes() {
+  const ouverte = (n) => n === 0 || prefs.prep || etat.etape >= n - 1;
+  const c = el("div", { class: "f-corps" }, el("h2", {}, "Revoir une scène"),
+    el("div", { class: "menu-grille" }, Object.entries(NOMS_SCENES).map(([id, [nom, n]]) => {
+      const ok = ouverte(n);
+      return el("button", { class: "menu-item", disabled: !ok, onclick: () => { Fen.tout(); jouerScene(id); } }, ico(ok ? "film" : "oeil"),
+        el("span", {}, el("b", {}, ok ? nom : "Scène encore cachée"), el("small", {}, n === 0 ? "Le début de l'aventure" : n === 17 ? "La grande finale" : `Étape ${n} · ${nomVisible(n)}`)));
+    })));
+  Fen.ouvrir(c, { classe: "sombre", etroite: true });
+}
+
+/* ================= Menu de la classe ================= */
+function fenetreMenu() {
+  const a = anneeDe(etat.xp); const nd = defisEnAttente().length, no = nbObjets(), ns = SORTS.filter((s) => s.annee <= a).length;
+  const item = (icone, titre, sous, action, badge) => el("button", { class: "menu-item", onclick: () => { Fen.fermer(); action(); } }, ico(icone), el("span", {}, el("b", {}, titre), sous && el("small", {}, sous)), badge ? el("span", { class: "badge" }, badge) : null);
+  const c = el("div", { class: "f-corps" }, el("h2", {}, nomClasse(courante)),
+    el("div", { class: "menu-grille" },
+      item("coffre", "Défis maison", nd ? "Un coffre attend son mot de passe" : "Coffres et mots de passe", fenetreDefis, nd || null),
+      item("sac", "Le sac", `${no} objet${no > 1 ? "s" : ""}, compagnons et reliques`, fenetreSac),
+      item("grimoire", "Les sorts", `${nomAnnee(a)} · ${ns} sort${ns > 1 ? "s" : ""} connu${ns > 1 ? "s" : ""}`, fenetreSorts),
+      item("disque", "Sauvegardes", "Revenir en arrière ou recommencer", () => fenetreSauvegardes(courante)),
+      Scene3D.ok && item("film", "Revoir une scène", "Le train, le calmar, l'hippogriffe…", fenetreScenes),
+      Scene3D.ok && item("cible", "Recentrer la carte", "Sur l'équipe", () => Scene3D.suivreEquipe()),
+      item("aide", "Comment jouer", "Le déroulement d'une séance", fenetreAide),
+      item("roue", "Réglages", "Préparation, sons, plein écran", fenetreReglages),
+      item("maison", "Méfait accompli", "Refermer la carte, changer de classe", afficherAccueil)));
+  Fen.ouvrir(c, { classe: "sombre", etroite: true });
+}
+
 /* ================= Démarrage ================= */
-function majIntro() {
-  const t = etat.etape === 0 ? "Nouvelle aventure : l'équipe attend au Grand Hall." : etat.etape >= 16 ? "Aventure terminée. Les quatre reliques sont réunies." : `Reprise : étape ${etat.etape + 1} sur 16 · ${nomAnnee(anneeDe(etat.xp))} · ${etat.reliques.length} relique${etat.reliques.length > 1 ? "s" : ""}`;
-  $("#intro-etat").textContent = t;
+function ouvrirClasse(id, { train = false } = {}) {
+  courante = id; etat = parties[id];
+  Fen.tout(); document.querySelectorAll(".popover-menu").forEach((p) => p.remove());
+  const acc = $("#accueil"); acc.classList.add("part"); setTimeout(() => { acc.hidden = true; acc.classList.remove("part"); }, 900);
+  Scene3D.ok && Scene3D.orbite(false);
+  rendreTout(); Son.jouer("magie");
+  const montrer = () => { $("#hud").hidden = false; Scene3D.ok && Scene3D.suivreEquipe(true); };
+  if ((train || !etat.introVue) && Scene3D.ok) jouerScene("express", () => { if (!etat.introVue) { etat.introVue = true; Store.sauver(); } montrer(); });
+  else { if (!etat.introVue) { etat.introVue = true; Store.sauver(); } montrer(); }
+}
+function afficherAccueil() {
+  Fen.tout(); courante = null;
+  $("#hud").hidden = true; $("#infobulle").hidden = true;
+  rendreAccueil(); $("#accueil").hidden = false;
+  if (Scene3D.ok) Scene3D.orbite(true);
 }
 function demarrer() {
   Store.charger();
+  etat = parties[registre.liste[0].id];
   const ok = Scene3D.init($("#scene"), { clic: clicLieu, survol: survolLieu });
-  if (!ok) { $("#scene").hidden = true; $("#btn-centrer").hidden = true; }
-  rendreTout(); majIntro(); majSync();
-  $("#btn-serment").addEventListener("click", () => { Son.jouer("magie"); const i = $("#intro"); i.classList.add("part"); setTimeout(() => { i.hidden = true; }, 1200); if (Scene3D.ok) setTimeout(() => Scene3D.suivreEquipe(true), 300); });
-  $("#btn-etape").addEventListener("click", () => { if (etat.etape >= 16) return fenetreFinale(); ouvrirQuete(etat.etape + 1, "jouer"); });
-  $("#btn-centrer").addEventListener("click", () => Scene3D.suivreEquipe());
-  $("#btn-sac").addEventListener("click", fenetreSac);
-  $("#btn-grimoire").addEventListener("click", fenetreSorts);
-  $("#btn-defis").addEventListener("click", fenetreDefis);
-  $("#btn-reglages").addEventListener("click", fenetreReglages);
-  $("#btn-aide").addEventListener("click", fenetreAide);
+  if (!ok) $("#scene").hidden = true;
+  rendreTout(); rendreAccueil(); majSync();
+  if (ok) Scene3D.orbite(true);
+  $("#btn-etape").addEventListener("click", lancerEtape);
+  $("#btn-menu").addEventListener("click", fenetreMenu);
+  $("#btn-accueil").addEventListener("click", afficherAccueil);
+  $("#btn-defi-attente").addEventListener("click", fenetreDefis);
+  $("#btn-ajouter-classe").addEventListener("click", () => fenetreNomClasse(null));
+  $("#btn-aide-accueil").addEventListener("click", fenetreAide);
   Store.brancher();
 }
 demarrer();

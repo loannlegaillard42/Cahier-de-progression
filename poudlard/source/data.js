@@ -45,7 +45,7 @@ const LIEUX = [
   { n: 16, nom: "La Tour de Serdaigle", x: -14, z: -41, y: 25.2, cp: true },
 ];
 
-const XP_ANNEES = [0, 150, 400, 700, 1000, 1350, 1700];
+const XP_ANNEES = [0, 150, 450, 800, 1200, 1600, 2000];
 const XP_RESULTAT = { reussite: 100, partielle: 60, echec: 30 };
 const XP_CHECKPOINT = 150, XP_DEFI = 40;
 
@@ -56,15 +56,15 @@ const SORTS = [
   { id: "expelliarmus", nom: "Expelliarmus", annee: 4, freq: "chapitre", effet: "Désarme l'Ombre : annule une carte du destin néfaste." },
   { id: "accio", nom: "Accio", annee: 5, freq: "chapitre", effet: "Fait venir un objet surprise dans le sac." },
   { id: "protego", nom: "Protego", annee: 6, freq: "chapitre", effet: "Une épreuve ratée compte comme partielle." },
-  { id: "patronum", nom: "Spero Patronum", annee: 7, freq: "finale", effet: "Pour la grande finale : le Patronus de l'équipe chasse l'Ombre (+100 XP)." },
+  { id: "patronum", nom: "Spero Patronum", annee: 7, freq: "finale", effet: "Le jour de la grande finale, toute la classe le lance, quelle que soit son année : le Patronus de l'équipe chasse l'Ombre (+100 XP)." },
 ];
 
 const OBJETS = {
   rapeltout: { nom: "Rapeltout", effet: "Révèle l'indice de l'épreuve.", quand: "epreuve", auto: "indice" },
   plume: { nom: "Plume à Papote", effet: "Le professeur souffle la première lettre d'une réponse.", quand: "epreuve" },
-  retourneur: { nom: "Retourneur de temps", effet: "+5 minutes au chronomètre.", quand: "epreuve", auto: "temps" },
-  cape: { nom: "Cape d'invisibilité", effet: "Une question est passée et comptée juste.", quand: "epreuve" },
-  pimentine: { nom: "Pimentine", effet: "L'équipe retente une question ratée.", quand: "epreuve" },
+  retourneur: { nom: "Retourneur de temps", effet: "+5 minutes pour la phase en cours (les délais des critères de réussite sont prolongés d'autant).", quand: "epreuve", auto: "temps" },
+  cape: { nom: "Cape d'invisibilité", effet: "Une question, une paire, une place dans l'ordre ou une ligne de code est comptée juste pour toutes les maisons.", quand: "epreuve" },
+  pimentine: { nom: "Pimentine", effet: "Les maisons qui se sont trompées retentent une réponse (question, paire, ordre ou ligne de code).", quand: "epreuve" },
   felix: { nom: "Felix Felicis", effet: "Chance liquide : une épreuve ratée ou partielle devient réussie.", quand: "resultat", auto: "felix" },
   bezoard: { nom: "Bézoard", effet: "Annule une carte du destin néfaste.", quand: "destin", auto: "annule" },
   chocogrenouille: { nom: "Chocogrenouille", effet: "+25 XP tout de suite.", quand: "libre", auto: "xp25" },

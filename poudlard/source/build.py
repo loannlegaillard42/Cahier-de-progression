@@ -16,6 +16,13 @@ else:  # contenu provisoire pour tester le moteur
                 "paires": [{"gauche": "Mandragore", "droite": "Cri assourdissant"}, {"gauche": "Filet du Diable", "droite": "Craint la lumière"}, {"gauche": "Branchiflore", "droite": "Respirer sous l'eau"}],
                 "ordre": ["Mettre les cache-oreilles", "Saisir la plante", "La tirer du pot", "La rempoter"], "code": {"message": "OXPRV", "cle": "Décale chaque lettre de 3 rangs en arrière.", "reponse": "LUMOS"}, "indice": "Un indice de test.", "reussite": "4 sur 5 = réussite."},
             "defi_maison": {"titre": "Défi maison de test", "consigne": "Trouvez le mot de passe.", "contenu": "Énigme : je suis le sort de lumière.", "mot_de_passe": "LUMOS" if n % 2 else ""}, "note_prof": "Note de test."}
+import re
+def insec(o):
+    if isinstance(o, dict): return {k: insec(v) for k, v in o.items()}
+    if isinstance(o, list): return [insec(v) for v in o]
+    if isinstance(o, str): return re.sub(r" ([!?:;»])", "\u202f\\1", o).replace("« ", "«\u202f")
+    return o
+quetes = insec(quetes)
 QUETES = "const QUETES = " + json.dumps(quetes, ensure_ascii=False) + ";"
 FONTS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Lexend:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">'
 LIBS = '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>'
