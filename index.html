@@ -108,7 +108,8 @@ const {
   useState,
   useEffect,
   useRef,
-  useCallback
+  useCallback,
+  useMemo
 } = React;
 
 /* ---------- design tokens ---------- */
@@ -566,6 +567,17 @@ function withDefaults(raw) {
   const data = {
     ...raw
   };
+  // Données partiellement abîmées : on reconstruit la structure plutôt que de tout perdre
+  if (!data.classes || typeof data.classes !== "object") data.classes = {};
+  if (!Array.isArray(data.order)) data.order = Object.keys(data.classes);
+  data.order = data.order.filter(cid => data.classes[cid]);
+  data.order.forEach(cid => {
+    const c = data.classes[cid];
+    if (!Array.isArray(c.themes)) c.themes = [];
+    c.themes.forEach(th => {
+      if (!Array.isArray(th.chapters)) th.chapters = [];
+    });
+  });
   if (!Array.isArray(data.todos)) data.todos = [];
   if (!Array.isArray(data.fiches)) data.fiches = [];
   if (!Array.isArray(data.evaluations)) data.evaluations = [];
@@ -878,12 +890,44 @@ const PROGRAMMES = [{
     }]
   }]
 }];
+// Sauvegarde différée pendant la frappe. La sauvegarde en attente part tout de suite
+// si l'app passe en arrière-plan ou se ferme (téléphone verrouillé, appli balayée…),
+// sinon les dernières lettres tapées étaient perdues.
+// save.flush() : enregistrer maintenant ; save.cancel() : oublier (une sauvegarde immédiate a suivi).
 function useDebouncedSave(saveFn, delay = 500) {
   const timer = useRef(null);
-  return useCallback(value => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => saveFn(value), delay);
-  }, [saveFn, delay]);
+  const pending = useRef(null);
+  const fnRef = useRef(saveFn);
+  fnRef.current = saveFn;
+  const save = useMemo(() => {
+    const flush = () => {
+      if (!timer.current) return;
+      clearTimeout(timer.current);
+      timer.current = null;
+      fnRef.current(pending.current);
+    };
+    const f = value => {
+      pending.current = value;
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(flush, delay);
+    };
+    f.flush = flush;
+    f.cancel = () => {
+      clearTimeout(timer.current);
+      timer.current = null;
+    };
+    return f;
+  }, [delay]);
+  useEffect(() => {
+    const onHide = () => document.visibilityState === "hidden" && save.flush();
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", save.flush);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", save.flush);
+    };
+  }, [save]);
+  return save;
 }
 function chapterStatus(ch) {
   const total = Math.max(1, Number(ch.total) || 1);
@@ -1056,7 +1100,7 @@ function JournalSeances({
     if (!texte.trim()) return;
     const entry = {
       id: uid(),
-      date: date || new Date().toISOString().slice(0, 10),
+      date: date || localISO(new Date()),
       texte: texte.trim()
     };
     onChange([...(journal || []), entry]);
@@ -1235,7 +1279,10 @@ function ChapterRow({
       ...fields
     };
     setLocal(next);
-    if (saveNow) onUpdate(next);else debouncedSave(next);
+    if (saveNow) {
+      debouncedSave.cancel();
+      onUpdate(next);
+    } else debouncedSave(next);
   };
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1342,7 +1389,7 @@ function ChapterRow({
     onChange: e => patch({
       title: e.target.value
     }, false),
-    onBlur: () => onUpdate(local),
+    onBlur: debouncedSave.flush,
     style: inputStyle,
     placeholder: "Titre du chapitre"
   }), /*#__PURE__*/React.createElement("div", {
@@ -1405,7 +1452,7 @@ function ChapterRow({
     onChange: e => patch({
       notes: e.target.value
     }, false),
-    onBlur: () => onUpdate(local),
+    onBlur: debouncedSave.flush,
     rows: 3,
     placeholder: "Déroulé, ajustements, ce qui a fonctionné ou non…",
     style: {
@@ -1848,7 +1895,9 @@ function SlotCard({ data, slot, date, entry, onSave, evals }) {
   const [draft, setDraft] = useState(entry || { seance: "", devoirs: "", chapterId: "", done: false });
   useEffect(() => { setDraft(entry || { seance: "", devoirs: "", chapterId: "", done: false }); }, [entry]);
   const found = draft.chapterId ? findChapter(data, slot.classId, draft.chapterId) : null;
-  const commit = patch => { const n = { ...draft, ...patch }; setDraft(n); onSave(n); };
+  const typed = useDebouncedSave(n => onSave(n));
+  const type = patch => { const n = { ...draft, ...patch }; setDraft(n); typed(n); };
+  const commit = patch => { typed.cancel(); const n = { ...draft, ...patch }; setDraft(n); onSave(n); };
   const txt = { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, lineHeight: 1.45 };
   return h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${color}`, boxShadow: CARD_SHADOW, borderRadius: 8, overflow: "hidden" } },
     h("div", { onClick: () => setOpen(!open), style: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", cursor: "pointer", flexWrap: "wrap" } },
@@ -1872,9 +1921,9 @@ function SlotCard({ data, slot, date, entry, onSave, evals }) {
           h("option", { value: "" }, "—"),
           cls && cls.themes.map(th => h("optgroup", { key: th.id, label: th.title }, th.chapters.map(ch => h("option", { key: ch.id, value: ch.id }, ch.title)))))),
       h("div", null, h("label", { style: labelStyle }, "Séance (prévu / fait)"),
-        h("textarea", { style: { ...inputStyle, minHeight: 54, resize: "vertical" }, value: draft.seance, placeholder: "Ex. I. b) EDC Saint-Martin — docs 1 à 3, trace écrite", onChange: e => setDraft({ ...draft, seance: e.target.value }), onBlur: () => onSave(draft) })),
+        h("textarea", { style: { ...inputStyle, minHeight: 54, resize: "vertical" }, value: draft.seance, placeholder: "Ex. I. b) EDC Saint-Martin — docs 1 à 3, trace écrite", onChange: e => type({ seance: e.target.value }), onBlur: typed.flush })),
       h("div", null, h("label", { style: labelStyle }, "Travail donné"),
-        h("input", { style: inputStyle, value: draft.devoirs, placeholder: "Ex. Apprendre les notions aléa / vulnérabilité", onChange: e => setDraft({ ...draft, devoirs: e.target.value }), onBlur: () => onSave(draft) })),
+        h("input", { style: inputStyle, value: draft.devoirs, placeholder: "Ex. Apprendre les notions aléa / vulnérabilité", onChange: e => type({ devoirs: e.target.value }), onBlur: typed.flush })),
       h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, margin: 0 } },
         "Cocher « faite » avec un chapitre choisi ajoute la séance au journal du chapitre et fait avancer sa progression.")));
 }
@@ -2142,6 +2191,7 @@ function WeekView({ data, onSaveEntry, onSaveNote, scheduleProps }) {
   const shift = n => { const d = new Date(monday); d.setDate(d.getDate() + 7 * n); setMonday(d); };
   const [note, setNote] = useState((data.weekNotes || {})[mISO] || "");
   useEffect(() => { setNote((data.weekNotes || {})[mISO] || ""); }, [mISO]);
+  const saveNote = useDebouncedSave(v => onSaveNote(v.week, v.text));
   const navBtn = { ...btnCircle, width: 30, height: 30 };
   const tabs = h("div", { style: { display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" } },
     h("button", { style: tabBtn(tab === "semaine"), onClick: () => setTab("semaine") }, h(IconBook, { size: 13 }), "Semainier"),
@@ -2198,7 +2248,7 @@ function WeekView({ data, onSaveEntry, onSaveNote, scheduleProps }) {
     }),
     h("section", { style: { marginTop: 8 } },
       h(SectionTitle, { icon: h(IconList, { size: 15 }), title: "Notes de la semaine" }),
-      h("textarea", { value: note, onChange: e => setNote(e.target.value), onBlur: () => onSaveNote(mISO, note), placeholder: "Photocopies, élèves à revoir, idées…",
+      h("textarea", { value: note, onChange: e => { setNote(e.target.value); saveNote({ week: mISO, text: e.target.value }); }, onBlur: saveNote.flush, placeholder: "Photocopies, élèves à revoir, idées…",
         style: { ...inputStyle, minHeight: 110, resize: "vertical", lineHeight: 1.5, backgroundImage: `repeating-linear-gradient(transparent 0 23px, ${"var(--line)"} 23px 24px)`, backgroundAttachment: "local" } })));
 }
 
@@ -2672,6 +2722,77 @@ function fileToDataURL(file) {
     reader.readAsDataURL(file);
   });
 }
+
+/* ---------- Fichiers joints : rangés dans IndexedDB ----------
+   Le localStorage plafonne vers 5 Mo pour tout le cahier : un ou deux fichiers suffisaient
+   à bloquer toutes les sauvegardes, sans message. Le contenu des fichiers va donc dans
+   IndexedDB (beaucoup plus d'espace) ; la fiche ne garde que fileName, fileType, fileSize
+   et fileInDb: true. Une fiche qui a encore son fileData (ancienne version, import d'une
+   sauvegarde) est rangée automatiquement ; si IndexedDB est indisponible, rien ne bouge. */
+let fileDbPromise = null;
+function fileDb() {
+  if (!fileDbPromise) {
+    fileDbPromise = new Promise((resolve, reject) => {
+      const req = indexedDB.open("cahier-fichiers", 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("fichiers");
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    }).catch(e => {
+      fileDbPromise = null;
+      throw e;
+    });
+  }
+  return fileDbPromise;
+}
+function fileStore(mode, run) {
+  return fileDb().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction("fichiers", mode);
+    const req = run(tx.objectStore("fichiers"));
+    tx.oncomplete = () => resolve(req.result);
+    tx.onerror = tx.onabort = () => reject(tx.error);
+  }));
+}
+const fileSave = (id, dataURL) => fileStore("readwrite", st => st.put(dataURL, id));
+const fileLoad = id => fileStore("readonly", st => st.get(id));
+const fileRemove = id => fileStore("readwrite", st => st.delete(id));
+// Range les fichiers encore intégrés aux fiches ; renvoie les ids effectivement rangés.
+function storeEmbeddedFiles(fiches) {
+  return Promise.all(fiches.filter(f => f.fileData).map(f => fileSave(f.id, f.fileData).then(() => f.id, () => null))).then(ids => ids.filter(Boolean));
+}
+function withoutEmbedded(data, ids) {
+  if (!ids.length) return data;
+  return {
+    ...data,
+    fiches: data.fiches.map(f => {
+      if (!f.fileData || !ids.includes(f.id)) return f;
+      const {
+        fileData,
+        ...rest
+      } = f;
+      return {
+        ...rest,
+        fileInDb: true,
+        fileSize: f.fileSize || Math.round(fileData.length * 3 / 4)
+      };
+    })
+  };
+}
+// Après un import, les fichiers des fiches qui n'existent plus prennent de la place pour rien.
+function forgetUnusedFiles(fiches) {
+  const used = new Set(fiches.map(f => f.id));
+  return fileStore("readonly", st => st.getAllKeys()).then(keys => Promise.all(keys.filter(k => !used.has(k) && !String(k).startsWith("secours")).map(fileRemove))).catch(() => {});
+}
+// Remet le contenu des fichiers dans les fiches, pour une sauvegarde complète (et lisible
+// par les anciennes versions de l'app).
+function withEmbeddedFiles(data) {
+  return Promise.all(data.fiches.map(f => f.fileInDb && !f.fileData ? fileLoad(f.id).then(fileData => fileData ? {
+    ...f,
+    fileData
+  } : f, () => f) : f)).then(fiches => ({
+    ...data,
+    fiches
+  }));
+}
 function AddFicheForm({
   classOrder,
   classes,
@@ -2921,6 +3042,24 @@ function DriveFolderRow({
     }
   }, "+ lier un dossier Drive"));
 }
+function FicheLink({ f }) {
+  const h = React.createElement;
+  const isFile = !!(f.fileData || f.fileInDb);
+  const [stored, setStored] = useState(null);
+  const [missing, setMissing] = useState(false);
+  useEffect(() => {
+    if (!f.fileInDb || f.fileData) return;
+    let alive = true;
+    fileLoad(f.id).then(d => alive && (d ? setStored(d) : setMissing(true)), () => alive && setMissing(true));
+    return () => { alive = false; };
+  }, [f.id, f.fileInDb]);
+  if (missing) return h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.histoire, margin: "8px 0 0" } }, "Fichier introuvable sur cet appareil.");
+  const href = isFile ? f.fileData || stored : f.url;
+  if (!href) return null;
+  return h("a", { href, target: "_blank", rel: "noreferrer", download: f.fileName || undefined,
+    style: { display: "inline-flex", alignItems: "center", gap: 5, marginTop: 8, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.accent, textDecoration: "none" } },
+    h(IconExternal, { size: 12 }), " ", isFile ? "Ouvrir le fichier" : "Ouvrir le lien");
+}
 function FichesView({
   data,
   onAdd,
@@ -2928,7 +3067,7 @@ function FichesView({
   onSetDriveFolder
 }) {
   const [adding, setAdding] = useState(false);
-  const totalBytes = data.fiches.reduce((s, f) => s + (f.fileData ? f.fileData.length : 0), 0);
+  const totalBytes = data.fiches.reduce((s, f) => s + (f.fileData ? Math.round(f.fileData.length * 3 / 4) : f.fileSize || 0), 0);
   const approxKB = Math.round(totalBytes / 1024);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2973,7 +3112,6 @@ function FichesView({
     }
   }, data.fiches.map(f => {
     const cls = f.classId ? data.classes[f.classId] : null;
-    const href = f.fileData || f.url;
     return /*#__PURE__*/React.createElement("div", {
       key: f.id,
       style: {
@@ -3003,7 +3141,7 @@ function FichesView({
         marginTop: 2,
         flexShrink: 0
       }
-    }, f.fileData ? /*#__PURE__*/React.createElement(IconFileText, {
+    }, f.fileData || f.fileInDb ? /*#__PURE__*/React.createElement(IconFileText, {
       size: 16
     }) : /*#__PURE__*/React.createElement(IconLink, {
       size: 16
@@ -3045,24 +3183,9 @@ function FichesView({
       "aria-label": "Supprimer"
     }, /*#__PURE__*/React.createElement(IconX, {
       size: 14
-    }))), href && /*#__PURE__*/React.createElement("a", {
-      href: href,
-      target: "_blank",
-      rel: "noreferrer",
-      download: f.fileName || undefined,
-      style: {
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-        marginTop: 8,
-        fontFamily: "Inter, sans-serif",
-        fontSize: 12.5,
-        color: COLORS.accent,
-        textDecoration: "none"
-      }
-    }, /*#__PURE__*/React.createElement(IconExternal, {
-      size: 12
-    }), " ", f.fileData ? "Ouvrir le fichier" : "Ouvrir le lien"));
+    }))), /*#__PURE__*/React.createElement(FicheLink, {
+      f: f
+    }));
   })), adding ? /*#__PURE__*/React.createElement(AddFicheForm, {
     classOrder: data.order,
     classes: data.classes,
@@ -3758,10 +3881,11 @@ function SettingsView({
 }) {
   const [status, setStatus] = useState(null);
   const fileRef = useRef(null);
-  const exportData = () => {
+  const exportData = async () => {
     try {
-      const stamp = new Date().toISOString().slice(0, 10);
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
+      const stamp = localISO(new Date());
+      const full = await withEmbeddedFiles(data);
+      const blob = new Blob([JSON.stringify(full, null, 2)], {
         type: "application/json"
       });
       const url = URL.createObjectURL(blob);
@@ -4158,7 +4282,7 @@ function HomeView({
   const today = new Date();
   const in7 = new Date(today);
   in7.setDate(in7.getDate() + 7);
-  const fmt = d => d.toISOString().slice(0, 10);
+  const fmt = localISO;
   const upcoming = [];
   const inProgress = [];
   data.order.forEach(cid => {
@@ -4556,6 +4680,25 @@ function SideNav({
     }), item.label);
   }));
 }
+function downloadText(text, name) {
+  const url = URL.createObjectURL(new Blob([text], {
+    type: "application/json"
+  }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function AlertBanner({ text, action, onAction }) {
+  const h = React.createElement;
+  return h("div", { role: "alert", style: { display: "flex", alignItems: "flex-start", gap: 10, background: "var(--histoireSoft)", border: "1px solid var(--histoire)", borderRadius: 8, padding: "10px 12px", marginBottom: 14, fontFamily: "Inter, sans-serif", fontSize: 13, lineHeight: 1.45, color: COLORS.ink } },
+    h("span", { style: { color: "var(--histoire)", flexShrink: 0, marginTop: 1 } }, h(IconAlert, { size: 16 })),
+    h("span", { style: { flex: 1 } }, text),
+    action && h("button", { onClick: onAction, style: { ...ghostBtn, padding: "5px 10px", fontSize: 12.5, fontWeight: 600, color: "var(--histoire)", borderColor: "var(--histoire)", flexShrink: 0 } }, action));
+}
 function App() {
   const [data, setData] = useState(null);
   const [activeClass, setActiveClass] = useState(null);
@@ -4577,9 +4720,16 @@ function App() {
       localStorage.setItem("theme-v1", theme);
     } catch (e) {}
   }, [theme]);
+  // Sauvegarde refusée par le navigateur (espace plein…) : on le dit au lieu de perdre en silence
+  const [saveError, setSaveError] = useState(false);
+  // Données enregistrées illisibles : copie brute mise de côté, téléchargeable
+  const [rescue, setRescue] = useState(null);
+  const dataRef = useRef(null);
+  dataRef.current = data;
   useEffect(() => {
+    let raw = null;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = withDefaults(JSON.parse(raw));
         setData(parsed);
@@ -4592,19 +4742,58 @@ function App() {
       }
     } catch (e) {
       console.error(e);
+      // Avant tout, mettre les données illisibles à l'abri : la prochaine sauvegarde les écraserait.
+      if (raw) {
+        setRescue(raw);
+        try {
+          localStorage.setItem(STORAGE_KEY + "-secours", raw);
+        } catch (err) {
+          fileSave("secours-" + localISO(new Date()), raw).catch(() => {});
+        }
+      }
       const seed = seedData();
       setData(seed);
       setActiveClass(seed.order[0]);
     }
+    // Demande au navigateur de ne jamais effacer ces données de lui-même
+    try {
+      navigator.storage.persisted().then(ok => ok || navigator.storage.persist()).catch(() => {});
+    } catch (e) {}
   }, []);
   const persist = useCallback(next => {
     setData(next);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      setSaveError(false);
     } catch (e) {
       console.error("Échec de sauvegarde", e);
+      setSaveError(true);
     }
   }, []);
+  // Même cahier ouvert dans une autre fenêtre (app installée + onglet du navigateur) :
+  // on reprend ce qu'elle enregistre, au lieu de l'écraser à notre prochaine sauvegarde.
+  useEffect(() => {
+    const onStorage = e => {
+      if (e.key !== STORAGE_KEY || !e.newValue) return;
+      try {
+        const next = withDefaults(JSON.parse(e.newValue));
+        setData(next);
+        setActiveClass(cid => next.classes[cid] ? cid : next.order[0] || null);
+      } catch (err) {}
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+  // Fichiers encore intégrés aux données (anciennes versions) : rangés dans IndexedDB
+  const movingFiles = useRef(false);
+  useEffect(() => {
+    if (!data || movingFiles.current || !data.fiches.some(f => f.fileData)) return;
+    movingFiles.current = true;
+    storeEmbeddedFiles(data.fiches).then(ids => {
+      movingFiles.current = false;
+      if (ids.length) persist(withoutEmbedded(dataRef.current, ids));
+    });
+  }, [data]);
   if (!data) {
     return /*#__PURE__*/React.createElement("div", {
       style: {
@@ -4744,17 +4933,27 @@ function App() {
     ...data,
     todos: data.todos.filter(t => t.id !== id)
   });
-  const addFiche = f => persist({
-    ...data,
-    fiches: [...data.fiches, {
+  const addFiche = f => {
+    const fiche = {
       id: uid(),
       ...f
-    }]
-  });
-  const deleteFiche = id => persist({
-    ...data,
-    fiches: data.fiches.filter(f => f.id !== id)
-  });
+    };
+    // Le fichier est rangé dans IndexedDB d'abord ; en cas d'échec, il reste dans la fiche
+    storeEmbeddedFiles([fiche]).then(ids => {
+      const d = dataRef.current;
+      persist(withoutEmbedded({
+        ...d,
+        fiches: [...d.fiches, fiche]
+      }, ids));
+    });
+  };
+  const deleteFiche = id => {
+    persist({
+      ...data,
+      fiches: data.fiches.filter(f => f.id !== id)
+    });
+    fileRemove(id).catch(() => {});
+  };
   const setDriveFolder = (cid, url) => persist({
     ...data,
     driveFolders: {
@@ -4764,8 +4963,13 @@ function App() {
   });
   const importData = raw => {
     const merged = withDefaults(raw);
-    persist(merged);
-    setActiveClass(merged.order[0] || null);
+    // Les fichiers de la sauvegarde vont dans IndexedDB avant d'enregistrer le reste
+    storeEmbeddedFiles(merged.fiches).then(ids => {
+      const clean = withoutEmbedded(merged, ids);
+      persist(clean);
+      setActiveClass(clean.order[0] || null);
+      forgetUnusedFiles(clean.fiches);
+    });
   };
   const setScheduleUrl = url => persist({
     ...data,
@@ -4974,7 +5178,15 @@ function App() {
       maxWidth: 640,
       margin: "0 auto"
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, saveError && /*#__PURE__*/React.createElement(AlertBanner, {
+    text: "Tes dernières modifications n'ont pas pu être enregistrées : l'espace de stockage de cet appareil est plein. Exporte une sauvegarde, puis supprime des fichiers joints.",
+    action: "Réglages",
+    onAction: () => setView("settings")
+  }), rescue && /*#__PURE__*/React.createElement(AlertBanner, {
+    text: "Tes données enregistrées n'ont pas pu être relues. Une copie a été mise de côté sur cet appareil : télécharge-la pour pouvoir la récupérer.",
+    action: "Télécharger la copie",
+    onAction: () => downloadText(rescue, `cahier-copie-de-secours-${localISO(new Date())}.json`)
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "baseline",
