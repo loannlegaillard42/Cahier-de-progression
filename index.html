@@ -606,6 +606,8 @@ function withDefaults(raw) {
   if (!Array.isArray(data.evaluations)) data.evaluations = [];
   if (!Array.isArray(data.agenda)) data.agenda = DEFAULT_AGENDA();
   if (!data.cahier || typeof data.cahier !== "object") data.cahier = {};
+  if (!data.calendrier || typeof data.calendrier !== "object") data.calendrier = {};
+  if (!CAL_ZONES[data.calendrier.zone]) data.calendrier = { ...data.calendrier, zone: "A" };
   if (!data.weekNotes || typeof data.weekNotes !== "object") data.weekNotes = {};
   if (!data.driveFolders || typeof data.driveFolders !== "object") data.driveFolders = {};
   if (!data.schedule || typeof data.schedule !== "object") data.schedule = {
@@ -1782,10 +1784,10 @@ function EventRow({ ev, onEdit, showDate }) {
     h("a", { className: "hit", href: gcalUrl(ev), target: "_blank", rel: "noreferrer", title: "Ajouter à Google Agenda", style: { color: COLORS.faint, flexShrink: 0, paddingTop: 2 } }, h(IconExternal, { size: 14 })));
 }
 
-/* ---------- Calendrier scolaire 2026-2027, zone A ----------
+/* ---------- Calendrier scolaire 2026-2027, zone A (valeur par défaut, hors connexion) ----------
    Source : arrêté du 22 octobre 2025 fixant le calendrier scolaire 2026-2027 (JO du 23/10/2025).
    Les périodes indiquent les jours sans classe (week-ends inclus) ; la reprise a lieu le lendemain de la date de fin. */
-const SCHOOL_YEAR = {
+const DEFAULT_SCHOOL_YEAR = {
   label: "2026-2027 · zone A",
   prerentree: "2026-08-31",
   rentree: "2026-09-01",
@@ -1805,6 +1807,82 @@ const SCHOOL_YEAR = {
     "2027-07-14": "Fête nationale"
   }
 };
+// Année affichée partout (dayInfo, bandeau, agenda…) : réglée par App selon la zone et la date du jour
+let SCHOOL_YEAR = DEFAULT_SCHOOL_YEAR;
+
+/* ---------- Calendrier officiel, toutes zones et toutes années ----------
+   Les dates viennent des données ouvertes de l'Éducation nationale (data.education.gouv.fr,
+   jeu « fr-en-calendrier-scolaire ») ; elles sont gardées dans les données du cahier pour
+   fonctionner hors connexion. Les jours fériés, eux, sont calculés. */
+const CAL_ZONES = { A: "Zone A", B: "Zone B", C: "Zone C", Corse: "Corse" };
+const CAL_URL = "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records";
+const shiftISO = (iso, n) => { const d = parseISO(iso); d.setDate(d.getDate() + n); return localISO(d); };
+// « 2026-10-16T22:00:00+00:00 » → « 2026-10-17 » (le jour à Paris)
+const parisISO = s => new Date(s).toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" });
+// Année scolaire d'une date : à partir d'août, c'est déjà l'année suivante
+const schoolYearOf = iso => { const y = Number(iso.slice(0, 4)); return Number(iso.slice(5, 7)) >= 8 ? `${y}-${y + 1}` : `${y - 1}-${y}`; };
+// Jours fériés de métropole (date de Pâques : algorithme de Meeus)
+function feriesOf(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3), hh = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - hh - k) % 7, m = Math.floor((a + 11 * hh + 22 * l) / 451);
+  const paques = localISO(new Date(y, Math.floor((hh + l - 7 * m + 114) / 31) - 1, (hh + l - 7 * m + 114) % 31 + 1));
+  return { [`${y}-01-01`]: "Jour de l'an", [shiftISO(paques, 1)]: "Lundi de Pâques", [`${y}-05-01`]: "Fête du Travail",
+    [`${y}-05-08`]: "Victoire 1945", [shiftISO(paques, 39)]: "Ascension", [shiftISO(paques, 50)]: "Lundi de Pentecôte",
+    [`${y}-07-14`]: "Fête nationale", [`${y}-08-15`]: "Assomption", [`${y}-11-01`]: "Toussaint", [`${y}-11-11`]: "Armistice", [`${y}-12-25`]: "Noël" };
+}
+// Construit l'année scolaire « 2026-2027 » à partir des enregistrements officiels de la zone.
+// La rentrée se lit dans la fin des grandes vacances de l'année précédente. Renvoie null si
+// l'année n'est pas (encore) publiée.
+function schoolYearFromRecords(records, annee, zoneLabel) {
+  const [y1, y2] = annee.split("-").map(Number);
+  const all = { ...feriesOf(y1), ...feriesOf(y2) };
+  const feries = {};
+  Object.keys(all).sort().forEach(d => { if (d >= `${y1}-09-01` && d <= `${y2}-08-31`) feries[d] = all[d]; });
+  const off = iso => { const dw = parseISO(iso).getDay(); return dw === 0 || dw === 6 || !!all[iso]; };
+  const ete = r => /été/i.test(r.description);
+  const pick = (an, pop) => { const rs = records.filter(r => r.annee_scolaire === an && ete(r)); return rs.find(r => r.population === pop) || rs.find(r => r.population === "-") || rs[0]; };
+  const finEte = pick(`${y1 - 1}-${y1}`, "Élèves"), finEteProfs = pick(`${y1 - 1}-${y1}`, "Enseignants"), ete1 = pick(annee, "Élèves");
+  if (!finEte || !ete1 || !finEte.end_date || finEte.end_date === finEte.start_date) return null;
+  const rentree = parisISO(finEte.end_date);
+  const prerentree = finEteProfs && finEteProfs.end_date && finEteProfs.end_date !== finEteProfs.start_date ? parisISO(finEteProfs.end_date) : rentree;
+  const debutEte = parisISO(ete1.start_date);
+  const vacances = [];
+  records.filter(r => r.annee_scolaire === annee && !ete(r) && r.population !== "Enseignants").forEach(r => {
+    // fin officielle = jour de la reprise ; un « pont » peut avoir début = fin
+    let from = parisISO(r.start_date), to = r.end_date ? shiftISO(parisISO(r.end_date), -1) : from;
+    if (to < from) to = from;
+    // jours sans classe accolés (férié avant, week-end ou férié après) : la reprise est le vrai jour de classe suivant
+    while (all[shiftISO(from, -1)]) from = shiftISO(from, -1);
+    while (off(shiftISO(to, 1))) to = shiftISO(to, 1);
+    const name = r.description.replace(" d'Hiver", " d'hiver").replace(" de Printemps", " de printemps");
+    if (!vacances.some(v => v.name === name)) vacances.push({ name, from, to });
+  });
+  const ete2 = pick(annee, "Enseignants");
+  const finConnue = ete2.end_date && ete2.end_date !== ete2.start_date;
+  // fin des grandes vacances pas encore publiée : on ne devine pas la date de la rentrée
+  vacances.push({ name: "Vacances d'été", from: debutEte, to: finConnue ? shiftISO(parisISO(ete2.end_date), -1) : `${y2}-08-31`, ...(finConnue ? {} : { repriseInconnue: true }) });
+  vacances.sort((a, b) => a.from.localeCompare(b.from));
+  return { label: `${annee} · ${zoneLabel.replace("Zone", "zone")}`, prerentree, rentree, fin: shiftISO(debutEte, -1), vacances, feries, source: "officiel" };
+}
+// Année non disponible (zone pas encore téléchargée, année pas encore publiée) : fériés seulement
+function placeholderSchoolYear(annee, zoneLabel) {
+  const [y1, y2] = annee.split("-").map(Number);
+  const all = { ...feriesOf(y1), ...feriesOf(y2) }, feries = {};
+  Object.keys(all).sort().forEach(d => { if (d >= `${y1}-09-01` && d <= `${y2}-08-31`) feries[d] = all[d]; });
+  return { label: `${annee} · ${zoneLabel.replace("Zone", "zone")}`, prerentree: `${y1}-09-01`, rentree: `${y1}-09-01`, fin: `${y2}-07-01`, vacances: [], feries, source: "aucune" };
+}
+// Une seule requête : l'année en cours, la précédente (pour la rentrée) et la suivante
+function fetchSchoolCalendar(zone, annee) {
+  const y1 = Number(annee.slice(0, 4));
+  const years = [y1 - 1, y1, y1 + 1].map(y => `annee_scolaire="${y}-${y + 1}"`).join(" or ");
+  const fields = "description,population,start_date,end_date,annee_scolaire";
+  const q = new URLSearchParams({ where: `zones="${CAL_ZONES[zone]}" and (${years})`, select: fields, group_by: fields, limit: "100" });
+  return fetch(`${CAL_URL}?${q}`).then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(j => {
+    if (!Array.isArray(j.results) || !j.results.length) throw new Error("vide");
+    return j.results;
+  });
+}
 const VAC_BG = "repeating-linear-gradient(135deg, var(--wipSoft) 0 5px, transparent 5px 9px)";
 function dayInfo(iso) {
   const vac = SCHOOL_YEAR.vacances.find(v => iso >= v.from && iso <= v.to);
@@ -1827,6 +1905,7 @@ function nextVacation(todayISO) {
 }
 function schoolCountdownText(todayISO) {
   const { cur, next } = nextVacation(todayISO);
+  if (cur && cur.repriseInconnue) return `${cur.name} — date de la rentrée pas encore publiée`;
   if (cur) { const r = parseISO(cur.to); r.setDate(r.getDate() + 1); return `${cur.name} — reprise le ${longDate(localISO(r))}`; }
   if (!next) return null;
   const days = Math.round((parseISO(next.from) - parseISO(todayISO)) / 86400000);
@@ -1902,14 +1981,16 @@ function YearView({ data, onPick }) {
         const r = parseISO(v.to); r.setDate(r.getDate() + 1);
         return h("button", { key: v.from, onClick: () => onPick(v.from), style: { display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 7, border: `1px solid ${COLORS.line}`, background: past ? "transparent" : VAC_BG, cursor: "pointer", opacity: past ? 0.5 : 1, textAlign: "left" } },
           h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 600, color: COLORS.ink, flex: 1 } }, v.name),
-          h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub } }, `${formatDate(v.from)} → reprise ${formatDate(localISO(r))}`));
+          h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub } }, v.repriseInconnue ? `${formatDate(v.from)} → rentrée à venir` : `${formatDate(v.from)} → reprise ${formatDate(localISO(r))}`));
       })),
     h("div", { style: { display: "flex", flexWrap: "wrap", gap: 14, marginBottom: 14 } },
       legend(VAC_BG, "Vacances"), legend("var(--histoireSoft)", "Jour férié"), legend("transparent", "Aujourd'hui", { border: `1.5px solid ${COLORS.accent}` })),
     h("div", { className: "year-grid", style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 } },
       months.map(([y, m]) => h(MiniMonth, { key: `${y}-${m}`, y, m, data, onPick, todayISO }))),
     h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, marginTop: 14 } },
-      "Dates officielles : arrêté du 22 octobre 2025 fixant le calendrier scolaire 2026-2027. Touchez un jour pour l'ouvrir dans le mois."));
+      SCHOOL_YEAR.source === "officiel" ? "Dates officielles de l'Éducation nationale (data.education.gouv.fr). Touchez un jour pour l'ouvrir dans le mois."
+        : SCHOOL_YEAR.source === "aucune" ? "Dates des vacances pas encore disponibles pour cette année ou cette zone : elles s'afficheront à la prochaine connexion (Réglages › Calendrier scolaire)."
+        : "Dates officielles : arrêté du 22 octobre 2025 fixant le calendrier scolaire 2026-2027. Touchez un jour pour l'ouvrir dans le mois."));
 }
 
 /* ---------- Semainier (cahier journal du prof) ---------- */
@@ -1974,7 +2055,13 @@ function SlotCard({ data, slot, date, entry, onSave, evals }) {
 const MATIERES = { HG: { label: "Histoire-géo", short: "HG", color: "var(--geo)" }, EMC: { label: "EMC", short: "EMC", color: "#7A4E8C" } };
 const slotMat = s => (s.matiere === "EMC" ? "EMC" : "HG");
 const slotWeek = s => (s.semaine === "A" || s.semaine === "B" ? s.semaine : "AB");
-const abConf = data => ({ refMonday: "2026-08-31", refLetter: "A", skipVacations: true, ...((data.schedule || {}).ab || {}) });
+const abConf = data => {
+  const debut = localISO(mondayOf(parseISO(SCHOOL_YEAR.prerentree)));
+  const ab = (data.schedule || {}).ab || {};
+  // Un repère réglé une année précédente ne vaut plus : on repart de la semaine de la prérentrée
+  const perime = ab.refMonday && ab.refMonday < debut ? { refMonday: debut, refLetter: "A" } : {};
+  return { refMonday: debut, refLetter: "A", skipVacations: true, ...ab, ...perime };
+};
 const fullVacWeek = mondayISO => { const d = parseISO(mondayISO); for (let i = 0; i < 5; i++) { if (!dayInfo(localISO(d)).vac) return false; d.setDate(d.getDate() + 1); } return true; };
 const WEEK_LETTER_CACHE = new Map();
 function weekLetter(data, iso) {
@@ -2306,7 +2393,7 @@ function collectDates(data, fromISO, max) {
   SCHOOL_YEAR.vacances.forEach(v => {
     if (v.from >= fromISO) out.push({ date: v.from, title: v.name, kind: "vac", sub: "début" });
     const r = parseISO(v.to); r.setDate(r.getDate() + 1); const ri = localISO(r);
-    if (ri >= fromISO) out.push({ date: ri, title: "Reprise des cours", kind: "vac", sub: v.name.replace("Vacances ", "") });
+    if (ri >= fromISO && !v.repriseInconnue) out.push({ date: ri, title: "Reprise des cours", kind: "vac", sub: v.name.replace("Vacances ", "") });
   });
   Object.entries(SCHOOL_YEAR.feries).forEach(([d, n]) => { if (d >= fromISO && !dayInfo(d).weekend) out.push({ date: d, title: n, kind: "ferie", sub: "férié" }); });
   out.sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")));
@@ -3923,11 +4010,34 @@ function StudentRow({
 
 // État vide habillé d'un fond discret façon cahier d'écolier (lignes horizontales
 // + marge verticale), plutôt qu'une icône générique flottant dans le vide.
+function CalendarSettings({ cal, onSetZone, onRefresh }) {
+  const h = React.createElement;
+  const [state, setState] = useState(null);
+  useEffect(() => setState(null), [cal.zone]);
+  const refresh = () => {
+    setState("maj");
+    onRefresh(cal.zone).then(() => setState(null), () => setState("erreur"));
+  };
+  const status = state === "maj" ? "Vérification des dates officielles…"
+    : state === "erreur" ? "Impossible de joindre le site de l'Éducation nationale : les dates déjà enregistrées restent utilisées."
+    : SCHOOL_YEAR.source === "officiel" ? `Dates officielles ${SCHOOL_YEAR.label}, vérifiées le ${formatDate(cal.maj)} (data.education.gouv.fr).`
+    : SCHOOL_YEAR.source === "aucune" ? `Dates des vacances ${SCHOOL_YEAR.label} pas encore disponibles : connecte-toi à Internet, puis « Vérifier les dates ».`
+    : "Calendrier 2026-2027 de la zone A intégré à l'app ; les dates officielles seront vérifiées à la prochaine connexion.";
+  return h("div", null,
+    h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 } },
+      Object.entries(CAL_ZONES).map(([z, label]) => h("button", { key: z, onClick: () => onSetZone(z),
+        style: { padding: "8px 16px", borderRadius: 7, border: `1px solid ${cal.zone === z ? COLORS.accent : COLORS.line}`, background: cal.zone === z ? COLORS.accentSoft : COLORS.panel,
+          color: cal.zone === z ? COLORS.accent : COLORS.sub, fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: cal.zone === z ? 600 : 400, cursor: "pointer" } }, label))),
+    h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: state === "erreur" ? "var(--danger)" : COLORS.sub, lineHeight: 1.5, margin: "0 0 10px" } }, status),
+    h("button", { onClick: refresh, disabled: state === "maj", style: { ...ghostBtn, padding: "6px 12px", fontSize: 12.5 } }, "Vérifier les dates"));
+}
 function SettingsView({
   data,
   onImport,
   theme,
-  setTheme
+  setTheme,
+  onSetZone,
+  onRefreshCalendar
 }) {
   const [status, setStatus] = useState(null);
   const fileRef = useRef(null);
@@ -4096,6 +4206,15 @@ function SettingsView({
       lineHeight: 1.55
     }
   }, "L'import remplace intégralement le contenu actuel de cet appareil par celui du fichier. Pense à exporter avant, si tu as saisi des choses ici que tu veux garder.")), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconCalendar, {
+      size: 15
+    }),
+    title: "Calendrier scolaire"
+  }), /*#__PURE__*/React.createElement(CalendarSettings, {
+    cal: data.calendrier,
+    onSetZone: onSetZone,
+    onRefresh: onRefreshCalendar
+  })), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
     icon: theme === "dark" ? /*#__PURE__*/React.createElement(IconSun, {
       size: 15
     }) : /*#__PURE__*/React.createElement(IconMoon, {
@@ -4749,6 +4868,29 @@ function AlertBanner({ text, action, onAction }) {
     h("span", { style: { flex: 1 } }, text),
     action && h("button", { onClick: onAction, style: { ...ghostBtn, padding: "5px 10px", fontSize: 12.5, fontWeight: 600, color: "var(--histoire)", borderColor: "var(--histoire)", flexShrink: 0 } }, action));
 }
+// Filet de sécurité : si un écran plante, lui seul affiche un message, la navigation reste
+// utilisable (avant, toute l'app devenait une page blanche).
+class ScreenGuard extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  componentDidCatch(error) {
+    console.error(error);
+  }
+  render() {
+    if (!this.state.error) return this.props.children;
+    const h = React.createElement;
+    return h("div", { role: "alert", style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: 18, fontFamily: "Inter, sans-serif", color: COLORS.ink } },
+      h("p", { style: { margin: "0 0 6px", fontWeight: 600 } }, "Cet écran a rencontré un problème."),
+      h("p", { style: { margin: "0 0 12px", fontSize: 13, color: COLORS.sub } }, "Tes données ne sont pas touchées. Les autres écrans restent utilisables."),
+      h("p", { style: { margin: "0 0 14px", fontSize: 11.5, color: COLORS.faint, fontFamily: "IBM Plex Mono, monospace", wordBreak: "break-word" } }, String(this.state.error && this.state.error.message || this.state.error)),
+      h("button", { onClick: this.props.onHome, style: primaryBtn }, "Revenir à l'accueil"));
+  }
+}
 function App() {
   const [data, setData] = useState(null);
   const [activeClass, setActiveClass] = useState(null);
@@ -4787,7 +4929,7 @@ function App() {
         setData(parsed);
         setActiveClass(parsed.order[0] || null);
       } else {
-        const seed = seedData();
+        const seed = withDefaults(seedData());
         setData(seed);
         setActiveClass(seed.order[0]);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
@@ -4803,7 +4945,7 @@ function App() {
           fileSave("secours-" + localISO(new Date()), raw).catch(() => {});
         }
       }
-      const seed = seedData();
+      const seed = withDefaults(seedData());
       setData(seed);
       setActiveClass(seed.order[0]);
     }
@@ -4836,6 +4978,40 @@ function App() {
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
+  // Calendrier scolaire de la zone choisie, pour l'année en cours (bascule en août)
+  const annee = schoolYearOf(localISO(new Date()));
+  const cal = data ? data.calendrier : null;
+  const schoolYear = useMemo(() => {
+    if (!cal) return DEFAULT_SCHOOL_YEAR;
+    const zoneLabel = CAL_ZONES[cal.zone];
+    const built = cal.records && cal.recordsZone === cal.zone ? schoolYearFromRecords(cal.records, annee, zoneLabel) : null;
+    if (built) return built;
+    if (cal.zone === "A" && annee === "2026-2027") return DEFAULT_SCHOOL_YEAR;
+    return placeholderSchoolYear(annee, zoneLabel);
+  }, [cal && cal.records, cal && cal.recordsZone, cal && cal.zone, annee]);
+  if (schoolYear !== SCHOOL_YEAR) {
+    SCHOOL_YEAR = schoolYear;
+    WEEK_LETTER_CACHE.clear();
+  }
+  const refreshCalendar = useCallback(zone => fetchSchoolCalendar(zone, annee).then(records => {
+    const d = dataRef.current;
+    if (!d || d.calendrier.zone !== zone) return;
+    persist({
+      ...d,
+      calendrier: {
+        ...d.calendrier,
+        records,
+        recordsZone: zone,
+        maj: localISO(new Date())
+      }
+    });
+  }), [annee, persist]);
+  // Vérification automatique : au premier lancement, après un changement de zone, puis chaque semaine
+  useEffect(() => {
+    if (!cal) return;
+    const stale = !cal.records || cal.recordsZone !== cal.zone || !cal.maj || cal.maj < shiftISO(localISO(new Date()), -7);
+    if (stale && navigator.onLine !== false) refreshCalendar(cal.zone).catch(() => {});
+  }, [cal && cal.zone, cal && cal.maj, !!cal]);
   // Fichiers encore intégrés aux données (anciennes versions) : rangés dans IndexedDB
   const movingFiles = useRef(false);
   useEffect(() => {
@@ -5407,6 +5583,9 @@ function App() {
       margin: "0 auto",
       padding: "30px 20px 110px"
     }
+  }, /*#__PURE__*/React.createElement(ScreenGuard, {
+    key: view,
+    onHome: () => setView("home")
   }, view === "home" ? /*#__PURE__*/React.createElement(HomeView, {
     data: data,
     setView: setView,
@@ -5423,7 +5602,15 @@ function App() {
     data: data,
     onImport: importData,
     theme: theme,
-    setTheme: setTheme
+    setTheme: setTheme,
+    onSetZone: zone => persist({
+      ...data,
+      calendrier: {
+        ...data.calendrier,
+        zone
+      }
+    }),
+    onRefreshCalendar: refreshCalendar
   }) : view === "schedule" ? /*#__PURE__*/React.createElement(WeekView, {
     data: data,
     onSaveEntry: saveCahierEntry,
@@ -5554,7 +5741,7 @@ function App() {
     onAddEvent: addEvent,
     onUpdateEvent: updateEvent,
     onDeleteEvent: deleteEvent
-  })), /*#__PURE__*/React.createElement(BottomNav, {
+  }))), /*#__PURE__*/React.createElement(BottomNav, {
     view: view,
     setView: setView
   }), /*#__PURE__*/React.createElement(SideNav, {
