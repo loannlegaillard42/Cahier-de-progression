@@ -19,6 +19,10 @@ self.addEventListener("activate", (e) => {
   self.clients.claim();
 });
 
+// On ne lit que le cache de cette version : un ancien cache resté en place
+// (ancienne page qui chargeait React depuis unpkg) ne doit jamais servir.
+const fromCache = (req) => caches.open(CACHE).then((cache) => cache.match(req));
+
 // Le dossier rituels/ est une app à part : le service worker n'y touche pas.
 const RITUELS = new URL("./rituels", self.registration.scope).href;
 
@@ -39,14 +43,14 @@ self.addEventListener("fetch", (e) => {
           caches.open(CACHE).then((cache) => cache.put(e.request, clone));
           return res;
         })
-        .catch(() => caches.match(e.request).then((c) => c || caches.match("./index.html")))
+        .catch(() => fromCache(e.request).then((c) => c || fromCache("./index.html")))
     );
     return;
   }
 
   // Le reste (React, icônes, manifeste, polices) : cache d'abord, c'est stable et ça reste rapide.
   e.respondWith(
-    caches.match(e.request).then((cached) => {
+    fromCache(e.request).then((cached) => {
       const network = fetch(e.request)
         .then((res) => {
           const cacheable = e.request.url.startsWith(self.location.origin) || FONTS.test(e.request.url);
