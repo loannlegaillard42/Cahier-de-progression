@@ -1,4 +1,4 @@
-const CACHE = "cahier-hg-v11";
+const CACHE = "cahier-hg-v12";
 const ASSETS = [
   "./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png",
   // React, hébergé dans le dépôt : sans lui en cache, l'app reste blanche hors connexion.
@@ -31,20 +31,29 @@ self.addEventListener("fetch", (e) => {
   const url = e.request.url.split(/[?#]/)[0];
   if (url === RITUELS || url.startsWith(RITUELS + "/")) return;
 
-  // La page elle-même : on va TOUJOURS chercher la version du réseau d'abord,
-  // pour qu'une mise à jour s'applique dès le rechargement. Le cache ne sert
-  // que de secours en cas de coupure de connexion.
+  // La page elle-même : on va chercher la version du réseau d'abord, pour qu'une
+  // mise à jour s'applique dès le rechargement. Le cache sert de secours sans
+  // connexion, et aussi quand le réseau traîne (Wi-Fi de l'établissement) : au bout
+  // de 3 s on ouvre la copie en cache, et la version téléchargée servira la fois suivante.
   const isPage = e.request.mode === "navigate" || e.request.destination === "document";
   if (isPage) {
+    let saving = Promise.resolve();
+    const network = fetch(e.request).then((res) => {
+      const clone = res.clone();
+      saving = caches.open(CACHE).then((cache) => cache.put(e.request, clone));
+      return res;
+    });
+    const fallback = () => fromCache(e.request).then((c) => c || fromCache("./index.html"));
     e.respondWith(
-      fetch(e.request)
-        .then((res) => {
-          const clone = res.clone();
-          caches.open(CACHE).then((cache) => cache.put(e.request, clone));
-          return res;
-        })
-        .catch(() => fromCache(e.request).then((c) => c || fromCache("./index.html")))
+      new Promise((resolve, reject) => {
+        const timer = setTimeout(() => fallback().then((c) => c && resolve(c)), 3000);
+        network.then(
+          (res) => { clearTimeout(timer); resolve(res); },
+          () => { clearTimeout(timer); fallback().then((c) => (c ? resolve(c) : reject(new Error("hors connexion")))); }
+        );
+      })
     );
+    e.waitUntil(network.then(() => saving, () => {}));
     return;
   }
 
