@@ -38,6 +38,12 @@
     border-radius: 3px;
   }
 
+  /* Zone tactile agrandie pour le doigt, sans rien changer à la mise en page :
+     le bouton garde sa taille, mais on peut le toucher un peu à côté. */
+  .hit, .hit-y { position: relative; }
+  .hit::after { content: ""; position: absolute; inset: -9px; }
+  .hit-y::after { content: ""; position: absolute; inset: -9px 0; }
+
   /* Accordéon des chapitres : rotation douce du chevron */
   .chevron { transition: transform .18s ease; }
   .chevron.open { transform: rotate(0deg); }
@@ -1056,6 +1062,7 @@ function Stepper({
       fontFamily: "IBM Plex Mono, monospace"
     }
   }, /*#__PURE__*/React.createElement("button", {
+    className: "hit",
     onClick: () => onChange(Math.max(0, done - 1)),
     style: btnCircle,
     "aria-label": "Retirer une séance"
@@ -1067,6 +1074,7 @@ function Stepper({
       textAlign: "center"
     }
   }, done, " / ", total), /*#__PURE__*/React.createElement("button", {
+    className: "hit",
     onClick: () => onChange(Math.min(total, done + 1)),
     style: btnCircle,
     "aria-label": "Ajouter une séance"
@@ -1354,6 +1362,7 @@ function ChapterRow({
       paddingBottom: 18
     }
   }, /*#__PURE__*/React.createElement("button", {
+    className: "hit-y",
     onClick: () => setOpen(o => !o),
     style: {
       display: "flex",
@@ -1388,9 +1397,12 @@ function ChapterRow({
       fontSize: 15.5,
       color: COLORS.ink,
       fontWeight: 500,
+      lineHeight: 1.3,
+      overflowWrap: "anywhere",
       overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap"
+      display: "-webkit-box",
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: "vertical"
     }
   }, local.title)), /*#__PURE__*/React.createElement("span", {
     style: {
@@ -1551,6 +1563,7 @@ function ThemeCard({
       lineHeight: 1.25
     }
   }, theme.title)), /*#__PURE__*/React.createElement("button", {
+    className: "hit",
     onClick: () => onDeleteTheme(theme.id),
     style: {
       background: "none",
@@ -1598,6 +1611,7 @@ function ThemeCard({
     onUpdate: v => onUpdateChapter(theme.id, v),
     onDelete: id => onDeleteChapter(theme.id, id)
   }))), /*#__PURE__*/React.createElement("button", {
+    className: "hit-y",
     onClick: () => onAddChapter(theme.id),
     style: {
       display: "flex",
@@ -1765,7 +1779,7 @@ function EventRow({ ev, onEdit, showDate }) {
         h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 600, color: COLORS.ink } }, ev.title),
         h(CatChip, { cat: ev.cat })),
       ev.note && h("div", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub, marginTop: 3 } }, ev.note)),
-    h("a", { href: gcalUrl(ev), target: "_blank", rel: "noreferrer", title: "Ajouter à Google Agenda", style: { color: COLORS.faint, flexShrink: 0, paddingTop: 2 } }, h(IconExternal, { size: 14 })));
+    h("a", { className: "hit", href: gcalUrl(ev), target: "_blank", rel: "noreferrer", title: "Ajouter à Google Agenda", style: { color: COLORS.faint, flexShrink: 0, paddingTop: 2 } }, h(IconExternal, { size: 14 })));
 }
 
 /* ---------- Calendrier scolaire 2026-2027, zone A ----------
@@ -2117,7 +2131,7 @@ function MyDay({ data, setView }) {
         h("span", { style: { color: COLORS.accent } }, h(IconSun, { size: 15 })),
         h("h2", { style: { fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 600, color: COLORS.ink, margin: 0 } }, title),
         h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint } }, longDate(dayISO))),
-      h("button", { onClick: () => setView && setView("schedule"), style: { background: "none", border: "none", color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0 } }, "Semainier →")),
+      h("button", { className: "hit-y", onClick: () => setView && setView("schedule"), style: { background: "none", border: "none", color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0 } }, "Semainier →")),
     data.schedule.slots.length === 0 && h("p", { style: { ...txt, color: COLORS.faint, margin: 0 } }, "Renseigne ton emploi du temps (Semaine → Emploi du temps) pour voir ta journée ici."),
     events.length > 0 && h("div", { style: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 8 } },
       events.map(ev => h("div", { key: ev.id, style: { display: "flex", alignItems: "center", gap: 10, padding: "7px 12px", borderRadius: 8, border: `1px dashed ${agendaCat(ev.cat).color}` } },
@@ -2229,27 +2243,27 @@ function WeekView({ data, onSaveEntry, onSaveNote, scheduleProps }) {
   const noSlots = data.schedule.slots.length === 0;
   const weekNav = h("div", null,
     h("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 6 } },
-      h("button", { style: navBtn, onClick: () => shift(-1), "aria-label": "Semaine précédente" }, "‹"),
+      h("button", { className: "hit", style: navBtn, onClick: () => shift(-1), "aria-label": "Semaine précédente" }, "‹"),
       h("div", { style: { flex: 1, textAlign: "center" } },
         h("div", { style: { fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 600, color: COLORS.ink } }, `Du ${shortDate(days[0].iso)} au ${shortDate(sat)}`),
         h("div", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, `Semaine ${isoWeek(monday)} · ${monday.getFullYear()}`, weekLetter(data, mISO) && h("span", { style: { marginLeft: 8, fontWeight: 700, color: COLORS.bg, background: COLORS.accent, borderRadius: 999, padding: "1px 8px" } }, "Semaine " + weekLetter(data, mISO)))),
-      h("button", { style: navBtn, onClick: () => shift(1), "aria-label": "Semaine suivante" }, "›")),
+      h("button", { className: "hit", style: navBtn, onClick: () => shift(1), "aria-label": "Semaine suivante" }, "›")),
     h("div", { style: { display: "flex", justifyContent: "center", marginBottom: 16 } },
-      h("button", { style: { ...ghostBtn, padding: "4px 12px", fontSize: 12 }, onClick: () => setMonday(mondayOf(new Date())) }, "Cette semaine")));
+      h("button", { className: "hit-y", style: { ...ghostBtn, padding: "4px 12px", fontSize: 12 }, onClick: () => setMonday(mondayOf(new Date())) }, "Cette semaine")));
   if (tab === "ct") return h("div", null, tabs, weekNav, h(CahierTextes, { data, monday }));
   return h("div", null, tabs,
     h("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 6 } },
-      h("button", { style: navBtn, onClick: () => shift(-1), "aria-label": "Semaine précédente" }, "‹"),
+      h("button", { className: "hit", style: navBtn, onClick: () => shift(-1), "aria-label": "Semaine précédente" }, "‹"),
       h("div", { style: { flex: 1, textAlign: "center" } },
         h("div", { style: { fontFamily: "Fraunces, serif", fontSize: 18, fontWeight: 600, color: COLORS.ink } }, `Du ${shortDate(days[0].iso)} au ${shortDate(sat)}`),
         h("div", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, `Semaine ${isoWeek(monday)} · ${monday.getFullYear()}`, weekLetter(data, mISO) && h("span", { style: { marginLeft: 8, fontWeight: 700, color: COLORS.bg, background: COLORS.accent, borderRadius: 999, padding: "1px 8px" } }, "Semaine " + weekLetter(data, mISO)))),
-      h("button", { style: navBtn, onClick: () => shift(1), "aria-label": "Semaine suivante" }, "›")),
+      h("button", { className: "hit", style: navBtn, onClick: () => shift(1), "aria-label": "Semaine suivante" }, "›")),
     h("div", { style: { display: "flex", justifyContent: "center", marginBottom: 16 } },
-      h("button", { style: { ...ghostBtn, padding: "4px 12px", fontSize: 12 }, onClick: () => setMonday(mondayOf(new Date())) }, "Cette semaine")),
+      h("button", { className: "hit-y", style: { ...ghostBtn, padding: "4px 12px", fontSize: 12 }, onClick: () => setMonday(mondayOf(new Date())) }, "Cette semaine")),
     vacWeek && h("div", { style: { padding: "14px", borderRadius: 9, background: VAC_BG, border: `1px solid ${COLORS.line}`, fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 600, color: COLORS.ink, textAlign: "center", marginBottom: 18 } }, vacWeek.name),
     noSlots && h("div", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.sub, background: COLORS.encadre, borderRadius: 8, padding: "11px 13px", marginBottom: 18 } },
       "Ton emploi du temps est vide : renseigne tes créneaux dans l'onglet « Emploi du temps » pour qu'ils apparaissent ici chaque semaine. ",
-      h("button", { onClick: () => setTab("edt"), style: { background: "none", border: "none", color: COLORS.accent, fontWeight: 600, cursor: "pointer", padding: 0, fontSize: 13 } }, "Y aller →")),
+      h("button", { className: "hit-y", onClick: () => setTab("edt"), style: { background: "none", border: "none", color: COLORS.accent, fontWeight: 600, cursor: "pointer", padding: 0, fontSize: 13 } }, "Y aller →")),
     (vacWeek ? [] : shown).map(d => {
       const inf = dayInfo(d.iso);
       const off = inf.vac || inf.ferie;
@@ -2314,7 +2328,7 @@ function UpcomingDates({ data, max, onOpenAgenda, compact }) {
       h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
         h("span", { style: { color: COLORS.accent } }, h(IconCalendar, { size: 15 })),
         h("h2", { style: { fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 600, color: COLORS.ink, margin: 0 } }, "Prochaines dates")),
-      onOpenAgenda && h("button", { onClick: onOpenAgenda, style: { background: "none", border: "none", color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer" } }, "Agenda →")),
+      onOpenAgenda && h("button", { className: "hit-y", onClick: onOpenAgenda, style: { background: "none", border: "none", color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer" } }, "Agenda →")),
     groups.length === 0 ? h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint } }, "Rien à l'horizon.") :
     h("div", { style: { position: "relative", paddingLeft: 16 } },
       h("div", { style: { position: "absolute", left: 4, top: 6, bottom: 6, width: 2, background: COLORS.line, borderRadius: 1 } }),
@@ -2377,11 +2391,11 @@ function AgendaView({ data, onAdd, onUpdate, onDelete, startDate }) {
   return h("div", null,
     // barre du mois
     h("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 12 } },
-      h("button", { style: navBtn, onClick: () => setCursor(new Date(y, m - 1, 1)), "aria-label": "Mois précédent" }, "‹"),
+      h("button", { className: "hit", style: navBtn, onClick: () => setCursor(new Date(y, m - 1, 1)), "aria-label": "Mois précédent" }, "‹"),
       h("h2", { style: { fontFamily: "Fraunces, serif", fontSize: 19, fontWeight: 600, color: COLORS.ink, margin: 0, flex: 1, textAlign: "center", textTransform: "capitalize" } }, `${MONTHS_FR[m]} ${y}`),
-      h("button", { style: navBtn, onClick: () => setCursor(new Date(y, m + 1, 1)), "aria-label": "Mois suivant" }, "›")),
+      h("button", { className: "hit", style: navBtn, onClick: () => setCursor(new Date(y, m + 1, 1)), "aria-label": "Mois suivant" }, "›")),
     h("div", { style: { display: "flex", justifyContent: "center", marginBottom: 12 } },
-      h("button", { style: { ...ghostBtn, padding: "4px 12px", fontSize: 12 }, onClick: () => { const d = new Date(); setCursor(new Date(d.getFullYear(), d.getMonth(), 1)); setSelected(todayISO); } }, "Aujourd'hui")),
+      h("button", { className: "hit-y", style: { ...ghostBtn, padding: "4px 12px", fontSize: 12 }, onClick: () => { const d = new Date(); setCursor(new Date(d.getFullYear(), d.getMonth(), 1)); setSelected(todayISO); } }, "Aujourd'hui")),
     // grille
     h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 10, padding: 8, marginBottom: 22 } },
       h("div", { style: { display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 4 } },
@@ -2591,6 +2605,7 @@ function TodoList({
       borderRadius: 7
     }
   }, /*#__PURE__*/React.createElement("button", {
+    className: "hit",
     onClick: () => onToggle(t.id),
     style: {
       width: 18,
@@ -2618,6 +2633,7 @@ function TodoList({
       textDecoration: t.done ? "line-through" : "none"
     }
   }, t.text), /*#__PURE__*/React.createElement("button", {
+    className: "hit",
     onClick: () => onDelete(t.id),
     style: {
       background: "none",
@@ -2703,6 +2719,7 @@ function HourBar({
   }, /*#__PURE__*/React.createElement(IconCheck, {
     size: 11
   }))) : /*#__PURE__*/React.createElement("button", {
+    className: "hit-y",
     onClick: () => setEditing(true),
     style: {
       fontFamily: "IBM Plex Mono, monospace",
@@ -3030,6 +3047,7 @@ function DriveFolderRow({
   }, /*#__PURE__*/React.createElement(IconCheck, {
     size: 11
   }))) : url ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("a", {
+    className: "hit-y",
     href: url,
     target: "_blank",
     rel: "noreferrer",
@@ -3045,6 +3063,7 @@ function DriveFolderRow({
   }, /*#__PURE__*/React.createElement(IconExternal, {
     size: 11
   }), " Ouvrir"), /*#__PURE__*/React.createElement("button", {
+    className: "hit-y",
     onClick: () => {
       setDraft(url);
       setEditing(true);
@@ -3059,6 +3078,7 @@ function DriveFolderRow({
       marginLeft: 4
     }
   }, "modifier")) : /*#__PURE__*/React.createElement("button", {
+    className: "hit-y",
     onClick: () => setEditing(true),
     style: {
       background: "none",
@@ -3200,6 +3220,7 @@ function FichesView({
         marginTop: 4
       }
     }, f.notes))), /*#__PURE__*/React.createElement("button", {
+      className: "hit",
       onClick: () => onDelete(f.id),
       style: {
         background: "none",
@@ -3621,7 +3642,7 @@ function EvalCard({ data, ev, students, open, onToggle, onCycleStatus, onDelete,
       h("span", { style: { marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" } },
       avg !== null && h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12, fontWeight: 600, color: gradeTone(avg).fg, background: gradeTone(avg).bg, borderRadius: 4, padding: "1px 6px" } }, fmtGrade(avg), "/20"),
       h("button", { onClick: () => setEditing(true), title: "Modifier", style: { background: "none", border: "none", color: COLORS.faint, cursor: "pointer", fontSize: 12, fontFamily: "Inter, sans-serif", textDecoration: "underline" } }, "modifier"),
-      h("button", { onClick: () => { if (confirm(`Supprimer « ${ev.title} » et ses notes ?`)) onDelete(ev.id); }, title: "Supprimer", style: { background: "none", border: "none", color: COLORS.faint, cursor: "pointer", display: "flex" } }, h(IconX, { size: 13 })))),
+      h("button", { onClick: () => { if (confirm(`Supprimer « ${ev.title} » et ses notes ?`)) onDelete(ev.id); }, title: "Supprimer", className: "hit", style: { background: "none", border: "none", color: COLORS.faint, cursor: "pointer", display: "flex" } }, h(IconX, { size: 13 })))),
     h("div", { style: { fontFamily: "Fraunces, serif", fontSize: 15, color: COLORS.ink, margin: "6px 0 2px" } }, ev.title),
     ev.notes && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, margin: "2px 0 8px" } }, ev.notes),
     h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6, alignItems: "center" } },
@@ -3886,6 +3907,7 @@ function StudentRow({
       color: COLORS.sub
     }
   }), /*#__PURE__*/React.createElement("button", {
+    className: "hit",
     onClick: () => onDelete(classId, local.id),
     style: {
       background: "none",
@@ -4744,6 +4766,8 @@ function App() {
   });
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", theme === "dark" ? "#1B1E20" : "#1F4E5F");
     try {
       localStorage.setItem("theme-v1", theme);
     } catch (e) {}
@@ -4845,6 +4869,7 @@ function App() {
     persist(next);
   };
   const deleteChapter = (themeId, chapterId) => {
+    if (!confirm("Supprimer ce chapitre et son journal de séances ?")) return;
     const next = {
       ...data
     };
@@ -4869,6 +4894,8 @@ function App() {
     persist(next);
   };
   const deleteTheme = themeId => {
+    const th = data.classes[activeClass].themes.find(t => t.id === themeId);
+    if (!confirm(`Supprimer le thème « ${th ? th.title : ""} » et tous ses chapitres ?`)) return;
     const next = {
       ...data
     };
@@ -4934,6 +4961,8 @@ function App() {
     setActiveClass(id);
   };
   const deleteClass = id => {
+    const c = data.classes[id];
+    if (!confirm(`Supprimer la classe « ${c ? c.name : ""} » ? Ses thèmes, chapitres, élèves et notes seront effacés.`)) return;
     const next = {
       ...data
     };
@@ -4976,6 +5005,8 @@ function App() {
     });
   };
   const deleteFiche = id => {
+    const f = data.fiches.find(x => x.id === id);
+    if (!confirm(`Supprimer la fiche « ${f ? f.title : ""} »${f && (f.fileData || f.fileInDb) ? " et son fichier" : ""} ?`)) return;
     persist({
       ...data,
       fiches: data.fiches.filter(f => f.id !== id)
@@ -5108,6 +5139,8 @@ function App() {
     persist(next);
   };
   const deleteStudent = (cid, sid) => {
+    const st = data.classes[cid].students.find(s => s.id === sid);
+    if (!confirm(`Supprimer ${st && st.name ? st.name : "cet élève"} et ses notes ?`)) return;
     const next = {
       ...data
     };
@@ -5232,6 +5265,7 @@ function App() {
       letterSpacing: "-0.01em"
     }
   }, "Cahier de progression"), /*#__PURE__*/React.createElement("button", {
+    className: "hit",
     onClick: () => setTheme(theme === "dark" ? "light" : "dark"),
     title: "Changer de thème",
     style: {
