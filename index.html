@@ -33,7 +33,7 @@
   button:not(:disabled):active { transform: scale(0.98); }
   button:focus-visible, a:focus-visible, input:focus-visible,
   select:focus-visible, textarea:focus-visible {
-    outline: 2px solid #1F4E5F;
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
     border-radius: 3px;
   }
@@ -46,20 +46,34 @@
      Toutes les couleurs sont des variables CSS ; le thème se change
      en basculant l'attribut data-theme sur <html>, sans rien redessiner. */
   :root {
-    --bg: #FAF8F3; --panel: #FFFFFF; --ink: #2B2B2B; --sub: #555555; --faint: #8A8478;
+    --bg: #FAF8F3; --panel: #FFFFFF; --ink: #2B2B2B; --sub: #555555; --faint: #6D675C;
     --line: #E4DFD4; --encadre: #EFEFEF; --accent: #1F4E5F; --accentSoft: #E7EEF0;
     --histoire: #7A3B2E; --histoireSoft: #F4E9E5; --geo: #1F4E5F; --geoSoft: #E7EEF0;
     --todo: #B7AF9E; --todoSoft: #F1EFE8; --wip: #B98328; --wipSoft: #F7EBD6;
     --done: #5C7A5E; --doneSoft: #E7EDE4; --shadow: rgba(31,78,95,0.05);
     --navBg: rgba(250,248,243,0.92);
+    /* Texte posé sur les fonds « Soft » des statuts (contraste ≥ 4,5:1) */
+    --todoInk: #6B6456; --wipInk: #875C12; --doneInk: #436146; --danger: #A23D28;
+    /* Couleurs des classes et des catégories d'agenda, déclinées pour chaque thème */
+    --c1: #1F4E5F; --c2: #6B4C6B; --c3: #4C6B4F; --c4: #8C5E3C; --c5: #3D5A80; --c6: #7A5068;
+    --cat-reunion: #3D5A80; --cat-conseil: #7F5432; --cat-rdv: #4C6B4F;
+    --cat-formation: #6B4C6B; --cat-echeance: #A23D28; --cat-perso: #665F53;
+    --cat-reunion-soft: rgba(61,90,128,0.12); --cat-conseil-soft: rgba(127,84,50,0.12); --cat-rdv-soft: rgba(76,107,79,0.12);
+    --cat-formation-soft: rgba(107,76,107,0.12); --cat-echeance-soft: rgba(162,61,40,0.12); --cat-perso-soft: rgba(102,95,83,0.12);
   }
   [data-theme="dark"] {
-    --bg: #1B1E20; --panel: #24282B; --ink: #EDE9E1; --sub: #B6B1A7; --faint: #7E796F;
+    --bg: #1B1E20; --panel: #24282B; --ink: #EDE9E1; --sub: #B6B1A7; --faint: #A09A8F;
     --line: #383D3F; --encadre: #2C3033; --accent: #7FB2C9; --accentSoft: #223138;
     --histoire: #DB9679; --histoireSoft: #3A2B24; --geo: #7FB2C9; --geoSoft: #1F2E34;
     --todo: #6E695F; --todoSoft: #2A2C29; --wip: #D9AC5C; --wipSoft: #37301E;
     --done: #86B389; --doneSoft: #22301F; --shadow: rgba(0,0,0,0.28);
     --navBg: rgba(27,30,32,0.92);
+    --todoInk: #B6B1A7; --wipInk: #E2B56A; --doneInk: #9CC59F; --danger: #EC917A;
+    --c1: #7FB2C9; --c2: #C9A0C9; --c3: #93C397; --c4: #D9A57F; --c5: #94B3DB; --c6: #D49EBD;
+    --cat-reunion: #94B3DB; --cat-conseil: #D9A57F; --cat-rdv: #93C397;
+    --cat-formation: #C9A0C9; --cat-echeance: #EC917A; --cat-perso: #B7B1A5;
+    --cat-reunion-soft: rgba(148,179,219,0.16); --cat-conseil-soft: rgba(217,165,127,0.16); --cat-rdv-soft: rgba(147,195,151,0.16);
+    --cat-formation-soft: rgba(201,160,201,0.16); --cat-echeance-soft: rgba(236,145,122,0.16); --cat-perso-soft: rgba(183,177,165,0.16);
     /* Calendriers, icônes des champs date, barres de défilement en version sombre */
     color-scheme: dark;
   }
@@ -76,7 +90,7 @@
     .side-nav { display: flex !important; }
     .content-shift { margin-left: 220px !important; }
     .content-width { max-width: 900px !important; }
-    .list-grid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 14px !important; align-items: start; }
+    .list-grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 14px !important; align-items: start; }
     .home-grid { display: grid !important; grid-template-columns: 1.3fr 1fr !important; gap: 32px !important; align-items: start; }
     .home-grid > section { margin: 0 !important; }
   }
@@ -132,7 +146,10 @@ const COLORS = {
   wip: "var(--wip)",
   wipSoft: "var(--wipSoft)",
   done: "var(--done)",
-  doneSoft: "var(--doneSoft)"
+  doneSoft: "var(--doneSoft)",
+  todoInk: "var(--todoInk)",
+  wipInk: "var(--wipInk)",
+  doneInk: "var(--doneInk)"
 };
 
 // Ombre très subtile pour donner une légère élévation aux cartes,
@@ -143,7 +160,7 @@ const STORAGE_KEY = "progtracker-data-v1";
 
 // Palette assignée automatiquement à chaque classe (par ordre de création),
 // pour distinguer les classes d'un coup d'œil dans toutes les vues.
-const CLASS_PALETTE = ["#1F4E5F", "#6B4C6B", "#4C6B4F", "#8C5E3C", "#3D5A80", "#7A5068"];
+const CLASS_PALETTE = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)", "var(--c5)", "var(--c6)"];
 function classColor(data, cid) {
   const i = data.order.indexOf(cid);
   return CLASS_PALETTE[i >= 0 ? i % CLASS_PALETTE.length : 0];
@@ -615,6 +632,11 @@ const EVAL_STATUS_COLOR = {
   a_corriger: COLORS.wip,
   termine: COLORS.done
 };
+const EVAL_STATUS_INK = {
+  a_faire: COLORS.todoInk,
+  a_corriger: COLORS.wipInk,
+  termine: COLORS.doneInk
+};
 const EVAL_STATUS_SOFT = {
   a_faire: COLORS.todoSoft,
   a_corriger: COLORS.wipSoft,
@@ -945,6 +967,11 @@ const STATUS_COLOR = {
   todo: COLORS.todo,
   wip: COLORS.wip,
   done: COLORS.done
+};
+const STATUS_INK = {
+  todo: COLORS.todoInk,
+  wip: COLORS.wipInk,
+  done: COLORS.doneInk
 };
 const STATUS_SOFT = {
   todo: COLORS.todoSoft,
@@ -1323,6 +1350,7 @@ function ChapterRow({
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
+      minWidth: 0,
       paddingBottom: 18
     }
   }, /*#__PURE__*/React.createElement("button", {
@@ -1370,7 +1398,7 @@ function ChapterRow({
       fontFamily: "Inter, sans-serif",
       fontSize: 11,
       fontWeight: 600,
-      color: STATUS_COLOR[status],
+      color: STATUS_INK[status],
       background: STATUS_SOFT[status],
       padding: "2px 8px",
       borderRadius: 4,
@@ -1653,12 +1681,12 @@ function formatDate(d) {
 }
 /* ---------- Agenda général (indépendant des classes) ---------- */
 const AGENDA_CATS = [
-  { id: "reunion", label: "Réunion", color: "#3D5A80" },
-  { id: "conseil", label: "Conseil de classe", color: "#8C5E3C" },
-  { id: "rdv", label: "Rendez-vous", color: "#4C6B4F" },
-  { id: "formation", label: "Formation", color: "#6B4C6B" },
-  { id: "echeance", label: "Échéance", color: "#B5452E" },
-  { id: "perso", label: "Perso", color: "#7A7468" }
+  { id: "reunion", label: "Réunion", color: "var(--cat-reunion)", soft: "var(--cat-reunion-soft)" },
+  { id: "conseil", label: "Conseil de classe", color: "var(--cat-conseil)", soft: "var(--cat-conseil-soft)" },
+  { id: "rdv", label: "Rendez-vous", color: "var(--cat-rdv)", soft: "var(--cat-rdv-soft)" },
+  { id: "formation", label: "Formation", color: "var(--cat-formation)", soft: "var(--cat-formation-soft)" },
+  { id: "echeance", label: "Échéance", color: "var(--cat-echeance)", soft: "var(--cat-echeance-soft)" },
+  { id: "perso", label: "Perso", color: "var(--cat-perso)", soft: "var(--cat-perso-soft)" }
 ];
 const agendaCat = id => AGENDA_CATS.find(c => c.id === id) || AGENDA_CATS[AGENDA_CATS.length - 1];
 const MONTHS_FR = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
@@ -1696,7 +1724,7 @@ function gcalUrl(ev) {
 function CatChip({ cat }) {
   const c = agendaCat(cat);
   return React.createElement("span", {
-    style: { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: c.color, background: c.color + "1F", borderRadius: 999, padding: "2px 8px", flexShrink: 0, whiteSpace: "nowrap" }
+    style: { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: c.color, background: c.soft, borderRadius: 999, padding: "2px 8px", flexShrink: 0, whiteSpace: "nowrap" }
   }, c.label);
 }
 
@@ -1715,14 +1743,14 @@ function EventForm({ initial, onSave, onCancel, onDelete }) {
     h("div", null, h("label", { style: labelStyle }, "Catégorie"),
       h("div", { style: { display: "flex", flexWrap: "wrap", gap: 6 } }, AGENDA_CATS.map(c => h("button", {
         key: c.id, onClick: () => set("cat", c.id),
-        style: { fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: 999, padding: "5px 11px", border: `1px solid ${c.color}`, background: f.cat === c.id ? c.color : "transparent", color: f.cat === c.id ? "#fff" : c.color }
+        style: { fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer", borderRadius: 999, padding: "5px 11px", border: `1px solid ${c.color}`, background: f.cat === c.id ? c.color : "transparent", color: f.cat === c.id ? COLORS.bg : c.color }
       }, c.label)))),
     h("div", null, h("label", { style: labelStyle }, "Note (lieu, à préparer…)"),
       h("input", { style: inputStyle, value: f.note, onChange: e => set("note", e.target.value) })),
     h("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
       h("button", { style: { ...primaryBtn, opacity: ok ? 1 : 0.5 }, onClick: () => ok && onSave({ ...f, title: f.title.trim() }) }, "Enregistrer"),
       h("button", { style: ghostBtn, onClick: onCancel }, "Annuler"),
-      onDelete && h("button", { onClick: () => { if (confirm("Supprimer ce rendez-vous ?")) onDelete(); }, title: "Supprimer", style: { ...ghostBtn, marginLeft: "auto", color: "#B5452E", display: "flex", alignItems: "center", gap: 5 } }, h(IconTrash, { size: 13 }), "Supprimer")));
+      onDelete && h("button", { onClick: () => { if (confirm("Supprimer ce rendez-vous ?")) onDelete(); }, title: "Supprimer", style: { ...ghostBtn, marginLeft: "auto", color: "var(--danger)", display: "flex", alignItems: "center", gap: 5 } }, h(IconTrash, { size: 13 }), "Supprimer")));
 }
 
 function EventRow({ ev, onEdit, showDate }) {
@@ -1905,7 +1933,7 @@ function SlotCard({ data, slot, date, entry, onSave, evals }) {
       h(ClassTag, { color, name: cls ? cls.name : "?" }),
       h(SlotBadges, { slot, small: true }),
       slot.room && h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, "Salle " + slot.room),
-      evals.map(ev => h("span", { key: ev.id, style: { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: COLORS.wip, background: COLORS.wipSoft, borderRadius: 999, padding: "2px 8px" } }, "Éval : " + ev.title)),
+      evals.map(ev => h("span", { key: ev.id, style: { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: COLORS.wipInk, background: COLORS.wipSoft, borderRadius: 999, padding: "2px 8px" } }, "Éval : " + ev.title)),
       h("span", { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 } },
         h("button", { onClick: e => { e.stopPropagation(); commit({ done: !draft.done }); }, title: draft.done ? "Séance faite" : "Marquer comme faite",
           style: { width: 22, height: 22, borderRadius: 11, border: `1.5px solid ${draft.done ? COLORS.done : COLORS.line}`, background: draft.done ? COLORS.done : "transparent", color: COLORS.bg, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center" } },
@@ -1992,7 +2020,7 @@ function SlotForm({ data, initial, onSave, onCancel, onDelete }) {
     h("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
       h("button", { style: primaryBtn, onClick: () => f.classId && onSave({ ...f, room: (f.room || "").trim() }) }, initial && initial.id ? "Enregistrer" : "Ajouter"),
       h("button", { style: ghostBtn, onClick: onCancel }, "Annuler"),
-      onDelete && h("button", { onClick: () => { if (confirm("Supprimer ce créneau ?")) onDelete(); }, style: { ...ghostBtn, marginLeft: "auto", color: "#B5452E", display: "flex", alignItems: "center", gap: 5 } }, h(IconTrash, { size: 13 }), "Supprimer")));
+      onDelete && h("button", { onClick: () => { if (confirm("Supprimer ce créneau ?")) onDelete(); }, style: { ...ghostBtn, marginLeft: "auto", color: "var(--danger)", display: "flex", alignItems: "center", gap: 5 } }, h(IconTrash, { size: 13 }), "Supprimer")));
 }
 
 function ABSettings({ data, onSetAB }) {
@@ -2116,7 +2144,7 @@ function MyDay({ data, setView }) {
             f && h("div", { style: { ...txt, fontSize: 11.5, color: COLORS.sub, fontStyle: "italic" } }, f.chapter.title),
             e.seance ? h("div", { style: { ...txt, color: COLORS.ink } }, e.seance) : h("div", { style: { ...txt, color: COLORS.faint } }, "Séance pas encore préparée"),
             due.map(d => h("div", { key: d.key, style: { ...txt, fontSize: 12, color: COLORS.histoire } }, h("strong", null, "À relever : "), d.devoirs)),
-            evals.map(ev => h("div", { key: ev.id, style: { ...txt, fontSize: 12, fontWeight: 600, color: COLORS.wip } }, "Évaluation : " + ev.title))));
+            evals.map(ev => h("div", { key: ev.id, style: { ...txt, fontSize: 12, fontWeight: 600, color: COLORS.wipInk } }, "Évaluation : " + ev.title))));
       })));
 }
 
@@ -2494,7 +2522,7 @@ function PlanningView({
         fontFamily: "Inter, sans-serif",
         fontSize: 11,
         fontWeight: 600,
-        color: STATUS_COLOR[status],
+        color: STATUS_INK[status],
         background: STATUS_SOFT[status],
         padding: "3px 9px",
         borderRadius: 4,
@@ -2702,7 +2730,7 @@ function HourBar({
     style: {
       fontFamily: "Inter, sans-serif",
       fontSize: 11.5,
-      color: COLORS.wip,
+      color: COLORS.wipInk,
       marginTop: 4,
       display: "flex",
       alignItems: "center",
@@ -3518,9 +3546,9 @@ function evalAverage(ev, students) {
 function gradeTone(g20) {
   if (g20 === null) return { bg: "transparent", fg: COLORS.ink };
   if (g20 < 8) return { bg: "var(--histoireSoft)", fg: "var(--histoire)" };
-  if (g20 < 10) return { bg: "var(--wipSoft)", fg: "var(--wip)" };
+  if (g20 < 10) return { bg: "var(--wipSoft)", fg: "var(--wipInk)" };
   if (g20 < 14) return { bg: "transparent", fg: COLORS.ink };
-  return { bg: "var(--doneSoft)", fg: "var(--done)" };
+  return { bg: "var(--doneSoft)", fg: "var(--doneInk)" };
 }
 function fmtGrade(n) { return n === null ? "—" : (Math.round(n * 10) / 10).toString().replace(".", ","); }
 function evalDay(iso) { if (!iso) return ""; const [, m, d] = iso.split("-"); return `${d}/${m}`; }
@@ -3597,7 +3625,7 @@ function EvalCard({ data, ev, students, open, onToggle, onCycleStatus, onDelete,
     h("div", { style: { fontFamily: "Fraunces, serif", fontSize: 15, color: COLORS.ink, margin: "6px 0 2px" } }, ev.title),
     ev.notes && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, margin: "2px 0 8px" } }, ev.notes),
     h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6, alignItems: "center" } },
-      pill(`${EVAL_STATUS[ev.status]} — changer`, () => onCycleStatus(ev.id), EVAL_STATUS_COLOR[ev.status], EVAL_STATUS_SOFT[ev.status]),
+      pill(`${EVAL_STATUS[ev.status]} — changer`, () => onCycleStatus(ev.id), EVAL_STATUS_INK[ev.status], EVAL_STATUS_SOFT[ev.status]),
       pill(open ? "Masquer les notes" : "Saisir les notes", onToggle, COLORS.accent, COLORS.accentSoft),
       students.length > 0 && h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, `${count}/${students.length} notées`)),
     open && h(GradesPanel, { students, evaluation: ev, onSetGrade }));
