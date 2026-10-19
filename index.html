@@ -630,8 +630,12 @@ function withDefaults(raw) {
     if (c && c.annualHours === undefined) c.annualHours = null;
     if (c && !Array.isArray(c.students)) c.students = [];
   });
+  if (!Array.isArray(data.competences)) data.competences = DEFAULT_COMPETENCES.map(c => ({ ...c }));
+  if (!data.trimestres || typeof data.trimestres !== "object") data.trimestres = {};
   data.evaluations.forEach(ev => {
     if (!ev.grades || typeof ev.grades !== "object") ev.grades = {};
+    if (!Array.isArray(ev.comps)) ev.comps = [];
+    if (!ev.levels || typeof ev.levels !== "object") ev.levels = {};
     if (!(Number(ev.coef) > 0)) ev.coef = 1;
     if (!(Number(ev.outOf) > 0)) ev.outOf = 20;
   });
@@ -2391,8 +2395,30 @@ function WeekView({ data, onSaveEntry, onSaveNote, scheduleProps }) {
 }
 
 /* ---------- Prochaines dates (colonne de droite sur grand écran) ---------- */
+/* ---------- Trimestres ----------
+   Fin du 1er et du 2e trimestre : réglées dans les Réglages pour l'année en cours ; sinon
+   reprises des événements « Arrêt des notes » de l'agenda ; sinon le dernier jour de classe
+   avant le 1er décembre et avant le 16 mars. Une évaluation compte dans le trimestre de sa date. */
+const lastSchoolDayOnOrBefore = iso => { let d = iso; for (let i = 0; i < 25 && !dayInfo(d).schoolDay; i++) d = shiftISO(d, -1); return d; };
+function trimestres(data) {
+  const annee = schoolYearOf(SCHOOL_YEAR.rentree);
+  const [y1, y2] = annee.split("-").map(Number);
+  const reglage = (data.trimestres || {})[annee] || {};
+  const arret = re => ((data.agenda || []).find(ev => ev.date > SCHOOL_YEAR.rentree && ev.date < SCHOOL_YEAR.fin && /arr[êe]t des notes/i.test(ev.title) && re.test(ev.title)) || {}).date;
+  const a1 = arret(/\b(1er|1e|premier|T1)\b/i), a2 = arret(/\b(2e|2nd|second|T2)\b|deuxième/i);
+  const fin1 = reglage.fin1 || a1 || lastSchoolDayOnOrBefore(`${y1}-11-30`);
+  const fin2 = reglage.fin2 || a2 || lastSchoolDayOnOrBefore(`${y2}-03-15`);
+  return { annee, fin1, fin2, depuisAgenda: [!reglage.fin1 && !!a1, !reglage.fin2 && !!a2], personnalise: !!(reglage.fin1 || reglage.fin2) };
+}
+const trimestreOf = (t, iso) => iso <= t.fin1 ? 1 : iso <= t.fin2 ? 2 : 3;
+const trimestreRange = (t, k) => k === 1 ? [SCHOOL_YEAR.rentree, t.fin1] : k === 2 ? [shiftISO(t.fin1, 1), t.fin2] : [shiftISO(t.fin2, 1), SCHOOL_YEAR.fin];
+const TRIM_NAME = ["", "1er trimestre", "2e trimestre", "3e trimestre"];
+
 function collectDates(data, fromISO, max) {
   const out = [];
+  // fins de trimestre (sauf si l'agenda contient déjà l'« arrêt des notes » correspondant)
+  const tr = trimestres(data);
+  [[tr.fin1, 1], [tr.fin2, 2]].forEach(([d, k]) => { if (d >= fromISO && !tr.depuisAgenda[k - 1]) out.push({ date: d, title: `Fin du ${TRIM_NAME[k]}`, kind: "periode", sub: "notes" }); });
   (data.agenda || []).forEach(ev => { if (ev.date >= fromISO) out.push({ date: ev.date, time: ev.time, title: ev.title, kind: "event", cat: ev.cat }); });
   (data.evaluations || []).forEach(ev => { if (ev.date && ev.date >= fromISO && ev.status !== "termine") out.push({ date: ev.date, title: ev.title, kind: "eval", classId: ev.classId, sub: ev.type }); });
   data.order.forEach(cid => data.classes[cid].themes.forEach(th => th.chapters.forEach(ch => {
@@ -2418,7 +2444,7 @@ function UpcomingDates({ data, max, onOpenAgenda, compact }) {
   const items = collectDates(data, todayISO, max || 12);
   const groups = [];
   items.forEach(it => { const g = groups[groups.length - 1]; if (g && g.date === it.date) g.items.push(it); else groups.push({ date: it.date, items: [it] }); });
-  const dot = it => it.kind === "event" ? agendaCat(it.cat).color : it.kind === "eval" ? "var(--wip)" : it.kind === "ferie" ? "var(--histoire)" : it.kind === "vac" ? "var(--wip)" : classColor(data, it.classId);
+  const dot = it => it.kind === "event" ? agendaCat(it.cat).color : it.kind === "eval" ? "var(--wip)" : it.kind === "ferie" ? "var(--histoire)" : it.kind === "vac" ? "var(--wip)" : it.kind === "periode" ? COLORS.accent : classColor(data, it.classId);
   return h("section", null,
     h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 } },
       h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
@@ -3670,9 +3696,10 @@ function gradeTone(g20) {
 function fmtGrade(n) { return n === null ? "—" : (Math.round(n * 10) / 10).toString().replace(".", ","); }
 function evalDay(iso) { if (!iso) return ""; const [, m, d] = iso.split("-"); return `${d}/${m}`; }
 
-function EvalForm({ initial, onSave, onCancel, submitLabel }) {
+function EvalForm({ initial, competences, onSave, onCancel, submitLabel }) {
   const h = React.createElement;
-  const [f, setF] = useState({ title: "", type: EVAL_TYPES[0], date: "", notes: "", coef: 1, outOf: 20, ...initial });
+  // date du jour par défaut : l'évaluation tombe ainsi dans le bon trimestre (modifiable)
+  const [f, setF] = useState({ title: "", type: EVAL_TYPES[0], date: localISO(new Date()), notes: "", coef: 1, outOf: 20, comps: [], sansNote: false, ...initial });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
   const submit = () => {
     if (!f.title.trim()) return;
@@ -3685,13 +3712,179 @@ function EvalForm({ initial, onSave, onCancel, submitLabel }) {
     h("div", { style: { display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 10 } },
       field("Type", h("select", { value: f.type, onChange: e => set("type", e.target.value), style: inputStyle }, EVAL_TYPES.map(t => h("option", { key: t, value: t }, t)))),
       field("Date", h("input", { type: "date", value: f.date, onChange: e => set("date", e.target.value), style: { ...inputStyle, fontFamily: "IBM Plex Mono, monospace" } })),
-      field("Noté sur", h("input", { type: "number", min: 1, value: f.outOf, onChange: e => set("outOf", e.target.value), style: { ...inputStyle, fontFamily: "IBM Plex Mono, monospace" } }), 78),
-      field("Coef.", h("input", { type: "number", min: 0.5, step: 0.5, value: f.coef, onChange: e => set("coef", e.target.value), style: { ...inputStyle, fontFamily: "IBM Plex Mono, monospace" } }), 70)),
+      !f.sansNote && field("Noté sur", h("input", { type: "number", min: 1, value: f.outOf, onChange: e => set("outOf", e.target.value), style: { ...inputStyle, fontFamily: "IBM Plex Mono, monospace" } }), 78),
+      !f.sansNote && field("Coef.", h("input", { type: "number", min: 0.5, step: 0.5, value: f.coef, onChange: e => set("coef", e.target.value), style: { ...inputStyle, fontFamily: "IBM Plex Mono, monospace" } }), 70)),
+    (competences || []).length > 0 && h(React.Fragment, null,
+      h("label", { style: labelStyle }, "Compétences évaluées (optionnel)"),
+      h("div", { style: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 } },
+        competences.map(c => {
+          const on = (f.comps || []).includes(c.id);
+          return h("button", { key: c.id, type: "button", title: c.label, "aria-pressed": on, onClick: () => set("comps", on ? f.comps.filter(x => x !== c.id) : [...(f.comps || []), c.id]),
+            style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: on ? 600 : 400, padding: "6px 11px", borderRadius: 999, cursor: "pointer",
+              border: `1px solid ${on ? COLORS.accent : COLORS.line}`, background: on ? COLORS.accentSoft : COLORS.panel, color: on ? COLORS.accent : COLORS.sub } }, c.short);
+        })),
+      h("label", { style: { display: "flex", alignItems: "center", gap: 8, fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, marginBottom: 10, cursor: "pointer" } },
+        h("input", { type: "checkbox", checked: !!f.sansNote, onChange: e => set("sansNote", e.target.checked) }), "Sans note (compétences seulement)")),
     h("label", { style: labelStyle }, "Notes (optionnel)"),
     h("textarea", { value: f.notes, onChange: e => set("notes", e.target.value), rows: 2, style: { ...inputStyle, marginBottom: 12, resize: "vertical" } }),
     h("div", { style: { display: "flex", gap: 8 } },
       h("button", { onClick: submit, style: primaryBtn }, submitLabel || "Ajouter"),
       h("button", { onClick: onCancel, style: ghostBtn }, "Annuler")));
+}
+
+/* ---------- Compétences ----------
+   Liste par défaut : compétences travaillées du programme d'histoire-géographie du cycle 4
+   (modifiable dans les Réglages). Quatre niveaux de maîtrise, comme au livret scolaire. */
+const DEFAULT_COMPETENCES = [
+  { id: "c4-temps", short: "Temps", label: "Se repérer dans le temps : construire des repères historiques" },
+  { id: "c4-espace", short: "Espace", label: "Se repérer dans l'espace : construire des repères géographiques" },
+  { id: "c4-raisonner", short: "Raisonner", label: "Raisonner, justifier une démarche et les choix effectués" },
+  { id: "c4-numerique", short: "Numérique", label: "S'informer dans le monde du numérique" },
+  { id: "c4-document", short: "Document", label: "Analyser et comprendre un document" },
+  { id: "c4-langages", short: "Langages", label: "Pratiquer différents langages en histoire et en géographie" },
+  { id: "c4-cooperer", short: "Coopérer", label: "Coopérer et mutualiser" }
+];
+const LEVELS = [
+  { n: 1, code: "MI", label: "Maîtrise insuffisante", bg: "var(--histoireSoft)", ink: "var(--danger)" },
+  { n: 2, code: "MF", label: "Maîtrise fragile", bg: "var(--wipSoft)", ink: "var(--wipInk)" },
+  { n: 3, code: "MS", label: "Maîtrise satisfaisante", bg: "var(--doneSoft)", ink: "var(--doneInk)" },
+  { n: 4, code: "TBM", label: "Très bonne maîtrise", bg: "var(--doneInk)", ink: "var(--bg)" }
+];
+const levelOf = (ev, sid, cid) => ((ev.levels || {})[sid] || {})[cid] || 0;
+// Niveau retenu pour un élève sur une compétence : moyenne arrondie, ou dernier niveau évalué
+function compSummary(evals, sid, cid, mode) {
+  const vals = evals.filter(ev => (ev.comps || []).includes(cid)).sort((a, b) => (a.date || "").localeCompare(b.date || "")).map(ev => levelOf(ev, sid, cid)).filter(Boolean);
+  if (!vals.length) return null;
+  const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+  return { n: mode === "dernier" ? vals[vals.length - 1] : Math.min(4, Math.max(1, Math.round(mean))), vals };
+}
+function LevelChip({ n, small }) {
+  const L = LEVELS[n - 1];
+  if (!L) return React.createElement("span", { style: { color: COLORS.faint, fontFamily: "IBM Plex Mono, monospace", fontSize: 12 } }, "—");
+  return React.createElement("span", { title: L.label, style: { display: "inline-block", minWidth: small ? 30 : 36, textAlign: "center", fontFamily: "Inter, sans-serif", fontSize: small ? 11 : 12, fontWeight: 700, color: L.ink, background: L.bg, borderRadius: 4, padding: small ? "2px 4px" : "3px 6px" } }, L.code);
+}
+// Répartition des niveaux d'une compétence dans la classe (barre empilée)
+function LevelBar({ counts, total }) {
+  const h = React.createElement;
+  return h("div", { style: { display: "flex", height: 8, borderRadius: 4, overflow: "hidden", background: COLORS.line, minWidth: 40 } },
+    LEVELS.map((L, i) => counts[i] ? h("div", { key: L.n, title: `${L.code} : ${counts[i]}`, style: { width: `${counts[i] / total * 100}%`, background: L.n === 4 ? "var(--doneInk)" : L.n === 3 ? "var(--done)" : L.n === 2 ? "var(--wip)" : "var(--danger)" } }) : null));
+}
+
+// Saisie des compétences : une compétence à la fois, un toucher par élève
+function CompPanel({ students, ev, competences, onSetLevel }) {
+  const h = React.createElement;
+  const list = competences.filter(c => ev.comps.includes(c.id));
+  const [cur, setCur] = useState(list[0] ? list[0].id : null);
+  if (students.length === 0) return h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, marginTop: 8 } }, "Ajoute des élèves dans l'onglet Élèves pour évaluer leurs compétences.");
+  if (!list.length) return null;
+  const comp = list.find(c => c.id === cur) || list[0];
+  const counts = LEVELS.map(L => students.filter(s => levelOf(ev, s.id, comp.id) === L.n).length);
+  const done = counts.reduce((a, b) => a + b, 0);
+  return h("div", { style: { marginTop: 10, borderTop: `1px solid ${COLORS.line}`, paddingTop: 10 } },
+    list.length > 1 && h("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 } },
+      list.map(c => h("button", { key: c.id, onClick: () => setCur(c.id), title: c.label, style: { fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: c.id === comp.id ? 600 : 400, padding: "5px 10px", borderRadius: 999, cursor: "pointer",
+        border: `1px solid ${c.id === comp.id ? COLORS.accent : COLORS.line}`, background: c.id === comp.id ? COLORS.accentSoft : "transparent", color: c.id === comp.id ? COLORS.accent : COLORS.sub } }, c.short))),
+    h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, margin: "0 0 6px", fontWeight: 600 } }, comp.label),
+    h("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 10 } },
+      h("div", { style: { flex: 1 } }, h(LevelBar, { counts, total: Math.max(1, done) })),
+      h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint, whiteSpace: "nowrap" } }, `${done}/${students.length} évalués`)),
+    h("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: "6px 18px" } },
+      students.map(s => {
+        const cur = levelOf(ev, s.id, comp.id);
+        return h("div", { key: s.id, style: { display: "flex", alignItems: "center", gap: 6 } },
+          h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, s.name),
+          LEVELS.map(L => {
+            const on = cur === L.n;
+            return h("button", { key: L.n, onClick: () => onSetLevel(ev.id, s.id, comp.id, on ? 0 : L.n), "aria-pressed": on, "aria-label": `${s.name} : ${L.label}`, title: L.label,
+              style: { minWidth: 40, height: 32, borderRadius: 6, cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: on ? 700 : 500,
+                border: `1px solid ${on ? L.ink : COLORS.line}`, background: on ? L.bg : "transparent", color: on ? L.ink : COLORS.faint, padding: 0 } }, L.code);
+          }));
+      })),
+    h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint, margin: "8px 0 0" } },
+      LEVELS.map(L => `${L.code} ${L.label.toLowerCase()}`).join(" · "), " · toucher à nouveau pour effacer."));
+}
+
+// Bilan des compétences de la classe : élèves en lignes, compétences en colonnes
+function CompBook({ cls, evals, students, competences }) {
+  const h = React.createElement;
+  const [mode, setMode] = useState("moyenne");
+  const used = competences.filter(c => evals.some(ev => (ev.comps || []).includes(c.id)));
+  if (students.length === 0) return h(EmptyState, { icon: h(IconUsers, { size: 26 }), text: `Ajoute les élèves de ${cls.name} dans l'onglet Élèves pour voir leur bilan.` });
+  if (!used.length) return h(EmptyState, { icon: h(IconClipboard, { size: 26 }), text: `Aucune compétence évaluée en ${cls.name}. Choisis des compétences en créant ou en modifiant une évaluation.` });
+  const grid = {};
+  students.forEach(s => { grid[s.id] = {}; used.forEach(c => { grid[s.id][c.id] = compSummary(evals, s.id, c.id, mode); }); });
+  const exportCSV = () => {
+    const esc = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [["Élève", ...used.map(c => c.label)].map(esc).join(";")];
+    students.forEach(s => lines.push([s.name, ...used.map(c => { const g = grid[s.id][c.id]; return g ? LEVELS[g.n - 1].code : ""; })].map(esc).join(";")));
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" }));
+    a.download = `competences-${cls.name.replace(/\s+/g, "_")}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  const th = { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: COLORS.sub, padding: "6px 4px", borderBottom: `1px solid ${COLORS.line}`, verticalAlign: "bottom", background: COLORS.panel };
+  const stickyCol = { position: "sticky", left: 0, zIndex: 1, background: COLORS.panel, borderRight: `1px solid ${COLORS.line}` };
+  const td = { padding: "4px 3px", borderBottom: `1px solid ${COLORS.line}`, textAlign: "center" };
+  return h("div", null,
+    h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 8 } },
+      h("span", { style: { ...labelStyle, marginBottom: 0 } }, "Niveau retenu"),
+      [["moyenne", "Moyenne"], ["dernier", "Dernier niveau"]].map(([k, t]) => h("button", { key: k, onClick: () => setMode(k), style: { fontFamily: "Inter, sans-serif", fontSize: 12, padding: "3px 10px", borderRadius: 5, cursor: "pointer",
+        border: `1px solid ${mode === k ? COLORS.accent : COLORS.line}`, background: mode === k ? COLORS.accentSoft : "transparent", color: mode === k ? COLORS.accent : COLORS.sub } }, t)),
+      h("span", { style: { flex: 1 } }),
+      h("button", { onClick: exportCSV, style: { ...ghostBtn, padding: "5px 12px", fontSize: 12 } }, "Exporter (tableur)")),
+    h("div", { style: { overflowX: "auto", border: `1px solid ${COLORS.line}`, borderRadius: 8, background: COLORS.panel, boxShadow: CARD_SHADOW } },
+      h("table", { style: { borderCollapse: "separate", borderSpacing: 0, width: "100%", minWidth: 150 + used.length * 70 } },
+        h("thead", null, h("tr", null,
+          h("th", { style: { ...th, ...stickyCol, textAlign: "left", paddingLeft: 10, minWidth: 130 } }, `${students.length} élèves`),
+          used.map(c => h("th", { key: c.id, title: c.label, style: { ...th, minWidth: 66 } }, c.short)))),
+        h("tbody", null, students.map(s => h("tr", { key: s.id },
+          h("td", { style: { ...td, ...stickyCol, textAlign: "left", padding: "5px 10px", fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, whiteSpace: "nowrap" } }, s.name),
+          used.map(c => { const g = grid[s.id][c.id]; return h("td", { key: c.id, title: g ? `${c.label} — ${g.vals.map(v => LEVELS[v - 1].code).join(" → ")}` : c.label, style: td },
+            g ? h(React.Fragment, null, h(LevelChip, { n: g.n, small: true }), g.vals.length > 1 && h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: COLORS.faint, marginLeft: 3 } }, `×${g.vals.length}`)) : h(LevelChip, { n: 0 })); })))),
+        h("tfoot", null, h("tr", null,
+          h("td", { style: { ...td, ...stickyCol, textAlign: "left", padding: "7px 10px", fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: COLORS.sub, borderBottom: "none", background: COLORS.encadre } }, "Classe"),
+          used.map(c => { const counts = LEVELS.map(L => students.filter(s => grid[s.id][c.id] && grid[s.id][c.id].n === L.n).length); const tot = counts.reduce((a, b) => a + b, 0);
+            return h("td", { key: c.id, style: { ...td, borderBottom: "none", background: COLORS.encadre, padding: "7px 6px" } }, tot ? h(LevelBar, { counts, total: tot }) : "—"); }))))),
+    h("div", { style: { display: "flex", gap: 10, flexWrap: "wrap", marginTop: 10, alignItems: "center", fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint } },
+      LEVELS.map(L => h("span", { key: L.n, style: { display: "inline-flex", alignItems: "center", gap: 5 } }, h(LevelChip, { n: L.n, small: true }), L.label.toLowerCase())),
+      h("span", null, mode === "moyenne" ? "· niveau retenu = moyenne des évaluations, arrondie ; ×3 = évalué 3 fois" : "· niveau retenu = dernière évaluation de la compétence")));
+}
+
+// Réglages : fins de trimestre de l'année en cours
+function TrimestreSettings({ data, onChange }) {
+  const h = React.createElement;
+  const t = trimestres(data);
+  const set = patch => onChange({ ...(data.trimestres || {}), [t.annee]: { fin1: t.fin1, fin2: t.fin2, ...patch } });
+  const field = (label, k) => h("div", { style: { flex: "1 1 150px" } },
+    h("label", { style: labelStyle }, label),
+    h("input", { type: "date", value: t[k], min: SCHOOL_YEAR.rentree, max: SCHOOL_YEAR.fin, onChange: e => e.target.value && set({ [k]: e.target.value }), style: { ...inputStyle, fontFamily: "IBM Plex Mono, monospace" } }));
+  const ranges = [1, 2, 3].map(k => { const [a, b] = trimestreRange(t, k); return `T${k} : ${formatDate(a)} → ${formatDate(b)}`; });
+  const source = t.personnalise ? "Dates réglées ici." : t.depuisAgenda.some(Boolean) ? "Dates reprises de l'« arrêt des notes » de ton agenda (modifiables ici)." : "Dates par défaut (fin novembre, mi-mars) : ajuste-les à ton établissement.";
+  return h("div", null,
+    h("div", { style: { display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 8 } }, field("Fin du 1er trimestre", "fin1"), field("Fin du 2e trimestre", "fin2")),
+    h("p", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub, margin: "0 0 4px" } }, ranges.join(" · ")),
+    h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, margin: "0 0 8px", lineHeight: 1.5 } }, source, t.fin2 <= t.fin1 ? h("strong", { style: { color: "var(--danger)" } }, " La fin du 2e trimestre doit venir après celle du 1er.") : null),
+    t.personnalise && h("button", { onClick: () => { const next = { ...(data.trimestres || {}) }; delete next[t.annee]; onChange(next); }, style: { ...ghostBtn, padding: "6px 12px", fontSize: 12.5 } }, "Revenir aux dates par défaut"));
+}
+
+// Réglages : la liste des compétences, modifiable
+function CompetenceSettings({ list, used, onChange }) {
+  const h = React.createElement;
+  const set = (id, k, v) => onChange(list.map(c => c.id === id ? { ...c, [k]: v } : c));
+  const remove = c => {
+    if (used.has(c.id) && !confirm(`« ${c.short} » est déjà évaluée : la retirer de la liste masque aussi ses niveaux. Continuer ?`)) return;
+    onChange(list.filter(x => x.id !== c.id));
+  };
+  return h("div", null,
+    h("div", { style: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 10 } },
+      list.map(c => h("div", { key: c.id, style: { display: "flex", gap: 6, alignItems: "center" } },
+        h("input", { value: c.short, onChange: e => set(c.id, "short", e.target.value), "aria-label": "Nom court", style: { ...inputStyle, width: 96, flex: "0 0 96px", fontWeight: 600 } }),
+        h("input", { value: c.label, onChange: e => set(c.id, "label", e.target.value), "aria-label": "Intitulé", style: { ...inputStyle, flex: 1, minWidth: 0 } }),
+        h("button", { onClick: () => remove(c), className: "hit", "aria-label": `Retirer ${c.short}`, style: { background: "none", border: "none", color: COLORS.faint, cursor: "pointer", display: "flex", flexShrink: 0 } }, h(IconX, { size: 14 }))))),
+    h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } },
+      h("button", { onClick: () => onChange([...list, { id: uid(), short: "Nouvelle", label: "Nouvelle compétence" }]), style: { ...ghostBtn, padding: "6px 12px", fontSize: 12.5 } }, "+ Ajouter une compétence"),
+      h("button", { onClick: () => { if (confirm("Revenir à la liste des compétences du programme (cycle 4) ? Tes modifications de la liste seront perdues ; les niveaux déjà saisis sont conservés.")) onChange([...DEFAULT_COMPETENCES.map(c => ({ ...c })), ...list.filter(c => used.has(c.id) && !DEFAULT_COMPETENCES.some(d => d.id === c.id))]); }, style: { ...ghostBtn, padding: "6px 12px", fontSize: 12.5 } }, "Liste du programme")));
 }
 
 // Saisie rapide d'une évaluation : un champ par élève, Entrée passe au suivant
@@ -3724,38 +3917,46 @@ function GradesPanel({ students, evaluation, onSetGrade }) {
       " · Entrée = élève suivant · « abs », « disp » ou « nn » ne comptent pas dans la moyenne."));
 }
 
-function EvalCard({ data, ev, students, open, onToggle, onCycleStatus, onDelete, onUpdate, onSetGrade }) {
+function EvalCard({ data, ev, students, open, onToggle, onCycleStatus, onDelete, onUpdate, onSetGrade, onSetLevel }) {
   const h = React.createElement;
   const [editing, setEditing] = useState(false);
+  const [showComps, setShowComps] = useState(false);
+  const comps = data.competences.filter(c => ev.comps.includes(c.id));
+  const evaluated = students.filter(s => comps.some(c => levelOf(ev, s.id, c.id))).length;
   const avg = evalAverage(ev, students);
   const count = students.filter(s => gradeNum(ev.grades[s.id]) !== null).length;
   const pill = (txt, onClick, color, bg) => h("button", { onClick, style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color, background: bg, border: "none", borderRadius: 5, padding: "4px 10px", cursor: "pointer" } }, txt);
-  if (editing) return h(EvalForm, { initial: ev, submitLabel: "Enregistrer", onCancel: () => setEditing(false), onSave: f => { onUpdate(ev.id, f); setEditing(false); } });
+  if (editing) return h(EvalForm, { initial: ev, competences: data.competences, submitLabel: "Enregistrer", onCancel: () => setEditing(false), onSave: f => { onUpdate(ev.id, f); setEditing(false); } });
   return h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderLeft: `4px solid ${EVAL_STATUS_COLOR[ev.status]}`, borderRadius: 8, padding: "13px 16px" } },
     h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" } },
       ev.date && h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub } }, formatDate(ev.date)),
-      h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint } }, ev.type, ` · sur ${evalOutOf(ev)}`, evalCoef(ev) !== 1 ? ` · coef. ${evalCoef(ev)}` : ""),
+      h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint } }, ev.type, ev.sansNote ? " · sans note" : ` · sur ${evalOutOf(ev)}`, !ev.sansNote && evalCoef(ev) !== 1 ? ` · coef. ${evalCoef(ev)}` : ""),
       h("span", { style: { marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" } },
-      avg !== null && h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12, fontWeight: 600, color: gradeTone(avg).fg, background: gradeTone(avg).bg, borderRadius: 4, padding: "1px 6px" } }, fmtGrade(avg), "/20"),
+      avg !== null && !ev.sansNote && h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12, fontWeight: 600, color: gradeTone(avg).fg, background: gradeTone(avg).bg, borderRadius: 4, padding: "1px 6px" } }, fmtGrade(avg), "/20"),
       h("button", { onClick: () => setEditing(true), title: "Modifier", style: { background: "none", border: "none", color: COLORS.faint, cursor: "pointer", fontSize: 12, fontFamily: "Inter, sans-serif", textDecoration: "underline" } }, "modifier"),
       h("button", { onClick: () => { if (confirm(`Supprimer « ${ev.title} » et ses notes ?`)) onDelete(ev.id); }, title: "Supprimer", className: "hit", style: { background: "none", border: "none", color: COLORS.faint, cursor: "pointer", display: "flex" } }, h(IconX, { size: 13 })))),
     h("div", { style: { fontFamily: "Fraunces, serif", fontSize: 15, color: COLORS.ink, margin: "6px 0 2px" } }, ev.title),
     ev.notes && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, margin: "2px 0 8px" } }, ev.notes),
     h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6, alignItems: "center" } },
       pill(`${EVAL_STATUS[ev.status]} — changer`, () => onCycleStatus(ev.id), EVAL_STATUS_INK[ev.status], EVAL_STATUS_SOFT[ev.status]),
-      pill(open ? "Masquer les notes" : "Saisir les notes", onToggle, COLORS.accent, COLORS.accentSoft),
-      students.length > 0 && h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, `${count}/${students.length} notées`)),
-    open && h(GradesPanel, { students, evaluation: ev, onSetGrade }));
+      !ev.sansNote && pill(open ? "Masquer les notes" : "Saisir les notes", onToggle, COLORS.accent, COLORS.accentSoft),
+      comps.length > 0 && pill(showComps ? "Masquer les compétences" : `Compétences (${comps.length})`, () => setShowComps(!showComps), COLORS.accent, COLORS.accentSoft),
+      students.length > 0 && h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, ev.sansNote ? `${evaluated}/${students.length} évalués` : `${count}/${students.length} notées`)),
+    comps.length > 0 && !showComps && h("div", { style: { display: "flex", gap: 5, flexWrap: "wrap", marginTop: 8 } },
+      comps.map(c => h("span", { key: c.id, title: c.label, style: { fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.sub, border: `1px solid ${COLORS.line}`, borderRadius: 999, padding: "1px 8px" } }, c.short))),
+    open && !ev.sansNote && h(GradesPanel, { students, evaluation: ev, onSetGrade }),
+    showComps && h(CompPanel, { students, ev, competences: data.competences, onSetLevel }));
 }
 
 // Tableau de toutes les notes de la classe : élèves en lignes, évaluations en colonnes
-function GradeBook({ data, cls, evals, students, onSetGrade }) {
+function GradeBook({ data, cls, evals, students, onSetGrade, trimCols, emptyText }) {
   const h = React.createElement;
   const [sortBy, setSortBy] = useState("name");
   const tableRef = useRef(null);
   const graded = evals.filter(ev => students.some(s => gradeNum(ev.grades[s.id]) !== null));
   if (students.length === 0) return h(EmptyState, { icon: h(IconUsers, { size: 26 }), text: `Ajoute les élèves de ${cls.name} dans l'onglet Élèves pour voir leur relevé.` });
-  if (evals.length === 0) return h(EmptyState, { icon: h(IconClipboard, { size: 26 }), text: `Aucune évaluation pour ${cls.name}. Crée-en une dans l'onglet « Évaluations ».` });
+  if (evals.length === 0) return h(EmptyState, { icon: h(IconClipboard, { size: 26 }), text: emptyText || `Aucune évaluation pour ${cls.name}. Crée-en une dans l'onglet « Évaluations ».` });
+  const tcols = trimCols || [];
 
   const avgs = {};
   students.forEach(s => { avgs[s.id] = studentAverage(s.id, evals); });
@@ -3770,9 +3971,9 @@ function GradeBook({ data, cls, evals, students, onSetGrade }) {
 
   const exportCSV = () => {
     const esc = s => `"${String(s ?? "").replace(/"/g, '""')}"`;
-    const head = ["Élève", ...evals.map(ev => `${ev.title} (${evalDay(ev.date)}, /${evalOutOf(ev)}, coef ${evalCoef(ev)})`), "Moyenne /20"];
+    const head = ["Élève", ...evals.map(ev => `${ev.title} (${evalDay(ev.date)}, /${evalOutOf(ev)}, coef ${evalCoef(ev)})`), ...tcols.map(tc => `Moyenne ${tc.label} /20`), "Moyenne /20"];
     const lines = [head.map(esc).join(";")];
-    rows.forEach(s => lines.push([s.name, ...evals.map(ev => ev.grades[s.id] ?? ""), avgs[s.id] === null ? "" : fmtGrade(avgs[s.id])].map(esc).join(";")));
+    rows.forEach(s => lines.push([s.name, ...evals.map(ev => ev.grades[s.id] ?? ""), ...tcols.map(tc => { const v = studentAverage(s.id, tc.evals); return v === null ? "" : fmtGrade(v); }), avgs[s.id] === null ? "" : fmtGrade(avgs[s.id])].map(esc).join(";")));
     lines.push(["Moyenne de classe", ...evals.map(ev => { const a = evalAverage(ev, students); return a === null ? "" : fmtGrade(a / 20 * evalOutOf(ev)); }), classAvg === null ? "" : fmtGrade(classAvg)].map(esc).join(";"));
     const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
@@ -3801,6 +4002,14 @@ function GradeBook({ data, cls, evals, students, onSetGrade }) {
         border: `1px solid ${sortBy === k ? COLORS.accent : COLORS.line}`, background: sortBy === k ? COLORS.accentSoft : "transparent", color: sortBy === k ? COLORS.accent : COLORS.sub } }, k === "name" ? "A → Z" : "Moyenne")),
       h("span", { style: { flex: 1 } }),
       h("button", { onClick: exportCSV, style: { ...ghostBtn, padding: "5px 12px", fontSize: 12 } }, "Exporter (tableur)")),
+    tcols.length > 0 && h("div", { style: { border: `1px solid ${COLORS.line}`, borderRadius: 8, background: COLORS.panel, boxShadow: CARD_SHADOW, marginBottom: 14, overflow: "hidden" } },
+      h("table", { style: { borderCollapse: "collapse", width: "100%" } },
+        h("thead", null, h("tr", null,
+          h("th", { style: { ...th, textAlign: "left", paddingLeft: 10 } }, "Bilan de l'année"),
+          [...tcols.map(tc => tc.label), "Année"].map(l => h("th", { key: l, style: { ...th, textAlign: "center", width: "16%" } }, l)))),
+        h("tbody", null, rows.map(s => h("tr", { key: s.id },
+          h("td", { style: { ...td, textAlign: "left", padding: "5px 10px", fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 140 } }, s.name),
+          [...tcols.map(tc => studentAverage(s.id, tc.evals)), avgs[s.id]].map((v, i) => h("td", { key: i, style: { ...td, fontFamily: "IBM Plex Mono, monospace", fontSize: 12.5, fontWeight: i === tcols.length ? 700 : 400, color: gradeTone(v).fg, background: v === null ? "transparent" : gradeTone(v).bg } }, fmtGrade(v)))))))),
     h("div", { ref: tableRef, style: { overflowX: "auto", border: `1px solid ${COLORS.line}`, borderRadius: 8, background: COLORS.panel, boxShadow: CARD_SHADOW } },
       h("table", { style: { borderCollapse: "separate", borderSpacing: 0, width: "100%", minWidth: 220 + evals.length * 62 } },
         h("thead", null, h("tr", null,
@@ -3845,32 +4054,52 @@ function GradeBook({ data, cls, evals, students, onSetGrade }) {
       h("span", null, "Moyennes ramenées sur 20 et pondérées par les coefficients · Entrée ou ↓ pour passer à l'élève suivant")));
 }
 
-function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, onDelete, onSetGrade }) {
+function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, onDelete, onSetGrade, onSetLevel }) {
   const h = React.createElement;
   const [tab, setTab] = useState(() => { try { return localStorage.getItem("evals-tab-v1") || "liste"; } catch (e) { return "liste"; } });
   const [adding, setAdding] = useState(false);
   const [openId, setOpenId] = useState(null);
+  const [periode, setPeriode] = useState(null);
   const switchTab = t => { setTab(t); try { localStorage.setItem("evals-tab-v1", t); } catch (e) {} };
   const cls = activeClass ? data.classes[activeClass] : null;
   if (!cls) return h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint } }, "Sélectionne une classe en haut de l'écran.");
   const students = [...cls.students].sort((a, b) => a.name.localeCompare(b.name, "fr"));
-  const evals = data.evaluations.filter(ev => ev.classId === activeClass).sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
+  const allEvals = data.evaluations.filter(ev => ev.classId === activeClass).sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
+  // Période affichée : 1, 2, 3 (trimestres) ou 0 (année). Les évaluations sans date restent dans la
+  // liste quelle que soit la période, mais ne comptent dans les moyennes que sur l'année.
+  const tri = trimestres(data);
+  const per = periode === null ? trimestreOf(tri, localISO(new Date())) : periode;
+  const inPer = ev => per === 0 || (ev.date && trimestreOf(tri, ev.date) === per);
+  const evals = allEvals.filter(ev => inPer(ev) || !ev.date);
+  const dated = allEvals.filter(inPer);
+  const undated = allEvals.filter(ev => !ev.date).length;
   const toCorrect = evals.filter(ev => ev.status === "a_corriger").length;
 
   const tabStyle = active => ({ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: active ? 600 : 500, padding: "7px 14px", borderRadius: 7, cursor: "pointer", border: "none",
     background: active ? COLORS.accent : "transparent", color: active ? "var(--bg)" : COLORS.sub });
 
   return h("div", null,
-    h("div", { style: { display: "inline-flex", gap: 4, padding: 3, borderRadius: 9, background: COLORS.encadre, marginBottom: 18 } },
+    h("div", { style: { display: "inline-flex", flexWrap: "wrap", gap: 4, padding: 3, borderRadius: 9, background: COLORS.encadre, marginBottom: 18 } },
       h("button", { onClick: () => switchTab("liste"), style: tabStyle(tab === "liste") }, `Évaluations (${evals.length})`, toCorrect ? ` · ${toCorrect} à corriger` : ""),
-      h("button", { onClick: () => switchTab("releve"), style: tabStyle(tab === "releve") }, "Relevé de notes")),
-    tab === "releve" ? h(GradeBook, { data, cls, evals, students, onSetGrade }) :
+      h("button", { onClick: () => switchTab("releve"), style: tabStyle(tab === "releve") }, "Relevé de notes"),
+      h("button", { onClick: () => switchTab("competences"), style: tabStyle(tab === "competences") }, "Compétences")),
+    h("div", { style: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 16 } },
+      h("span", { style: { ...labelStyle, marginBottom: 0, marginRight: 2 } }, "Période"),
+      [[1, "T1"], [2, "T2"], [3, "T3"], [0, "Année"]].map(([k, l]) => h("button", { key: k, onClick: () => setPeriode(k), "aria-pressed": per === k, title: k ? `${TRIM_NAME[k]} : ${trimestreRange(tri, k).map(formatDate).join(" → ")}` : "Toute l'année",
+        style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: per === k ? 600 : 400, padding: "5px 12px", borderRadius: 6, cursor: "pointer",
+          border: `1px solid ${per === k ? COLORS.accent : COLORS.line}`, background: per === k ? COLORS.accentSoft : "transparent", color: per === k ? COLORS.accent : COLORS.sub } }, l)),
+      h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, per ? trimestreRange(tri, per).map(formatDate).join(" → ") : "toute l'année")),
+    per !== 0 && undated > 0 && tab !== "liste" && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, margin: "-6px 0 14px" } },
+      `${undated} évaluation${undated > 1 ? "s" : ""} sans date : ${undated > 1 ? "elles comptent" : "elle compte"} seulement dans « Année ».`),
+    tab === "releve" ? h(GradeBook, { data, cls, evals: dated.filter(ev => !ev.sansNote), students, onSetGrade, emptyText: per ? `Aucune évaluation notée au ${TRIM_NAME[per]} pour ${cls.name}.` : null,
+      trimCols: per === 0 ? [1, 2, 3].map(k => ({ label: `T${k}`, evals: allEvals.filter(ev => !ev.sansNote && ev.date && trimestreOf(tri, ev.date) === k) })) : null }) :
+    tab === "competences" ? h(CompBook, { cls, evals: dated, students, competences: data.competences }) :
     h(React.Fragment, null,
       evals.length === 0 && !adding && h(EmptyState, { icon: h(IconClipboard, { size: 26 }), text: `Aucune évaluation pour ${cls.name} pour l'instant.` }),
       h("div", { className: "list-grid", style: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 } },
         evals.map(ev => h(EvalCard, { key: ev.id, data, ev, students, open: openId === ev.id, onToggle: () => setOpenId(openId === ev.id ? null : ev.id),
-          onCycleStatus, onDelete, onUpdate, onSetGrade }))),
-      adding ? h(EvalForm, { onCancel: () => setAdding(false), onSave: f => { onAdd({ ...f, classId: activeClass, status: "a_faire" }); setAdding(false); } }) :
+          onCycleStatus, onDelete, onUpdate, onSetGrade, onSetLevel }))),
+      adding ? h(EvalForm, { competences: data.competences, onCancel: () => setAdding(false), onSave: f => { onAdd({ ...f, classId: activeClass, status: "a_faire" }); setAdding(false); } }) :
         h("button", { onClick: () => setAdding(true), style: { ...ghostBtn, display: "flex", alignItems: "center", gap: 6 } }, h(IconPlus, { size: 14 }), ` Ajouter une évaluation pour ${cls.name}`)));
 }
 
@@ -4046,7 +4275,9 @@ function SettingsView({
   theme,
   setTheme,
   onSetZone,
-  onRefreshCalendar
+  onRefreshCalendar,
+  onSetCompetences,
+  onSetTrimestres
 }) {
   const [status, setStatus] = useState(null);
   const fileRef = useRef(null);
@@ -4211,6 +4442,31 @@ function SettingsView({
     cal: data.calendrier,
     onSetZone: onSetZone,
     onRefresh: onRefreshCalendar
+  })), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconCalendar, {
+      size: 15
+    }),
+    title: "Trimestres"
+  }), /*#__PURE__*/React.createElement(TrimestreSettings, {
+    data: data,
+    onChange: onSetTrimestres
+  })), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconClipboard, {
+      size: 15
+    }),
+    title: "Compétences évaluées"
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: "Inter, sans-serif",
+      fontSize: 12.5,
+      color: COLORS.sub,
+      lineHeight: 1.5,
+      margin: "0 0 10px"
+    }
+  }, "Par défaut, les compétences travaillées du programme d'histoire-géographie du cycle 4. Nom court à gauche (affiché dans les tableaux), intitulé complet à droite."), /*#__PURE__*/React.createElement(CompetenceSettings, {
+    list: data.competences,
+    used: new Set(data.evaluations.flatMap(ev => ev.comps || [])),
+    onChange: onSetCompetences
   })), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
     icon: theme === "dark" ? /*#__PURE__*/React.createElement(IconSun, {
       size: 15
@@ -5405,10 +5661,14 @@ function App() {
       slots: data.schedule.slots.filter(s => s.id !== id)
     }
   });
+  // Une nouvelle évaluation naît avec ses champs vides (sans eux, l'écran plantait dès qu'il y avait des élèves)
   const addEvaluation = ev => persist({
     ...data,
     evaluations: [...data.evaluations, {
       id: uid(),
+      grades: {},
+      levels: {},
+      comps: [],
       ...ev
     }]
   });
@@ -5451,6 +5711,23 @@ function App() {
     });
     persist(next);
   };
+  const setLevel = (evalId, studentId, compId, level) => persist({
+    ...data,
+    evaluations: data.evaluations.map(ev => {
+      if (ev.id !== evalId) return ev;
+      const st = {
+        ...((ev.levels || {})[studentId] || {})
+      };
+      if (level) st[compId] = level;else delete st[compId];
+      return {
+        ...ev,
+        levels: {
+          ...(ev.levels || {}),
+          [studentId]: st
+        }
+      };
+    })
+  });
   const addStudent = (cid, name) => {
     const next = {
       ...data
@@ -5771,7 +6048,15 @@ function App() {
         zone
       }
     }),
-    onRefreshCalendar: refreshCalendar
+    onRefreshCalendar: refreshCalendar,
+    onSetCompetences: list => persist({
+      ...data,
+      competences: list
+    }),
+    onSetTrimestres: tri => persist({
+      ...data,
+      trimestres: tri
+    })
   }) : view === "schedule" ? /*#__PURE__*/React.createElement(WeekView, {
     data: data,
     onSaveEntry: saveCahierEntry,
@@ -5791,7 +6076,8 @@ function App() {
     onUpdate: updateEvaluation,
     onCycleStatus: cycleEvalStatus,
     onDelete: deleteEvaluation,
-    onSetGrade: setGrade
+    onSetGrade: setGrade,
+    onSetLevel: setLevel
   }) : view === "students" ? /*#__PURE__*/React.createElement(StudentsView, {
     data: data,
     activeClass: activeClass,
