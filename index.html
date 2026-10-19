@@ -631,6 +631,7 @@ function withDefaults(raw) {
     if (c && !Array.isArray(c.students)) c.students = [];
   });
   if (!Array.isArray(data.competences)) data.competences = DEFAULT_COMPETENCES.map(c => ({ ...c }));
+  if (!data.trimestres || typeof data.trimestres !== "object") data.trimestres = {};
   data.evaluations.forEach(ev => {
     if (!ev.grades || typeof ev.grades !== "object") ev.grades = {};
     if (!Array.isArray(ev.comps)) ev.comps = [];
@@ -2394,8 +2395,30 @@ function WeekView({ data, onSaveEntry, onSaveNote, scheduleProps }) {
 }
 
 /* ---------- Prochaines dates (colonne de droite sur grand écran) ---------- */
+/* ---------- Trimestres ----------
+   Fin du 1er et du 2e trimestre : réglées dans les Réglages pour l'année en cours ; sinon
+   reprises des événements « Arrêt des notes » de l'agenda ; sinon le dernier jour de classe
+   avant le 1er décembre et avant le 16 mars. Une évaluation compte dans le trimestre de sa date. */
+const lastSchoolDayOnOrBefore = iso => { let d = iso; for (let i = 0; i < 25 && !dayInfo(d).schoolDay; i++) d = shiftISO(d, -1); return d; };
+function trimestres(data) {
+  const annee = schoolYearOf(SCHOOL_YEAR.rentree);
+  const [y1, y2] = annee.split("-").map(Number);
+  const reglage = (data.trimestres || {})[annee] || {};
+  const arret = re => ((data.agenda || []).find(ev => ev.date > SCHOOL_YEAR.rentree && ev.date < SCHOOL_YEAR.fin && /arr[êe]t des notes/i.test(ev.title) && re.test(ev.title)) || {}).date;
+  const a1 = arret(/\b(1er|1e|premier|T1)\b/i), a2 = arret(/\b(2e|2nd|second|T2)\b|deuxième/i);
+  const fin1 = reglage.fin1 || a1 || lastSchoolDayOnOrBefore(`${y1}-11-30`);
+  const fin2 = reglage.fin2 || a2 || lastSchoolDayOnOrBefore(`${y2}-03-15`);
+  return { annee, fin1, fin2, depuisAgenda: [!reglage.fin1 && !!a1, !reglage.fin2 && !!a2], personnalise: !!(reglage.fin1 || reglage.fin2) };
+}
+const trimestreOf = (t, iso) => iso <= t.fin1 ? 1 : iso <= t.fin2 ? 2 : 3;
+const trimestreRange = (t, k) => k === 1 ? [SCHOOL_YEAR.rentree, t.fin1] : k === 2 ? [shiftISO(t.fin1, 1), t.fin2] : [shiftISO(t.fin2, 1), SCHOOL_YEAR.fin];
+const TRIM_NAME = ["", "1er trimestre", "2e trimestre", "3e trimestre"];
+
 function collectDates(data, fromISO, max) {
   const out = [];
+  // fins de trimestre (sauf si l'agenda contient déjà l'« arrêt des notes » correspondant)
+  const tr = trimestres(data);
+  [[tr.fin1, 1], [tr.fin2, 2]].forEach(([d, k]) => { if (d >= fromISO && !tr.depuisAgenda[k - 1]) out.push({ date: d, title: `Fin du ${TRIM_NAME[k]}`, kind: "periode", sub: "notes" }); });
   (data.agenda || []).forEach(ev => { if (ev.date >= fromISO) out.push({ date: ev.date, time: ev.time, title: ev.title, kind: "event", cat: ev.cat }); });
   (data.evaluations || []).forEach(ev => { if (ev.date && ev.date >= fromISO && ev.status !== "termine") out.push({ date: ev.date, title: ev.title, kind: "eval", classId: ev.classId, sub: ev.type }); });
   data.order.forEach(cid => data.classes[cid].themes.forEach(th => th.chapters.forEach(ch => {
@@ -2421,7 +2444,7 @@ function UpcomingDates({ data, max, onOpenAgenda, compact }) {
   const items = collectDates(data, todayISO, max || 12);
   const groups = [];
   items.forEach(it => { const g = groups[groups.length - 1]; if (g && g.date === it.date) g.items.push(it); else groups.push({ date: it.date, items: [it] }); });
-  const dot = it => it.kind === "event" ? agendaCat(it.cat).color : it.kind === "eval" ? "var(--wip)" : it.kind === "ferie" ? "var(--histoire)" : it.kind === "vac" ? "var(--wip)" : classColor(data, it.classId);
+  const dot = it => it.kind === "event" ? agendaCat(it.cat).color : it.kind === "eval" ? "var(--wip)" : it.kind === "ferie" ? "var(--histoire)" : it.kind === "vac" ? "var(--wip)" : it.kind === "periode" ? COLORS.accent : classColor(data, it.classId);
   return h("section", null,
     h("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 } },
       h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
@@ -3675,7 +3698,8 @@ function evalDay(iso) { if (!iso) return ""; const [, m, d] = iso.split("-"); re
 
 function EvalForm({ initial, competences, onSave, onCancel, submitLabel }) {
   const h = React.createElement;
-  const [f, setF] = useState({ title: "", type: EVAL_TYPES[0], date: "", notes: "", coef: 1, outOf: 20, comps: [], sansNote: false, ...initial });
+  // date du jour par défaut : l'évaluation tombe ainsi dans le bon trimestre (modifiable)
+  const [f, setF] = useState({ title: "", type: EVAL_TYPES[0], date: localISO(new Date()), notes: "", coef: 1, outOf: 20, comps: [], sansNote: false, ...initial });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
   const submit = () => {
     if (!f.title.trim()) return;
@@ -3827,6 +3851,23 @@ function CompBook({ cls, evals, students, competences }) {
       h("span", null, mode === "moyenne" ? "· niveau retenu = moyenne des évaluations, arrondie ; ×3 = évalué 3 fois" : "· niveau retenu = dernière évaluation de la compétence")));
 }
 
+// Réglages : fins de trimestre de l'année en cours
+function TrimestreSettings({ data, onChange }) {
+  const h = React.createElement;
+  const t = trimestres(data);
+  const set = patch => onChange({ ...(data.trimestres || {}), [t.annee]: { fin1: t.fin1, fin2: t.fin2, ...patch } });
+  const field = (label, k) => h("div", { style: { flex: "1 1 150px" } },
+    h("label", { style: labelStyle }, label),
+    h("input", { type: "date", value: t[k], min: SCHOOL_YEAR.rentree, max: SCHOOL_YEAR.fin, onChange: e => e.target.value && set({ [k]: e.target.value }), style: { ...inputStyle, fontFamily: "IBM Plex Mono, monospace" } }));
+  const ranges = [1, 2, 3].map(k => { const [a, b] = trimestreRange(t, k); return `T${k} : ${formatDate(a)} → ${formatDate(b)}`; });
+  const source = t.personnalise ? "Dates réglées ici." : t.depuisAgenda.some(Boolean) ? "Dates reprises de l'« arrêt des notes » de ton agenda (modifiables ici)." : "Dates par défaut (fin novembre, mi-mars) : ajuste-les à ton établissement.";
+  return h("div", null,
+    h("div", { style: { display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 8 } }, field("Fin du 1er trimestre", "fin1"), field("Fin du 2e trimestre", "fin2")),
+    h("p", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub, margin: "0 0 4px" } }, ranges.join(" · ")),
+    h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, margin: "0 0 8px", lineHeight: 1.5 } }, source, t.fin2 <= t.fin1 ? h("strong", { style: { color: "var(--danger)" } }, " La fin du 2e trimestre doit venir après celle du 1er.") : null),
+    t.personnalise && h("button", { onClick: () => { const next = { ...(data.trimestres || {}) }; delete next[t.annee]; onChange(next); }, style: { ...ghostBtn, padding: "6px 12px", fontSize: 12.5 } }, "Revenir aux dates par défaut"));
+}
+
 // Réglages : la liste des compétences, modifiable
 function CompetenceSettings({ list, used, onChange }) {
   const h = React.createElement;
@@ -3908,13 +3949,14 @@ function EvalCard({ data, ev, students, open, onToggle, onCycleStatus, onDelete,
 }
 
 // Tableau de toutes les notes de la classe : élèves en lignes, évaluations en colonnes
-function GradeBook({ data, cls, evals, students, onSetGrade }) {
+function GradeBook({ data, cls, evals, students, onSetGrade, trimCols, emptyText }) {
   const h = React.createElement;
   const [sortBy, setSortBy] = useState("name");
   const tableRef = useRef(null);
   const graded = evals.filter(ev => students.some(s => gradeNum(ev.grades[s.id]) !== null));
   if (students.length === 0) return h(EmptyState, { icon: h(IconUsers, { size: 26 }), text: `Ajoute les élèves de ${cls.name} dans l'onglet Élèves pour voir leur relevé.` });
-  if (evals.length === 0) return h(EmptyState, { icon: h(IconClipboard, { size: 26 }), text: `Aucune évaluation pour ${cls.name}. Crée-en une dans l'onglet « Évaluations ».` });
+  if (evals.length === 0) return h(EmptyState, { icon: h(IconClipboard, { size: 26 }), text: emptyText || `Aucune évaluation pour ${cls.name}. Crée-en une dans l'onglet « Évaluations ».` });
+  const tcols = trimCols || [];
 
   const avgs = {};
   students.forEach(s => { avgs[s.id] = studentAverage(s.id, evals); });
@@ -3929,9 +3971,9 @@ function GradeBook({ data, cls, evals, students, onSetGrade }) {
 
   const exportCSV = () => {
     const esc = s => `"${String(s ?? "").replace(/"/g, '""')}"`;
-    const head = ["Élève", ...evals.map(ev => `${ev.title} (${evalDay(ev.date)}, /${evalOutOf(ev)}, coef ${evalCoef(ev)})`), "Moyenne /20"];
+    const head = ["Élève", ...evals.map(ev => `${ev.title} (${evalDay(ev.date)}, /${evalOutOf(ev)}, coef ${evalCoef(ev)})`), ...tcols.map(tc => `Moyenne ${tc.label} /20`), "Moyenne /20"];
     const lines = [head.map(esc).join(";")];
-    rows.forEach(s => lines.push([s.name, ...evals.map(ev => ev.grades[s.id] ?? ""), avgs[s.id] === null ? "" : fmtGrade(avgs[s.id])].map(esc).join(";")));
+    rows.forEach(s => lines.push([s.name, ...evals.map(ev => ev.grades[s.id] ?? ""), ...tcols.map(tc => { const v = studentAverage(s.id, tc.evals); return v === null ? "" : fmtGrade(v); }), avgs[s.id] === null ? "" : fmtGrade(avgs[s.id])].map(esc).join(";")));
     lines.push(["Moyenne de classe", ...evals.map(ev => { const a = evalAverage(ev, students); return a === null ? "" : fmtGrade(a / 20 * evalOutOf(ev)); }), classAvg === null ? "" : fmtGrade(classAvg)].map(esc).join(";"));
     const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
@@ -3960,6 +4002,14 @@ function GradeBook({ data, cls, evals, students, onSetGrade }) {
         border: `1px solid ${sortBy === k ? COLORS.accent : COLORS.line}`, background: sortBy === k ? COLORS.accentSoft : "transparent", color: sortBy === k ? COLORS.accent : COLORS.sub } }, k === "name" ? "A → Z" : "Moyenne")),
       h("span", { style: { flex: 1 } }),
       h("button", { onClick: exportCSV, style: { ...ghostBtn, padding: "5px 12px", fontSize: 12 } }, "Exporter (tableur)")),
+    tcols.length > 0 && h("div", { style: { border: `1px solid ${COLORS.line}`, borderRadius: 8, background: COLORS.panel, boxShadow: CARD_SHADOW, marginBottom: 14, overflow: "hidden" } },
+      h("table", { style: { borderCollapse: "collapse", width: "100%" } },
+        h("thead", null, h("tr", null,
+          h("th", { style: { ...th, textAlign: "left", paddingLeft: 10 } }, "Bilan de l'année"),
+          [...tcols.map(tc => tc.label), "Année"].map(l => h("th", { key: l, style: { ...th, textAlign: "center", width: "16%" } }, l)))),
+        h("tbody", null, rows.map(s => h("tr", { key: s.id },
+          h("td", { style: { ...td, textAlign: "left", padding: "5px 10px", fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 140 } }, s.name),
+          [...tcols.map(tc => studentAverage(s.id, tc.evals)), avgs[s.id]].map((v, i) => h("td", { key: i, style: { ...td, fontFamily: "IBM Plex Mono, monospace", fontSize: 12.5, fontWeight: i === tcols.length ? 700 : 400, color: gradeTone(v).fg, background: v === null ? "transparent" : gradeTone(v).bg } }, fmtGrade(v)))))))),
     h("div", { ref: tableRef, style: { overflowX: "auto", border: `1px solid ${COLORS.line}`, borderRadius: 8, background: COLORS.panel, boxShadow: CARD_SHADOW } },
       h("table", { style: { borderCollapse: "separate", borderSpacing: 0, width: "100%", minWidth: 220 + evals.length * 62 } },
         h("thead", null, h("tr", null,
@@ -4009,11 +4059,20 @@ function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, on
   const [tab, setTab] = useState(() => { try { return localStorage.getItem("evals-tab-v1") || "liste"; } catch (e) { return "liste"; } });
   const [adding, setAdding] = useState(false);
   const [openId, setOpenId] = useState(null);
+  const [periode, setPeriode] = useState(null);
   const switchTab = t => { setTab(t); try { localStorage.setItem("evals-tab-v1", t); } catch (e) {} };
   const cls = activeClass ? data.classes[activeClass] : null;
   if (!cls) return h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint } }, "Sélectionne une classe en haut de l'écran.");
   const students = [...cls.students].sort((a, b) => a.name.localeCompare(b.name, "fr"));
-  const evals = data.evaluations.filter(ev => ev.classId === activeClass).sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
+  const allEvals = data.evaluations.filter(ev => ev.classId === activeClass).sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
+  // Période affichée : 1, 2, 3 (trimestres) ou 0 (année). Les évaluations sans date restent dans la
+  // liste quelle que soit la période, mais ne comptent dans les moyennes que sur l'année.
+  const tri = trimestres(data);
+  const per = periode === null ? trimestreOf(tri, localISO(new Date())) : periode;
+  const inPer = ev => per === 0 || (ev.date && trimestreOf(tri, ev.date) === per);
+  const evals = allEvals.filter(ev => inPer(ev) || !ev.date);
+  const dated = allEvals.filter(inPer);
+  const undated = allEvals.filter(ev => !ev.date).length;
   const toCorrect = evals.filter(ev => ev.status === "a_corriger").length;
 
   const tabStyle = active => ({ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: active ? 600 : 500, padding: "7px 14px", borderRadius: 7, cursor: "pointer", border: "none",
@@ -4024,8 +4083,17 @@ function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, on
       h("button", { onClick: () => switchTab("liste"), style: tabStyle(tab === "liste") }, `Évaluations (${evals.length})`, toCorrect ? ` · ${toCorrect} à corriger` : ""),
       h("button", { onClick: () => switchTab("releve"), style: tabStyle(tab === "releve") }, "Relevé de notes"),
       h("button", { onClick: () => switchTab("competences"), style: tabStyle(tab === "competences") }, "Compétences")),
-    tab === "releve" ? h(GradeBook, { data, cls, evals: evals.filter(ev => !ev.sansNote), students, onSetGrade }) :
-    tab === "competences" ? h(CompBook, { cls, evals, students, competences: data.competences }) :
+    h("div", { style: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 16 } },
+      h("span", { style: { ...labelStyle, marginBottom: 0, marginRight: 2 } }, "Période"),
+      [[1, "T1"], [2, "T2"], [3, "T3"], [0, "Année"]].map(([k, l]) => h("button", { key: k, onClick: () => setPeriode(k), "aria-pressed": per === k, title: k ? `${TRIM_NAME[k]} : ${trimestreRange(tri, k).map(formatDate).join(" → ")}` : "Toute l'année",
+        style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: per === k ? 600 : 400, padding: "5px 12px", borderRadius: 6, cursor: "pointer",
+          border: `1px solid ${per === k ? COLORS.accent : COLORS.line}`, background: per === k ? COLORS.accentSoft : "transparent", color: per === k ? COLORS.accent : COLORS.sub } }, l)),
+      h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, per ? trimestreRange(tri, per).map(formatDate).join(" → ") : "toute l'année")),
+    per !== 0 && undated > 0 && tab !== "liste" && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, margin: "-6px 0 14px" } },
+      `${undated} évaluation${undated > 1 ? "s" : ""} sans date : ${undated > 1 ? "elles comptent" : "elle compte"} seulement dans « Année ».`),
+    tab === "releve" ? h(GradeBook, { data, cls, evals: dated.filter(ev => !ev.sansNote), students, onSetGrade, emptyText: per ? `Aucune évaluation notée au ${TRIM_NAME[per]} pour ${cls.name}.` : null,
+      trimCols: per === 0 ? [1, 2, 3].map(k => ({ label: `T${k}`, evals: allEvals.filter(ev => !ev.sansNote && ev.date && trimestreOf(tri, ev.date) === k) })) : null }) :
+    tab === "competences" ? h(CompBook, { cls, evals: dated, students, competences: data.competences }) :
     h(React.Fragment, null,
       evals.length === 0 && !adding && h(EmptyState, { icon: h(IconClipboard, { size: 26 }), text: `Aucune évaluation pour ${cls.name} pour l'instant.` }),
       h("div", { className: "list-grid", style: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 } },
@@ -4208,7 +4276,8 @@ function SettingsView({
   setTheme,
   onSetZone,
   onRefreshCalendar,
-  onSetCompetences
+  onSetCompetences,
+  onSetTrimestres
 }) {
   const [status, setStatus] = useState(null);
   const fileRef = useRef(null);
@@ -4373,6 +4442,14 @@ function SettingsView({
     cal: data.calendrier,
     onSetZone: onSetZone,
     onRefresh: onRefreshCalendar
+  })), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconCalendar, {
+      size: 15
+    }),
+    title: "Trimestres"
+  }), /*#__PURE__*/React.createElement(TrimestreSettings, {
+    data: data,
+    onChange: onSetTrimestres
   })), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
     icon: /*#__PURE__*/React.createElement(IconClipboard, {
       size: 15
@@ -5975,6 +6052,10 @@ function App() {
     onSetCompetences: list => persist({
       ...data,
       competences: list
+    }),
+    onSetTrimestres: tri => persist({
+      ...data,
+      trimestres: tri
     })
   }) : view === "schedule" ? /*#__PURE__*/React.createElement(WeekView, {
     data: data,
