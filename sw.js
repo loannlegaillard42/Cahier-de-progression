@@ -1,5 +1,11 @@
-const CACHE = "cahier-hg-v9";
-const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const CACHE = "cahier-hg-v11";
+const ASSETS = [
+  "./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png",
+  // React, hébergé dans le dépôt : sans lui en cache, l'app reste blanche hors connexion.
+  "./vendor/react-18.3.1.min.js", "./vendor/react-dom-18.3.1.min.js",
+];
+// Polices Google : gardées en cache après la première visite, pour la même typographie hors connexion.
+const FONTS = /^https:\/\/fonts\.(googleapis|gstatic)\.com\//;
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
@@ -13,8 +19,17 @@ self.addEventListener("activate", (e) => {
   self.clients.claim();
 });
 
+// On ne lit que le cache de cette version : un ancien cache resté en place
+// (ancienne page qui chargeait React depuis unpkg) ne doit jamais servir.
+const fromCache = (req) => caches.open(CACHE).then((cache) => cache.match(req));
+
+// Le dossier rituels/ est une app à part : le service worker n'y touche pas.
+const RITUELS = new URL("./rituels", self.registration.scope).href;
+
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
+  const url = e.request.url.split(/[?#]/)[0];
+  if (url === RITUELS || url.startsWith(RITUELS + "/")) return;
 
   // La page elle-même : on va TOUJOURS chercher la version du réseau d'abord,
   // pour qu'une mise à jour s'applique dès le rechargement. Le cache ne sert
@@ -28,17 +43,19 @@ self.addEventListener("fetch", (e) => {
           caches.open(CACHE).then((cache) => cache.put(e.request, clone));
           return res;
         })
-        .catch(() => caches.match(e.request).then((c) => c || caches.match("./index.html")))
+        .catch(() => fromCache(e.request).then((c) => c || fromCache("./index.html")))
     );
     return;
   }
 
-  // Le reste (icônes, manifeste) : cache d'abord, c'est stable et ça reste rapide.
+  // Le reste (React, icônes, manifeste, polices) : cache d'abord, c'est stable et ça reste rapide.
   e.respondWith(
-    caches.match(e.request).then((cached) => {
+    fromCache(e.request).then((cached) => {
       const network = fetch(e.request)
         .then((res) => {
-          if (res && res.status === 200 && e.request.url.startsWith(self.location.origin)) {
+          const cacheable = e.request.url.startsWith(self.location.origin) || FONTS.test(e.request.url);
+          // Une feuille de style Google importée sans CORS revient « opaque » (statut 0) : on la garde aussi.
+          if (res && (res.status === 200 || res.type === "opaque") && cacheable) {
             const clone = res.clone();
             caches.open(CACHE).then((cache) => cache.put(e.request, clone));
           }
