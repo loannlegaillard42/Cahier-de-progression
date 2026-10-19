@@ -581,6 +581,8 @@ function withDefaults(raw) {
   });
   data.evaluations.forEach(ev => {
     if (!ev.grades || typeof ev.grades !== "object") ev.grades = {};
+    if (!(Number(ev.coef) > 0)) ev.coef = 1;
+    if (!(Number(ev.outOf) > 0)) ev.outOf = 20;
   });
   return data;
 }
@@ -3358,339 +3360,247 @@ function ScheduleView({
     size: 14
   }), " Ajouter un créneau"));
 }
-function AddEvalForm({
-  classOrder,
-  classes,
-  onAdd,
-  onCancel
-}) {
-  const [title, setTitle] = useState("");
-  const [classId, setClassId] = useState(classOrder[0] || "");
-  const [type, setType] = useState(EVAL_TYPES[0]);
-  const [date, setDate] = useState("");
-  const [notes, setNotes] = useState("");
+// ---------- Évaluations : par classe, avec relevé de notes ----------
+// Une note peut être un nombre ("12", "12,5") ou un code non compté dans la moyenne.
+const GRADE_CODES = ["abs", "disp", "nn"];
+function gradeNum(v) {
+  if (v === undefined || v === null) return null;
+  const s = String(v).trim().replace(",", ".");
+  if (s === "" || isNaN(Number(s))) return null;
+  return Number(s);
+}
+function evalOutOf(ev) { return Number(ev.outOf) > 0 ? Number(ev.outOf) : 20; }
+function evalCoef(ev) { return Number(ev.coef) > 0 ? Number(ev.coef) : 1; }
+// Note ramenée sur 20 (une note sur 10 compte autant qu'une note sur 20)
+function on20(v, ev) { const n = gradeNum(v); return n === null || n < 0 || n > evalOutOf(ev) ? null : n / evalOutOf(ev) * 20; }
+function studentAverage(studentId, evals) {
+  let sum = 0, w = 0;
+  evals.forEach(ev => {
+    const g = on20(ev.grades[studentId], ev);
+    if (g === null) return;
+    sum += g * evalCoef(ev); w += evalCoef(ev);
+  });
+  return w ? sum / w : null;
+}
+function evalAverage(ev, students) {
+  const vals = students.map(s => on20(ev.grades[s.id], ev)).filter(v => v !== null);
+  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+}
+// Couleur de fond selon la note sur 20 — repères lisibles en un coup d'œil
+function gradeTone(g20) {
+  if (g20 === null) return { bg: "transparent", fg: COLORS.ink };
+  if (g20 < 8) return { bg: "var(--histoireSoft)", fg: "var(--histoire)" };
+  if (g20 < 10) return { bg: "var(--wipSoft)", fg: "var(--wip)" };
+  if (g20 < 14) return { bg: "transparent", fg: COLORS.ink };
+  return { bg: "var(--doneSoft)", fg: "var(--done)" };
+}
+function fmtGrade(n) { return n === null ? "—" : (Math.round(n * 10) / 10).toString().replace(".", ","); }
+function evalDay(iso) { if (!iso) return ""; const [, m, d] = iso.split("-"); return `${d}/${m}`; }
+
+function EvalForm({ initial, onSave, onCancel, submitLabel }) {
+  const h = React.createElement;
+  const [f, setF] = useState({ title: "", type: EVAL_TYPES[0], date: "", notes: "", coef: 1, outOf: 20, ...initial });
+  const set = (k, v) => setF(p => ({ ...p, [k]: v }));
   const submit = () => {
-    if (!title.trim()) return;
-    onAdd({
-      title: title.trim(),
-      classId,
-      type,
-      date,
-      notes: notes.trim(),
-      status: "a_faire"
-    });
+    if (!f.title.trim()) return;
+    onSave({ ...f, title: f.title.trim(), notes: (f.notes || "").trim(), coef: Number(f.coef) > 0 ? Number(f.coef) : 1, outOf: Number(f.outOf) > 0 ? Number(f.outOf) : 20 });
   };
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: COLORS.encadre,
-      borderRadius: 10,
-      padding: 16,
-      marginBottom: 22
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    style: labelStyle
-  }, "Titre"), /*#__PURE__*/React.createElement("input", {
-    value: title,
-    onChange: e => setTitle(e.target.value),
-    style: {
-      ...inputStyle,
-      marginBottom: 10
-    },
-    placeholder: "Ex. : Contrôle chapitre 2",
-    autoFocus: true
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      flexWrap: "wrap",
-      gap: 12,
-      marginBottom: 10
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: labelStyle
-  }, "Classe"), /*#__PURE__*/React.createElement("select", {
-    value: classId,
-    onChange: e => setClassId(e.target.value),
-    style: inputStyle
-  }, classOrder.map(cid => /*#__PURE__*/React.createElement("option", {
-    key: cid,
-    value: cid
-  }, classes[cid].name)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: labelStyle
-  }, "Type"), /*#__PURE__*/React.createElement("select", {
-    value: type,
-    onChange: e => setType(e.target.value),
-    style: inputStyle
-  }, EVAL_TYPES.map(t => /*#__PURE__*/React.createElement("option", {
-    key: t,
-    value: t
-  }, t)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: labelStyle
-  }, "Date"), /*#__PURE__*/React.createElement("input", {
-    type: "date",
-    value: date,
-    onChange: e => setDate(e.target.value),
-    style: {
-      ...inputStyle,
-      fontFamily: "IBM Plex Mono, monospace"
-    }
-  }))), /*#__PURE__*/React.createElement("label", {
-    style: labelStyle
-  }, "Notes (optionnel)"), /*#__PURE__*/React.createElement("textarea", {
-    value: notes,
-    onChange: e => setNotes(e.target.value),
-    rows: 2,
-    style: {
-      ...inputStyle,
-      marginBottom: 12,
-      resize: "vertical"
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: submit,
-    style: primaryBtn
-  }, "Ajouter"), /*#__PURE__*/React.createElement("button", {
-    onClick: onCancel,
-    style: ghostBtn
-  }, "Annuler")));
+  const field = (label, el, w) => h("div", { style: { flex: w ? `0 0 ${w}px` : "1 1 120px" } }, h("label", { style: labelStyle }, label), el);
+  return h("div", { style: { background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 18 } },
+    h("label", { style: labelStyle }, "Titre"),
+    h("input", { value: f.title, onChange: e => set("title", e.target.value), placeholder: "Ex. : Contrôle chapitre 2", autoFocus: true, style: { ...inputStyle, marginBottom: 10 } }),
+    h("div", { style: { display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 10 } },
+      field("Type", h("select", { value: f.type, onChange: e => set("type", e.target.value), style: inputStyle }, EVAL_TYPES.map(t => h("option", { key: t, value: t }, t)))),
+      field("Date", h("input", { type: "date", value: f.date, onChange: e => set("date", e.target.value), style: { ...inputStyle, fontFamily: "IBM Plex Mono, monospace" } })),
+      field("Noté sur", h("input", { type: "number", min: 1, value: f.outOf, onChange: e => set("outOf", e.target.value), style: { ...inputStyle, fontFamily: "IBM Plex Mono, monospace" } }), 78),
+      field("Coef.", h("input", { type: "number", min: 0.5, step: 0.5, value: f.coef, onChange: e => set("coef", e.target.value), style: { ...inputStyle, fontFamily: "IBM Plex Mono, monospace" } }), 70)),
+    h("label", { style: labelStyle }, "Notes (optionnel)"),
+    h("textarea", { value: f.notes, onChange: e => set("notes", e.target.value), rows: 2, style: { ...inputStyle, marginBottom: 12, resize: "vertical" } }),
+    h("div", { style: { display: "flex", gap: 8 } },
+      h("button", { onClick: submit, style: primaryBtn }, submitLabel || "Ajouter"),
+      h("button", { onClick: onCancel, style: ghostBtn }, "Annuler")));
 }
-function GradesPanel({
-  data,
-  evaluation,
-  onSetGrade
-}) {
-  const cls = data.classes[evaluation.classId];
-  const students = cls ? cls.students : [];
-  if (students.length === 0) {
-    return /*#__PURE__*/React.createElement("p", {
-      style: {
-        fontFamily: "Inter, sans-serif",
-        fontSize: 12,
-        color: COLORS.faint,
-        marginTop: 8
-      }
-    }, "Ajoute des élèves à ", cls ? cls.name : "cette classe", " dans l'onglet Élèves pour saisir des notes.");
-  }
-  const values = students.map(s => evaluation.grades[s.id]).filter(v => v !== undefined && v !== "" && v !== null).map(Number);
-  const avg = values.length ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1) : null;
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 10,
-      borderTop: `1px solid ${COLORS.line}`,
-      paddingTop: 10
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      flexDirection: "column",
-      gap: 5
-    }
-  }, students.map(s => /*#__PURE__*/React.createElement("div", {
-    key: s.id,
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: "Inter, sans-serif",
-      fontSize: 13,
-      color: COLORS.ink,
-      flex: 1
-    }
-  }, s.name), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    min: 0,
-    max: 20,
-    step: 0.5,
-    value: evaluation.grades[s.id] ?? "",
-    onChange: e => onSetGrade(evaluation.id, s.id, e.target.value),
-    placeholder: "—/20",
-    style: {
-      ...inputStyle,
-      width: 64,
-      padding: "4px 8px",
-      fontFamily: "IBM Plex Mono, monospace",
-      fontSize: 12.5
-    }
-  })))), avg && /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontFamily: "Inter, sans-serif",
-      fontSize: 12,
-      color: COLORS.sub,
-      marginTop: 8
-    }
-  }, "Moyenne de la classe : ", /*#__PURE__*/React.createElement("strong", null, avg, "/20"), " (", values.length, "/", students.length, " note", values.length !== 1 ? "s" : "", " saisies)"));
+
+// Saisie rapide d'une évaluation : un champ par élève, Entrée passe au suivant
+function GradesPanel({ students, evaluation, onSetGrade }) {
+  const h = React.createElement;
+  const ref = useRef(null);
+  if (students.length === 0) return h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, marginTop: 8 } },
+    "Ajoute des élèves dans l'onglet Élèves pour saisir des notes.");
+  const avg = evalAverage(evaluation, students);
+  const out = evalOutOf(evaluation);
+  const count = students.filter(s => gradeNum(evaluation.grades[s.id]) !== null).length;
+  const next = i => { const el = ref.current && ref.current.querySelector(`[data-gi="${i + 1}"]`); if (el) el.focus(); };
+  return h("div", { ref, style: { marginTop: 10, borderTop: `1px solid ${COLORS.line}`, paddingTop: 10 } },
+    h("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: "5px 18px" } },
+      students.map((s, i) => {
+        const v = evaluation.grades[s.id] ?? "";
+        const n = gradeNum(v);
+        const bad = n !== null && (n < 0 || n > out);
+        const tone = gradeTone(n === null ? null : n / out * 20);
+        return h("div", { key: s.id, style: { display: "flex", alignItems: "center", gap: 8 } },
+          h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, s.name),
+          h("input", { "data-gi": i, value: v, inputMode: "decimal", placeholder: `—/${out}`,
+            onChange: e => onSetGrade(evaluation.id, s.id, e.target.value),
+            onKeyDown: e => { if (e.key === "Enter") { e.preventDefault(); next(i); } },
+            style: { ...inputStyle, width: 60, padding: "4px 7px", textAlign: "center", fontFamily: "IBM Plex Mono, monospace", fontSize: 12.5,
+              background: bad ? "var(--histoireSoft)" : tone.bg === "transparent" ? COLORS.panel : tone.bg, color: tone.fg, borderColor: bad ? "var(--histoire)" : COLORS.line } }));
+      })),
+    h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint, margin: "8px 0 0" } },
+      avg !== null ? h(React.Fragment, null, "Moyenne : ", h("strong", { style: { color: COLORS.ink } }, fmtGrade(avg), "/20"), ` · ${count}/${students.length} notes`) : "Aucune note saisie.",
+      " · Entrée = élève suivant · « abs », « disp » ou « nn » ne comptent pas dans la moyenne."));
 }
-function EvaluationsView({
-  data,
-  onAdd,
-  onCycleStatus,
-  onDelete,
-  onSetGrade
-}) {
+
+function EvalCard({ data, ev, students, open, onToggle, onCycleStatus, onDelete, onUpdate, onSetGrade }) {
+  const h = React.createElement;
+  const [editing, setEditing] = useState(false);
+  const avg = evalAverage(ev, students);
+  const count = students.filter(s => gradeNum(ev.grades[s.id]) !== null).length;
+  const pill = (txt, onClick, color, bg) => h("button", { onClick, style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, fontWeight: 600, color, background: bg, border: "none", borderRadius: 5, padding: "4px 10px", cursor: "pointer" } }, txt);
+  if (editing) return h(EvalForm, { initial: ev, submitLabel: "Enregistrer", onCancel: () => setEditing(false), onSave: f => { onUpdate(ev.id, f); setEditing(false); } });
+  return h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderLeft: `4px solid ${EVAL_STATUS_COLOR[ev.status]}`, borderRadius: 8, padding: "13px 16px" } },
+    h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" } },
+      ev.date && h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub } }, formatDate(ev.date)),
+      h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint } }, ev.type, ` · sur ${evalOutOf(ev)}`, evalCoef(ev) !== 1 ? ` · coef. ${evalCoef(ev)}` : ""),
+      h("span", { style: { marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" } },
+      avg !== null && h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12, fontWeight: 600, color: gradeTone(avg).fg, background: gradeTone(avg).bg, borderRadius: 4, padding: "1px 6px" } }, fmtGrade(avg), "/20"),
+      h("button", { onClick: () => setEditing(true), title: "Modifier", style: { background: "none", border: "none", color: COLORS.faint, cursor: "pointer", fontSize: 12, fontFamily: "Inter, sans-serif", textDecoration: "underline" } }, "modifier"),
+      h("button", { onClick: () => { if (confirm(`Supprimer « ${ev.title} » et ses notes ?`)) onDelete(ev.id); }, title: "Supprimer", style: { background: "none", border: "none", color: COLORS.faint, cursor: "pointer", display: "flex" } }, h(IconX, { size: 13 })))),
+    h("div", { style: { fontFamily: "Fraunces, serif", fontSize: 15, color: COLORS.ink, margin: "6px 0 2px" } }, ev.title),
+    ev.notes && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, margin: "2px 0 8px" } }, ev.notes),
+    h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6, alignItems: "center" } },
+      pill(`${EVAL_STATUS[ev.status]} — changer`, () => onCycleStatus(ev.id), EVAL_STATUS_COLOR[ev.status], EVAL_STATUS_SOFT[ev.status]),
+      pill(open ? "Masquer les notes" : "Saisir les notes", onToggle, COLORS.accent, COLORS.accentSoft),
+      students.length > 0 && h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint } }, `${count}/${students.length} notées`)),
+    open && h(GradesPanel, { students, evaluation: ev, onSetGrade }));
+}
+
+// Tableau de toutes les notes de la classe : élèves en lignes, évaluations en colonnes
+function GradeBook({ data, cls, evals, students, onSetGrade }) {
+  const h = React.createElement;
+  const [sortBy, setSortBy] = useState("name");
+  const tableRef = useRef(null);
+  const graded = evals.filter(ev => students.some(s => gradeNum(ev.grades[s.id]) !== null));
+  if (students.length === 0) return h(EmptyState, { icon: h(IconUsers, { size: 26 }), text: `Ajoute les élèves de ${cls.name} dans l'onglet Élèves pour voir leur relevé.` });
+  if (evals.length === 0) return h(EmptyState, { icon: h(IconClipboard, { size: 26 }), text: `Aucune évaluation pour ${cls.name}. Crée-en une dans l'onglet « Évaluations ».` });
+
+  const avgs = {};
+  students.forEach(s => { avgs[s.id] = studentAverage(s.id, evals); });
+  const rows = [...students].sort((a, b) => {
+    if (sortBy === "avg") { const x = avgs[a.id], y = avgs[b.id]; if (x === null) return 1; if (y === null) return -1; return y - x; }
+    return a.name.localeCompare(b.name, "fr");
+  });
+  const classAvgVals = students.map(s => avgs[s.id]).filter(v => v !== null);
+  const classAvg = classAvgVals.length ? classAvgVals.reduce((a, b) => a + b, 0) / classAvgVals.length : null;
+  const below = classAvgVals.filter(v => v < 10).length;
+  const focusCell = (r, c) => { const el = tableRef.current && tableRef.current.querySelector(`[data-cell="${r}-${c}"]`); if (el) { el.focus(); el.select && el.select(); } };
+
+  const exportCSV = () => {
+    const esc = s => `"${String(s ?? "").replace(/"/g, '""')}"`;
+    const head = ["Élève", ...evals.map(ev => `${ev.title} (${evalDay(ev.date)}, /${evalOutOf(ev)}, coef ${evalCoef(ev)})`), "Moyenne /20"];
+    const lines = [head.map(esc).join(";")];
+    rows.forEach(s => lines.push([s.name, ...evals.map(ev => ev.grades[s.id] ?? ""), avgs[s.id] === null ? "" : fmtGrade(avgs[s.id])].map(esc).join(";")));
+    lines.push(["Moyenne de classe", ...evals.map(ev => { const a = evalAverage(ev, students); return a === null ? "" : fmtGrade(a / 20 * evalOutOf(ev)); }), classAvg === null ? "" : fmtGrade(classAvg)].map(esc).join(";"));
+    const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `notes-${cls.name.replace(/\s+/g, "_")}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  const stat = (label, value, tone) => h("div", { style: { flex: "1 1 110px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: "10px 12px", boxShadow: CARD_SHADOW } },
+    h("div", { style: labelStyle }, label),
+    h("div", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 20, fontWeight: 600, color: tone || COLORS.ink } }, value));
+
+  const th = { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: COLORS.sub, padding: "6px 4px", borderBottom: `1px solid ${COLORS.line}`, verticalAlign: "bottom", background: COLORS.panel };
+  const stickyCol = { position: "sticky", left: 0, zIndex: 1, background: COLORS.panel, borderRight: `1px solid ${COLORS.line}` };
+  const td = { padding: 2, borderBottom: `1px solid ${COLORS.line}`, textAlign: "center" };
+
+  return h("div", null,
+    h("div", { style: { display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 } },
+      stat("Moyenne de classe", classAvg === null ? "—" : `${fmtGrade(classAvg)}`, classAvg === null ? null : gradeTone(classAvg).fg),
+      stat("Évaluations notées", `${graded.length}/${evals.length}`),
+      stat("Élèves sous 10", classAvg === null ? "—" : `${below}/${classAvgVals.length}`, below ? "var(--histoire)" : null)),
+    h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 8 } },
+      h("span", { style: { ...labelStyle, marginBottom: 0 } }, "Trier"),
+      ["name", "avg"].map(k => h("button", { key: k, onClick: () => setSortBy(k), style: { fontFamily: "Inter, sans-serif", fontSize: 12, padding: "3px 10px", borderRadius: 5, cursor: "pointer",
+        border: `1px solid ${sortBy === k ? COLORS.accent : COLORS.line}`, background: sortBy === k ? COLORS.accentSoft : "transparent", color: sortBy === k ? COLORS.accent : COLORS.sub } }, k === "name" ? "A → Z" : "Moyenne")),
+      h("span", { style: { flex: 1 } }),
+      h("button", { onClick: exportCSV, style: { ...ghostBtn, padding: "5px 12px", fontSize: 12 } }, "Exporter (tableur)")),
+    h("div", { ref: tableRef, style: { overflowX: "auto", border: `1px solid ${COLORS.line}`, borderRadius: 8, background: COLORS.panel, boxShadow: CARD_SHADOW } },
+      h("table", { style: { borderCollapse: "separate", borderSpacing: 0, width: "100%", minWidth: 220 + evals.length * 62 } },
+        h("thead", null, h("tr", null,
+          h("th", { style: { ...th, ...stickyCol, textAlign: "left", paddingLeft: 10, minWidth: 130 } }, `${students.length} élèves`),
+          evals.map(ev => h("th", { key: ev.id, title: `${ev.title}${ev.date ? " — " + formatDate(ev.date) : ""} · sur ${evalOutOf(ev)} · coef. ${evalCoef(ev)}`, style: { ...th, minWidth: 58, maxWidth: 90 } },
+            h("div", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 10.5, color: COLORS.faint, fontWeight: 400 } }, evalDay(ev.date) || "—"),
+            h("div", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 86, margin: "0 auto" } }, ev.title),
+            h("div", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 10, color: COLORS.faint, fontWeight: 400 } }, `/${evalOutOf(ev)}`, evalCoef(ev) !== 1 ? ` ×${evalCoef(ev)}` : ""))),
+          h("th", { style: { ...th, minWidth: 92, borderLeft: `1px solid ${COLORS.line}` } }, "Moyenne"))),
+        h("tbody", null,
+          rows.map((s, r) => {
+            const a = avgs[s.id];
+            return h("tr", { key: s.id },
+              h("td", { style: { ...td, ...stickyCol, textAlign: "left", padding: "4px 10px", fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, whiteSpace: "nowrap" } }, s.name),
+              evals.map((ev, c) => {
+                const v = ev.grades[s.id] ?? "";
+                const n = gradeNum(v);
+                const bad = n !== null && (n < 0 || n > evalOutOf(ev));
+                const tone = gradeTone(n === null ? null : n / evalOutOf(ev) * 20);
+                return h("td", { key: ev.id, style: { ...td, background: bad ? "var(--histoireSoft)" : tone.bg } },
+                  h("input", { "data-cell": `${r}-${c}`, value: v, inputMode: "decimal", "aria-label": `${s.name} — ${ev.title}`,
+                    onChange: e => onSetGrade(ev.id, s.id, e.target.value),
+                    onKeyDown: e => {
+                      if (e.key === "Enter" || e.key === "ArrowDown") { e.preventDefault(); focusCell(r + 1, c); }
+                      else if (e.key === "ArrowUp") { e.preventDefault(); focusCell(r - 1, c); }
+                    },
+                    style: { width: "100%", minWidth: 44, border: "none", background: "transparent", textAlign: "center", fontFamily: "IBM Plex Mono, monospace", fontSize: 12.5,
+                      color: bad ? "var(--histoire)" : n === null && v ? COLORS.faint : tone.fg, fontWeight: n !== null && (n / evalOutOf(ev) * 20 < 8 || n / evalOutOf(ev) * 20 >= 14) ? 600 : 400, padding: "5px 2px", outline: "none" } }));
+              }),
+              h("td", { style: { ...td, borderLeft: `1px solid ${COLORS.line}`, padding: "4px 8px" } },
+                h("div", { style: { display: "flex", alignItems: "center", gap: 6 } },
+                  h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12.5, fontWeight: 600, color: gradeTone(a).fg, minWidth: 30, textAlign: "right" } }, fmtGrade(a)),
+                  h("div", { style: { flex: 1, height: 5, borderRadius: 3, background: COLORS.encadre, minWidth: 34, overflow: "hidden" } },
+                    a !== null && h("div", { style: { width: `${Math.min(100, a / 20 * 100)}%`, height: "100%", background: a < 8 ? "var(--histoire)" : a < 10 ? "var(--wip)" : a < 14 ? COLORS.accent : "var(--done)" } })))));
+          })),
+        h("tfoot", null, h("tr", null,
+          h("td", { style: { ...td, ...stickyCol, textAlign: "left", padding: "7px 10px", fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: COLORS.sub, borderBottom: "none", background: COLORS.encadre } }, "Moy. classe"),
+          evals.map(ev => { const a = evalAverage(ev, students); return h("td", { key: ev.id, style: { ...td, borderBottom: "none", background: COLORS.encadre, fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, fontWeight: 600, color: gradeTone(a).fg } }, a === null ? "—" : fmtGrade(a / 20 * evalOutOf(ev))); }),
+          h("td", { style: { ...td, borderBottom: "none", borderLeft: `1px solid ${COLORS.line}`, background: COLORS.encadre, fontFamily: "IBM Plex Mono, monospace", fontSize: 12, fontWeight: 700, color: gradeTone(classAvg).fg } }, classAvg === null ? "—" : `${fmtGrade(classAvg)}/20`))))),
+    h("div", { style: { display: "flex", gap: 14, flexWrap: "wrap", marginTop: 10, fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint } },
+      [["var(--histoireSoft)", "moins de 8"], ["var(--wipSoft)", "8 à 10"], ["var(--doneSoft)", "14 et plus"]].map(([bg, t]) => h("span", { key: t, style: { display: "inline-flex", alignItems: "center", gap: 5 } }, h("span", { style: { width: 12, height: 12, borderRadius: 3, background: bg, border: `1px solid ${COLORS.line}` } }), t)),
+      h("span", null, "Moyennes ramenées sur 20 et pondérées par les coefficients · Entrée ou ↓ pour passer à l'élève suivant")));
+}
+
+function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, onDelete, onSetGrade }) {
+  const h = React.createElement;
+  const [tab, setTab] = useState(() => { try { return localStorage.getItem("evals-tab-v1") || "liste"; } catch (e) { return "liste"; } });
   const [adding, setAdding] = useState(false);
   const [openId, setOpenId] = useState(null);
-  const rows = [...data.evaluations].sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
-  return /*#__PURE__*/React.createElement("div", null, rows.length === 0 && !adding && /*#__PURE__*/React.createElement(EmptyState, {
-    icon: /*#__PURE__*/React.createElement(IconClipboard, {
-      size: 26
-    }),
-    text: "Aucune évaluation enregistrée pour l'instant."
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "list-grid",
-    style: {
-      display: "flex",
-      flexDirection: "column",
-      gap: 8,
-      marginBottom: 22
-    }
-  }, rows.map(ev => {
-    const cls = data.classes[ev.classId];
-    const isOpen = openId === ev.id;
-    return /*#__PURE__*/React.createElement("div", {
-      key: ev.id,
-      style: {
-        background: COLORS.panel,
-        border: `1px solid ${COLORS.line}`,
-        boxShadow: CARD_SHADOW,
-        borderLeft: `4px solid ${classColor(data, ev.classId)}`,
-        borderRadius: 8,
-        padding: "13px 16px"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        gap: 8,
-        flexWrap: "wrap"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        flexWrap: "wrap"
-      }
-    }, /*#__PURE__*/React.createElement("span", {
-      style: {
-        width: 12,
-        height: 12,
-        borderRadius: "50%",
-        flexShrink: 0,
-        background: ev.status === "termine" ? EVAL_STATUS_COLOR[ev.status] : "transparent",
-        border: `2px solid ${EVAL_STATUS_COLOR[ev.status]}`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      }
-    }, ev.status === "termine" && /*#__PURE__*/React.createElement(IconCheck, {
-      size: 7,
-      color: "#fff",
-      strokeWidth: 3.5
-    })), ev.date && /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontFamily: "IBM Plex Mono, monospace",
-        fontSize: 12,
-        color: COLORS.sub
-      }
-    }, formatDate(ev.date)), cls && /*#__PURE__*/React.createElement(ClassTag, {
-      color: classColor(data, ev.classId),
-      name: cls.name,
-      size: "small"
-    }), /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontFamily: "Inter, sans-serif",
-        fontSize: 11,
-        color: COLORS.faint
-      }
-    }, ev.type)), /*#__PURE__*/React.createElement("button", {
-      onClick: () => onDelete(ev.id),
-      style: {
-        background: "none",
-        border: "none",
-        color: COLORS.faint,
-        cursor: "pointer"
-      }
-    }, /*#__PURE__*/React.createElement(IconX, {
-      size: 13
-    }))), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: "Fraunces, serif",
-        fontSize: 15,
-        color: COLORS.ink,
-        margin: "6px 0 2px"
-      }
-    }, ev.title), ev.notes && /*#__PURE__*/React.createElement("p", {
-      style: {
-        fontFamily: "Inter, sans-serif",
-        fontSize: 12.5,
-        color: COLORS.sub,
-        margin: "2px 0 8px"
-      }
-    }, ev.notes), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        gap: 8,
-        flexWrap: "wrap",
-        marginTop: 6
-      }
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => onCycleStatus(ev.id),
-      style: {
-        fontFamily: "Inter, sans-serif",
-        fontSize: 11.5,
-        fontWeight: 600,
-        color: EVAL_STATUS_COLOR[ev.status],
-        background: EVAL_STATUS_SOFT[ev.status],
-        border: "none",
-        borderRadius: 5,
-        padding: "4px 10px",
-        cursor: "pointer"
-      }
-    }, EVAL_STATUS[ev.status], " — changer"), /*#__PURE__*/React.createElement("button", {
-      onClick: () => setOpenId(isOpen ? null : ev.id),
-      style: {
-        fontFamily: "Inter, sans-serif",
-        fontSize: 11.5,
-        fontWeight: 600,
-        color: COLORS.accent,
-        background: COLORS.accentSoft,
-        border: "none",
-        borderRadius: 5,
-        padding: "4px 10px",
-        cursor: "pointer"
-      }
-    }, isOpen ? "Masquer les notes" : "Saisir les notes")), isOpen && /*#__PURE__*/React.createElement(GradesPanel, {
-      data: data,
-      evaluation: ev,
-      onSetGrade: onSetGrade
-    }));
-  })), adding ? /*#__PURE__*/React.createElement(AddEvalForm, {
-    classOrder: data.order,
-    classes: data.classes,
-    onAdd: ev => {
-      onAdd(ev);
-      setAdding(false);
-    },
-    onCancel: () => setAdding(false)
-  }) : data.order.length > 0 && /*#__PURE__*/React.createElement("button", {
-    onClick: () => setAdding(true),
-    style: {
-      ...ghostBtn,
-      display: "flex",
-      alignItems: "center",
-      gap: 6
-    }
-  }, /*#__PURE__*/React.createElement(IconPlus, {
-    size: 14
-  }), " Ajouter une évaluation"));
+  const switchTab = t => { setTab(t); try { localStorage.setItem("evals-tab-v1", t); } catch (e) {} };
+  const cls = activeClass ? data.classes[activeClass] : null;
+  if (!cls) return h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.faint } }, "Sélectionne une classe en haut de l'écran.");
+  const students = [...cls.students].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  const evals = data.evaluations.filter(ev => ev.classId === activeClass).sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
+  const toCorrect = evals.filter(ev => ev.status === "a_corriger").length;
+
+  const tabStyle = active => ({ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: active ? 600 : 500, padding: "7px 14px", borderRadius: 7, cursor: "pointer", border: "none",
+    background: active ? COLORS.accent : "transparent", color: active ? "var(--bg)" : COLORS.sub });
+
+  return h("div", null,
+    h("div", { style: { display: "inline-flex", gap: 4, padding: 3, borderRadius: 9, background: COLORS.encadre, marginBottom: 18 } },
+      h("button", { onClick: () => switchTab("liste"), style: tabStyle(tab === "liste") }, `Évaluations (${evals.length})`, toCorrect ? ` · ${toCorrect} à corriger` : ""),
+      h("button", { onClick: () => switchTab("releve"), style: tabStyle(tab === "releve") }, "Relevé de notes")),
+    tab === "releve" ? h(GradeBook, { data, cls, evals, students, onSetGrade }) :
+    h(React.Fragment, null,
+      evals.length === 0 && !adding && h(EmptyState, { icon: h(IconClipboard, { size: 26 }), text: `Aucune évaluation pour ${cls.name} pour l'instant.` }),
+      h("div", { className: "list-grid", style: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 } },
+        evals.map(ev => h(EvalCard, { key: ev.id, data, ev, students, open: openId === ev.id, onToggle: () => setOpenId(openId === ev.id ? null : ev.id),
+          onCycleStatus, onDelete, onUpdate, onSetGrade }))),
+      adding ? h(EvalForm, { onCancel: () => setAdding(false), onSave: f => { onAdd({ ...f, classId: activeClass, status: "a_faire" }); setAdding(false); } }) :
+        h("button", { onClick: () => setAdding(true), style: { ...ghostBtn, display: "flex", alignItems: "center", gap: 6 } }, h(IconPlus, { size: 14 }), ` Ajouter une évaluation pour ${cls.name}`)));
 }
+
 function StudentsView({
   data,
   activeClass,
@@ -4897,6 +4807,13 @@ function App() {
       ...ev
     }]
   });
+  const updateEvaluation = (id, fields) => persist({
+    ...data,
+    evaluations: data.evaluations.map(ev => ev.id === id ? {
+      ...ev,
+      ...fields
+    } : ev)
+  });
   const deleteEvaluation = id => persist({
     ...data,
     evaluations: data.evaluations.filter(ev => ev.id !== id)
@@ -5242,7 +5159,9 @@ function App() {
     }
   }) : view === "evaluations" ? /*#__PURE__*/React.createElement(EvaluationsView, {
     data: data,
+    activeClass: activeClass,
     onAdd: addEvaluation,
+    onUpdate: updateEvaluation,
     onCycleStatus: cycleEvalStatus,
     onDelete: deleteEvaluation,
     onSetGrade: setGrade
