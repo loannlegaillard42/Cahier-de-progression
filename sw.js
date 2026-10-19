@@ -1,4 +1,4 @@
-const CACHE = "cahier-hg-v10";
+const CACHE = "cahier-hg-v11";
 const ASSETS = [
   "./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png",
   // React, hébergé dans le dépôt : sans lui en cache, l'app reste blanche hors connexion.
@@ -19,8 +19,13 @@ self.addEventListener("activate", (e) => {
   self.clients.claim();
 });
 
+// Le dossier rituels/ est une app à part : le service worker n'y touche pas.
+const RITUELS = new URL("./rituels", self.registration.scope).href;
+
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
+  const url = e.request.url.split(/[?#]/)[0];
+  if (url === RITUELS || url.startsWith(RITUELS + "/")) return;
 
   // La page elle-même : on va TOUJOURS chercher la version du réseau d'abord,
   // pour qu'une mise à jour s'applique dès le rechargement. Le cache ne sert
