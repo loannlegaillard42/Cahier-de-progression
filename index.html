@@ -44,6 +44,15 @@
   .hit::after { content: ""; position: absolute; inset: -9px; }
   .hit-y::after { content: ""; position: absolute; inset: -9px 0; }
 
+  /* Impression / PDF : seule la fiche de progression s'imprime, toujours sur fond blanc */
+  .print-sheet { display: none; }
+  @media print {
+    #root { display: none !important; }
+    .print-sheet { display: block; }
+    body { background: #fff !important; }
+    @page { margin: 14mm; }
+  }
+
   /* Accordéon des chapitres : rotation douce du chevron */
   .chevron { transition: transform .18s ease; }
   .chevron.open { transform: rotate(0deg); }
@@ -4043,22 +4052,10 @@ function SettingsView({
   const fileRef = useRef(null);
   const exportData = async () => {
     try {
-      const stamp = localISO(new Date());
-      const full = await withEmbeddedFiles(data);
-      const blob = new Blob([JSON.stringify(full, null, 2)], {
-        type: "application/json"
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `cahier-progression-${stamp}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      setStatus({
+      const how = await exportBackup(data);
+      if (how !== "annule") setStatus({
         type: "ok",
-        msg: "Sauvegarde téléchargée."
+        msg: how === "partage" ? "Sauvegarde partagée." : "Sauvegarde téléchargée."
       });
     } catch (e) {
       setStatus({
@@ -4190,15 +4187,15 @@ function SettingsView({
     style: {
       display: "none"
     }
-  })), status && /*#__PURE__*/React.createElement("p", {
+  })), /*#__PURE__*/React.createElement("p", {
     style: {
       fontFamily: "Inter, sans-serif",
       fontSize: 12.5,
       marginTop: 12,
       marginBottom: 0,
-      color: status.type === "ok" ? COLORS.done : COLORS.histoire
+      color: !status ? COLORS.sub : status.type === "ok" ? COLORS.doneInk : "var(--danger)"
     }
-  }, status.msg)), /*#__PURE__*/React.createElement("p", {
+  }, status ? status.msg : backupInfo().last ? `Dernière sauvegarde depuis cet appareil : le ${longDate(backupInfo().last)}.` : "Aucune sauvegarde depuis cet appareil pour l'instant.")), /*#__PURE__*/React.createElement("p", {
     style: {
       fontFamily: "Inter, sans-serif",
       fontSize: 12,
@@ -4504,7 +4501,9 @@ function HomeView({
       flexDirection: "column",
       gap: 36
     }
-  }, /*#__PURE__*/React.createElement(SchoolBanner, null), /*#__PURE__*/React.createElement(MyDay, {
+  }, /*#__PURE__*/React.createElement(BackupReminder, {
+    data: data
+  }), /*#__PURE__*/React.createElement(SchoolBanner, null), /*#__PURE__*/React.createElement(MyDay, {
     data: data,
     setView: setView
   }), /*#__PURE__*/React.createElement("div", {
@@ -4513,7 +4512,23 @@ function HomeView({
     data: data,
     max: 8,
     onOpenAgenda: setView ? () => setView("planning") : null
-  })), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+  })), data.order.length > 0 && /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconClock, {
+      size: 15
+    }),
+    title: "Fin de programme"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 14
+    }
+  }, data.order.map(cid => /*#__PURE__*/React.createElement(ForecastRow, {
+    key: cid,
+    data: data,
+    cid: cid,
+    todayISO: localISO(today)
+  })))), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
     icon: /*#__PURE__*/React.createElement(IconBook, {
       size: 15
     }),
@@ -4849,6 +4864,139 @@ function SideNav({
     }), item.label);
   }));
 }
+/* ---------- Sauvegarde ----------
+   Date de la dernière sauvegarde, propre à cet appareil (ce n'est pas une donnée du cahier). */
+const BACKUP_KEY = "sauvegarde-v1";
+function backupInfo() {
+  try {
+    return JSON.parse(localStorage.getItem(BACKUP_KEY)) || {};
+  } catch (e) {
+    return {};
+  }
+}
+function saveBackupInfo(patch) {
+  try {
+    localStorage.setItem(BACKUP_KEY, JSON.stringify({ ...backupInfo(), ...patch }));
+  } catch (e) {}
+}
+// Sauvegarde complète (fichiers joints compris). Sur téléphone, propose le partage (Drive,
+// mail…) quand le navigateur le permet ; sinon, télécharge le fichier.
+async function exportBackup(data) {
+  const full = await withEmbeddedFiles(data);
+  const text = JSON.stringify(full, null, 2);
+  const name = `cahier-progression-${localISO(new Date())}.json`;
+  const file = typeof File === "function" ? new File([text], name, { type: "application/json" }) : null;
+  const touch = window.matchMedia && matchMedia("(pointer: coarse)").matches;
+  if (file && touch && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: "Sauvegarde du cahier de progression" });
+      saveBackupInfo({ last: localISO(new Date()) });
+      return "partage";
+    } catch (e) {
+      if (e && e.name === "AbortError") return "annule";
+    }
+  }
+  downloadText(text, name);
+  saveBackupInfo({ last: localISO(new Date()) });
+  return "telecharge";
+}
+// Rappel discret sur l'accueil : rien depuis 14 jours (ou jamais), « Plus tard » = 7 jours de répit
+function BackupReminder({ data }) {
+  const h = React.createElement;
+  const [info, setInfo] = useState(backupInfo);
+  const [busy, setBusy] = useState(false);
+  const today = localISO(new Date());
+  const since = info.last || info.first;
+  if (!since || since > shiftISO(today, -14) || (info.snooze && info.snooze > today)) return null;
+  const days = Math.round((parseISO(today) - parseISO(since)) / 86400000);
+  const save = () => {
+    setBusy(true);
+    exportBackup(data).then(() => setInfo(backupInfo()), () => {}).then(() => setBusy(false));
+  };
+  const later = () => {
+    saveBackupInfo({ snooze: shiftISO(today, 7) });
+    setInfo(backupInfo());
+  };
+  return h("div", { style: { display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", background: COLORS.accentSoft, border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: "12px 14px" } },
+    h("span", { style: { color: COLORS.accent, display: "flex" } }, h(IconDownload, { size: 18 })),
+    h("span", { style: { flex: "1 1 180px", fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, lineHeight: 1.45 } },
+      info.last ? `Ta dernière sauvegarde date d'il y a ${days} jours.` : "Tu n'as encore jamais sauvegardé ce cahier.",
+      h("span", { style: { color: COLORS.sub } }, " Une sauvegarde te protège si le téléphone est perdu ou le navigateur nettoyé.")),
+    h("span", { style: { display: "flex", gap: 8 } },
+      h("button", { onClick: save, disabled: busy, style: { ...primaryBtn, padding: "7px 12px", fontSize: 12.5 } }, busy ? "Sauvegarde…" : "Sauvegarder"),
+      h("button", { onClick: later, style: { ...ghostBtn, padding: "7px 12px", fontSize: 12.5 } }, "Plus tard")));
+}
+
+/* ---------- Prévision de fin de programme ----------
+   Compare les séances encore prévues (chapitres) aux créneaux d'histoire-géo qui restent
+   d'ici la fin de l'année, d'après l'emploi du temps (semaines A/B, vacances, fériés).
+   Demi-groupes : la classe avance quand les deux groupes ont eu la séance. */
+function programmeForecast(data, cid, todayISO) {
+  const cls = data.classes[cid];
+  const chapters = cls.themes.flatMap(th => th.chapters);
+  const planned = chapters.reduce((n, ch) => n + Math.max(0, Number(ch.total) || 0), 0);
+  const remaining = chapters.reduce((n, ch) => n + Math.max(0, (Number(ch.total) || 0) - (Number(ch.done) || 0)), 0);
+  if (!data.schedule.slots.some(sl => sl.classId === cid && slotMat(sl) === "HG")) return { planned, remaining, slots: null };
+  let slots = 0, finish = null;
+  for (let iso = todayISO < SCHOOL_YEAR.rentree ? SCHOOL_YEAR.rentree : todayISO; iso <= SCHOOL_YEAR.fin; iso = shiftISO(iso, 1)) {
+    if (!dayInfo(iso).schoolDay) continue;
+    const day = slotsOnDate(data, iso).filter(sl => sl.classId === cid && slotMat(sl) === "HG");
+    const n = day.filter(sl => !sl.groupe).length + Math.max(day.filter(sl => sl.groupe === "Gr. 1").length, day.filter(sl => sl.groupe === "Gr. 2").length);
+    if (!n) continue;
+    slots += n;
+    if (!finish && remaining > 0 && slots >= remaining) finish = iso;
+  }
+  return { planned, remaining, slots, finish, margin: slots - remaining };
+}
+function forecastText(f) {
+  if (f.planned === 0) return { tone: "faint", text: "Aucune séance prévue pour l'instant." };
+  if (f.remaining === 0) return { tone: "ok", text: "Toutes les séances prévues sont faites." };
+  const reste = `Il reste ${f.remaining} séance${f.remaining > 1 ? "s" : ""} prévue${f.remaining > 1 ? "s" : ""}`;
+  if (f.slots === null) return { tone: "faint", text: `${reste}. Renseigne l'emploi du temps de la classe pour voir si ça tient d'ici la fin de l'année.` };
+  const fin = longDate(SCHOOL_YEAR.fin);
+  if (f.margin < 0) return { tone: "late", text: `${reste} pour seulement ${f.slots} créneaux d'ici le ${fin} : il en manquera ${-f.margin}.` };
+  return { tone: f.margin <= 3 ? "tight" : "ok", text: `${reste} pour ${f.slots} créneaux d'ici le ${fin} : fin prévue le ${longDate(f.finish)} (marge : ${f.margin} créneau${f.margin > 1 ? "x" : ""}).` };
+}
+const FORECAST_TONE = { ok: COLORS.doneInk, tight: COLORS.wipInk, late: "var(--danger)", faint: COLORS.sub };
+function ForecastRow({ data, cid, todayISO }) {
+  const h = React.createElement;
+  const f = programmeForecast(data, cid, todayISO);
+  const t = forecastText(f);
+  const color = FORECAST_TONE[t.tone];
+  // barre : séances restantes rapportées aux créneaux restants
+  const pct = f.slots ? Math.min(100, Math.round(f.remaining / f.slots * 100)) : null;
+  return h("div", { style: { display: "flex", flexDirection: "column", gap: 6 } },
+    h("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
+      h(ClassTag, { color: classColor(data, cid), name: data.classes[cid].name }),
+      pct !== null && f.remaining > 0 && h("div", { style: { flex: 1, height: 8, borderRadius: 4, background: COLORS.line, overflow: "hidden" }, title: `${f.remaining} séances pour ${f.slots} créneaux` },
+        h("div", { style: { width: pct + "%", height: "100%", background: t.tone === "late" ? "var(--danger)" : t.tone === "tight" ? COLORS.wip : COLORS.done } }))),
+    h("p", { style: { margin: 0, fontFamily: "Inter, sans-serif", fontSize: 12.5, lineHeight: 1.45, color } }, t.text));
+}
+
+/* ---------- Progression imprimable (Imprimer / Enregistrer en PDF) ---------- */
+function PrintSheet({ data, cid }) {
+  const h = React.createElement;
+  const cls = data.classes[cid];
+  const f = programmeForecast(data, cid, localISO(new Date()));
+  const cell = { border: "1px solid #bbb", padding: "5px 7px", fontSize: 11, verticalAlign: "top" };
+  const fmt = iso => iso ? formatDate(iso) : "—";
+  return h("div", { style: { fontFamily: "Inter, Arial, sans-serif", color: "#111" } },
+    h("h1", { style: { fontFamily: "Fraunces, Georgia, serif", fontSize: 20, fontWeight: 600, margin: "0 0 2px" } }, `Progression annuelle — ${cls.name}`),
+    h("p", { style: { fontSize: 11.5, color: "#444", margin: "0 0 10px" } }, `Histoire-Géographie · ${SCHOOL_YEAR.label} · imprimé le ${formatDate(localISO(new Date()))}`),
+    h("p", { style: { fontSize: 11.5, margin: "0 0 3px" } }, `Bilan : ${f.planned - f.remaining} séance${f.planned - f.remaining > 1 ? "s" : ""} faite${f.planned - f.remaining > 1 ? "s" : ""} sur ${f.planned} prévue${f.planned > 1 ? "s" : ""}.`),
+    h("p", { style: { fontSize: 11.5, margin: "0 0 12px" } }, `Prévision : ${forecastText(f).text}`),
+    h("table", { style: { width: "100%", borderCollapse: "collapse" } },
+      h("thead", null, h("tr", { style: { background: "#eee" } }, ["Chapitre", "Séances", "Début", "Fin", "Statut"].map(t => h("th", { key: t, style: { ...cell, textAlign: "left", fontWeight: 600 } }, t)))),
+      cls.themes.map(th => h("tbody", { key: th.id, style: { breakInside: "avoid" } },
+        h("tr", null, h("td", { colSpan: 5, style: { ...cell, background: "#f6f6f6", fontWeight: 600 } }, `${th.discipline === "histoire" ? "Histoire" : th.discipline === "geo" ? "Géographie" : ""}${th.discipline ? " — " : ""}${th.title}`)),
+        th.chapters.map(ch => h("tr", { key: ch.id },
+          h("td", { style: cell }, ch.title),
+          h("td", { style: { ...cell, whiteSpace: "nowrap" } }, `${Number(ch.done) || 0} / ${Number(ch.total) || 0}`),
+          h("td", { style: { ...cell, whiteSpace: "nowrap" } }, fmt(ch.start)),
+          h("td", { style: { ...cell, whiteSpace: "nowrap" } }, fmt(ch.end)),
+          h("td", { style: { ...cell, whiteSpace: "nowrap" } }, STATUS_LABEL[chapterStatus(ch)])))))));
+}
+
 function downloadText(text, name) {
   const url = URL.createObjectURL(new Blob([text], {
     type: "application/json"
@@ -4949,6 +5097,7 @@ function App() {
       setData(seed);
       setActiveClass(seed.order[0]);
     }
+    if (!backupInfo().first) saveBackupInfo({ first: localISO(new Date()) });
     // Demande au navigateur de ne jamais effacer ces données de lui-même
     try {
       navigator.storage.persisted().then(ok => ok || navigator.storage.persist()).catch(() => {});
@@ -4978,6 +5127,18 @@ function App() {
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
+  // Impression de la progression d'une classe
+  const [printing, setPrinting] = useState(null);
+  useEffect(() => {
+    if (!printing) return;
+    const done = () => setPrinting(null);
+    window.addEventListener("afterprint", done);
+    const t = setTimeout(() => (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => window.print()), 50);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("afterprint", done);
+    };
+  }, [printing]);
   // Calendrier scolaire de la zone choisie, pour l'année en cours (bascule en août)
   const annee = schoolYearOf(localISO(new Date()));
   const cal = data ? data.calendrier : null;
@@ -5637,7 +5798,15 @@ function App() {
     onAddStudent: addStudent,
     onUpdateStudent: updateStudent,
     onDeleteStudent: deleteStudent
-  }) : view === "progression" ? cls ? /*#__PURE__*/React.createElement(React.Fragment, null, cls.themes.length === 0 && !addingTheme && /*#__PURE__*/React.createElement(EmptyState, {
+  }) : view === "progression" ? cls ? /*#__PURE__*/React.createElement(React.Fragment, null, cls.themes.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement(ForecastRow, {
+    data: data,
+    cid: activeClass,
+    todayISO: localISO(new Date())
+  })), cls.themes.length === 0 && !addingTheme && /*#__PURE__*/React.createElement(EmptyState, {
     icon: /*#__PURE__*/React.createElement(IconBook, {
       size: 26
     }),
@@ -5686,7 +5855,17 @@ function App() {
     }
   }, /*#__PURE__*/React.createElement(IconBook, {
     size: 14
-  }), " Insérer un programme officiel")), showProgrammes && /*#__PURE__*/React.createElement("div", {
+  }), " Insérer un programme officiel"), cls.themes.length > 0 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setPrinting(activeClass),
+    style: {
+      ...ghostBtn,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement(IconDownload, {
+    size: 14
+  }), " Imprimer / PDF")), showProgrammes && /*#__PURE__*/React.createElement("div", {
     style: {
       background: COLORS.encadre,
       borderRadius: 10,
@@ -5747,7 +5926,12 @@ function App() {
   }), /*#__PURE__*/React.createElement(SideNav, {
     view: view,
     setView: setView
-  }));
+  }), printing && data.classes[printing] && ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
+    className: "print-sheet"
+  }, /*#__PURE__*/React.createElement(PrintSheet, {
+    data: data,
+    cid: printing
+  })), document.body));
 }
 ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(App, null));
 if ("serviceWorker" in navigator) {
