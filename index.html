@@ -89,8 +89,9 @@
   }
 </style>
 
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<!-- React est hébergé dans le dépôt (et mis en cache par sw.js) pour que l'app démarre sans réseau -->
+<script src="vendor/react-18.3.1.min.js"></script>
+<script src="vendor/react-dom-18.3.1.min.js"></script>
 <script>
   // Applique le thème choisi avant le premier rendu, pour éviter un flash clair
   try {
