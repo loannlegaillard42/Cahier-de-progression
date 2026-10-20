@@ -131,6 +131,40 @@
   .chap.a-venir .chap-titre { font-family: Inter, sans-serif; font-size: 14.5px; font-weight: 500; color: var(--faint); margin: 2px 0 0; }
   .alerte { margin-top: 18px; padding: 14px 16px; border-radius: 12px; background: var(--warnSoft); border-left: 4px solid var(--warn); font-size: 14px; }
   .alerte strong { color: var(--warn); }
+  .alerte.ok { background: var(--okSoft); border-left-color: var(--ok); }
+  .bandeau-prof { margin: 10px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--warnSoft); color: var(--warn); font-size: 13.5px; font-weight: 600; }
+
+  /* ---------- Espace professeur ---------- */
+  .ligne-prof { display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 14px; margin-bottom: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+  .ligne-prof.masquee, .ligne-prof.sans-fiche { background: transparent; border-style: dashed; }
+  .ligne-prof.sans-fiche { color: var(--faint); padding-top: 11px; padding-bottom: 11px; }
+  .lp-txt { flex: 1; min-width: 0; }
+  .lp-titre { display: block; font-size: 14.5px; line-height: 1.35; }
+  .chap-num.modifie { color: var(--warn); }
+  .interrupteur {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 2px; flex-shrink: 0;
+    border: none; background: none; font-size: 13.5px; font-weight: 600; color: var(--ok);
+  }
+  .interrupteur .piste { width: 44px; height: 26px; border-radius: 13px; background: var(--ok); position: relative; transition: background-color .15s; }
+  .interrupteur .curseur { position: absolute; top: 3px; left: 21px; width: 20px; height: 20px; border-radius: 50%; background: var(--panel); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: left .15s; }
+  .interrupteur[aria-checked="false"] { color: var(--faint); }
+  .interrupteur[aria-checked="false"] .piste { background: var(--line); }
+  .interrupteur[aria-checked="false"] .curseur { left: 3px; }
+  .interrupteur .etat { min-width: 56px; text-align: left; }
+  .barre-publier {
+    position: sticky; bottom: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+    margin: 24px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg); border-top: 1px solid var(--line); font-weight: 600; font-size: 14px;
+  }
+  .barre-publier .btns { margin: 0; }
+  .etapes { margin: 10px 0 0; padding-left: 20px; font-size: 14px; color: var(--sub); }
+  .etapes li { margin: 5px 0; }
+  .ligne-champ { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .champ {
+    flex: 1; min-width: 200px; min-height: 46px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--ink); font: 13px "IBM Plex Mono", monospace;
+  }
+
   .pied { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--faint); display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: space-between; }
   .lien-discret { background: none; border: none; padding: 4px 0; color: var(--faint); text-decoration: underline; text-underline-offset: 2px; font-size: 12.5px; }
 
@@ -394,6 +428,8 @@
 
   var CLE = "reviser-v1";              // progrès de l'élève, sur cet appareil seulement
   var CLE_THEME = "rituels-theme-v1";  // même réglage que l'écran des rituels
+  var CLE_VISIBLES = "reviser-visibles-v1"; // dernière liste connue des chapitres ouverts aux élèves
+  var CLE_PROF = "reviser-prof-v1";         // jeton GitHub du professeur, sur son appareil seulement
   var JOUR = 86400000;
   var INTERVALLES = [0, 1, 2, 4, 8, 16]; // jours avant de revoir une carte, selon sa boîte (0 à 5)
   var MAITRISE = 3;                      // une carte est « maîtrisée » à partir de la boîte 3
@@ -522,7 +558,12 @@
 
   // ---------- Accès aux données ----------
   function chapitre(id) { return CHAPITRES.filter(function (c) { return c.id === id; })[0] || null; }
-  function chapitresNiveau(n) { return CHAPITRES.filter(function (c) { return c.n === n; }); }
+  // Les élèves ne voient que les chapitres ouverts par le professeur (activation.json) ;
+  // tant que la liste n'a jamais pu être lue, tous les chapitres restent visibles.
+  var visibles = lire(CLE_VISIBLES, null);
+  function estVisible(ch) { return !Array.isArray(visibles) || visibles.indexOf(ch.id) >= 0; }
+  function chapitresNiveau(n) { return CHAPITRES.filter(function (c) { return c.n === n && estVisible(c); }); }
+  function tousChapitresNiveau(n) { return CHAPITRES.filter(function (c) { return c.n === n; }); }
   function liste(ch, champ) { return Array.isArray(ch[champ]) ? ch[champ] : []; }
   function nomNiveau(n) { var x = NIVEAUX.filter(function (v) { return v.id === n; })[0]; return x ? x.nom : n; }
 
@@ -667,6 +708,7 @@
       try { return decodeURIComponent(s); } catch (e) { return s; }
     });
     if (p[0] === "c") return { vue: p[2] ? "outil" : "chapitre", ch: p[1], outil: p[2] };
+    if (p[0] === "prof") return { vue: "prof" };
     if (p[0] === "express") return { vue: "express", niveau: p[1] };
     if (p[0] === "niveau") return { vue: "accueil", niveau: p[1] };
     return { vue: "accueil" };
@@ -688,7 +730,9 @@
     var r = routeActuelle();
     var ch = r.ch ? chapitre(r.ch) : null;
     if ((r.vue === "chapitre" || r.vue === "outil") && !ch) { vueAccueil(); return; }
-    if (r.vue === "chapitre") vueChapitre(ch);
+    if ((r.vue === "chapitre" || r.vue === "outil") && !estVisible(ch) && !estProf()) { vueFermee(ch); return; }
+    if (r.vue === "prof") vueProf();
+    else if (r.vue === "chapitre") vueChapitre(ch);
     else if (r.vue === "outil") {
       var outil = OUTILS.filter(function (o) { return o.id === r.outil; })[0];
       if (!outil || !outil.dispo(ch)) { vueChapitre(ch); return; }
@@ -788,7 +832,7 @@
         app.appendChild(el("div", { class: "theme-titre", text: t.theme }));
         liste(t, "chapitres").forEach(function (c) {
           var ch = c.fiche ? chapitre(c.fiche) : null;
-          if (ch && ch.n === niveau) { placees[ch.id] = true; app.appendChild(carteChapitre(ch)); }
+          if (ch && ch.n === niveau && estVisible(ch)) { placees[ch.id] = true; app.appendChild(carteChapitre(ch)); }
           else app.appendChild(el("div", { class: "chap a-venir" + (d === "geo" ? " geo" : "") }, [
             el("div", { class: "chap-num", text: c.num + " · à venir" }),
             el("div", { class: "chap-titre", text: c.titre })
@@ -817,6 +861,7 @@
   function piedAccueil() {
     app.appendChild(el("div", { class: "pied" }, [
       el("span", { text: "Tes progrès restent sur cet appareil : rien n'est envoyé." }),
+      el("a", { class: "lien-discret", href: "#/prof", text: "Espace professeur" }),
       el("button", { class: "lien-discret", type: "button", text: "Effacer mes progrès", onclick: function () {
         if (!confirm("Effacer tous tes progrès (cartes, quiz, auto-évaluation) sur cet appareil ?")) return;
         var niveau = prog.niveau;
@@ -828,10 +873,21 @@
   }
 
   // ---------- Page d'un chapitre ----------
+  function vueFermee(ch) {
+    document.title = "Chapitre pas encore ouvert — Réviser";
+    app.appendChild(lienRetour("#/", "Tous les chapitres"));
+    app.appendChild(el("div", { class: "bilan carte-panneau", style: "margin-top:10px" }, [
+      el("h2", { text: ch.titre }),
+      el("p", { text: "Ce chapitre n'est pas encore ouvert : ton professeur l'ouvrira quand vous l'aurez étudié en classe." }),
+      el("div", { class: "btns" }, el("a", { class: "btn plein", href: "#/", text: "Voir les chapitres ouverts" }))
+    ]));
+  }
+
   function vueChapitre(ch) {
     document.title = ch.titre + " — Réviser";
     if (prog.niveau !== ch.n) { prog.niveau = ch.n; sauver(); }
     app.appendChild(lienRetour("#/", "Tous les chapitres"));
+    if (!estVisible(ch)) app.appendChild(el("p", { class: "bandeau-prof", text: "Aperçu professeur : ce chapitre est masqué aux élèves." }));
     app.appendChild(el("div", { class: "chap-entete" }, [
       el("div", { class: "meta" }, [
         el("span", { class: "tag" + (ch.d === "geo" ? " geo" : ""), text: DISC[ch.d] }),
@@ -1848,7 +1904,254 @@
     dessinerConseil();
   }
 
-  rendre();
+  // ---------- Espace professeur : choisir les chapitres que voient les élèves ----------
+  // Le réglage est publié dans rituels/activation.json, sur GitHub, avec un jeton personnel
+  // que le professeur colle une fois sur son appareil. Sans jeton, on ne peut rien publier.
+  var FICHIER_VISIBLES = "rituels/activation.json";
+  var DEPOT = (function () {
+    var m = /^([^.]+)\.github\.io$/.exec(location.hostname);
+    var racine = location.pathname.split("/").filter(Boolean)[0];
+    return m && racine ? { owner: m[1], repo: racine } : { owner: "loannlegaillard42", repo: "Cahier-de-progression" };
+  })();
+  var brouillon = null;   // chapitres visibles en cours de réglage, pas encore publiés
+  var classeProf = null;
+  var messageProf = null; // { ok: true|false, texte }
+
+  function jeton() { var p = lire(CLE_PROF, null); return p && p.token ? p.token : null; }
+  function estProf() { return !!jeton(); }
+  function estPublie(id) { return !Array.isArray(visibles) || visibles.indexOf(id) >= 0; }
+  function enTetesGitHub(t) {
+    return { "Authorization": "Bearer " + t, "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
+  }
+  function urlDepot() { return "https://api.github.com/repos/" + DEPOT.owner + "/" + DEPOT.repo; }
+  function messageErreurGitHub(statut, detail) {
+    if (statut === 0) return "GitHub est injoignable : vérifiez la connexion, puis recommencez.";
+    if (statut === 401) return "GitHub refuse ce jeton : il est peut-être expiré ou mal copié.";
+    if (statut === 403) return "Ce jeton n'a pas le droit de modifier le site : donnez-lui la permission « Contents » en lecture et écriture.";
+    if (statut === 404) return "Ce jeton n'a pas accès au dépôt " + DEPOT.repo + " : sélectionnez-le dans « Repository access ».";
+    if (statut === 409 || statut === 422) return "Le réglage a été publié entre-temps depuis un autre appareil : rechargez la page, puis recommencez.";
+    return "GitHub a répondu : " + (detail || "erreur " + statut) + ".";
+  }
+  function appelGitHub(url, options) {
+    return fetch(url, options).then(function (r) {
+      if (r.ok) return r.json();
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        var e = new Error(messageErreurGitHub(r.status, j.message));
+        e.statut = r.status;
+        throw e;
+      });
+    }, function () {
+      var e = new Error(messageErreurGitHub(0));
+      e.statut = 0;
+      throw e;
+    });
+  }
+  function publierVisibles(t, ids) {
+    var url = urlDepot() + "/contents/" + FICHIER_VISIBLES;
+    var h = enTetesGitHub(t);
+    return appelGitHub(url + "?ref=main", { headers: h, cache: "no-store" }).catch(function (e) {
+      if (e.statut === 404) return null; // le fichier n'existe pas encore : on le crée
+      throw e;
+    }).then(function (actuel) {
+      var contenu = JSON.stringify({ visibles: ids, modifie: new Date().toISOString() }, null, 2) + "\n";
+      var corps = {
+        message: "Espace professeur : chapitres visibles par les élèves",
+        content: btoa(unescape(encodeURIComponent(contenu))),
+        branch: "main"
+      };
+      if (actuel && actuel.sha) corps.sha = actuel.sha;
+      return appelGitHub(url, { method: "PUT", headers: h, body: JSON.stringify(corps) });
+    });
+  }
+
+  function vueProf() {
+    document.title = "Espace professeur — Réviser";
+    if (!brouillon) brouillon = CHAPITRES.filter(function (c) { return estPublie(c.id); }).map(function (c) { return c.id; });
+    if (!classeProf) classeProf = prog.niveau && NIVEAUX.some(function (n) { return n.id === prog.niveau; }) ? prog.niveau : NIVEAUX[0].id;
+
+    app.appendChild(lienRetour("#/", "Retour à la boîte à outils"));
+    app.appendChild(el("div", { class: "chap-entete" }, [
+      el("h1", { text: "Espace professeur" }),
+      el("p", { class: "consigne-outil", text: "Choisissez les chapitres que les élèves voient. Un chapitre masqué s'affiche « à venir » : il peut être préparé à l'avance et ouvert le moment venu." })
+    ]));
+    if (messageProf) app.appendChild(el("div", { class: "alerte" + (messageProf.ok ? " ok" : ""), role: "status" }, messageProf.texte));
+    app.appendChild(blocConnexion());
+
+    app.appendChild(el("div", { class: "etiq", text: "Classe" }));
+    var choix = el("div", { class: "choix", role: "group", "aria-label": "Classe" });
+    NIVEAUX.forEach(function (n) {
+      choix.appendChild(el("button", { class: "opt", type: "button", text: n.nom, "aria-pressed": String(n.id === classeProf), onclick: function () {
+        classeProf = n.id; messageProf = null; rendre();
+      } }));
+    });
+    app.appendChild(choix);
+
+    var classe = PLAN.filter(function (c) { return c.id === classeProf; })[0];
+    var annee = classe && Array.isArray(classe.annee) ? classe.annee : [];
+    ["histoire", "geo"].forEach(function (d) {
+      var themes = annee.filter(function (t) { return t.d === d; });
+      var fiches = tousChapitresNiveau(classeProf).filter(function (c) { return c.d === d; });
+      if (!themes.length && !fiches.length) return;
+      app.appendChild(el("div", { class: "etiq", text: DISC[d] }));
+      var placees = {};
+      themes.forEach(function (t) {
+        app.appendChild(el("div", { class: "theme-titre", text: t.theme }));
+        liste(t, "chapitres").forEach(function (c) {
+          var ch = c.fiche ? chapitre(c.fiche) : null;
+          if (ch && ch.n === classeProf) { placees[ch.id] = true; app.appendChild(ligneProf(ch)); }
+          else app.appendChild(el("div", { class: "ligne-prof sans-fiche" }, el("div", { class: "lp-txt" }, [
+            el("span", { class: "chap-num", text: c.num + " · fiche à préparer" }),
+            el("span", { class: "lp-titre", text: c.titre })
+          ])));
+        });
+      });
+      var horsPlan = fiches.filter(function (c) { return !placees[c.id]; });
+      if (horsPlan.length && themes.length) app.appendChild(el("div", { class: "theme-titre", text: "Autres fiches" }));
+      horsPlan.forEach(function (ch) { app.appendChild(ligneProf(ch)); });
+    });
+
+    var changements = CHAPITRES.filter(function (c) { return (brouillon.indexOf(c.id) >= 0) !== estPublie(c.id); }).length;
+    var btnPublier = el("button", { class: "btn plein", type: "button", text: "Publier", disabled: !changements || !estProf() });
+    btnPublier.addEventListener("click", function () {
+      btnPublier.disabled = true;
+      btnPublier.textContent = "Publication…";
+      var ids = CHAPITRES.map(function (c) { return c.id; }).filter(function (id) { return brouillon.indexOf(id) >= 0; });
+      publierVisibles(jeton(), ids).then(function () {
+        visibles = ids.slice();
+        ecrire(CLE_VISIBLES, visibles);
+        brouillon = null;
+        var h = new Date();
+        messageProf = { ok: true, texte: "Publié à " + h.getHours() + " h " + String(h.getMinutes()).padStart(2, "0") + ". Les élèves verront le changement d'ici une à deux minutes, en rechargeant la page." };
+        rendre();
+        window.scrollTo(0, 0);
+      }, function (e) {
+        messageProf = { ok: false, texte: e.message };
+        rendre();
+        window.scrollTo(0, 0);
+      });
+    });
+    app.appendChild(el("div", { class: "barre-publier" }, [
+      el("span", { text: !estProf() ? "Connectez GitHub pour publier" : changements ? pluriel(changements, "changement") + " à publier" : "Tout est publié" }),
+      el("div", { class: "btns" }, [
+        changements ? el("button", { class: "btn", type: "button", text: "Annuler", onclick: function () { brouillon = null; messageProf = null; rendre(); } }) : null,
+        btnPublier
+      ])
+    ]));
+  }
+
+  function ligneProf(ch) {
+    var visible = brouillon.indexOf(ch.id) >= 0;
+    var modifie = visible !== estPublie(ch.id);
+    var inter = el("button", {
+      class: "interrupteur", type: "button", role: "switch", "aria-checked": String(visible),
+      "aria-label": "Visible par les élèves : " + ch.titre, "data-id": ch.id
+    }, [el("span", { class: "piste" }, el("span", { class: "curseur" })), el("span", { class: "etat", text: visible ? "Visible" : "Masqué" })]);
+    inter.addEventListener("click", function () {
+      if (visible) brouillon = brouillon.filter(function (id) { return id !== ch.id; });
+      else brouillon.push(ch.id);
+      messageProf = null;
+      var y = window.scrollY;
+      rendre();
+      window.scrollTo(0, y);
+      var meme = app.querySelector('.interrupteur[data-id="' + ch.id + '"]');
+      if (meme) meme.focus();
+    });
+    return el("div", { class: "ligne-prof" + (visible ? "" : " masquee") }, [
+      el("div", { class: "lp-txt" }, [
+        el("span", { class: "chap-num" + (modifie ? " modifie" : ""), text: ch.num + (modifie ? " · pas encore publié" : "") }),
+        el("span", { class: "lp-titre", text: ch.titre }),
+        el("a", { class: "lien-discret", href: lienChapitre(ch), text: "Aperçu de la fiche" })
+      ]),
+      inter
+    ]);
+  }
+
+  function blocConnexion() {
+    var bloc = el("div", { class: "carte-panneau", style: "margin-top:14px" });
+    if (estProf()) {
+      bloc.appendChild(el("p", { style: "margin:0" }, [el("strong", { text: "GitHub est connecté sur cet appareil." }), " Vous pouvez publier, et ouvrir l'aperçu des chapitres masqués."]));
+      bloc.appendChild(el("div", { class: "btns" }, el("button", { class: "btn", type: "button", text: "Déconnecter cet appareil", onclick: function () {
+        if (!confirm("Retirer le jeton GitHub de cet appareil ? Il faudra le coller à nouveau pour publier.")) return;
+        try { localStorage.removeItem(CLE_PROF); } catch (e) {}
+        messageProf = null;
+        rendre();
+      } })));
+      return bloc;
+    }
+    bloc.appendChild(el("h2", { text: "Connecter GitHub, une fois par appareil" }));
+    bloc.appendChild(el("p", { class: "petit", style: "margin:6px 0 0", text: "Pour publier, l'application a besoin d'un jeton GitHub qui l'autorise à modifier ce site. Il reste sur cet appareil et peut être supprimé à tout moment sur GitHub." }));
+    var lienJeton = el("a", { href: "https://github.com/settings/personal-access-tokens/new", target: "_blank", rel: "noopener", text: "la page de création de jeton" });
+    var etapes = el("ol", { class: "etapes" });
+    [
+      ["Sur GitHub, ouvrez ", lienJeton, " (jeton « fine-grained »)."],
+      ["Nom : « Boîte à outils » ; expiration : la fin de l'année scolaire."],
+      ["Repository access : « Only select repositories », puis " + DEPOT.repo + "."],
+      ["Permissions, Repository permissions, Contents : « Read and write »."],
+      ["Cliquez sur « Generate token », copiez le jeton et collez-le ici."]
+    ].forEach(function (e) { etapes.appendChild(el("li", null, e)); });
+    bloc.appendChild(etapes);
+    var champ = el("input", { class: "champ", type: "password", autocomplete: "off", spellcheck: "false", placeholder: "github_pat_…", "aria-label": "Jeton GitHub" });
+    var btn = el("button", { class: "btn plein", type: "button", text: "Enregistrer" });
+    var retour = el("p", { class: "petit", role: "status", style: "margin:8px 0 0" });
+    function enregistrer() {
+      var t = champ.value.trim();
+      if (!t) { champ.focus(); return; }
+      btn.disabled = true;
+      retour.textContent = "Vérification auprès de GitHub…";
+      appelGitHub(urlDepot(), { headers: enTetesGitHub(t), cache: "no-store" }).then(function () {
+        ecrire(CLE_PROF, { token: t });
+        messageProf = { ok: true, texte: "Jeton enregistré sur cet appareil. Vous pouvez publier." };
+        rendre();
+      }, function (e) {
+        btn.disabled = false;
+        retour.textContent = e.message;
+      });
+    }
+    btn.addEventListener("click", enregistrer);
+    champ.addEventListener("keydown", function (e) { if (e.key === "Enter") enregistrer(); });
+    bloc.appendChild(el("div", { class: "ligne-champ" }, [champ, btn]));
+    bloc.appendChild(retour);
+    return bloc;
+  }
+
+  // ---------- Démarrage : lire la liste des chapitres ouverts, puis afficher ----------
+  function chargerVisibles() {
+    return fetch("activation.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("activation.json : " + r.status);
+      return r.json();
+    }).then(function (j) {
+      if (!j || !Array.isArray(j.visibles)) return false;
+      var change = JSON.stringify(j.visibles) !== JSON.stringify(visibles);
+      visibles = j.visibles;
+      ecrire(CLE_VISIBLES, visibles);
+      return change;
+    });
+  }
+  // la liste a changé depuis le dernier passage : on rafraîchit, sans interrompre un exercice en cours
+  function rafraichirApresChargement() {
+    var r = routeActuelle();
+    if (r.vue === "prof" || r.vue === "express") return;
+    if (r.vue === "outil") {
+      var ch = chapitre(r.ch);
+      if (!ch || estVisible(ch) || estProf()) return;
+    }
+    rendre();
+  }
+  if (Array.isArray(visibles)) {
+    rendre();
+    chargerVisibles().then(function (change) { if (change) rafraichirApresChargement(); }, function () {});
+  } else {
+    // première visite : on attend la liste (4 s au plus) pour ne pas montrer un chapitre pas encore ouvert
+    app.appendChild(el("p", { class: "vide", text: "Chargement…" }));
+    var demarre = false;
+    var secours = setTimeout(function () { demarre = true; rendre(); }, 4000);
+    chargerVisibles().catch(function () {}).then(function () {
+      if (demarre) { rafraichirApresChargement(); return; }
+      clearTimeout(secours);
+      demarre = true;
+      rendre();
+    });
+  }
 })();
 </script>
 </body>
