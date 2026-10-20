@@ -19,7 +19,11 @@
      personnages { nom, dates, txt: [indices, du plus vague au plus précis — sans le nom] }
      lieux       { nom, txt }
      trous       textes à compléter : { titre, texte } — les mots entre [crochets] sont à retrouver
-     capable     « Je suis capable de… » */
+     capable     « Je suis capable de… »
+     ppo         points de passage et d'ouverture, chacun avec ses propres champs :
+                 { id, titre, court, question, branches: [{ titre, points }], reperes, notions, personnages, lieux,
+                   documents: [{ titre, extrait, source, montre }], pieges, mots, reponse, trous, schema, capable }
+                 — schema : { titre, cases: [{ titre, aide, etiquettes }] } pour l'exercice « Classer » */
 
 /* Plan de l'année, classe par classe, dans l'ordre de la progression.
    Chaque chapitre qui a une fiche (« fiche » = identifiant d'un chapitre de COURS ci-dessous)
@@ -454,7 +458,9 @@ const COURS = [
       { a: 1054, date: "1054", txt: "Schisme entre l'Église catholique (Rome) et l'Église orthodoxe (Constantinople)." },
       { a: 1096, date: "1096", txt: "Départ de la première croisade." },
       { a: 1146, date: "1146", txt: "À Vézelay, Bernard de Clairvaux prêche la deuxième croisade." },
-      { a: 1204, date: "1204", txt: "Sac de Constantinople par les croisés de la quatrième croisade, détournée par Venise." },
+      { a: 1187, date: "1187", txt: "Bataille de Hattin : Saladin reprend Jérusalem." },
+      { a: 1204, date: "1204", txt: "Sac de Constantinople par les croisés de la quatrième croisade, endettés envers Venise pour leur transport." },
+      { a: 1291, date: "1291", txt: "Chute d'Acre : fin des États latins d'Orient." },
       { a: 1453, date: "1453", txt: "Les Ottomans prennent Constantinople : fin de l'Empire byzantin." },
       { a: 1492, date: "1492", txt: "Prise de Grenade : fin de la Reconquista." }
     ],
@@ -522,6 +528,251 @@ const COURS = [
       "Confronter deux récits d'un même événement.",
       "Expliquer pourquoi la date d'écriture d'un document compte.",
       "Retracer le trajet d'un savoir d'une civilisation à l'autre."
+    ],
+
+    /* Les deux points de passage, repris des fiches et des jeux Canva :
+       « C2-Fiche4-PPO-Venise », « PPO Venise — version à projeter », « Galère pour l'Orient, Venise 1350 » ;
+       « C2-Fiche2-Croisades-djihad-PPO-Bernard », « Vézelay, 31 mars 1146 », « Bilan carte mentale — PPO Bernard de Clairvaux ». */
+    ppo: [
+      {
+        id: "venise", court: "PPO Venise",
+        titre: "Venise, grande puissance maritime et commerciale",
+        question: "Sur quoi Venise fonde-t-elle sa puissance, et qu'est-ce qui finit par la menacer ?",
+        branches: [
+          { titre: "Les fondements", points: [
+            "Une ville bâtie sur une lagune : l'eau et les bancs de vase la protègent, elle n'a pas besoin de murailles.",
+            "Le sel, première source d'enrichissement.",
+            "Le navire : une flotte de commerce et de guerre, armée à l'Arsenal."
+          ] },
+          { titre: "Un intermédiaire commercial", points: [
+            "Venise commerce avec les Carolingiens et les Byzantins, puis avec les musulmans et les Ottomans : pour elle, le commerce passe avant la guerre.",
+            "Elle rapporte d'Orient épices, soieries, coton, sucre, alun ; elle y vend draps de laine, cuivre, argent, verre de Murano.",
+            "Le ducat d'or (1284), au poids fixe : une monnaie de confiance, acceptée dans toute la Méditerranée."
+          ] },
+          { titre: "Le Stato da Mar", points: [
+            "Des fondouks (comptoirs) dans les grandes villes : Constantinople, Alexandrie.",
+            "Après la quatrième croisade (1204), des colonies : îles de l'Égée, régions de Grèce ; la Crète, achetée, colonie d'exploitation (coton, blé, vin).",
+            "Chypre devient vénitienne en 1489 (sucre, sel). Au XVᵉ siècle, Venise conquiert aussi la Terre Ferme, en Italie."
+          ] },
+          { titre: "Les menaces", points: [
+            "Gênes, la grande rivale : la guerre de Chioggia (1378-1381), gagnée grâce à la flotte.",
+            "Les Ottomans prennent Constantinople (1453), puis Modon et Coron (1500).",
+            "La route portugaise des Indes (1498) permet d'acheter les épices sans passer par Venise."
+          ] }
+        ],
+        reperes: [
+          { a: 1082, date: "1082", txt: "L'empereur byzantin accorde à Venise des privilèges de commerce à Constantinople." },
+          { a: 1204, date: "1204", txt: "Après la quatrième croisade, Venise gagne un empire : îles de l'Égée, régions de Grèce, la Crète." },
+          { a: 1284, date: "1284", txt: "Premier ducat d'or vénitien." },
+          { a: 1378, b: 1381, date: "1378-1381", txt: "Guerre de Chioggia : Venise l'emporte sur Gênes, sa grande rivale." },
+          { a: 1404, b: 1428, date: "1404-1428", txt: "Venise conquiert la Terre Ferme : Padoue, Vérone, Brescia." },
+          { a: 1453, date: "1453", txt: "Les Ottomans prennent Constantinople ; Venise continue de commercer avec eux." },
+          { a: 1489, date: "1489", txt: "Chypre devient vénitienne." },
+          { a: 1498, date: "1498", txt: "Vasco de Gama atteint l'Inde par l'Atlantique : une route des épices qui contourne Venise." },
+          { a: 1500, date: "1500", txt: "Les Ottomans prennent Modon et Coron, ports vénitiens de Grèce." }
+        ],
+        notions: [
+          { mot: "Lagune", def: "Étendue d'eau peu profonde, séparée de la mer par des bancs de sable." },
+          { mot: "Doge", def: "Chef de la République de Venise, élu à vie." },
+          { mot: "Fondouk", def: "Comptoir : bâtiment ou quartier d'une ville étrangère où les marchands vénitiens logent, stockent et vendent, avec des droits particuliers." },
+          { mot: "Privilège", def: "Droit particulier accordé par un souverain ; par exemple, commercer sans payer de taxes." },
+          { mot: "Stato da Mar", def: "« L'État de mer » : l'ensemble des possessions de Venise outre-mer." },
+          { mot: "Colonie", def: "Territoire dominé et exploité par une puissance étrangère, comme la Crète pour Venise." },
+          { mot: "Ducat", def: "Pièce d'or de Venise, créée en 1284, au poids fixe, acceptée dans toute la Méditerranée." },
+          { mot: "Terre Ferme", def: "Territoire conquis par Venise sur le continent italien au XVᵉ siècle (Padoue, Vérone, Brescia)." },
+          { mot: "Arsenal", def: "Chantier naval de Venise, où l'on construit et arme les galères des convois de commerce." },
+          { mot: "Consul (ou bayle)", def: "Représentant de Venise auprès d'un souverain étranger, par exemple à Alexandrie ou à Constantinople." }
+        ],
+        personnages: [],
+        lieux: [
+          { nom: "Venise", txt: "Cité bâtie sur une lagune de l'Adriatique, dirigée par un doge ; capitale du Stato da Mar." },
+          { nom: "Constantinople", txt: "Capitale byzantine où Venise obtient des privilèges en 1082 et un quartier de commerce ; prise par les Ottomans en 1453." },
+          { nom: "Alexandrie", txt: "Grand port d'Égypte (sultanat mamelouk) où les Vénitiens ont un fondouk et achètent les épices." },
+          { nom: "Crète (Candie)", txt: "Île achetée par Venise en 1204 : colonie d'exploitation qui fournit coton, blé et vin." },
+          { nom: "Chypre (Famagouste)", txt: "Île du sucre et du sel ; Famagouste devient un grand marché après 1291 ; vénitienne en 1489." },
+          { nom: "Modon", txt: "Port vénitien du Péloponnèse, tenu après 1204 ; avec Coron, l'un des « yeux de la République »." },
+          { nom: "Raguse", txt: "Port de l'Adriatique, escale des galères vénitiennes vers l'Orient." },
+          { nom: "Gênes", txt: "Cité marchande d'Italie, grande rivale de Venise en Méditerranée orientale." }
+        ],
+        documents: [
+          { titre: "Le sel et le navire", source: "Philippe Braunstein, historien, Les Collections de L'Histoire, n° 71, 2016.",
+            extrait: "« La ville ne peut compter que sur les produits de ses proches campagnes. Mais elle extrait le sel, la première source d'enrichissement. Le sel et le navire sont ainsi les deux fondements de cette prospérité très ancienne. »",
+            montre: "Un historien explique les deux fondements de la puissance vénitienne." },
+          { titre: "Un intermédiaire entre les puissances", source: "Philippe Braunstein, historien, Les Collections de L'Histoire, n° 71, 2016.",
+            extrait: "« Venise a toujours été un intermédiaire entre de grandes puissances. […] En 993 et 1082, ils obtiennent de Byzance des droits et des positions de commerce privilégiées. Puis, lorsque les Turcs s'emparent de Constantinople en 1453, ils continuent à commercer avec eux. »",
+            montre: "Venise commerce avec des mondes qui se font la guerre : le commerce continue au milieu des conflits." },
+          { titre: "Le ducat d'or", source: "Monnaie créée à Venise en 1284.",
+            extrait: "D'un côté, saint Marc, patron de Venise, remet l'étendard au doge agenouillé ; de l'autre, le Christ debout. Or presque pur, poids inchangé pendant des siècles.",
+            montre: "Une monnaie de confiance : sa valeur est garantie par l'or, par son poids fixe et par les images religieuses." }
+        ],
+        pieges: [
+          "1204 : ne pas écrire que les croisés ont attaqué Constantinople « pour le compte de Venise ». Endettés envers Venise pour leur transport, ils suivent un prétendant byzantin, Alexis IV Ange, qui ne tient pas ses promesses. Venise en tire un immense profit, mais ce n'était pas un plan préparé à l'avance.",
+          "Au XVᵉ siècle, la puissance de Venise n'est plus seulement maritime : elle conquiert la Terre Ferme en Italie.",
+          "Distinguer un fondouk (un comptoir, dans une ville étrangère) et une colonie (un territoire dominé et exploité, comme la Crète)."
+        ],
+        mots: ["lagune", "sel", "navire", "fondouk", "Crète", "épices", "ducat", "Gênes", "Ottomans"],
+        reponse: "Protégée par sa lagune, Venise s'enrichit d'abord grâce au sel et au navire. Elle devient l'intermédiaire entre l'Orient et l'Occident : dans ses fondouks et ses colonies comme la Crète, elle achète les épices et la soie qu'elle revend en Europe, payées en ducats. Mais sa puissance est menacée par Gênes, puis par les Ottomans et la nouvelle route portugaise des Indes.",
+        trous: [
+          { titre: "Le bilan", texte: "Protégée par sa [lagune], Venise s'enrichit d'abord grâce au [sel] et au [navire]. Elle devient l'intermédiaire entre l'Orient et l'Occident : dans ses [fondouks] et ses colonies comme la [Crète], elle achète les [épices] et la soie qu'elle revend en Europe, payées en [ducats]. Mais sa puissance est menacée par [Gênes], puis par les [Ottomans] et la nouvelle route portugaise des Indes." },
+          { titre: "Le Stato da Mar", texte: "En [1082], l'empereur byzantin accorde des privilèges aux Vénitiens. Après la quatrième croisade, en [1204], Venise obtient des îles de l'Égée et la Crète : c'est le [Stato da Mar]. Ses marchands achètent les épices dans le fondouk d'[Alexandrie]. En [1489], Chypre devient vénitienne. Au XVᵉ siècle, Venise conquiert aussi la [Terre Ferme] en Italie." }
+        ],
+        schema: { titre: "La puissance vénitienne (XIIᵉ-XVᵉ siècle)", cases: [
+          { titre: "Les fondements", aide: "le site et les ressources de départ", etiquettes: ["le sel de la lagune", "le navire", "une ville sans muraille, protégée par la lagune"] },
+          { titre: "Les possessions", aide: "Stato da Mar, puis Terre Ferme", etiquettes: ["les fondouks d'Alexandrie et de Constantinople", "la Crète, colonie d'exploitation", "Modon et Coron", "Chypre (1489)", "la Terre Ferme"] },
+          { titre: "Un intermédiaire entre trois mondes", aide: "produits et partenaires", etiquettes: ["épices et soieries d'Orient", "draps et métaux d'Occident", "Byzantins, Mamelouks puis Ottomans"] },
+          { titre: "Les instruments de la puissance", aide: "monnaie, flotte, privilèges", etiquettes: ["le ducat d'or", "l'Arsenal et les convois de galères", "les privilèges de 1082"] },
+          { titre: "Les menaces", aide: "rivaux et concurrents", etiquettes: ["Gênes", "les Turcs ottomans", "la route portugaise des Indes"] }
+        ] },
+        capable: [
+          "Expliquer sur quoi repose la puissance de Venise au départ (lagune, sel, navire).",
+          "Citer deux types de possessions vénitiennes, avec un exemple pour chacun.",
+          "Expliquer pourquoi le ducat inspire confiance aux marchands.",
+          "Expliquer pourquoi Venise commerce avec des mondes qui se font la guerre.",
+          "Citer trois menaces qui pèsent sur la puissance vénitienne.",
+          "Dire ce que Venise gagne en 1204, sans écrire que la croisade a été faite « pour son compte »."
+        ]
+      },
+      {
+        id: "bernard", court: "PPO Bernard",
+        titre: "Bernard de Clairvaux et la deuxième croisade",
+        question: "Comment un moine, sans armée ni royaume, devient-il l'un des principaux acteurs politiques de l'Occident ?",
+        branches: [
+          { titre: "Qui est Bernard ?", points: [
+            "Né vers 1090 en Bourgogne, dans une famille noble, il devient moine à Cîteaux en 1112.",
+            "Abbé de Clairvaux en 1115 : un moine cistercien qui vit de prière, de pauvreté et de travail.",
+            "Réputé pour sa sainteté, il écrit des centaines de lettres et conseille papes et rois ; le pape Eugène III est son ancien disciple."
+          ] },
+          { titre: "Pourquoi une croisade ?", points: [
+            "Noël 1144 : Zengi, maître de Mossoul et d'Alep, prend Édesse, l'un des États latins d'Orient.",
+            "1er décembre 1145 : par une bulle, le pape Eugène III appelle à la croisade et promet l'indulgence (le pardon des péchés).",
+            "Un pèlerinage en armes : Bernard justifie le combat du « chevalier du Christ »."
+          ] },
+          { titre: "Ses armes : la parole", points: [
+            "Vézelay, 31 mars 1146 : devant Louis VII et Aliénor, la foule réclame « des croix, des croix ! ».",
+            "Spire, Noël 1146 : il convainc le roi germanique Conrad III de prendre la croix.",
+            "Ses lettres sont lues dans toute la chrétienté ; en Rhénanie, il fait taire le moine Raoul, qui appelle à massacrer les juifs."
+          ] },
+          { titre: "La croisade échoue (1147-1149)", points: [
+            "1147 : deux armées royales partent, celles de Louis VII et de Conrad III.",
+            "Défaites face aux Turcs en Asie Mineure : Dorylée (octobre 1147), mont Cadmos (janvier 1148) ; en juillet 1148, le siège de Damas est abandonné.",
+            "Seul succès : Lisbonne, prise par des croisés venus du Nord (octobre 1147). Bernard explique l'échec par les péchés des croisés."
+          ] }
+        ],
+        reperes: [
+          { a: 1095, date: "1095", txt: "Au concile de Clermont, le pape Urbain II appelle à la première croisade." },
+          { a: 1105, date: "1105", txt: "À Damas, le juriste al-Sulamî appelle au djihad contre les Francs." },
+          { a: 1115, date: "1115", txt: "Bernard devient abbé de Clairvaux." },
+          { a: "1144-12-24", date: "Noël 1144", txt: "Zengi prend Édesse, l'un des États latins d'Orient." },
+          { a: "1145-12-01", date: "1er décembre 1145", txt: "Par une bulle, le pape Eugène III appelle à la croisade." },
+          { a: "1146-03-31", date: "31 mars 1146", txt: "À Vézelay, Bernard prêche la croisade devant Louis VII et Aliénor." },
+          { a: "1146-12-25", date: "Noël 1146", txt: "À Spire, Bernard convainc Conrad III de prendre la croix." },
+          { a: "1148-07-24", date: "juillet 1148", txt: "Le siège de Damas est abandonné : la croisade a échoué." },
+          { a: 1153, date: "1153", txt: "Mort de Bernard ; il est proclamé saint en 1174." }
+        ],
+        notions: [
+          { mot: "Indulgence", def: "Remise des peines dues pour les péchés, promise à ceux qui partent en croisade." },
+          { mot: "Pèlerinage", def: "Voyage vers un lieu saint pour prier et obtenir le pardon de ses péchés." },
+          { mot: "Bulle", def: "Lettre officielle du pape, scellée d'un sceau de plomb : celle de 1145 appelle à la croisade." },
+          { mot: "Prendre la croix", def: "Faire le vœu de partir en croisade ; on coud une croix de tissu sur son vêtement." },
+          { mot: "Abbé", def: "Moine élu à la tête d'une abbaye." },
+          { mot: "Ordre cistercien", def: "Ordre de moines né à Cîteaux, réputé pour sa rigueur : prière, pauvreté, travail." },
+          { mot: "États latins d'Orient", def: "Les quatre principautés fondées par les croisés après 1099 : Jérusalem, Antioche, Édesse, Tripoli." },
+          { mot: "Templiers", def: "Ordre de moines-soldats chargé de protéger les pèlerins ; Bernard écrit pour eux l'Éloge de la nouvelle chevalerie." },
+          { mot: "Guerre sainte", def: "Guerre présentée par une autorité religieuse comme voulue par Dieu." }
+        ],
+        personnages: [
+          { nom: "Eugène III", dates: "pape de 1145 à 1153", txt: [
+            "Ancien moine de Clairvaux, disciple de Bernard.",
+            "Devenu pape, il apprend la chute d'Édesse.",
+            "Le 1er décembre 1145, par une bulle, il appelle à une nouvelle croisade et charge Bernard de la prêcher."
+          ] },
+          { nom: "Louis VII", dates: "roi des Francs de 1137 à 1180", txt: [
+            "Roi des Francs, sacré à Reims.",
+            "Le 31 mars 1146, à Vézelay, il prend la croix avec la reine Aliénor.",
+            "Parti en 1147, son armée est battue au mont Cadmos, puis échoue devant Damas."
+          ] },
+          { nom: "Aliénor d'Aquitaine", dates: "vers 1122-1204", txt: [
+            "Duchesse d'Aquitaine, reine par son mariage avec le roi des Francs.",
+            "Elle assiste au sermon de Vézelay en 1146.",
+            "Elle accompagne le roi en Orient pendant la deuxième croisade."
+          ] },
+          { nom: "Conrad III", dates: "roi germanique de 1138 à 1152", txt: [
+            "Roi germanique, à la tête de l'Empire.",
+            "À Noël 1146, à Spire, Bernard le convainc de prendre la croix.",
+            "Son armée est battue par les Turcs à Dorylée, en octobre 1147."
+          ] },
+          { nom: "Zengi", dates: "mort en 1146", txt: [
+            "Chef turc, maître de Mossoul et d'Alep.",
+            "À Noël 1144, il prend Édesse, le plus ancien des États latins d'Orient.",
+            "Sa conquête provoque la deuxième croisade."
+          ] },
+          { nom: "Odon de Deuil", dates: "vers 1110-1162", txt: [
+            "Moine de l'abbaye de Saint-Denis.",
+            "Chapelain du roi Louis VII, il suit l'armée pendant la croisade.",
+            "Il raconte le sermon de Vézelay : un récit d'admirateur du roi, à lire avec prudence."
+          ] },
+          { nom: "Urbain II", dates: "pape de 1088 à 1099", txt: [
+            "Pape à la fin du XIᵉ siècle.",
+            "En 1095, au concile de Clermont, il appelle les chevaliers à secourir les chrétiens d'Orient.",
+            "Il promet la rémission des péchés à ceux qui partent : c'est la première croisade."
+          ] },
+          { nom: "Al-Sulamî", dates: "mort en 1106", txt: [
+            "Juriste musulman de Damas.",
+            "En 1105, six ans après la prise de Jérusalem par les croisés, il écrit un Livre du djihad.",
+            "Il reproche aux musulmans leur désunion face aux Francs."
+          ] }
+        ],
+        lieux: [
+          { nom: "Clairvaux", txt: "Abbaye cistercienne de Champagne, dirigée par Bernard à partir de 1115." },
+          { nom: "Vézelay", txt: "Colline de Bourgogne, lieu de pèlerinage (basilique de la Madeleine), où Bernard prêche la croisade le 31 mars 1146." },
+          { nom: "Spire", txt: "Ville de l'Empire germanique où Conrad III prend la croix, à Noël 1146." },
+          { nom: "Édesse", txt: "Capitale du plus ancien des États latins d'Orient, prise par Zengi en 1144." },
+          { nom: "Dorylée", txt: "Lieu d'Asie Mineure où l'armée de Conrad III est battue par les Turcs, en octobre 1147." },
+          { nom: "Mont Cadmos", txt: "Montagne d'Asie Mineure où l'armée de Louis VII est battue, en janvier 1148." },
+          { nom: "Damas", txt: "Grande ville musulmane de Syrie, assiégée en vain par les croisés en juillet 1148." },
+          { nom: "Lisbonne", txt: "Ville prise en octobre 1147 par des croisés venus du Nord : le seul succès de la croisade." }
+        ],
+        documents: [
+          { titre: "Bernard justifie le combat du chevalier chrétien", source: "Bernard de Clairvaux, Éloge de la nouvelle chevalerie, vers 1128-1136, écrit à la demande des Templiers.",
+            extrait: "« C'est en toute sécurité que les chevaliers du Christ combattent pour leur Seigneur, sans avoir à craindre de pécher en tuant leurs adversaires, ni de périr, s'ils se font tuer eux-mêmes. […] Pourtant, il ne convient pas de tuer les païens si l'on peut trouver un autre moyen de les empêcher de harceler ou d'opprimer les fidèles. »",
+            montre: "Le chevalier du Christ peut tuer sans pécher ; la dernière phrase montre que Bernard hésite malgré tout." },
+          { titre: "Vézelay, 31 mars 1146", source: "Odon de Deuil, moine de Saint-Denis, chapelain de Louis VII, Histoire de la croisade de Louis VII, vers 1148.",
+            extrait: "« De toutes parts, tous firent entendre leurs acclamations, demandant des croix, des croix ! Et après que l'abbé eut semé, plus encore que distribué, un faisceau de croix qu'il avait fait préparer à l'avance, il fut forcé de couper ses propres vêtements pour en faire d'autres croix. »",
+            montre: "L'effet de la parole de Bernard sur la foule. À lire avec prudence : l'auteur admire le roi." },
+          { titre: "Bernard explique l'échec", source: "Bernard de Clairvaux, De la considération, II, 1, vers 1149-1152, au pape Eugène III.",
+            extrait: "« Nous avions dit : « Vous aurez la paix », et la paix est loin de nous. […] Je n'ai fait qu'obéir à vos ordres, ou plutôt aux ordres de Dieu même qui me parlait par votre bouche. »",
+            montre: "Bernard attribue l'échec aux péchés des croisés et ne remet pas en cause son appel." },
+          { titre: "Un même argument dans les deux camps", source: "Urbain II à Clermont (1095), d'après Foucher de Chartres ; al-Sulamî, Livre du djihad, Damas, 1105.",
+            extrait: "Urbain II : « Qu'ils soient désormais des chevaliers du Christ, ceux-là qui n'étaient que des brigands ! » — Al-Sulamî : « Tout musulman, qu'il soit riche ou pauvre, doit s'engager contre elles. »",
+            montre: "Des deux côtés, des hommes de religion présentent la guerre comme voulue par Dieu." }
+        ],
+        pieges: [
+          "Bernard ne décide pas la croisade : c'est le pape Eugène III, par sa bulle de 1145. Bernard la prêche.",
+          "Djihad : le mot signifie « effort » et a plusieurs sens ; al-Sulamî et Saladin n'en mobilisent qu'un, la lutte armée. Évitez l'opposition « grand djihad / petit djihad », fondée sur un texte tardif dont l'authenticité est discutée.",
+          "Reconquista : le mot n'existe pas au Moyen Âge, il a été forgé au XIXᵉ siècle. Le mot « croisade » lui-même n'apparaît qu'au XIIIᵉ siècle : on parlait de « passage » ou de « pèlerinage ».",
+          "Foucher de Chartres et Odon de Deuil écrivent après coup et du côté chrétien : leurs récits disent aussi ce que l'on a voulu retenir."
+        ],
+        mots: ["abbé", "sermon", "lettres", "pape Eugène III", "Louis VII", "Conrad III", "Vézelay", "croisade", "échec"],
+        reponse: "Bernard, abbé de Clairvaux, n'a ni armée ni royaume, mais il agit par sa parole et par son prestige de saint homme. Chargé par le pape Eugène III, son ancien disciple, de prêcher la croisade après la chute d'Édesse, il soulève la foule à Vézelay en 1146, puis convainc Louis VII et Conrad III de prendre la croix ; ses lettres circulent dans toute la chrétienté. Mais il lance la croisade sans en contrôler l'issue : après les défaites en Asie Mineure et l'échec devant Damas en 1148, il explique l'échec par les péchés des croisés, sans remettre en cause son appel.",
+        trous: [
+          { titre: "Le bilan", texte: "Bernard, [abbé] de Clairvaux, n'a ni armée ni royaume. Chargé par le pape [Eugène III] de prêcher la croisade après la chute d'[Édesse], il soulève la foule à [Vézelay] en 1146, puis convainc [Louis VII] et [Conrad III] de prendre la croix. Mais la croisade échoue devant [Damas] en 1148 : Bernard l'explique par les [péchés] des croisés." },
+          { titre: "Croisades et djihad", texte: "En 1095, le pape [Urbain II] promet la rémission des péchés aux chevaliers qui partent. Bernard affirme que le chevalier du Christ peut tuer sans [pécher]. Du côté musulman, le juriste [al-Sulamî] (1105), puis [Saladin], appellent au [djihad] et reprochent aux musulmans leur désunion. Dans les deux camps, la guerre est présentée comme voulue par [Dieu]." }
+        ],
+        schema: { titre: "La puissance d'un moine", cases: [
+          { titre: "Ses armes", aide: "sans armée ni royaume", etiquettes: ["ses sermons (Vézelay, Spire)", "des centaines de lettres", "un livre pour les Templiers", "son prestige de saint homme"] },
+          { titre: "Ceux qu'il entraîne", aide: "du pape aux foules", etiquettes: ["le pape Eugène III, son ancien disciple", "Louis VII et Aliénor", "Conrad III", "des foules de chevaliers et de pèlerins"] },
+          { titre: "Ce qu'il obtient", aide: "les résultats de son action", etiquettes: ["deux armées royales partent en 1147", "les juifs de Rhénanie protégés"] },
+          { titre: "Les limites", aide: "échecs et critiques", etiquettes: ["défaites en Asie Mineure", "échec devant Damas", "il est accusé d'avoir envoyé des hommes à la mort"] }
+        ] },
+        capable: [
+          "Expliquer pourquoi la deuxième croisade est lancée (chute d'Édesse, 1144).",
+          "Distinguer qui décide la croisade (le pape) et qui la prêche (Bernard).",
+          "Expliquer comment un moine sans armée ni royaume devient un acteur politique.",
+          "Raconter l'échec de la croisade et dire comment Bernard l'explique.",
+          "Comparer les appels chrétiens et musulmans à la guerre au nom de la foi.",
+          "Critiquer un récit écrit après coup (Odon de Deuil, Foucher de Chartres)."
+        ]
+      }
     ]
   },
 

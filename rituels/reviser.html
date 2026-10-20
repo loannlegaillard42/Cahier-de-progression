@@ -378,6 +378,52 @@
   .stat b { display: block; font-family: Fraunces, serif; font-size: 26px; color: var(--accent); line-height: 1.1; }
   .stat span { font-size: 12.5px; color: var(--faint); }
 
+  /* ---------- Points de passage ---------- */
+  .titre-ppo { font-size: 22px; margin: 4px 0 0; }
+  .carte-mentale { display: grid; gap: 10px; }
+  @media (min-width: 600px) { .carte-mentale { grid-template-columns: 1fr 1fr; } }
+  .cm-branche { border-radius: 14px; padding: 14px 16px; background: var(--p0); }
+  .cm-branche.c1 { background: var(--p1); } .cm-branche.c2 { background: var(--p2); } .cm-branche.c3 { background: var(--p3); }
+  .cm-titre { display: flex; align-items: center; gap: 9px; font-family: Fraunces, serif; font-weight: 600; font-size: 16.5px; margin-bottom: 6px; }
+  .cm-num { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--bg); font: 700 12.5px Inter, sans-serif; display: flex; align-items: center; justify-content: center; }
+  .cm-branche ul { margin: 0; padding-left: 18px; font-size: 14.5px; line-height: 1.45; }
+  .cm-branche li { margin: 5px 0; }
+  .doc { margin: 0 0 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .doc-titre { font-weight: 700; font-size: 14.5px; }
+  .doc blockquote { margin: 8px 0; padding: 2px 0 2px 12px; border-left: 3px solid var(--accent); font-family: Fraunces, serif; font-size: 15.5px; line-height: 1.5; }
+  .doc figcaption { font-size: 12.5px; color: var(--faint); }
+  .doc-montre { margin: 8px 0 0; font-size: 14px; color: var(--sub); }
+  .doc-montre strong { color: var(--ink); }
+  .pieges { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .pieges li { padding: 11px 14px; border-radius: 10px; background: var(--warnSoft); border-left: 4px solid var(--warn); font-size: 14.5px; line-height: 1.45; }
+  .eval { background: var(--accentSoft); border-radius: 14px; padding: 16px 18px; }
+  .eval .sujet { font-family: Fraunces, serif; font-size: 18px; line-height: 1.4; margin: 4px 0 12px; }
+  .mots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .mot-cle { padding: 4px 11px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); font-size: 13.5px; font-weight: 600; }
+  .reponse-modele { margin-top: 14px; padding: 13px 15px; border-radius: 0 10px 10px 0; background: var(--panel); border-left: 4px solid var(--ok); font-size: 15px; line-height: 1.6; }
+  .liens-ppo { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* ---------- Classer ---------- */
+  .cases { display: grid; gap: 10px; }
+  @media (min-width: 640px) { .cases { grid-template-columns: 1fr 1fr; } }
+  .case { border: 1.5px dashed var(--line); border-radius: 14px; background: var(--panel); overflow: hidden; }
+  .case-cible { display: block; width: 100%; text-align: left; padding: 11px 14px; border: none; background: var(--accentSoft); }
+  .case-cible strong { display: block; font-family: Fraunces, serif; font-size: 16px; }
+  .case-cible span { font-size: 12.5px; color: var(--sub); }
+  .case-cible.prete { background: var(--accent); color: var(--bg); }
+  .case-cible.prete span { color: inherit; opacity: .85; }
+  [data-theme="dark"] .case-cible.prete { color: #10181B; }
+  .case-contenu { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; min-height: 52px; }
+  .etiquette {
+    text-align: left; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--panel);
+    font-size: 14px; line-height: 1.35; min-height: 40px;
+  }
+  .etiquette.choisie { border-color: var(--accent); background: var(--accentSoft); box-shadow: 0 0 0 2px var(--accent) inset; }
+  .etiquette.juste { border-color: var(--ok); background: var(--okSoft); }
+  .etiquette.faux { border-color: var(--ko); background: var(--koSoft); }
+  .etiquette .corr { display: block; font-size: 12px; color: var(--ko); margin-top: 2px; }
+  .reserve-etiquettes { display: flex; flex-wrap: wrap; gap: 8px; }
+
   /* ---------- QR code ---------- */
   .voile {
     position: fixed; inset: 0; z-index: 50; background: var(--bg); display: flex; flex-direction: column;
@@ -467,7 +513,9 @@
     lune: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
     soleil: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
     eclair: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
-    fermer: '<path d="M6 6l12 12M18 6L6 18"/>'
+    fermer: '<path d="M6 6l12 12M18 6L6 18"/>',
+    drapeau: '<path d="M5 21V4"/><path d="M5 4h12l-2.5 4L17 12H5"/>',
+    classer: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17.5h7M17.5 14v7"/>'
   };
   function icone(nom) {
     return '<span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24">' + (ICONES[nom] || "") + "</svg></span>";
@@ -567,22 +615,51 @@
   function liste(ch, champ) { return Array.isArray(ch[champ]) ? ch[champ] : []; }
   function nomNiveau(n) { var x = NIVEAUX.filter(function (v) { return v.id === n; })[0]; return x ? x.nom : n; }
 
+  // ---------- Les « blocs » d'un chapitre : le cours, puis chacun de ses points de passage (PPO) ----------
+  // Les cartes du cours gardent leurs identifiants d'origine : les progrès déjà enregistrés restent valables.
+  function blocs(ch) {
+    var b = [{ id: "cours", nom: "Cours", prefixe: ch.id, data: ch }];
+    liste(ch, "ppo").forEach(function (p) { b.push({ id: p.id, nom: p.court || p.titre, prefixe: ch.id + "|" + p.id, data: p }); });
+    return b;
+  }
+  function blocsChoisis(ch, filtre) { return blocs(ch).filter(function (b) { return !filtre || b.id === filtre; }); }
+  // « Tout le chapitre / Cours / PPO … » en tête d'un outil ; rien si le chapitre n'a pas de point de passage
+  function selecteurBlocs(ch, actuel, avecTout, garder, auChoix) {
+    var options = blocs(ch).filter(function (b) { return !garder || garder(b); }).map(function (b) { return { id: b.id, nom: b.nom }; });
+    if (avecTout) options.unshift({ id: null, nom: "Tout le chapitre" });
+    if (options.length < 2) return null;
+    var g = el("div", { class: "segments", role: "group", "aria-label": "Que veux-tu réviser ?" });
+    options.forEach(function (o) {
+      g.appendChild(el("button", { class: "opt", type: "button", text: o.nom, "aria-pressed": String(o.id === actuel), onclick: function () { auChoix(o.id); } }));
+    });
+    return g;
+  }
+  // un lien du type #/c/<chapitre>/<outil>/<bloc> ouvre l'outil directement sur ce bloc
+  function blocDemande(ch, garder) {
+    var sous = routeActuelle().sous;
+    var b = blocs(ch).filter(function (x) { return x.id === sous && (!garder || garder(x)); })[0];
+    return b ? b.id : null;
+  }
+
   // ---------- Cartes mémoire : construction et répétition espacée ----------
-  function cartesChapitre(ch) {
+  function cartesChapitre(ch, filtre) {
     var c = [];
-    liste(ch, "notions").forEach(function (x) {
-      c.push({ id: ch.id + "|n>|" + x.mot, cat: "Notion", consigne: "Que signifie ce mot ?", recto: x.mot, verso: x.def, grand: true });
-      c.push({ id: ch.id + "|n<|" + x.mot, cat: "Notion", consigne: "Quelle notion correspond à cette définition ?", recto: x.def, verso: x.mot, versoGrand: true });
-    });
-    liste(ch, "reperes").forEach(function (x) {
-      c.push({ id: ch.id + "|d>|" + x.date, cat: "Repère", consigne: "Que s'est-il passé ?", recto: x.date, verso: x.txt, grand: true });
-      c.push({ id: ch.id + "|d<|" + x.date, cat: "Repère", consigne: "À quelle date ?", recto: x.txt, verso: x.date, versoGrand: true });
-    });
-    liste(ch, "personnages").forEach(function (x) {
-      c.push({ id: ch.id + "|p|" + x.nom, cat: "Personnage", consigne: "Qui est-ce ?", recto: x.txt.join(" "), verso: x.nom, rappel: x.dates, versoGrand: true });
-    });
-    liste(ch, "lieux").forEach(function (x) {
-      c.push({ id: ch.id + "|l|" + x.nom, cat: "Lieu", consigne: "Que sais-tu de ce lieu ?", recto: x.nom, verso: x.txt, grand: true });
+    blocsChoisis(ch, filtre).forEach(function (b) {
+      var d = b.data, p = b.prefixe, src = b.id === "cours" ? "" : " · " + b.nom;
+      liste(d, "notions").forEach(function (x) {
+        c.push({ id: p + "|n>|" + x.mot, cat: "Notion" + src, consigne: "Que signifie ce mot ?", recto: x.mot, verso: x.def, grand: true });
+        c.push({ id: p + "|n<|" + x.mot, cat: "Notion" + src, consigne: "Quelle notion correspond à cette définition ?", recto: x.def, verso: x.mot, versoGrand: true });
+      });
+      liste(d, "reperes").forEach(function (x) {
+        c.push({ id: p + "|d>|" + x.date, cat: "Repère" + src, consigne: "Que s'est-il passé ?", recto: x.date, verso: x.txt, grand: true });
+        c.push({ id: p + "|d<|" + x.date, cat: "Repère" + src, consigne: "À quelle date ?", recto: x.txt, verso: x.date, versoGrand: true });
+      });
+      liste(d, "personnages").forEach(function (x) {
+        c.push({ id: p + "|p|" + x.nom, cat: "Personnage" + src, consigne: "Qui est-ce ?", recto: x.txt.join(" "), verso: x.nom, rappel: x.dates, versoGrand: true });
+      });
+      liste(d, "lieux").forEach(function (x) {
+        c.push({ id: p + "|l|" + x.nom, cat: "Lieu" + src, consigne: "Que sais-tu de ce lieu ?", recto: x.nom, verso: x.txt, grand: true });
+      });
     });
     return c;
   }
@@ -707,7 +784,7 @@
     var p = location.hash.replace(/^#\/?/, "").split("/").map(function (s) {
       try { return decodeURIComponent(s); } catch (e) { return s; }
     });
-    if (p[0] === "c") return { vue: p[2] ? "outil" : "chapitre", ch: p[1], outil: p[2] };
+    if (p[0] === "c") return { vue: p[2] ? "outil" : "chapitre", ch: p[1], outil: p[2], sous: p[3] };
     if (p[0] === "prof") return { vue: "prof" };
     if (p[0] === "express") return { vue: "express", niveau: p[1] };
     if (p[0] === "niveau") return { vue: "accueil", niveau: p[1] };
@@ -918,26 +995,46 @@
       dispo: function () { return true; },
       info: function () { return "La fiche de révision : frise, notions, à retenir"; },
       vue: vueEssentiel },
+    { id: "ppo", nom: "Points de passage", icone: "drapeau",
+      dispo: function (ch) { return liste(ch, "ppo").length > 0; },
+      info: function (ch) { return liste(ch, "ppo").map(function (p) { return p.court || p.titre; }).join(" · ") + " : tout pour l'évaluation"; },
+      vue: vuePPO },
     { id: "cartes", nom: "Cartes mémoire", icone: "cartes",
       dispo: function (ch) { return cartesChapitre(ch).length > 0; },
       info: function (ch) { var m = maitriseChapitre(ch); return pluriel(m.total, "carte") + " · " + m.maitrisees + " maîtrisée" + (m.maitrisees > 1 ? "s" : ""); },
-      vue: function (ch, cible) { vueCartes(cible, cartesChapitre(ch), { retour: lienChapitre(ch), progresChapitre: ch }); } },
+      vue: function (ch, cible) {
+        var zone = el("div");
+        cible.appendChild(zone);
+        function afficher(filtre) {
+          zone.innerHTML = "";
+          var choix = selecteurBlocs(ch, filtre, true, null, afficher);
+          if (choix) zone.appendChild(choix);
+          var serie = el("div");
+          zone.appendChild(serie);
+          vueCartes(serie, cartesChapitre(ch, filtre), { retour: lienChapitre(ch), progresChapitre: ch });
+        }
+        afficher(blocDemande(ch));
+      } },
     { id: "quiz", nom: "Quiz", icone: "quiz",
       dispo: function (ch) { return genererQuiz(ch, 10).length >= 4; },
       info: function (ch) { var b = prog.quiz[ch.id]; return b ? "Meilleur score : " + b.score + " / " + b.sur : "10 questions, corrigées tout de suite"; },
       vue: vueQuiz },
     { id: "frise", nom: "Frise à reconstituer", icone: "frise",
-      dispo: function (ch) { return evenementsFrise(ch).length >= 4; },
+      dispo: function (ch) { return blocs(ch).some(function (b) { return evenementsFrise(b.data).length >= 4; }); },
       info: function () { return "Remets les événements dans l'ordre"; },
       vue: vueFriseJeu },
     { id: "associer", nom: "Associer", icone: "associer",
-      dispo: function (ch) { return sourcesAssocier(ch).length > 0; },
+      dispo: function (ch) { return blocs(ch).some(function (b) { return sourcesAssocier(b.data).length > 0; }); },
       info: function () { return "Relie chaque mot à sa définition"; },
       vue: vueAssocier },
     { id: "trous", nom: "Texte à trous", icone: "trous",
-      dispo: function (ch) { return liste(ch, "trous").length > 0; },
-      info: function (ch) { var n = liste(ch, "trous").length; return n > 1 ? n + " traces écrites à compléter" : "La trace écrite à compléter"; },
+      dispo: function (ch) { return textesATrous(ch).length > 0; },
+      info: function (ch) { var n = textesATrous(ch).length; return n > 1 ? n + " textes à compléter" : "La trace écrite à compléter"; },
       vue: vueTrous },
+    { id: "classer", nom: "Classer", icone: "classer",
+      dispo: function (ch) { return liste(ch, "ppo").some(function (p) { return p.schema; }); },
+      info: function () { return "Range les étiquettes dans le schéma bilan"; },
+      vue: vueClasser },
     { id: "quisuisje", nom: "Qui suis-je ?", icone: "quisuisje",
       dispo: function (ch) { return itemsQuiSuisJe(ch).length >= 2; },
       info: function (ch) { return "Trouve avec le moins d'indices possible"; },
@@ -950,7 +1047,7 @@
         vueCartes(cible, cartesRituel(ch), { retour: lienChapitre(ch) });
       } },
     { id: "point", nom: "Je fais le point", icone: "point",
-      dispo: function (ch) { return liste(ch, "capable").length > 0; },
+      dispo: function (ch) { return objectifs(ch).length > 0; },
       info: function (ch) { return "Ce que je sais faire, ce que je dois revoir"; },
       vue: vuePoint }
   ];
@@ -970,6 +1067,14 @@
       var ol = el("ol", { class: "plan" });
       liste(ch, "plan").forEach(function (p) { ol.appendChild(el("li", { text: p })); });
       cible.appendChild(ol);
+    }
+    if (liste(ch, "ppo").length) {
+      cible.appendChild(el("div", { class: "etiq", text: "Les points de passage" }));
+      var liens = el("div", { class: "liens-ppo" });
+      liste(ch, "ppo").forEach(function (p) {
+        liens.appendChild(el("a", { class: "btn", href: lienChapitre(ch, "ppo") + "/" + p.id }, avecIcone("drapeau", p.titre)));
+      });
+      cible.appendChild(liens);
     }
 
     var reps = trierReperes(liste(ch, "reperes"));
@@ -1321,34 +1426,44 @@
     chapitresNiveau(ch.n).forEach(function (c) { if (c.id !== ch.id) out = out.concat(liste(c, champ)); });
     return out;
   }
-  function genererQuiz(ch, nb) {
+  function genererQuiz(ch, nb, filtre) {
     var qs = [];
-    var notions = liste(ch, "notions"), autresN = autresDuNiveau(ch, "notions");
+    var tous = blocs(ch);
     var mot = function (n) { return n.mot; }, def = function (n) { return n.def; };
-    notions.forEach(function (n) {
-      var o1 = propositions(n, notions, autresN, mot, mot);
-      if (o1) qs.push({ item: "n" + n.mot, consigne: "Quelle notion correspond à cette définition ?", enonce: n.def, bonne: n.mot, options: o1, carte: ch.id + "|n<|" + n.mot, expl: n.mot + " : " + n.def });
-      var o2 = propositions(n, notions, autresN, def, mot);
-      if (o2) qs.push({ item: "n" + n.mot, consigne: "Que signifie ce mot ?", enonce: n.mot, grand: true, bonne: n.def, options: o2, carte: ch.id + "|n>|" + n.mot, expl: n.mot + " : " + n.def });
-    });
-    var reps = liste(ch, "reperes"), autresR = autresDuNiveau(ch, "reperes");
     var date = function (r) { return r.date; }, txt = function (r) { return r.txt; };
-    reps.forEach(function (r) {
-      var o1 = propositions(r, reps, autresR, txt, date);
-      if (o1) qs.push({ item: "d" + r.date, consigne: "Que s'est-il passé à cette date ?", enonce: r.date, grand: true, bonne: r.txt, options: o1, carte: ch.id + "|d>|" + r.date, expl: r.date + " : " + r.txt });
-      var o2 = propositions(r, reps, autresR, date, txt);
-      if (o2) qs.push({ item: "d" + r.date, consigne: "À quelle date ?", enonce: r.txt, bonne: r.date, options: o2, carte: ch.id + "|d<|" + r.date, expl: r.date + " : " + r.txt });
-    });
-    var pers = liste(ch, "personnages"), autresP = autresDuNiveau(ch, "personnages");
-    var nom = function (p) { return p.nom; };
-    pers.forEach(function (p) {
-      var o = propositions(p, pers, autresP, nom, nom);
-      if (o) qs.push({ item: "p" + p.nom, consigne: "Qui est-ce ?", enonce: p.txt.join(" "), bonne: p.nom, options: o, carte: ch.id + "|p|" + p.nom, expl: p.nom + " (" + p.dates + ")" });
-    });
-    var lieux = liste(ch, "lieux"), autresL = autresDuNiveau(ch, "lieux");
-    lieux.forEach(function (l) {
-      var o = propositions(l, lieux, autresL, nom, nom);
-      if (o) qs.push({ item: "l" + l.nom, consigne: "De quel lieu s'agit-il ?", enonce: l.txt, bonne: l.nom, options: o, carte: ch.id + "|l|" + l.nom, expl: l.nom + " : " + l.txt });
+    var nom = function (x) { return x.nom; };
+    blocsChoisis(ch, filtre).forEach(function (b) {
+      var d = b.data, pre = b.prefixe, k = b.id + ":";
+      // mauvaises réponses : d'abord dans le même bloc, puis dans le reste du chapitre et du niveau
+      function ailleurs(champ) {
+        var out = [];
+        tous.forEach(function (x) { if (x !== b) out = out.concat(liste(x.data, champ)); });
+        return out.concat(autresDuNiveau(ch, champ));
+      }
+      var notions = liste(d, "notions"), autresN = ailleurs("notions");
+      notions.forEach(function (n) {
+        var o1 = propositions(n, notions, autresN, mot, mot);
+        if (o1) qs.push({ item: k + "n" + n.mot, consigne: "Quelle notion correspond à cette définition ?", enonce: n.def, bonne: n.mot, options: o1, carte: pre + "|n<|" + n.mot, expl: n.mot + " : " + n.def });
+        var o2 = propositions(n, notions, autresN, def, mot);
+        if (o2) qs.push({ item: k + "n" + n.mot, consigne: "Que signifie ce mot ?", enonce: n.mot, grand: true, bonne: n.def, options: o2, carte: pre + "|n>|" + n.mot, expl: n.mot + " : " + n.def });
+      });
+      var reps = liste(d, "reperes"), autresR = ailleurs("reperes");
+      reps.forEach(function (r) {
+        var o1 = propositions(r, reps, autresR, txt, date);
+        if (o1) qs.push({ item: k + "d" + r.date, consigne: "Que s'est-il passé à cette date ?", enonce: r.date, grand: true, bonne: r.txt, options: o1, carte: pre + "|d>|" + r.date, expl: r.date + " : " + r.txt });
+        var o2 = propositions(r, reps, autresR, date, txt);
+        if (o2) qs.push({ item: k + "d" + r.date, consigne: "À quelle date ?", enonce: r.txt, bonne: r.date, options: o2, carte: pre + "|d<|" + r.date, expl: r.date + " : " + r.txt });
+      });
+      var pers = liste(d, "personnages"), autresP = ailleurs("personnages");
+      pers.forEach(function (p) {
+        var o = propositions(p, pers, autresP, nom, nom);
+        if (o) qs.push({ item: k + "p" + p.nom, consigne: "Qui est-ce ?", enonce: p.txt.join(" "), bonne: p.nom, options: o, carte: pre + "|p|" + p.nom, expl: p.nom + " (" + p.dates + ")" });
+      });
+      var lieux = liste(d, "lieux"), autresL = ailleurs("lieux");
+      lieux.forEach(function (l) {
+        var o = propositions(l, lieux, autresL, nom, nom);
+        if (o) qs.push({ item: k + "l" + l.nom, consigne: "De quel lieu s'agit-il ?", enonce: l.txt, bonne: l.nom, options: o, carte: pre + "|l|" + l.nom, expl: l.nom + " : " + l.txt });
+      });
     });
     // une seule question par notion, date, personnage ou lieu
     var vus = {}, choisies = [];
@@ -1361,12 +1476,20 @@
   }
 
   function vueQuiz(ch, cible) {
+    var filtre = blocDemande(ch);
+    var choix = el("div");
     var zone = el("div");
+    cible.appendChild(choix);
     cible.appendChild(zone);
     var qs, pos, score, repondu, erreurs;
+    function dessinerChoix() {
+      choix.innerHTML = "";
+      var g = selecteurBlocs(ch, filtre, true, function (b) { return genererQuiz(ch, 10, b.id).length >= 4; }, function (id) { filtre = id; dessinerChoix(); demarrer(); });
+      if (g) choix.appendChild(g);
+    }
 
     function demarrer() {
-      qs = genererQuiz(ch, 10);
+      qs = genererQuiz(ch, 10, filtre);
       pos = 0; score = 0; repondu = false; erreurs = [];
       dessiner();
     }
@@ -1415,8 +1538,9 @@
       suivant.focus();
     }
     function bilan() {
-      var ancien = prog.quiz[ch.id];
-      if (!ancien || score / qs.length > ancien.score / ancien.sur) { prog.quiz[ch.id] = { score: score, sur: qs.length, t: Date.now() }; sauver(); }
+      var cle = ch.id + (filtre ? "|" + filtre : "");
+      var ancien = prog.quiz[cle];
+      if (!ancien || score / qs.length > ancien.score / ancien.sur) { prog.quiz[cle] = { score: score, sur: qs.length, t: Date.now() }; sauver(); }
       var msg = score === qs.length ? "Parfait !" : score >= qs.length * 0.7 ? "Très bien !" : score >= qs.length * 0.5 ? "C'est en bonne voie." : "Encore un effort : revois les cartes, puis recommence.";
       var b = el("div", { class: "bilan carte-panneau" }, [
         el("div", { class: "gros", text: score + " / " + qs.length }),
@@ -1445,6 +1569,7 @@
       var b = zone.querySelectorAll(".option")[i];
       if (b) { e.preventDefault(); b.click(); }
     };
+    dessinerChoix();
     demarrer();
   }
 
@@ -1459,11 +1584,20 @@
     });
   }
   function vueFriseJeu(ch, cible) {
+    var assez = function (b) { return evenementsFrise(b.data).length >= 4; };
+    var bloc = blocDemande(ch, assez) || blocs(ch).filter(assez)[0].id;
+    var choix = el("div");
     var zone = el("div");
+    cible.appendChild(choix);
     cible.appendChild(zone);
+    function dessinerChoix() {
+      choix.innerHTML = "";
+      var g = selecteurBlocs(ch, bloc, false, assez, function (id) { bloc = id; dessinerChoix(); demarrer(); });
+      if (g) choix.appendChild(g);
+    }
     var evts, places, verifie;
     function demarrer() {
-      var tous = evenementsFrise(ch);
+      var tous = evenementsFrise(blocsChoisis(ch, bloc)[0].data);
       evts = melanger(tous).slice(0, Math.min(6, tous.length));
       places = []; verifie = false;
       dessiner();
@@ -1527,6 +1661,7 @@
       }
     }
     function retirer(i) { places.splice(i, 1); dessiner(); }
+    dessinerChoix();
     demarrer();
   }
 
@@ -1540,11 +1675,22 @@
     return s;
   }
   function vueAssocier(ch, cible) {
-    var sources = sourcesAssocier(ch);
+    var assez = function (b) { return sourcesAssocier(b.data).length > 0; };
+    var bloc = blocDemande(ch, assez) || blocs(ch).filter(assez)[0].id;
+    var sources = sourcesAssocier(blocsChoisis(ch, bloc)[0].data);
     var source = sources[0];
     var zone = el("div");
+    var choixBloc = el("div");
     var seg = el("div", { class: "segments", role: "group", "aria-label": "Que veux-tu associer ?" });
     function dessinerSegments() {
+      choixBloc.innerHTML = "";
+      var g = selecteurBlocs(ch, bloc, false, assez, function (id) {
+        bloc = id;
+        sources = sourcesAssocier(blocsChoisis(ch, bloc)[0].data);
+        source = sources[0];
+        dessinerSegments(); demarrer();
+      });
+      if (g) choixBloc.appendChild(g);
       seg.innerHTML = "";
       if (sources.length < 2) return;
       sources.forEach(function (s) {
@@ -1552,6 +1698,7 @@
       });
     }
     cible.appendChild(el("p", { class: "consigne-outil", text: "Touche un élément à gauche, puis ce qui lui correspond." }));
+    cible.appendChild(choixBloc);
     cible.appendChild(seg);
     cible.appendChild(zone);
 
@@ -1639,9 +1786,20 @@
   }
 
   // ---------- Texte à trous ----------
+  // les traces écrites du cours, puis les bilans des points de passage
+  function textesATrous(ch) {
+    var t = [];
+    blocs(ch).forEach(function (b) {
+      liste(b.data, "trous").forEach(function (x) {
+        t.push({ titre: b.id === "cours" ? x.titre : b.nom + " · " + x.titre, texte: x.texte, bloc: b.id });
+      });
+    });
+    return t;
+  }
   function vueTrous(ch, cible) {
-    var textes = liste(ch, "trous");
-    var idx = 0;
+    var textes = textesATrous(ch);
+    var sous = routeActuelle().sous;
+    var idx = Math.max(0, textes.map(function (t) { return t.bloc; }).indexOf(sous));
     var onglets = el("div", { class: "onglets", role: "group", "aria-label": "Textes" });
     var zone = el("div");
     cible.appendChild(el("p", { class: "consigne-outil", text: "Touche un trou, puis le mot qui convient dans la banque de mots." }));
@@ -1753,9 +1911,12 @@
       items.push({ r: q.r, indices: q.indices, lieu: !!lieux[k] });
       pris[k] = true;
     });
-    liste(ch, "personnages").forEach(function (p) {
-      if (pris[normaliser(p.nom)]) return;
-      items.push({ r: p.nom, indices: p.txt, dates: p.dates, lieu: false });
+    blocs(ch).forEach(function (b) {
+      liste(b.data, "personnages").forEach(function (p) {
+        if (pris[normaliser(p.nom)]) return;
+        pris[normaliser(p.nom)] = true;
+        items.push({ r: p.nom, indices: p.txt, dates: p.dates, lieu: false });
+      });
     });
     return items;
   }
@@ -1768,6 +1929,10 @@
     niv.forEach(function (c) {
       liste(c, "personnages").forEach(function (p) { nomsPers.push(p.nom); });
       liste(c, "lieux").forEach(function (l) { nomsLieux.push(l.nom); });
+    });
+    liste(ch, "ppo").forEach(function (p) {
+      liste(p, "personnages").forEach(function (x) { nomsPers.push(x.nom); });
+      liste(p, "lieux").forEach(function (x) { nomsLieux.push(x.nom); });
     });
     BANQUE_Q.forEach(function (q) { if (q.k === "quisuisje" && q.n === ch.n && q.t === ch.rituel && nomsLieux.indexOf(q.r) < 0 && nomsPers.indexOf(q.r) < 0) nomsPers.push(q.r); });
 
@@ -1852,10 +2017,19 @@
   }
 
   // ---------- Je fais le point ----------
+  // les objectifs du chapitre, puis ceux de chaque point de passage (clé : rang, ou « ppo:rang »)
+  function objectifs(ch) {
+    var o = liste(ch, "capable").map(function (t, i) { return { cle: String(i), txt: t, groupe: null }; });
+    liste(ch, "ppo").forEach(function (p) {
+      liste(p, "capable").forEach(function (t, i) { o.push({ cle: p.id + ":" + i, txt: t, groupe: p.titre }); });
+    });
+    return o;
+  }
   function vuePoint(ch, cible) {
     var etat = prog.point[ch.id] || {};
     var m = maitriseChapitre(ch);
     var q = prog.quiz[ch.id];
+    var objs = objectifs(ch);
 
     cible.appendChild(el("div", { class: "etiq", text: "Mes résultats" }));
     cible.appendChild(el("div", { class: "stats" }, [
@@ -1864,16 +2038,21 @@
       el("div", { class: "stat" }, [el("b", { text: String(aRevoir(cartesChapitre(ch))) }), el("span", { text: "cartes à revoir aujourd'hui" })])
     ]));
 
-    cible.appendChild(el("div", { class: "etiq", text: "Je suis capable de…" }));
-    var ul = el("ul", { class: "capable" });
     var NIV = [{ id: "oui", nom: "Oui" }, { id: "presque", nom: "Presque" }, { id: "non", nom: "Pas encore" }];
-    liste(ch, "capable").forEach(function (txt, i) {
-      var groupe = el("div", { class: "niveaux3", role: "group", "aria-label": txt });
+    var groupeCourant, ul;
+    objs.forEach(function (o) {
+      if (!ul || o.groupe !== groupeCourant) {
+        groupeCourant = o.groupe;
+        cible.appendChild(el("div", { class: "etiq", text: o.groupe ? "Point de passage · " + o.groupe : "Je suis capable de…" }));
+        ul = el("ul", { class: "capable" });
+        cible.appendChild(ul);
+      }
+      var groupe = el("div", { class: "niveaux3", role: "group", "aria-label": o.txt });
       function dessinerGroupe() {
         groupe.innerHTML = "";
         NIV.forEach(function (n) {
-          groupe.appendChild(el("button", { class: "niv " + n.id, type: "button", text: n.nom, "aria-pressed": String(etat[i] === n.id), onclick: function () {
-            etat[i] = etat[i] === n.id ? undefined : n.id;
+          groupe.appendChild(el("button", { class: "niv " + n.id, type: "button", text: n.nom, "aria-pressed": String(etat[o.cle] === n.id), onclick: function () {
+            etat[o.cle] = etat[o.cle] === n.id ? undefined : n.id;
             prog.point[ch.id] = etat; sauver();
             dessinerGroupe(); dessinerConseil();
             groupe.querySelectorAll("button")[NIV.indexOf(n)].focus();
@@ -1881,27 +2060,242 @@
         });
       }
       dessinerGroupe();
-      ul.appendChild(el("li", null, [el("p", { text: txt }), groupe]));
+      ul.appendChild(el("li", null, [el("p", { text: o.txt }), groupe]));
     });
-    cible.appendChild(ul);
 
     var conseil = el("div");
     cible.appendChild(conseil);
     function dessinerConseil() {
       conseil.innerHTML = "";
-      var pasEncore = liste(ch, "capable").filter(function (t, i) { return etat[i] === "non"; });
-      var presque = liste(ch, "capable").filter(function (t, i) { return etat[i] === "presque"; });
-      if (!pasEncore.length && !presque.length) return;
+      var aRevoirObjs = objs.filter(function (o) { return etat[o.cle] === "non"; }).concat(objs.filter(function (o) { return etat[o.cle] === "presque"; }));
+      if (!aRevoirObjs.length) return;
       conseil.appendChild(el("div", { class: "etiq", text: "Ce que je dois revoir en priorité" }));
       var p = el("ul", { class: "points carte-panneau" });
-      pasEncore.concat(presque).forEach(function (t) { p.appendChild(el("li", { text: t })); });
+      aRevoirObjs.forEach(function (o) { p.appendChild(el("li", { text: o.txt })); });
       conseil.appendChild(p);
       conseil.appendChild(el("div", { class: "btns" }, [
         el("a", { class: "btn plein", href: lienChapitre(ch, "essentiel"), text: "Relire l'essentiel" }),
+        liste(ch, "ppo").length ? el("a", { class: "btn", href: lienChapitre(ch, "ppo"), text: "Points de passage" }) : null,
         el("a", { class: "btn", href: lienChapitre(ch, "cartes"), text: "Cartes mémoire" })
       ]));
     }
     dessinerConseil();
+  }
+
+  // ---------- Points de passage : tout ce qu'il faut savoir pour l'évaluation ----------
+  function vuePPO(ch, cible) {
+    var lesPPO = liste(ch, "ppo");
+    var idx = Math.max(0, lesPPO.map(function (p) { return p.id; }).indexOf(routeActuelle().sous));
+    var onglets = el("div", { class: "onglets noprint", role: "group", "aria-label": "Points de passage" });
+    var zone = el("div");
+    cible.appendChild(el("div", { class: "btns noprint", style: "margin-top:6px" },
+      el("button", { class: "btn", type: "button", onclick: function () { window.print(); } }, avecIcone("imprimer", "Imprimer"))));
+    cible.appendChild(onglets);
+    cible.appendChild(zone);
+
+    function dessinerOnglets() {
+      onglets.innerHTML = "";
+      if (lesPPO.length < 2) return;
+      lesPPO.forEach(function (p, i) {
+        onglets.appendChild(el("button", { class: "opt", type: "button", text: p.court || p.titre, "aria-pressed": String(i === idx), onclick: function () {
+          idx = i; history.replaceState(null, "", lienChapitre(ch, "ppo") + "/" + p.id); dessinerOnglets(); dessiner();
+        } }));
+      });
+    }
+    function grille(items, rendu) {
+      var g = el("div", { class: "grille" });
+      items.forEach(function (x) { g.appendChild(rendu(x)); });
+      return g;
+    }
+    function dessiner() {
+      var p = lesPPO[idx];
+      zone.innerHTML = "";
+      zone.appendChild(el("h2", { class: "titre-ppo", text: p.titre }));
+      zone.appendChild(el("div", { class: "question" }, [el("small", { text: "La question à se poser" }), p.question]));
+
+      if (liste(p, "branches").length) {
+        zone.appendChild(el("div", { class: "etiq", text: "La carte mentale" }));
+        var cm = el("div", { class: "carte-mentale" });
+        liste(p, "branches").forEach(function (br, i) {
+          var ul = el("ul");
+          liste(br, "points").forEach(function (t) { ul.appendChild(el("li", { text: t })); });
+          cm.appendChild(el("div", { class: "cm-branche c" + (i % 4) }, [
+            el("div", { class: "cm-titre" }, [el("span", { class: "cm-num", text: String(i + 1) }), br.titre]),
+            ul
+          ]));
+        });
+        zone.appendChild(cm);
+      }
+
+      var reps = trierReperes(liste(p, "reperes"));
+      if (reps.length) {
+        zone.appendChild(el("div", { class: "etiq", text: "La frise" }));
+        zone.appendChild(blocFrise(reps, [], zone));
+        var ulr = el("ul", { class: "reperes" });
+        reps.forEach(function (r, i) {
+          ulr.appendChild(el("li", null, [el("span", { class: "num-rond", text: String(i + 1) }), el("div", null, [el("span", { class: "date", text: r.date }), r.txt])]));
+        });
+        zone.appendChild(ulr);
+      }
+
+      if (liste(p, "notions").length) {
+        zone.appendChild(el("div", { class: "etiq", text: "Le vocabulaire" }));
+        zone.appendChild(grille(liste(p, "notions"), function (n) { return el("div", { class: "notion" }, [el("strong", { text: n.mot }), el("p", { text: n.def })]); }));
+      }
+      if (liste(p, "personnages").length) {
+        zone.appendChild(el("div", { class: "etiq", text: "Les acteurs" }));
+        zone.appendChild(grille(liste(p, "personnages"), function (x) {
+          return el("div", { class: "notion" }, [el("strong", { text: x.nom }), el("span", { class: "dates", text: x.dates }), el("p", { text: x.txt.join(" ") })]);
+        }));
+      }
+      if (liste(p, "lieux").length) {
+        zone.appendChild(el("div", { class: "etiq", text: "Les lieux" }));
+        zone.appendChild(grille(liste(p, "lieux"), function (l) { return el("div", { class: "notion" }, [el("strong", { text: l.nom }), el("p", { text: l.txt })]); }));
+      }
+
+      if (liste(p, "documents").length) {
+        zone.appendChild(el("div", { class: "etiq", text: "Les documents clés" }));
+        liste(p, "documents").forEach(function (d) {
+          zone.appendChild(el("figure", { class: "doc" }, [
+            el("div", { class: "doc-titre", text: d.titre }),
+            el("blockquote", { text: d.extrait }),
+            el("figcaption", { text: d.source }),
+            d.montre ? el("p", { class: "doc-montre" }, [el("strong", { text: "Ce qu'il montre : " }), d.montre]) : null
+          ]));
+        });
+      }
+
+      if (liste(p, "pieges").length) {
+        zone.appendChild(el("div", { class: "etiq", text: "Attention aux erreurs" }));
+        var ulp = el("ul", { class: "pieges" });
+        liste(p, "pieges").forEach(function (t) { ulp.appendChild(el("li", { text: t })); });
+        zone.appendChild(ulp);
+      }
+
+      if (p.reponse) {
+        zone.appendChild(el("div", { class: "etiq", text: "À l'évaluation" }));
+        var panneau = el("div", { class: "eval" });
+        panneau.appendChild(el("div", { class: "q-consigne", text: "Sujet possible — réponds en un paragraphe" }));
+        panneau.appendChild(el("div", { class: "sujet", text: p.question }));
+        if (liste(p, "mots").length) {
+          panneau.appendChild(el("div", { class: "petit", text: "Mots à utiliser :" }));
+          var mots = el("div", { class: "mots" });
+          liste(p, "mots").forEach(function (m) { mots.appendChild(el("span", { class: "mot-cle", text: m })); });
+          panneau.appendChild(mots);
+        }
+        var modele = el("div", { class: "reponse-modele", hidden: true }, [el("strong", { text: "Exemple de réponse. " }), p.reponse]);
+        var bouton = el("button", { class: "btn noprint", type: "button", text: "Voir un exemple de réponse", style: "margin-top:14px", "aria-expanded": "false" });
+        bouton.addEventListener("click", function () {
+          var ouvert = modele.hidden;
+          modele.hidden = !ouvert;
+          bouton.textContent = ouvert ? "Masquer l'exemple" : "Voir un exemple de réponse";
+          bouton.setAttribute("aria-expanded", String(ouvert));
+        });
+        panneau.appendChild(el("p", { class: "petit noprint", style: "margin:12px 0 0", text: "Écris d'abord ta réponse, puis compare avec l'exemple." }));
+        panneau.appendChild(bouton);
+        panneau.appendChild(modele);
+        zone.appendChild(panneau);
+      }
+
+      zone.appendChild(el("div", { class: "etiq noprint", text: "S'entraîner sur ce point de passage" }));
+      var liens = el("div", { class: "liens-ppo noprint" });
+      [["cartes", "Cartes mémoire"], ["quiz", "Quiz"], ["classer", "Classer"], ["trous", "Texte à trous"], ["frise", "Frise"]].forEach(function (o) {
+        var outil = OUTILS.filter(function (x) { return x.id === o[0]; })[0];
+        if (!outil.dispo(ch)) return;
+        if (o[0] === "classer" && !p.schema) return;
+        liens.appendChild(el("a", { class: "btn", href: lienChapitre(ch, o[0]) + "/" + p.id }, avecIcone(outil.icone, o[1])));
+      });
+      zone.appendChild(liens);
+    }
+    dessinerOnglets();
+    dessiner();
+  }
+
+  // ---------- Classer : le schéma bilan d'un point de passage ----------
+  function vueClasser(ch, cible) {
+    var lesPPO = liste(ch, "ppo").filter(function (p) { return p.schema; });
+    var idx = Math.max(0, lesPPO.map(function (p) { return p.id; }).indexOf(routeActuelle().sous));
+    var onglets = el("div", { class: "onglets", role: "group", "aria-label": "Schémas" });
+    var zone = el("div");
+    cible.appendChild(el("p", { class: "consigne-outil", text: "Touche une étiquette, puis la case où elle va. Touche une étiquette déjà placée pour la reprendre." }));
+    cible.appendChild(onglets);
+    cible.appendChild(zone);
+
+    var etiquettes, place, choisie, verifie;
+    function dessinerOnglets() {
+      onglets.innerHTML = "";
+      if (lesPPO.length < 2) return;
+      lesPPO.forEach(function (p, i) {
+        onglets.appendChild(el("button", { class: "opt", type: "button", text: p.court || p.titre, "aria-pressed": String(i === idx), onclick: function () { idx = i; dessinerOnglets(); demarrer(); } }));
+      });
+    }
+    function demarrer() {
+      etiquettes = [];
+      lesPPO[idx].schema.cases.forEach(function (c, i) { liste(c, "etiquettes").forEach(function (t) { etiquettes.push({ txt: t, bonne: i }); }); });
+      etiquettes = melanger(etiquettes);
+      place = {}; choisie = null; verifie = false;
+      dessiner();
+    }
+    function bouton(e, n) {
+      var classes = "etiquette" + (choisie === n ? " choisie" : "");
+      if (verifie) classes += place[n] === e.bonne ? " juste" : " faux";
+      var b = el("button", { class: classes, type: "button", disabled: verifie, "aria-pressed": String(choisie === n) }, e.txt);
+      if (verifie && place[n] !== e.bonne) b.appendChild(el("span", { class: "corr", text: "→ " + lesPPO[idx].schema.cases[e.bonne].titre }));
+      b.addEventListener("click", function () {
+        if (place[n] !== undefined) { delete place[n]; choisie = n; }
+        else choisie = choisie === n ? null : n;
+        dessiner();
+      });
+      return b;
+    }
+    function dessiner() {
+      var schema = lesPPO[idx].schema;
+      zone.innerHTML = "";
+      zone.appendChild(el("h2", { text: schema.titre, style: "margin-bottom:10px" }));
+      var grilleCases = el("div", { class: "cases" });
+      schema.cases.forEach(function (c, i) {
+        var contenu = el("div", { class: "case-contenu" });
+        etiquettes.forEach(function (e, n) { if (place[n] === i) contenu.appendChild(bouton(e, n)); });
+        var cibleCase = el("button", { class: "case-cible" + (choisie !== null && !verifie ? " prete" : ""), type: "button", disabled: verifie, "aria-label": "Placer dans : " + c.titre },
+          [el("strong", { text: c.titre }), el("span", { text: choisie !== null && !verifie ? "Toucher pour placer ici" : c.aide })]);
+        cibleCase.addEventListener("click", function () {
+          if (choisie === null) return;
+          place[choisie] = i;
+          choisie = null;
+          dessiner();
+        });
+        grilleCases.appendChild(el("div", { class: "case" }, [cibleCase, contenu]));
+      });
+      zone.appendChild(grilleCases);
+
+      var restantes = etiquettes.map(function (e, n) { return n; }).filter(function (n) { return place[n] === undefined; });
+      if (!verifie && restantes.length) {
+        zone.appendChild(el("div", { class: "etiq", text: "Étiquettes à placer (" + restantes.length + ")" }));
+        var reserve = el("div", { class: "reserve-etiquettes" });
+        restantes.forEach(function (n) { reserve.appendChild(bouton(etiquettes[n], n)); });
+        zone.appendChild(reserve);
+      }
+      if (!verifie && !restantes.length) {
+        zone.appendChild(el("div", { class: "btns" }, [
+          el("button", { class: "btn plein", type: "button", text: "Vérifier", onclick: function () { verifie = true; dessiner(); } }),
+          el("button", { class: "btn", type: "button", text: "Tout reprendre", onclick: demarrer })
+        ]));
+      }
+      if (verifie) {
+        var justes = etiquettes.filter(function (e, n) { return place[n] === e.bonne; }).length;
+        zone.appendChild(el("div", { class: "bilan carte-panneau", style: "margin-top:14px;padding:18px" }, [
+          el("div", { class: "gros", text: justes + " / " + etiquettes.length }),
+          el("p", { text: justes === etiquettes.length ? "Tout est bien classé, bravo !" : "Les étiquettes en rouge indiquent la bonne case." }),
+          el("div", { class: "btns" }, [
+            el("button", { class: "btn plein", type: "button", text: "Recommencer", onclick: demarrer }),
+            el("a", { class: "btn", href: lienChapitre(ch, "ppo") + "/" + lesPPO[idx].id, text: "Revoir le point de passage" })
+          ])
+        ]));
+        annoncer(justes + " étiquettes bien classées sur " + etiquettes.length + ".");
+      }
+    }
+    dessinerOnglets();
+    demarrer();
   }
 
   // ---------- Espace professeur : choisir les chapitres que voient les élèves ----------
