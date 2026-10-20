@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Réviser — Histoire-Géographie</title>
+<meta name="description" content="La boîte à outils de la classe pour réviser ses cours d'histoire-géographie : l'essentiel, cartes mémoire, quiz, frise, textes à trous." />
+<meta name="theme-color" content="#1F4E5F" />
+<link rel="icon" type="image/png" href="../icon-192.png" />
+<link rel="apple-touch-icon" href="../icon-192.png" />
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #FAF8F3; --panel: #FFFFFF; --ink: #22282A; --sub: #55605F; --faint: #736D63;
+    --line: #E4DFD4; --accent: #1F4E5F; --accentSoft: #E7EEF0;
+    --histoire: #7A3B2E; --histoireSoft: #F4E9E5;
+    --geo: #1F4E5F; --geoSoft: #E7EEF0;
+    --ok: #3B6E44; --okSoft: #E5EFE2; --ko: #A13D2D; --koSoft: #F7E5E1;
+    --warn: #8A5F0E; --warnSoft: #F5ECD9;
+    --b0: #EBDDCC; --b1: #D5E4E9; --b2: #E5DDEC; --b3: #DCE9D7;
+    --p0: #C9DDE5; --p1: #EED9C4; --p2: #DCD3EA; --p3: #D3E6CD; --p4: #F0D4D4;
+    --ombre: rgba(34, 40, 42, .07);
+  }
+  [data-theme="dark"] {
+    --bg: #14181A; --panel: #1F2528; --ink: #F1ECE3; --sub: #B6B1A7; --faint: #9C968B;
+    --line: #333B3E; --accent: #8FC3D9; --accentSoft: #1E2E36;
+    --histoire: #E0A78C; --histoireSoft: #33251F;
+    --geo: #8FC3D9; --geoSoft: #1E2E36;
+    --ok: #93C196; --okSoft: #1E2A1E; --ko: #EBA08F; --koSoft: #3A2420;
+    --warn: #E2BE73; --warnSoft: #33291A;
+    --b0: #3B3127; --b1: #22353C; --b2: #322B3B; --b3: #283527;
+    --p0: #23404B; --p1: #4A3624; --p2: #3A3150; --p3: #2C4228; --p4: #4C2B2B;
+    --ombre: rgba(0, 0, 0, .3);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: Inter, system-ui, sans-serif; font-size: 15px; line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; transition: background-color .15s, border-color .15s, color .15s, opacity .15s, transform .1s; }
+  button:active:not(:disabled) { transform: scale(.985); }
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:disabled { cursor: default; }
+  a { color: var(--accent); }
+  [hidden] { display: none !important; }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+  main.wrap { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+
+  /* ---------- En-tête ---------- */
+  .entete { border-bottom: 1px solid var(--line); background: var(--bg); }
+  .entete-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 56px; }
+  .marque { font-family: Fraunces, serif; font-weight: 600; font-size: 20px; color: var(--accent); text-decoration: none; letter-spacing: -.01em; display: inline-flex; align-items: center; gap: 8px; }
+  .marque small { font-family: Inter, sans-serif; font-size: 12px; font-weight: 500; color: var(--faint); letter-spacing: 0; }
+  .entete-actions { display: flex; gap: 4px; }
+  .btn-icone {
+    width: 44px; height: 44px; border-radius: 10px; border: none; background: none; color: var(--sub);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .btn-icone:hover { background: var(--accentSoft); color: var(--accent); }
+  .ico { width: 22px; height: 22px; display: inline-block; flex-shrink: 0; }
+  .ico svg { width: 100%; height: 100%; display: block; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- Éléments communs ---------- */
+  h1, h2, h3 { font-family: Fraunces, serif; font-weight: 600; letter-spacing: -.01em; margin: 0; }
+  h1 { font-size: 26px; line-height: 1.2; color: var(--ink); }
+  h2 { font-size: 19px; line-height: 1.3; }
+  h3 { font-size: 16px; }
+  .etiq { font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); margin: 26px 0 10px; }
+  .retour {
+    display: inline-flex; align-items: center; gap: 6px; margin: 14px 0 6px; padding: 8px 0;
+    color: var(--accent); font-weight: 600; font-size: 14px; text-decoration: none;
+  }
+  .retour .ico { width: 18px; height: 18px; }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 5px; color: var(--histoire); background: var(--histoireSoft);
+  }
+  .tag.geo { color: var(--geo); background: var(--geoSoft); }
+  .petit { font-size: 13px; color: var(--faint); }
+  .carte-panneau { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 46px; padding: 11px 20px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none;
+  }
+  .btn.plein { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  [data-theme="dark"] .btn.plein { color: #10181B; }
+  .btn:disabled { opacity: .4; }
+  .btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+  .barre { height: 7px; border-radius: 4px; background: var(--line); overflow: hidden; }
+  .barre > span { display: block; height: 100%; border-radius: 4px; background: var(--ok); transition: width .3s; }
+  .vide { text-align: center; padding: 40px 16px; color: var(--faint); }
+
+  /* ---------- Accueil ---------- */
+  .intro { margin: 26px 0 4px; }
+  .intro p { color: var(--sub); margin: 6px 0 0; }
+  .choix { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opt {
+    min-height: 44px; padding: 9px 18px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--sub); font-size: 15px;
+  }
+  .opt[aria-pressed="true"] { border-color: var(--accent); background: var(--accentSoft); color: var(--accent); font-weight: 600; }
+  .express {
+    display: flex; align-items: center; gap: 14px; margin-top: 20px; padding: 16px 18px; border-radius: 14px;
+    background: var(--accent); color: var(--bg); text-decoration: none;
+  }
+  [data-theme="dark"] .express { color: #10181B; }
+  .express .ico { width: 30px; height: 30px; }
+  .express strong { display: block; font-family: Fraunces, serif; font-size: 17px; font-weight: 600; }
+  .express span.sous { font-size: 13px; opacity: .85; }
+  .chap {
+    display: block; text-decoration: none; color: inherit; margin-bottom: 10px;
+    background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--histoire); border-radius: 12px; padding: 14px 16px;
+  }
+  .chap.geo { border-left-color: var(--geo); }
+  .chap:hover { border-color: var(--accent); }
+  .chap-num { font-size: 12px; color: var(--faint); font-weight: 600; }
+  .chap-titre { font-family: Fraunces, serif; font-size: 17px; font-weight: 600; line-height: 1.3; margin: 2px 0 10px; }
+  .chap-prog { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--faint); }
+  .chap-prog .barre { flex: 1; }
+  .avancement { font-size: 13.5px; color: var(--sub); margin: 16px 0 0; }
+  .theme-titre { font-family: Fraunces, serif; font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--sub); margin: 18px 0 8px; }
+  .chap.a-venir { background: transparent; border: 1px dashed var(--line); border-left: 4px solid var(--line); padding: 11px 16px; }
+  .chap.a-venir:hover { border-color: var(--line); }
+  .chap.a-venir .chap-titre { font-family: Inter, sans-serif; font-size: 14.5px; font-weight: 500; color: var(--faint); margin: 2px 0 0; }
+  .alerte { margin-top: 18px; padding: 14px 16px; border-radius: 12px; background: var(--warnSoft); border-left: 4px solid var(--warn); font-size: 14px; }
+  .alerte strong { color: var(--warn); }
+  .pied { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--faint); display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: space-between; }
+  .lien-discret { background: none; border: none; padding: 4px 0; color: var(--faint); text-decoration: underline; text-underline-offset: 2px; font-size: 12.5px; }
+
+  /* ---------- Chapitre ---------- */
+  .chap-entete { margin: 4px 0 6px; }
+  .chap-entete .meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .question {
+    margin-top: 14px; padding: 12px 16px; border-left: 4px solid var(--accent); background: var(--accentSoft);
+    border-radius: 0 10px 10px 0; font-family: Fraunces, serif; font-size: 16px; line-height: 1.4;
+  }
+  .question small { display: block; font-family: Inter, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); margin-bottom: 3px; }
+  .outils { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 10px; }
+  .outil {
+    display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; min-height: 118px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+  }
+  .outil:hover { border-color: var(--accent); }
+  .outil .pastille { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--histoireSoft); color: var(--histoire); }
+  .outil.geo .pastille { background: var(--geoSoft); color: var(--geo); }
+  .outil strong { font-size: 15px; line-height: 1.25; }
+  .outil span.info { font-size: 12.5px; color: var(--faint); line-height: 1.35; margin-top: auto; }
+
+  /* ---------- L'essentiel ---------- */
+  .cle { font-family: Fraunces, serif; font-size: 18px; line-height: 1.45; padding: 16px 18px; border-radius: 12px; background: var(--okSoft); border-left: 4px solid var(--ok); }
+  .plan { margin: 0; padding-left: 0; list-style: none; counter-reset: plan; }
+  .plan li { counter-increment: plan; position: relative; padding: 6px 0 6px 38px; }
+  .plan li::before {
+    content: counter(plan, upper-roman); position: absolute; left: 0; top: 5px; width: 28px; height: 28px; border-radius: 7px;
+    background: var(--accentSoft); color: var(--accent); font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .points { margin: 0; padding: 0; list-style: none; }
+  .points li { position: relative; padding: 7px 0 7px 22px; border-bottom: 1px solid var(--line); }
+  .points li:last-child { border-bottom: none; }
+  .points li::before { content: ""; position: absolute; left: 4px; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .frise-boite { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 6px 6px; overflow: hidden; }
+  .frise-boite svg { display: block; width: 100%; height: auto; }
+  .f-axe { stroke: var(--ink); stroke-width: 2; }
+  .f-tick { stroke: var(--faint); stroke-width: 1; }
+  .f-tick-txt { fill: var(--faint); font: 500 11px "IBM Plex Mono", monospace; }
+  .f-bande { stroke: none; }
+  .f-bande-txt { fill: var(--ink); font: 600 11px Inter, sans-serif; }
+  .f-duree { stroke: var(--accent); stroke-width: 5; stroke-linecap: round; opacity: .55; }
+  .f-lien { stroke: var(--accent); stroke-width: 1; opacity: .6; }
+  .f-pt { fill: var(--accent); }
+  .f-num { fill: var(--bg); font: 700 10.5px Inter, sans-serif; }
+  [data-theme="dark"] .f-num { fill: #10181B; }
+  .reperes { margin: 12px 0 0; padding: 0; list-style: none; }
+  .reperes li { display: flex; gap: 12px; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .reperes li:last-child { border-bottom: none; }
+  .num-rond {
+    flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--bg);
+    font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px;
+  }
+  [data-theme="dark"] .num-rond { color: #10181B; }
+  .reperes .date { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 13.5px; color: var(--accent); display: block; }
+  .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .notion { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .notion strong { display: block; font-family: Fraunces, serif; font-size: 16px; margin-bottom: 3px; color: var(--accent); }
+  .notion p { margin: 0; font-size: 14px; color: var(--sub); }
+  .notion .dates { font-size: 12px; color: var(--faint); margin-bottom: 4px; display: block; }
+  table.regimes { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--panel); border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+  table.regimes th, table.regimes td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  table.regimes tr:last-child td { border-bottom: none; }
+  table.regimes th { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); background: var(--accentSoft); }
+  table.regimes td:first-child { font-weight: 600; white-space: nowrap; }
+  @media (max-width: 560px) {
+    table.regimes, table.regimes tbody, table.regimes tr, table.regimes td { display: block; width: 100%; }
+    table.regimes thead { display: none; }
+    table.regimes tr { padding: 11px 14px; border-bottom: 1px solid var(--line); }
+    table.regimes tr:last-child { border-bottom: none; }
+    table.regimes td { padding: 0; border: none; }
+    table.regimes td:first-child { white-space: normal; }
+    table.regimes td:nth-child(2) { font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 600; color: var(--accent); margin: 2px 0 4px; }
+  }
+  .pastille-couleur { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: 0; }
+
+  /* ---------- Cartes mémoire ---------- */
+  .compteur { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px; color: var(--faint); margin: 8px 0 10px; }
+  .compteur .barre { flex: 1; max-width: 220px; }
+  .flash { display: block; width: 100%; padding: 0; border: none; background: none; text-align: center; perspective: 1400px; }
+  .flash-in { display: grid; transition: transform .45s cubic-bezier(.3,.7,.3,1); transform-style: preserve-3d; }
+  .flash.retournee .flash-in { transform: rotateY(180deg); }
+  .face {
+    grid-area: 1 / 1; min-height: 270px; padding: 22px 20px; border-radius: 18px; border: 1px solid var(--line);
+    background: var(--panel); box-shadow: 0 2px 10px var(--ombre);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  }
+  .face.verso { transform: rotateY(180deg); background: var(--accentSoft); border-color: transparent; }
+  .face .cat { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .face .consigne { font-size: 13px; color: var(--sub); }
+  .face .texte { display: block; font-size: 17px; line-height: 1.45; max-width: 520px; }
+  .face .texte.grand { font-family: Fraunces, serif; font-size: 30px; font-weight: 600; line-height: 1.2; }
+  .face .aide { font-size: 12px; color: var(--faint); }
+  .face.verso .rappel { font-size: 13px; color: var(--accent); font-weight: 600; }
+  .actions-flash { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .actions-flash .btn { min-height: 54px; }
+  .btn.revoir { color: var(--ko); border-color: var(--ko); background: var(--koSoft); }
+  .btn.savais { color: var(--ok); border-color: var(--ok); background: var(--okSoft); }
+  .raccourcis { text-align: center; font-size: 12px; color: var(--faint); margin-top: 10px; }
+  .bilan { text-align: center; padding: 28px 18px; }
+  .bilan .gros { font-family: Fraunces, serif; font-size: 44px; font-weight: 700; color: var(--accent); line-height: 1; }
+  .bilan p { color: var(--sub); }
+  .bilan .btns { justify-content: center; }
+
+  /* ---------- Quiz ---------- */
+  .q-enonce { font-family: Fraunces, serif; font-size: 20px; line-height: 1.4; margin: 6px 0 16px; }
+  .q-enonce.grand { font-size: 28px; }
+  .q-consigne { font-size: 13px; font-weight: 600; color: var(--accent); }
+  .options { display: grid; gap: 9px; }
+  .option {
+    text-align: left; padding: 13px 16px; min-height: 50px; border-radius: 12px; border: 1.5px solid var(--line);
+    background: var(--panel); font-size: 15px; line-height: 1.4; display: flex; gap: 12px; align-items: flex-start;
+  }
+  .option .lettre { flex-shrink: 0; width: 24px; height: 24px; border-radius: 6px; background: var(--accentSoft); color: var(--accent); font-weight: 700; font-size: 12.5px; display: flex; align-items: center; justify-content: center; }
+  .option:hover:not(:disabled) { border-color: var(--accent); }
+  .option.juste { border-color: var(--ok); background: var(--okSoft); }
+  .option.juste .lettre { background: var(--ok); color: var(--panel); }
+  .option.faux { border-color: var(--ko); background: var(--koSoft); }
+  .option.faux .lettre { background: var(--ko); color: var(--panel); }
+  .option:disabled:not(.juste):not(.faux) { opacity: .55; }
+  .retour-q { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 14px; }
+  .retour-q.bien { background: var(--okSoft); color: var(--ok); }
+  .retour-q.mal { background: var(--koSoft); color: var(--ko); }
+  .retour-q strong { display: block; margin-bottom: 2px; }
+  .retour-q span { color: var(--ink); }
+  .erreurs { list-style: none; padding: 0; margin: 18px 0 0; text-align: left; }
+  .erreurs li { padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .erreurs li strong { color: var(--ok); }
+
+  /* ---------- Frise à reconstituer ---------- */
+  .consigne-outil { color: var(--sub); margin: 4px 0 14px; }
+  .emplacements { list-style: none; margin: 0; padding: 0; counter-reset: empl; }
+  .emplacement {
+    display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 12px; margin-bottom: 7px;
+    border-radius: 11px; border: 1.5px dashed var(--line); color: var(--faint); font-size: 14px;
+  }
+  .emplacement .num-rond { background: var(--line); color: var(--sub); }
+  .emplacement.rempli { border-style: solid; border-color: var(--accent); background: var(--panel); color: var(--ink); cursor: pointer; text-align: left; width: 100%; }
+  .emplacement.rempli .num-rond { background: var(--accent); color: var(--bg); }
+  .emplacement.juste { border-color: var(--ok); background: var(--okSoft); }
+  .emplacement.juste .num-rond { background: var(--ok); }
+  .emplacement.faux { border-color: var(--ko); background: var(--koSoft); }
+  .emplacement.faux .num-rond { background: var(--ko); }
+  .emplacement .date-rev { margin-left: auto; font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 600; white-space: nowrap; padding-left: 8px; }
+  .reserve { display: grid; gap: 8px; margin-top: 16px; }
+  .evt {
+    text-align: left; padding: 12px 14px; border-radius: 11px; border: 1px solid var(--line); background: var(--panel);
+    font-size: 14.5px; line-height: 1.4; box-shadow: 0 1px 3px var(--ombre);
+  }
+  .evt:hover { border-color: var(--accent); }
+
+  /* ---------- Associer ---------- */
+  .segments { display: inline-flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .assoc { display: grid; gap: 14px; }
+  @media (min-width: 640px) { .assoc { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); align-items: start; } }
+  .col-mots { display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
+  @media (min-width: 640px) { .col-mots { flex-direction: column; flex-wrap: nowrap; } }
+  .col-defs { display: grid; gap: 8px; }
+  .tuile {
+    text-align: left; padding: 11px 14px; border-radius: 11px; border: 1.5px solid var(--line); background: var(--panel);
+    font-size: 14.5px; line-height: 1.4; min-height: 46px;
+  }
+  .tuile.mot { font-weight: 600; font-family: Fraunces, serif; font-size: 16px; }
+  .tuile.choisie { border-color: var(--accent); background: var(--accentSoft); box-shadow: 0 0 0 2px var(--accent) inset; }
+  .tuile.erreur { border-color: var(--ko); background: var(--koSoft); animation: secousse .35s; }
+  .tuile.appariee { border-color: transparent; color: var(--ink); opacity: .9; }
+  .tuile.appariee.c0 { background: var(--p0); } .tuile.appariee.c1 { background: var(--p1); } .tuile.appariee.c2 { background: var(--p2); }
+  .tuile.appariee.c3 { background: var(--p3); } .tuile.appariee.c4 { background: var(--p4); }
+  @keyframes secousse { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+  /* ---------- Texte à trous ---------- */
+  .onglets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .texte-trous { font-size: 17px; line-height: 2.1; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .trou {
+    display: inline-block; min-width: 92px; min-height: 34px; margin: 0 2px; padding: 0 10px; vertical-align: baseline; line-height: 30px;
+    border: none; border-bottom: 2.5px solid var(--faint); border-radius: 6px 6px 0 0; background: var(--bg); color: var(--ink);
+    font-weight: 600; font-size: 16px;
+  }
+  .trou.actif { border-bottom-color: var(--accent); background: var(--accentSoft); box-shadow: 0 0 0 2px var(--accent) inset; }
+  .trou.juste { border-bottom-color: var(--ok); background: var(--okSoft); color: var(--ok); }
+  .trou.faux { border-bottom-color: var(--ko); background: var(--koSoft); color: var(--ko); text-decoration: line-through; }
+  .trou .corr { color: var(--ok); text-decoration: none; display: inline-block; margin-left: 6px; }
+  .banque { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .mot-banque {
+    min-height: 42px; padding: 8px 14px; border-radius: 21px; border: 1.5px solid var(--accent); background: var(--panel);
+    color: var(--accent); font-weight: 600; font-size: 15px;
+  }
+  .mot-banque:disabled { opacity: .3; border-style: dashed; }
+
+  /* ---------- Qui suis-je ? ---------- */
+  .indices { list-style: none; margin: 0 0 16px; padding: 0; }
+  .indices li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; font-size: 16.5px; line-height: 1.45; animation: apparition .25s ease; }
+  @keyframes apparition { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .score-etoiles { font-size: 13px; color: var(--faint); }
+
+  /* ---------- Je fais le point ---------- */
+  .capable { list-style: none; margin: 0; padding: 0; }
+  .capable li { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .capable li p { margin: 0 0 8px; font-size: 15px; }
+  .niveaux3 { display: flex; gap: 6px; flex-wrap: wrap; }
+  .niv {
+    min-height: 38px; padding: 6px 13px; border-radius: 19px; border: 1.5px solid var(--line); background: var(--panel); font-size: 13.5px; color: var(--sub);
+  }
+  .niv[aria-pressed="true"].oui { border-color: var(--ok); background: var(--okSoft); color: var(--ok); font-weight: 600; }
+  .niv[aria-pressed="true"].presque { border-color: var(--warn); background: var(--warnSoft); color: var(--warn); font-weight: 600; }
+  .niv[aria-pressed="true"].non { border-color: var(--ko); background: var(--koSoft); color: var(--ko); font-weight: 600; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .stat b { display: block; font-family: Fraunces, serif; font-size: 26px; color: var(--accent); line-height: 1.1; }
+  .stat span { font-size: 12.5px; color: var(--faint); }
+
+  /* ---------- QR code ---------- */
+  .voile {
+    position: fixed; inset: 0; z-index: 50; background: var(--bg); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center;
+  }
+  .voile .qr { width: min(72vh, 84vw); max-width: 520px; background: #fff; padding: 12px; border-radius: 12px; }
+  .voile .qr svg { display: block; width: 100%; height: auto; }
+  .voile h2 { font-size: clamp(20px, 3vw, 30px); max-width: 900px; }
+  .voile .url { font-family: "IBM Plex Mono", monospace; font-size: clamp(12px, 1.6vw, 17px); color: var(--sub); word-break: break-all; max-width: 900px; }
+  .voile .fermer { position: absolute; top: 12px; right: 12px; }
+
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  @media print {
+    .entete, .retour, .btns, .pied, .noprint { display: none !important; }
+    body { background: #fff; color: #000; font-size: 12px; }
+    .carte-panneau, .notion, .frise-boite, table.regimes { break-inside: avoid; }
+    main.wrap { padding: 0; max-width: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="entete">
+  <div class="wrap entete-in">
+    <a class="marque" href="#/">Réviser <small>Histoire-Géo</small></a>
+    <span class="entete-actions">
+      <button class="btn-icone" id="btn-qr" type="button" aria-label="Afficher le QR code de cette page"></button>
+      <button class="btn-icone" id="btn-theme" type="button"></button>
+    </span>
+  </div>
+</header>
+
+<main class="wrap" id="app" tabindex="-1"></main>
+<noscript><p class="wrap">Cette page a besoin de JavaScript pour fonctionner.</p></noscript>
+<div class="sr" id="annonce" aria-live="polite"></div>
+
+<script src="questions.js"></script>
+<script src="cours.js"></script>
+<script src="../vendor/qrcode-generator-1.4.4.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var CLE = "reviser-v1";              // progrès de l'élève, sur cet appareil seulement
+  var CLE_THEME = "rituels-theme-v1";  // même réglage que l'écran des rituels
+  var JOUR = 86400000;
+  var INTERVALLES = [0, 1, 2, 4, 8, 16]; // jours avant de revoir une carte, selon sa boîte (0 à 5)
+  var MAITRISE = 3;                      // une carte est « maîtrisée » à partir de la boîte 3
+  var TAILLE_SERIE = 12;
+
+  // Les classes viennent du plan de l'année (cours.js) ; cette liste ne sert que si le fichier n'a pas pu être chargé.
+  var NIVEAUX = typeof CLASSES !== "undefined" && CLASSES.length
+    ? CLASSES.map(function (c) { return { id: c.id, nom: c.nom }; })
+    : [{ id: "5e", nom: "5e" }, { id: "2nde", nom: "Seconde" }, { id: "1ere", nom: "Première" }];
+  var DISC = { histoire: "Histoire", geo: "Géographie" };
+  var LIBELLE_TYPE = {
+    notion: "Notion à définir", repere: "Repère à situer", vf: "Vrai ou faux",
+    flash: "Question flash", quisuisje: "Qui suis-je ?"
+  };
+
+  var DONNEES_OK = typeof COURS !== "undefined";
+  var CHAPITRES = DONNEES_OK ? COURS : [];
+  var PLAN = typeof CLASSES !== "undefined" ? CLASSES : [];
+  var BANQUE_Q = typeof BANQUE !== "undefined" ? BANQUE : [];
+
+  // ---------- Icônes (tracés simples, 24 × 24) ----------
+  var ICONES = {
+    essentiel: '<path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/>',
+    cartes: '<rect x="3" y="7" width="13" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3"/>',
+    quiz: '<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+    frise: '<path d="M2 18h20"/><path d="M6 18V10M12 18V6M18 18v-5"/><circle cx="6" cy="8.5" r="1.6"/><circle cx="12" cy="4.5" r="1.6"/><circle cx="18" cy="11.5" r="1.6"/>',
+    associer: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
+    trous: '<path d="M4 7h16M4 12h5M15 12h5M4 17h9"/><path d="M10 12h4" stroke-dasharray="1.5 2"/>',
+    quisuisje: '<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0"/><path d="M17.5 5.5a2.5 2.5 0 0 1 4.5 1.5c0 1.5-2 2-2 3.2"/><path d="M20 13.5h.01"/>',
+    rituel: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+    point: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+    qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 17h4v4h-4z"/>',
+    retour: '<path d="M15 18l-6-6 6-6"/>',
+    imprimer: '<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/>',
+    lune: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+    soleil: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    eclair: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+    fermer: '<path d="M6 6l12 12M18 6L6 18"/>'
+  };
+  function icone(nom) {
+    return '<span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24">' + (ICONES[nom] || "") + "</svg></span>";
+  }
+
+  // ---------- Petits utilitaires ----------
+  function lire(cle, defaut) {
+    try {
+      var v = localStorage.getItem(cle);
+      return v ? JSON.parse(v) : defaut;
+    } catch (e) { return defaut; }
+  }
+  function ecrire(cle, valeur) {
+    try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch (e) {}
+  }
+
+  // el("div", { class: "x", text: "…", onclick: f }, [enfants]) — le texte passe toujours par textContent
+  function el(tag, attrs, enfants) {
+    var e = document.createElement(tag);
+    if (attrs) {
+      Object.keys(attrs).forEach(function (k) {
+        var v = attrs[k];
+        if (v === null || v === undefined || v === false) return;
+        if (k === "class") e.className = v;
+        else if (k === "text") e.textContent = v;
+        else if (k === "icone") e.innerHTML = icone(v);
+        else if (k.indexOf("on") === 0) e.addEventListener(k.slice(2), v);
+        else e.setAttribute(k, v === true ? "" : v);
+      });
+    }
+    ajouter(e, enfants);
+    return e;
+  }
+  function ajouter(e, enfants) {
+    if (enfants === null || enfants === undefined) return;
+    if (!Array.isArray(enfants)) enfants = [enfants];
+    enfants.forEach(function (c) {
+      if (c === null || c === undefined || c === false) return;
+      e.appendChild(typeof c === "string" || typeof c === "number" ? document.createTextNode(String(c)) : c);
+    });
+  }
+  function avecIcone(nom, texte) {
+    var s = el("span");
+    s.innerHTML = icone(nom);
+    s.appendChild(document.createTextNode(texte));
+    s.style.display = "inline-flex"; s.style.alignItems = "center"; s.style.gap = "8px";
+    return s;
+  }
+  function melanger(tab) {
+    var a = tab.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function normaliser(s) {
+    s = String(s).toLowerCase().trim();
+    return s.normalize ? s.normalize("NFD").replace(/[̀-ͯ]/g, "") : s;
+  }
+  function pluriel(n, mot, motPluriel) { return n + " " + (n > 1 ? (motPluriel || mot + "s") : mot); }
+  // année (nombre, négatif avant J.-C.) ou "AAAA-MM-JJ" → nombre décimal, pour ordonner et placer sur la frise
+  function valeurDate(v) {
+    if (typeof v === "number") return v;
+    var m = /^(-?\d+)-(\d{2})-(\d{2})$/.exec(String(v));
+    if (m) return Number(m[1]) + ((Number(m[2]) - 1) * 30.44 + Number(m[3])) / 366;
+    return parseFloat(v);
+  }
+  function annoncer(txt) {
+    var a = document.getElementById("annonce");
+    a.textContent = "";
+    setTimeout(function () { a.textContent = txt; }, 30);
+  }
+
+  // ---------- Progrès de l'élève ----------
+  var prog;
+  function chargerProgres() {
+    prog = lire(CLE, null);
+    if (!prog || typeof prog !== "object") prog = {};
+    ["cartes", "quiz", "point"].forEach(function (k) {
+      if (!prog[k] || typeof prog[k] !== "object") prog[k] = {};
+    });
+  }
+  chargerProgres();
+  function sauver() { ecrire(CLE, prog); }
+  // un autre onglet a enregistré : on repart de sa version pour ne rien écraser
+  window.addEventListener("storage", function (e) { if (e.key === CLE) chargerProgres(); });
+
+  // ---------- Accès aux données ----------
+  function chapitre(id) { return CHAPITRES.filter(function (c) { return c.id === id; })[0] || null; }
+  function chapitresNiveau(n) { return CHAPITRES.filter(function (c) { return c.n === n; }); }
+  function liste(ch, champ) { return Array.isArray(ch[champ]) ? ch[champ] : []; }
+  function nomNiveau(n) { var x = NIVEAUX.filter(function (v) { return v.id === n; })[0]; return x ? x.nom : n; }
+
+  // ---------- Cartes mémoire : construction et répétition espacée ----------
+  function cartesChapitre(ch) {
+    var c = [];
+    liste(ch, "notions").forEach(function (x) {
+      c.push({ id: ch.id + "|n>|" + x.mot, cat: "Notion", consigne: "Que signifie ce mot ?", recto: x.mot, verso: x.def, grand: true });
+      c.push({ id: ch.id + "|n<|" + x.mot, cat: "Notion", consigne: "Quelle notion correspond à cette définition ?", recto: x.def, verso: x.mot, versoGrand: true });
+    });
+    liste(ch, "reperes").forEach(function (x) {
+      c.push({ id: ch.id + "|d>|" + x.date, cat: "Repère", consigne: "Que s'est-il passé ?", recto: x.date, verso: x.txt, grand: true });
+      c.push({ id: ch.id + "|d<|" + x.date, cat: "Repère", consigne: "À quelle date ?", recto: x.txt, verso: x.date, versoGrand: true });
+    });
+    liste(ch, "personnages").forEach(function (x) {
+      c.push({ id: ch.id + "|p|" + x.nom, cat: "Personnage", consigne: "Qui est-ce ?", recto: x.txt.join(" "), verso: x.nom, rappel: x.dates, versoGrand: true });
+    });
+    liste(ch, "lieux").forEach(function (x) {
+      c.push({ id: ch.id + "|l|" + x.nom, cat: "Lieu", consigne: "Que sais-tu de ce lieu ?", recto: x.nom, verso: x.txt, grand: true });
+    });
+    return c;
+  }
+  function cartesRituel(ch) {
+    return BANQUE_Q.filter(function (q) {
+      return q.n === ch.n && q.t === ch.rituel && q.k !== "quisuisje";
+    }).map(function (q) {
+      return { id: "rituel|" + q.n + "|" + q.d + "|" + q.q, cat: LIBELLE_TYPE[q.k] || "Question", consigne: "", recto: q.q, verso: q.r };
+    });
+  }
+  function estDue(id, maintenant) {
+    var r = prog.cartes[id];
+    if (!r) return true;
+    return maintenant - r.t >= INTERVALLES[Math.min(r.b, INTERVALLES.length - 1)] * JOUR;
+  }
+  function estMaitrisee(id) { var r = prog.cartes[id]; return !!r && r.b >= MAITRISE; }
+  function noterCarte(id, savait) {
+    var r = prog.cartes[id] || { b: 0, t: 0 };
+    r.b = savait ? Math.min(r.b + 1, INTERVALLES.length - 1) : 0;
+    r.t = Date.now();
+    prog.cartes[id] = r;
+    sauver();
+  }
+  // une erreur au quiz renvoie la carte correspondante en tête de la prochaine série
+  function oublierCarte(id) {
+    if (!id) return;
+    prog.cartes[id] = { b: 0, t: Date.now() };
+    sauver();
+  }
+  function maitriseChapitre(ch) {
+    var cs = cartesChapitre(ch);
+    var m = 0, vues = 0;
+    cs.forEach(function (c) {
+      if (prog.cartes[c.id]) vues++;
+      if (estMaitrisee(c.id)) m++;
+    });
+    return { total: cs.length, maitrisees: m, vues: vues, pct: cs.length ? Math.round(m / cs.length * 100) : 0 };
+  }
+  // ordre de passage : les cartes ratées, puis les nouvelles, puis celles dont c'est le moment
+  function choisirCartes(cartes, n) {
+    var maintenant = Date.now();
+    var dues = [], autres = [];
+    melanger(cartes).forEach(function (c) { (estDue(c.id, maintenant) ? dues : autres).push(c); });
+    function rang(c) { var r = prog.cartes[c.id]; return r ? (r.b === 0 ? 0 : r.b + 1) : 1; }
+    dues.sort(function (a, b) { return rang(a) - rang(b); });
+    autres.sort(function (a, b) { return prog.cartes[a.id].t - prog.cartes[b.id].t; });
+    return dues.concat(autres).slice(0, n);
+  }
+  function aRevoir(cartes) {
+    var maintenant = Date.now();
+    return cartes.filter(function (c) { return prog.cartes[c.id] && estDue(c.id, maintenant); }).length;
+  }
+
+  // ---------- Thème clair / sombre ----------
+  var themeActuel = lire(CLE_THEME, null);
+  if (themeActuel !== "dark" && themeActuel !== "light") {
+    themeActuel = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  function appliquerTheme() {
+    document.documentElement.setAttribute("data-theme", themeActuel);
+    var b = document.getElementById("btn-theme");
+    b.innerHTML = icone(themeActuel === "dark" ? "soleil" : "lune");
+    b.setAttribute("aria-label", themeActuel === "dark" ? "Passer en mode clair" : "Passer en mode sombre");
+  }
+  appliquerTheme();
+  document.getElementById("btn-theme").addEventListener("click", function () {
+    themeActuel = themeActuel === "dark" ? "light" : "dark";
+    ecrire(CLE_THEME, themeActuel);
+    appliquerTheme();
+  });
+
+  // ---------- QR code de la page courante, à projeter en classe ----------
+  var btnQr = document.getElementById("btn-qr");
+  btnQr.innerHTML = icone("qr");
+  btnQr.addEventListener("click", montrerQR);
+
+  function montrerQR() {
+    var url = location.href;
+    var ch = chapitre(routeActuelle().ch);
+    var titre = ch ? (nomNiveau(ch.n) + " — " + ch.titre) : "Réviser l'histoire-géo";
+    var boite = el("div", { class: "qr" });
+    if (typeof qrcode === "function") {
+      try {
+        var q = qrcode(0, "M");
+        q.addData(url);
+        q.make();
+        boite.innerHTML = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+      } catch (e) { boite = null; }
+    } else boite = null;
+
+    var precedent = document.activeElement;
+    var btnFermer = el("button", { class: "btn-icone fermer", type: "button", "aria-label": "Fermer", icone: "fermer" });
+    var voile = el("div", { class: "voile", role: "dialog", "aria-modal": "true", "aria-label": "QR code de la page" }, [
+      btnFermer,
+      el("h2", { text: titre }),
+      boite,
+      el("p", { class: "url", text: url }),
+      el("p", { class: "petit", text: "Scanne le code avec l'appareil photo de ton téléphone." })
+    ]);
+    function fermer() {
+      document.removeEventListener("keydown", surTouche, true);
+      voile.remove();
+      if (precedent && precedent.focus) precedent.focus();
+    }
+    function surTouche(e) {
+      if (e.key === "Escape" || e.key === "Tab") { e.preventDefault(); e.stopPropagation(); if (e.key === "Escape") fermer(); }
+    }
+    btnFermer.addEventListener("click", fermer);
+    voile.addEventListener("click", function (e) { if (e.target === voile) fermer(); });
+    document.addEventListener("keydown", surTouche, true);
+    document.body.appendChild(voile);
+    btnFermer.focus();
+  }
+
+  // ---------- Navigation (adresse après #) ----------
+  // #/                     accueil
+  // #/niveau/2nde          accueil sur un niveau
+  // #/express/2nde         révision express du niveau
+  // #/c/<chapitre>         page du chapitre
+  // #/c/<chapitre>/<outil> un outil du chapitre
+  function routeActuelle() {
+    var p = location.hash.replace(/^#\/?/, "").split("/").map(function (s) {
+      try { return decodeURIComponent(s); } catch (e) { return s; }
+    });
+    if (p[0] === "c") return { vue: p[2] ? "outil" : "chapitre", ch: p[1], outil: p[2] };
+    if (p[0] === "express") return { vue: "express", niveau: p[1] };
+    if (p[0] === "niveau") return { vue: "accueil", niveau: p[1] };
+    return { vue: "accueil" };
+  }
+  function lienChapitre(ch, outil) { return "#/c/" + encodeURIComponent(ch.id) + (outil ? "/" + outil : ""); }
+
+  var app = document.getElementById("app");
+  var surToucheVue = null; // raccourcis clavier de la vue affichée
+  document.addEventListener("keydown", function (e) {
+    if (!surToucheVue || e.altKey || e.ctrlKey || e.metaKey) return;
+    var cible = e.target;
+    if (cible && /^(INPUT|TEXTAREA|SELECT)$/.test(cible.tagName)) return;
+    surToucheVue(e);
+  });
+
+  function rendre() {
+    surToucheVue = null;
+    app.innerHTML = "";
+    var r = routeActuelle();
+    var ch = r.ch ? chapitre(r.ch) : null;
+    if ((r.vue === "chapitre" || r.vue === "outil") && !ch) { vueAccueil(); return; }
+    if (r.vue === "chapitre") vueChapitre(ch);
+    else if (r.vue === "outil") {
+      var outil = OUTILS.filter(function (o) { return o.id === r.outil; })[0];
+      if (!outil || !outil.dispo(ch)) { vueChapitre(ch); return; }
+      document.title = outil.nom + " — " + ch.titre;
+      app.appendChild(lienRetour(lienChapitre(ch), "Retour au chapitre"));
+      app.appendChild(el("div", { class: "chap-entete" }, [
+        el("div", { class: "meta" }, [
+          el("span", { class: "tag" + (ch.d === "geo" ? " geo" : ""), text: DISC[ch.d] }),
+          el("span", { class: "petit", text: nomNiveau(ch.n) + " · " + ch.num })
+        ]),
+        el("h1", { text: outil.nom }),
+        el("p", { class: "petit", style: "margin:4px 0 0", text: ch.titre })
+      ]));
+      outil.vue(ch, app);
+    }
+    else if (r.vue === "express") vueExpress(r.niveau);
+    else {
+      if (r.niveau && NIVEAUX.some(function (n) { return n.id === r.niveau; })) { prog.niveau = r.niveau; sauver(); }
+      vueAccueil();
+    }
+  }
+  window.addEventListener("hashchange", function () { rendre(); window.scrollTo(0, 0); });
+
+  function lienRetour(href, texte) {
+    var a = el("a", { class: "retour", href: href });
+    a.innerHTML = icone("retour");
+    a.appendChild(document.createTextNode(texte));
+    return a;
+  }
+
+  // ---------- Accueil : les classes, puis le plan de l'année de la classe choisie ----------
+  function vueAccueil() {
+    document.title = "Réviser — Histoire-Géographie";
+    var niveau = prog.niveau && NIVEAUX.some(function (n) { return n.id === prog.niveau; }) ? prog.niveau : null;
+
+    app.appendChild(el("div", { class: "intro" }, [
+      el("h1", { text: "La boîte à outils de la classe" }),
+      el("p", { text: "Choisis ta classe, puis un chapitre : l'essentiel du cours, des cartes mémoire, des quiz et des jeux pour retenir." })
+    ]));
+    if (!DONNEES_OK) {
+      app.appendChild(el("div", { class: "alerte", role: "alert" }, [
+        el("strong", { text: "Les fiches de révision n'ont pas pu être chargées." }),
+        " Ouvre la page depuis le site, puis recharge-la : un simple aperçu du fichier ne suffit pas."
+      ]));
+    }
+
+    app.appendChild(el("div", { class: "etiq", text: "Ma classe" }));
+    var choix = el("div", { class: "choix", role: "group", "aria-label": "Ma classe" });
+    NIVEAUX.forEach(function (n) {
+      choix.appendChild(el("button", {
+        class: "opt", type: "button", text: n.nom, "aria-pressed": String(n.id === niveau),
+        onclick: function () { location.hash = "#/niveau/" + n.id; }
+      }));
+    });
+    app.appendChild(choix);
+
+    if (!niveau) {
+      app.appendChild(el("p", { class: "vide", text: "Commence par choisir ta classe." }));
+      piedAccueil();
+      return;
+    }
+
+    var chaps = chapitresNiveau(niveau);
+    var classe = PLAN.filter(function (c) { return c.id === niveau; })[0];
+    var annee = classe && Array.isArray(classe.annee) ? classe.annee : [];
+    var total = 0;
+    annee.forEach(function (t) { total += liste(t, "chapitres").length; });
+
+    if (total) {
+      app.appendChild(el("p", { class: "avancement", text: chaps.length
+        ? pluriel(chaps.length, "chapitre prêt", "chapitres prêts") + " sur " + total + " : les autres arrivent au fil de l'année."
+        : "Les chapitres arrivent au fil de l'année : reviens bientôt !" }));
+    }
+
+    if (chaps.length) {
+      var toutes = [];
+      chaps.forEach(function (ch) { toutes = toutes.concat(cartesChapitre(ch)); });
+      var nbRevoir = aRevoir(toutes);
+      var ex = el("a", { class: "express", href: "#/express/" + niveau });
+      ex.innerHTML = icone("eclair");
+      ex.appendChild(el("span", null, [
+        el("strong", { text: "Révision express" }),
+        el("span", { class: "sous", text: nbRevoir
+          ? pluriel(nbRevoir, "carte") + " à revoir aujourd'hui, tous chapitres confondus"
+          : "Une série de cartes piochées dans tous tes chapitres" })
+      ]));
+      app.appendChild(ex);
+    }
+
+    ["histoire", "geo"].forEach(function (d) {
+      var themes = annee.filter(function (t) { return t.d === d; });
+      var fiches = chaps.filter(function (c) { return c.d === d; });
+      if (!themes.length && !fiches.length) return;
+      app.appendChild(el("div", { class: "etiq", text: DISC[d] }));
+      var placees = {};
+      themes.forEach(function (t) {
+        app.appendChild(el("div", { class: "theme-titre", text: t.theme }));
+        liste(t, "chapitres").forEach(function (c) {
+          var ch = c.fiche ? chapitre(c.fiche) : null;
+          if (ch && ch.n === niveau) { placees[ch.id] = true; app.appendChild(carteChapitre(ch)); }
+          else app.appendChild(el("div", { class: "chap a-venir" + (d === "geo" ? " geo" : "") }, [
+            el("div", { class: "chap-num", text: c.num + " · à venir" }),
+            el("div", { class: "chap-titre", text: c.titre })
+          ]));
+        });
+      });
+      // une fiche que le plan de l'année ne mentionne pas reste accessible
+      var horsPlan = fiches.filter(function (c) { return !placees[c.id]; });
+      if (horsPlan.length && themes.length) app.appendChild(el("div", { class: "theme-titre", text: "Autres fiches" }));
+      horsPlan.forEach(function (ch) { app.appendChild(carteChapitre(ch)); });
+    });
+    piedAccueil();
+  }
+
+  function carteChapitre(ch) {
+    var m = maitriseChapitre(ch);
+    var barre = el("div", { class: "barre", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(m.pct), "aria-label": "Cartes maîtrisées" }, el("span"));
+    barre.firstChild.style.width = m.pct + "%";
+    return el("a", { class: "chap" + (ch.d === "geo" ? " geo" : ""), href: lienChapitre(ch) }, [
+      el("div", { class: "chap-num", text: ch.num }),
+      el("div", { class: "chap-titre", text: ch.titre }),
+      el("div", { class: "chap-prog" }, [barre, el("span", { text: m.vues ? m.pct + " % maîtrisé" : "pas encore commencé" })])
+    ]);
+  }
+
+  function piedAccueil() {
+    app.appendChild(el("div", { class: "pied" }, [
+      el("span", { text: "Tes progrès restent sur cet appareil : rien n'est envoyé." }),
+      el("button", { class: "lien-discret", type: "button", text: "Effacer mes progrès", onclick: function () {
+        if (!confirm("Effacer tous tes progrès (cartes, quiz, auto-évaluation) sur cet appareil ?")) return;
+        var niveau = prog.niveau;
+        prog = { cartes: {}, quiz: {}, point: {}, niveau: niveau };
+        sauver();
+        rendre();
+      } })
+    ]));
+  }
+
+  // ---------- Page d'un chapitre ----------
+  function vueChapitre(ch) {
+    document.title = ch.titre + " — Réviser";
+    if (prog.niveau !== ch.n) { prog.niveau = ch.n; sauver(); }
+    app.appendChild(lienRetour("#/", "Tous les chapitres"));
+    app.appendChild(el("div", { class: "chap-entete" }, [
+      el("div", { class: "meta" }, [
+        el("span", { class: "tag" + (ch.d === "geo" ? " geo" : ""), text: DISC[ch.d] }),
+        el("span", { class: "petit", text: nomNiveau(ch.n) + " · " + ch.num })
+      ]),
+      el("h1", { text: ch.titre }),
+      ch.question ? el("div", { class: "question" }, [el("small", { text: "Question du chapitre" }), ch.question]) : null
+    ]));
+
+    app.appendChild(el("div", { class: "etiq", text: "Mes outils" }));
+    var grille = el("div", { class: "outils" });
+    OUTILS.forEach(function (o) {
+      if (!o.dispo(ch)) return;
+      var a = el("a", { class: "outil" + (ch.d === "geo" ? " geo" : ""), href: lienChapitre(ch, o.id) });
+      var past = el("span", { class: "pastille" });
+      past.innerHTML = icone(o.icone);
+      a.appendChild(past);
+      a.appendChild(el("strong", { text: o.nom }));
+      a.appendChild(el("span", { class: "info", text: o.info(ch) }));
+      grille.appendChild(a);
+    });
+    app.appendChild(grille);
+  }
+
+  // ---------- Les outils ----------
+  var OUTILS = [
+    { id: "essentiel", nom: "L'essentiel", icone: "essentiel",
+      dispo: function () { return true; },
+      info: function () { return "La fiche de révision : frise, notions, à retenir"; },
+      vue: vueEssentiel },
+    { id: "cartes", nom: "Cartes mémoire", icone: "cartes",
+      dispo: function (ch) { return cartesChapitre(ch).length > 0; },
+      info: function (ch) { var m = maitriseChapitre(ch); return pluriel(m.total, "carte") + " · " + m.maitrisees + " maîtrisée" + (m.maitrisees > 1 ? "s" : ""); },
+      vue: function (ch, cible) { vueCartes(cible, cartesChapitre(ch), { retour: lienChapitre(ch), progresChapitre: ch }); } },
+    { id: "quiz", nom: "Quiz", icone: "quiz",
+      dispo: function (ch) { return genererQuiz(ch, 10).length >= 4; },
+      info: function (ch) { var b = prog.quiz[ch.id]; return b ? "Meilleur score : " + b.score + " / " + b.sur : "10 questions, corrigées tout de suite"; },
+      vue: vueQuiz },
+    { id: "frise", nom: "Frise à reconstituer", icone: "frise",
+      dispo: function (ch) { return evenementsFrise(ch).length >= 4; },
+      info: function () { return "Remets les événements dans l'ordre"; },
+      vue: vueFriseJeu },
+    { id: "associer", nom: "Associer", icone: "associer",
+      dispo: function (ch) { return sourcesAssocier(ch).length > 0; },
+      info: function () { return "Relie chaque mot à sa définition"; },
+      vue: vueAssocier },
+    { id: "trous", nom: "Texte à trous", icone: "trous",
+      dispo: function (ch) { return liste(ch, "trous").length > 0; },
+      info: function (ch) { var n = liste(ch, "trous").length; return n > 1 ? n + " traces écrites à compléter" : "La trace écrite à compléter"; },
+      vue: vueTrous },
+    { id: "quisuisje", nom: "Qui suis-je ?", icone: "quisuisje",
+      dispo: function (ch) { return itemsQuiSuisJe(ch).length >= 2; },
+      info: function (ch) { return "Trouve avec le moins d'indices possible"; },
+      vue: vueQuiSuisJe },
+    { id: "rituel", nom: "Questions des rituels", icone: "rituel",
+      dispo: function (ch) { return cartesRituel(ch).length > 0; },
+      info: function (ch) { return pluriel(cartesRituel(ch).length, "question") + " posée" + (cartesRituel(ch).length > 1 ? "s" : "") + " en début de cours"; },
+      vue: function (ch, cible) {
+        cible.appendChild(el("p", { class: "consigne-outil", text: "Les questions des rituels de début d'heure sur ce thème. Réponds dans ta tête, puis retourne la carte." }));
+        vueCartes(cible, cartesRituel(ch), { retour: lienChapitre(ch) });
+      } },
+    { id: "point", nom: "Je fais le point", icone: "point",
+      dispo: function (ch) { return liste(ch, "capable").length > 0; },
+      info: function (ch) { return "Ce que je sais faire, ce que je dois revoir"; },
+      vue: vuePoint }
+  ];
+
+  // ---------- L'essentiel ----------
+  function vueEssentiel(ch, cible) {
+    var btnImp = el("button", { class: "btn noprint", type: "button", onclick: function () { window.print(); } }, avecIcone("imprimer", "Imprimer la fiche"));
+    cible.appendChild(el("div", { class: "btns noprint", style: "margin-top:6px" }, btnImp));
+
+    if (ch.question) cible.appendChild(el("div", { class: "question" }, [el("small", { text: "Question du chapitre" }), ch.question]));
+    if (ch.cle) {
+      cible.appendChild(el("div", { class: "etiq", text: "À retenir" }));
+      cible.appendChild(el("div", { class: "cle", text: ch.cle }));
+    }
+    if (liste(ch, "plan").length) {
+      cible.appendChild(el("div", { class: "etiq", text: "Le plan" }));
+      var ol = el("ol", { class: "plan" });
+      liste(ch, "plan").forEach(function (p) { ol.appendChild(el("li", { text: p })); });
+      cible.appendChild(ol);
+    }
+
+    var reps = trierReperes(liste(ch, "reperes"));
+    var pers = liste(ch, "periodes");
+    if (reps.length || pers.length) {
+      cible.appendChild(el("div", { class: "etiq", text: "La frise" }));
+      cible.appendChild(blocFrise(reps, pers, cible));
+      if (reps.length) {
+        var ul = el("ul", { class: "reperes" });
+        reps.forEach(function (r, i) {
+          ul.appendChild(el("li", null, [
+            el("span", { class: "num-rond", text: String(i + 1) }),
+            el("div", null, [el("span", { class: "date", text: r.date }), r.txt])
+          ]));
+        });
+        cible.appendChild(ul);
+      }
+    }
+    var avecDetail = pers.filter(function (p) { return p.detail; });
+    if (avecDetail.length) {
+      cible.appendChild(el("div", { class: "etiq", text: "Qui détient la souveraineté ? Qui vote ?" }));
+      var tb = el("tbody");
+      avecDetail.forEach(function (p) {
+        var i = pers.indexOf(p);
+        var nom = el("td");
+        var pastille = el("span", { class: "pastille-couleur" });
+        pastille.style.background = "var(--b" + (i % 4) + ")";
+        nom.appendChild(pastille);
+        nom.appendChild(document.createTextNode(p.nom));
+        tb.appendChild(el("tr", null, [
+          nom,
+          el("td", { text: Math.floor(valeurDate(p.de)) + "-" + Math.floor(valeurDate(p.a)) }),
+          el("td", { text: p.detail })
+        ]));
+      });
+      cible.appendChild(el("table", { class: "regimes" }, [
+        el("thead", null, el("tr", null, [el("th", { text: "Régime" }), el("th", { text: "Dates" }), el("th", { text: "Souveraineté, vote" })])),
+        tb
+      ]));
+    }
+
+    if (liste(ch, "notions").length) {
+      cible.appendChild(el("div", { class: "etiq", text: "Les notions" }));
+      var g = el("div", { class: "grille" });
+      liste(ch, "notions").forEach(function (n) {
+        g.appendChild(el("div", { class: "notion" }, [el("strong", { text: n.mot }), el("p", { text: n.def })]));
+      });
+      cible.appendChild(g);
+    }
+    if (liste(ch, "personnages").length) {
+      cible.appendChild(el("div", { class: "etiq", text: "Les acteurs" }));
+      var gp = el("div", { class: "grille" });
+      liste(ch, "personnages").forEach(function (p) {
+        gp.appendChild(el("div", { class: "notion" }, [
+          el("strong", { text: p.nom }), el("span", { class: "dates", text: p.dates }), el("p", { text: p.txt.join(" ") })
+        ]));
+      });
+      cible.appendChild(gp);
+    }
+    if (liste(ch, "lieux").length) {
+      cible.appendChild(el("div", { class: "etiq", text: "Les lieux" }));
+      var gl = el("div", { class: "grille" });
+      liste(ch, "lieux").forEach(function (l) {
+        gl.appendChild(el("div", { class: "notion" }, [el("strong", { text: l.nom }), el("p", { text: l.txt })]));
+      });
+      cible.appendChild(gl);
+    }
+    if (liste(ch, "essentiel").length) {
+      cible.appendChild(el("div", { class: "etiq", text: "L'essentiel du cours" }));
+      var ue = el("ul", { class: "points carte-panneau" });
+      liste(ch, "essentiel").forEach(function (t) { ue.appendChild(el("li", { text: t })); });
+      cible.appendChild(ue);
+    }
+  }
+
+  function trierReperes(reps) {
+    return reps.slice().sort(function (a, b) { return valeurDate(a.a) - valeurDate(b.a); });
+  }
+
+  // ---------- Frise proportionnelle (SVG) ----------
+  // Les repères sont numérotés sur la frise ; la liste en dessous donne le détail.
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs, texte) {
+    var e = document.createElementNS(SVGNS, tag);
+    Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+    if (texte !== undefined) e.textContent = texte;
+    return e;
+  }
+  function blocFrise(reps, periodes, conteneur) {
+    var boite = el("div", { class: "frise-boite" });
+    var largeur = Math.max(300, Math.min(760, (conteneur.clientWidth || app.clientWidth || 360)) - 14);
+    boite.appendChild(dessinerFrise(reps, periodes, largeur));
+    return boite;
+  }
+  function dessinerFrise(reps, periodes, W) {
+    var vals = [];
+    reps.forEach(function (r) { vals.push(valeurDate(r.a)); if (r.b !== undefined) vals.push(valeurDate(r.b)); });
+    periodes.forEach(function (p) { vals.push(valeurDate(p.de)); vals.push(valeurDate(p.a)); });
+    var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+    if (max - min < 1) { min -= 1; max += 1; }
+    var marge = (max - min) * 0.05;
+    min -= marge; max += marge;
+    var etendue = max - min, padX = 10, iw = W - 2 * padX;
+    function x(v) { return padX + (v - min) / etendue * iw; }
+
+    // bandes des périodes : l'étiquette va dans la bande, ou à côté si elle n'y tient pas ;
+    // une bande (avec son étiquette) qui en chevauche une autre passe à la ligne suivante
+    var lignesP = [];
+    var bandes = periodes.map(function (p, i) {
+      var nom = p.court || p.nom;
+      var x1 = x(valeurDate(p.de)), x2 = x(valeurDate(p.a));
+      var larg = Math.max(3, x2 - x1), tw = nom.length * 6.3;
+      var b = { p: p, nom: nom, i: i, x1: x1, x2: x2, larg: larg };
+      if (tw + 10 < larg) { b.tx = x1 + larg / 2; b.ancre = "middle"; b.e1 = x1; b.e2 = x2; }
+      else if (x2 + 6 + tw < W) { b.tx = x2 + 6; b.ancre = "start"; b.e1 = x1; b.e2 = x2 + 6 + tw; }
+      else { b.tx = x1 - 6; b.ancre = "end"; b.e1 = x1 - 6 - tw; b.e2 = x2; }
+      return b;
+    }).sort(function (a, b) { return a.e1 - b.e1; });
+    bandes.forEach(function (b) {
+      var l = 0;
+      while (lignesP[l] !== undefined && lignesP[l] > b.e1 - 4) l++;
+      lignesP[l] = b.e2;
+      b.l = l;
+    });
+    var hB = 24, ecart = 5, haut = 4;
+    var yTicks = haut + lignesP.length * (hB + ecart) + 12;
+    var yAxe = yTicks + 8;
+
+    // graduations
+    var pasPossibles = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000];
+    var cible = Math.max(4, Math.floor(iw / 62));
+    var pas = pasPossibles.filter(function (p) { return etendue / p <= cible + 1; })[0] || 1000;
+
+    // pastilles numérotées des repères, sur plusieurs rangées si elles sont proches
+    var R = 10, rangees = [];
+    var marques = reps.map(function (r, i) {
+      var cx = x(valeurDate(r.a));
+      var k = 0;
+      while (rangees[k] !== undefined && rangees[k] > cx - 2 * R - 3) k++;
+      rangees[k] = cx;
+      return { r: r, i: i, cx: cx, x2: r.b !== undefined ? x(valeurDate(r.b)) : null, k: k };
+    });
+    var yPremier = yAxe + 22, pasRangee = 25;
+    var H = yPremier + Math.max(rangees.length, 1) * pasRangee - 8;
+
+    var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "Frise chronologique du chapitre" });
+    bandes.forEach(function (b) {
+      var y = haut + b.l * (hB + ecart);
+      var rect = svgEl("rect", { x: b.x1, y: y, width: b.larg, height: hB, rx: 5, class: "f-bande" });
+      rect.style.fill = "var(--b" + (b.i % 4) + ")";
+      rect.appendChild(svgEl("title", {}, b.p.nom));
+      svg.appendChild(rect);
+      svg.appendChild(svgEl("text", { x: b.tx, y: y + hB / 2 + 4, "text-anchor": b.ancre, class: "f-bande-txt" }, b.nom));
+    });
+    for (var t = Math.ceil(min / pas) * pas; t <= max; t += pas) {
+      var tx2 = x(t);
+      svg.appendChild(svgEl("line", { x1: tx2, y1: yAxe - 5, x2: tx2, y2: yAxe + 5, class: "f-tick" }));
+      var lib = t === 0 ? "J.-C." : (t < 0 ? "−" + (-t) : String(t));
+      svg.appendChild(svgEl("text", { x: tx2, y: yTicks, "text-anchor": "middle", class: "f-tick-txt" }, lib));
+    }
+    svg.appendChild(svgEl("line", { x1: padX, y1: yAxe, x2: W - padX, y2: yAxe, class: "f-axe" }));
+    // d'abord les durées et les traits de rappel, puis les pastilles par-dessus
+    marques.forEach(function (m) {
+      if (m.x2 !== null) svg.appendChild(svgEl("line", { x1: m.cx, y1: yAxe, x2: m.x2, y2: yAxe, class: "f-duree" }));
+      svg.appendChild(svgEl("line", { x1: m.cx, y1: yAxe, x2: m.cx, y2: yPremier + m.k * pasRangee - R, class: "f-lien" }));
+    });
+    marques.forEach(function (m) {
+      var cy = yPremier + m.k * pasRangee;
+      svg.appendChild(svgEl("circle", { cx: m.cx, cy: yAxe, r: 3.5, class: "f-pt" }));
+      svg.appendChild(svgEl("circle", { cx: m.cx, cy: cy, r: R, class: "f-pt" }));
+      svg.appendChild(svgEl("text", { x: m.cx, y: cy + 3.8, "text-anchor": "middle", class: "f-num" }, String(m.i + 1)));
+      var titre = svgEl("title", {}, m.r.date + " — " + m.r.txt);
+      svg.lastChild.appendChild(titre);
+    });
+    return svg;
+  }
+
+  // ---------- Cartes mémoire ----------
+  // options : retour (lien), progresChapitre (chapitre dont on affiche la maîtrise), taille
+  function vueCartes(cible, toutes, options) {
+    var zone = el("div");
+    cible.appendChild(zone);
+    var taille = options.taille || TAILLE_SERIE;
+    var file, pos, retournee, premierCoup, aRevoirListe, remises;
+
+    function nouvelleSerie() {
+      file = choisirCartes(toutes, taille);
+      pos = 0; retournee = false; premierCoup = 0; aRevoirListe = []; remises = {};
+      dessiner();
+    }
+
+    function dessiner() {
+      zone.innerHTML = "";
+      if (!file.length) {
+        zone.appendChild(el("p", { class: "vide", text: "Aucune carte pour l'instant." }));
+        return;
+      }
+      if (pos >= file.length) { dessinerBilan(); return; }
+      var c = file[pos];
+      var barre = el("div", { class: "barre" }, el("span"));
+      barre.firstChild.style.width = Math.round(pos / file.length * 100) + "%";
+      zone.appendChild(el("div", { class: "compteur" }, [el("span", { text: "Carte " + (pos + 1) + " sur " + file.length }), barre]));
+
+      var carte = el("button", { class: "flash" + (retournee ? " retournee" : ""), type: "button", "aria-label": retournee ? "Carte retournée : réponse affichée" : "Retourner la carte" }, [
+        el("span", { class: "flash-in" }, [
+          el("span", { class: "face recto", "aria-hidden": retournee ? "true" : null }, [
+            el("span", { class: "cat", text: c.cat }),
+            c.consigne ? el("span", { class: "consigne", text: c.consigne }) : null,
+            el("span", { class: "texte" + (c.grand ? " grand" : ""), text: c.recto }),
+            el("span", { class: "aide", text: "Touche la carte pour voir la réponse" })
+          ]),
+          el("span", { class: "face verso", "aria-hidden": retournee ? null : "true" }, [
+            el("span", { class: "cat", text: "Réponse" }),
+            el("span", { class: "texte" + (c.versoGrand ? " grand" : ""), text: c.verso }),
+            c.rappel ? el("span", { class: "rappel", text: c.rappel }) : null
+          ])
+        ])
+      ]);
+      carte.addEventListener("click", function () { if (!retournee) retourner(); });
+      zone.appendChild(carte);
+
+      if (retournee) {
+        zone.appendChild(el("div", { class: "actions-flash" }, [
+          el("button", { class: "btn revoir", type: "button", text: "À revoir", onclick: function () { repondre(false); } }),
+          el("button", { class: "btn savais", type: "button", text: "Je savais", onclick: function () { repondre(true); } })
+        ]));
+      } else {
+        zone.appendChild(el("div", { class: "actions-flash", style: "grid-template-columns:1fr" }, [
+          el("button", { class: "btn plein", type: "button", text: "Voir la réponse", onclick: retourner })
+        ]));
+      }
+      zone.appendChild(el("p", { class: "raccourcis", text: "Au clavier : Espace pour retourner, ← à revoir, → je savais" }));
+    }
+
+    function retourner() {
+      retournee = true;
+      var carte = zone.querySelector(".flash");
+      carte.classList.add("retournee");
+      // on garde la carte (animation), on remplace seulement les boutons
+      var actions = zone.querySelector(".actions-flash");
+      var nouv = el("div", { class: "actions-flash" }, [
+        el("button", { class: "btn revoir", type: "button", text: "À revoir", onclick: function () { repondre(false); } }),
+        el("button", { class: "btn savais", type: "button", text: "Je savais", onclick: function () { repondre(true); } })
+      ]);
+      actions.parentNode.replaceChild(nouv, actions);
+      carte.setAttribute("aria-label", "Réponse : " + file[pos].verso);
+      carte.querySelector(".recto").setAttribute("aria-hidden", "true");
+      carte.querySelector(".verso").removeAttribute("aria-hidden");
+      // le focus reste sur la carte : l'Espace qui vient de la retourner ne doit pas valider « Je savais »
+      carte.focus();
+      annoncer("Réponse : " + file[pos].verso);
+    }
+
+    function repondre(savait) {
+      var c = file[pos];
+      noterCarte(c.id, savait);
+      if (!remises[c.id]) {
+        if (savait) premierCoup++;
+        else aRevoirListe.push(c);
+      }
+      // une carte ratée repasse en fin de série (une fois)
+      if (!savait && !remises[c.id]) { remises[c.id] = true; file.push(c); }
+      pos++; retournee = false;
+      dessiner();
+      var f = zone.querySelector(".flash");
+      if (f) f.focus();
+    }
+
+    function dessinerBilan() {
+      var vues = file.length - Object.keys(remises).length;
+      var b = el("div", { class: "bilan carte-panneau" }, [
+        el("div", { class: "gros", text: premierCoup + " / " + vues }),
+        el("p", { text: "carte" + (vues > 1 ? "s" : "") + " sue" + (premierCoup > 1 ? "s" : "") + " du premier coup" })
+      ]);
+      if (options.progresChapitre) {
+        var m = maitriseChapitre(options.progresChapitre);
+        var barre = el("div", { class: "barre", style: "max-width:320px;margin:6px auto 4px" }, el("span"));
+        barre.firstChild.style.width = m.pct + "%";
+        b.appendChild(barre);
+        b.appendChild(el("p", { class: "petit", text: "Chapitre : " + m.maitrisees + " carte" + (m.maitrisees > 1 ? "s" : "") + " maîtrisée" + (m.maitrisees > 1 ? "s" : "") + " sur " + m.total + ". Une carte est maîtrisée quand tu l'as sue plusieurs fois, à quelques jours d'écart." }));
+      }
+      if (aRevoirListe.length) {
+        b.appendChild(el("p", { class: "petit", text: aRevoirListe.length > 1
+          ? "Les " + aRevoirListe.length + " cartes à revoir reviendront en premier à la prochaine série."
+          : "La carte à revoir reviendra en premier à la prochaine série." }));
+      }
+      b.appendChild(el("div", { class: "btns" }, [
+        el("button", { class: "btn plein", type: "button", text: "Nouvelle série", onclick: nouvelleSerie }),
+        options.retour ? el("a", { class: "btn", href: options.retour, text: "Retour" }) : null
+      ]));
+      zone.appendChild(b);
+      b.querySelector(".btn").focus();
+    }
+
+    surToucheVue = function (e) {
+      if (!file || pos >= file.length) return;
+      if (e.key === " " || e.key === "Enter") {
+        if (!retournee && (document.activeElement === document.body || zone.contains(document.activeElement))) {
+          if (e.key === " " || document.activeElement.classList.contains("flash")) { e.preventDefault(); retourner(); }
+        }
+      } else if (retournee && (e.key === "ArrowLeft" || e.key === "1")) { e.preventDefault(); repondre(false); }
+      else if (retournee && (e.key === "ArrowRight" || e.key === "2")) { e.preventDefault(); repondre(true); }
+    };
+
+    nouvelleSerie();
+  }
+
+  // ---------- Révision express ----------
+  function vueExpress(niveau) {
+    if (!NIVEAUX.some(function (n) { return n.id === niveau; })) { vueAccueil(); return; }
+    document.title = "Révision express — Réviser";
+    app.appendChild(lienRetour("#/", "Tous les chapitres"));
+    app.appendChild(el("div", { class: "chap-entete" }, [
+      el("div", { class: "meta" }, el("span", { class: "petit", text: nomNiveau(niveau) + " · tous les chapitres" })),
+      el("h1", { text: "Révision express" })
+    ]));
+    var toutes = [];
+    chapitresNiveau(niveau).forEach(function (ch) { toutes = toutes.concat(cartesChapitre(ch)); });
+    app.appendChild(el("p", { class: "consigne-outil", text: "D'abord les cartes ratées et celles qu'il est temps de revoir, puis de nouvelles." }));
+    vueCartes(app, toutes, { retour: "#/", taille: 15 });
+  }
+
+  // ---------- Quiz ----------
+  function uniquesPar(items, cle) {
+    var vus = {}, out = [];
+    items.forEach(function (x) { var k = normaliser(cle(x)); if (!vus[k]) { vus[k] = true; out.push(x); } });
+    return out;
+  }
+  // 3 mauvaises réponses : d'abord dans le chapitre, puis dans les autres chapitres du niveau
+  function propositions(bonne, memeChap, autres, valeur, ident) {
+    var exclus = {};
+    exclus[normaliser(valeur(bonne))] = true;
+    exclus["id:" + normaliser(ident(bonne))] = true;
+    var choisies = [];
+    [melanger(memeChap), melanger(autres)].forEach(function (groupe) {
+      groupe.forEach(function (x) {
+        if (choisies.length >= 3) return;
+        var v = normaliser(valeur(x)), id = "id:" + normaliser(ident(x));
+        if (exclus[v] || exclus[id]) return;
+        exclus[v] = true; exclus[id] = true;
+        choisies.push(valeur(x));
+      });
+    });
+    if (choisies.length < 3) return null;
+    return melanger([valeur(bonne)].concat(choisies));
+  }
+  function autresDuNiveau(ch, champ) {
+    var out = [];
+    chapitresNiveau(ch.n).forEach(function (c) { if (c.id !== ch.id) out = out.concat(liste(c, champ)); });
+    return out;
+  }
+  function genererQuiz(ch, nb) {
+    var qs = [];
+    var notions = liste(ch, "notions"), autresN = autresDuNiveau(ch, "notions");
+    var mot = function (n) { return n.mot; }, def = function (n) { return n.def; };
+    notions.forEach(function (n) {
+      var o1 = propositions(n, notions, autresN, mot, mot);
+      if (o1) qs.push({ item: "n" + n.mot, consigne: "Quelle notion correspond à cette définition ?", enonce: n.def, bonne: n.mot, options: o1, carte: ch.id + "|n<|" + n.mot, expl: n.mot + " : " + n.def });
+      var o2 = propositions(n, notions, autresN, def, mot);
+      if (o2) qs.push({ item: "n" + n.mot, consigne: "Que signifie ce mot ?", enonce: n.mot, grand: true, bonne: n.def, options: o2, carte: ch.id + "|n>|" + n.mot, expl: n.mot + " : " + n.def });
+    });
+    var reps = liste(ch, "reperes"), autresR = autresDuNiveau(ch, "reperes");
+    var date = function (r) { return r.date; }, txt = function (r) { return r.txt; };
+    reps.forEach(function (r) {
+      var o1 = propositions(r, reps, autresR, txt, date);
+      if (o1) qs.push({ item: "d" + r.date, consigne: "Que s'est-il passé à cette date ?", enonce: r.date, grand: true, bonne: r.txt, options: o1, carte: ch.id + "|d>|" + r.date, expl: r.date + " : " + r.txt });
+      var o2 = propositions(r, reps, autresR, date, txt);
+      if (o2) qs.push({ item: "d" + r.date, consigne: "À quelle date ?", enonce: r.txt, bonne: r.date, options: o2, carte: ch.id + "|d<|" + r.date, expl: r.date + " : " + r.txt });
+    });
+    var pers = liste(ch, "personnages"), autresP = autresDuNiveau(ch, "personnages");
+    var nom = function (p) { return p.nom; };
+    pers.forEach(function (p) {
+      var o = propositions(p, pers, autresP, nom, nom);
+      if (o) qs.push({ item: "p" + p.nom, consigne: "Qui est-ce ?", enonce: p.txt.join(" "), bonne: p.nom, options: o, carte: ch.id + "|p|" + p.nom, expl: p.nom + " (" + p.dates + ")" });
+    });
+    var lieux = liste(ch, "lieux"), autresL = autresDuNiveau(ch, "lieux");
+    lieux.forEach(function (l) {
+      var o = propositions(l, lieux, autresL, nom, nom);
+      if (o) qs.push({ item: "l" + l.nom, consigne: "De quel lieu s'agit-il ?", enonce: l.txt, bonne: l.nom, options: o, carte: ch.id + "|l|" + l.nom, expl: l.nom + " : " + l.txt });
+    });
+    // une seule question par notion, date, personnage ou lieu
+    var vus = {}, choisies = [];
+    melanger(qs).forEach(function (q) {
+      if (choisies.length >= nb || vus[q.item]) return;
+      vus[q.item] = true;
+      choisies.push(q);
+    });
+    return choisies;
+  }
+
+  function vueQuiz(ch, cible) {
+    var zone = el("div");
+    cible.appendChild(zone);
+    var qs, pos, score, repondu, erreurs;
+
+    function demarrer() {
+      qs = genererQuiz(ch, 10);
+      pos = 0; score = 0; repondu = false; erreurs = [];
+      dessiner();
+    }
+    function dessiner() {
+      zone.innerHTML = "";
+      if (pos >= qs.length) { bilan(); return; }
+      var q = qs[pos];
+      var barre = el("div", { class: "barre" }, el("span"));
+      barre.firstChild.style.width = Math.round(pos / qs.length * 100) + "%";
+      zone.appendChild(el("div", { class: "compteur" }, [el("span", { text: "Question " + (pos + 1) + " sur " + qs.length + " · " + score + " juste" + (score > 1 ? "s" : "") }), barre]));
+      var panneau = el("div", { class: "carte-panneau" });
+      panneau.appendChild(el("div", { class: "q-consigne", text: q.consigne }));
+      panneau.appendChild(el("div", { class: "q-enonce" + (q.grand ? " grand" : ""), text: q.enonce }));
+      var opts = el("div", { class: "options", role: "group", "aria-label": "Propositions" });
+      q.options.forEach(function (o, i) {
+        var b = el("button", { class: "option", type: "button" }, [el("span", { class: "lettre", text: "ABCD"[i] }), el("span", { text: o })]);
+        b.addEventListener("click", function () { choisir(o, b); });
+        opts.appendChild(b);
+      });
+      panneau.appendChild(opts);
+      zone.appendChild(panneau);
+      var premier = opts.querySelector("button");
+      if (premier && pos > 0) premier.focus();
+    }
+    function choisir(o, bouton) {
+      if (repondu) return;
+      repondu = true;
+      var q = qs[pos];
+      var juste = o === q.bonne;
+      if (juste) score++;
+      else { erreurs.push(q); oublierCarte(q.carte); }
+      zone.querySelectorAll(".option").forEach(function (b) {
+        b.disabled = true;
+        if (b.lastChild.textContent === q.bonne) b.classList.add("juste");
+      });
+      if (!juste) bouton.classList.add("faux");
+      var retour = el("div", { class: "retour-q " + (juste ? "bien" : "mal") }, [
+        el("strong", { text: juste ? "Bonne réponse !" : "Pas tout à fait." }),
+        el("span", { text: q.expl })
+      ]);
+      var suivant = el("button", { class: "btn plein", type: "button", text: pos === qs.length - 1 ? "Voir mon score" : "Question suivante", onclick: function () { pos++; repondu = false; dessiner(); } });
+      var panneau = zone.querySelector(".carte-panneau");
+      panneau.appendChild(retour);
+      panneau.appendChild(el("div", { class: "btns" }, suivant));
+      annoncer((juste ? "Bonne réponse. " : "Pas tout à fait. ") + q.expl);
+      suivant.focus();
+    }
+    function bilan() {
+      var ancien = prog.quiz[ch.id];
+      if (!ancien || score / qs.length > ancien.score / ancien.sur) { prog.quiz[ch.id] = { score: score, sur: qs.length, t: Date.now() }; sauver(); }
+      var msg = score === qs.length ? "Parfait !" : score >= qs.length * 0.7 ? "Très bien !" : score >= qs.length * 0.5 ? "C'est en bonne voie." : "Encore un effort : revois les cartes, puis recommence.";
+      var b = el("div", { class: "bilan carte-panneau" }, [
+        el("div", { class: "gros", text: score + " / " + qs.length }),
+        el("p", { text: msg })
+      ]);
+      if (erreurs.length) {
+        var ul = el("ul", { class: "erreurs" });
+        erreurs.forEach(function (q) {
+          ul.appendChild(el("li", null, [el("span", { text: q.enonce.length > 120 ? q.enonce.slice(0, 117) + "…" : q.enonce }), el("br"), el("strong", { text: "→ " + q.bonne })]));
+        });
+        b.appendChild(el("p", { class: "petit", text: "À revoir — ces cartes passeront en premier dans les cartes mémoire :" }));
+        b.appendChild(ul);
+      }
+      b.appendChild(el("div", { class: "btns" }, [
+        el("button", { class: "btn plein", type: "button", text: "Nouveau quiz", onclick: demarrer }),
+        erreurs.length ? el("a", { class: "btn", href: lienChapitre(ch, "cartes"), text: "Revoir avec les cartes" }) : null,
+        el("a", { class: "btn", href: lienChapitre(ch), text: "Retour au chapitre" })
+      ]));
+      zone.appendChild(b);
+      b.querySelector(".btn").focus();
+    }
+    surToucheVue = function (e) {
+      if (repondu || !qs || pos >= qs.length) return;
+      var i = "1234abcd".indexOf(e.key.toLowerCase()) % 4;
+      if (i < 0 || "1234abcd".indexOf(e.key.toLowerCase()) < 0) return;
+      var b = zone.querySelectorAll(".option")[i];
+      if (b) { e.preventDefault(); b.click(); }
+    };
+    demarrer();
+  }
+
+  // ---------- Frise à reconstituer ----------
+  function evenementsFrise(ch) {
+    var vus = {};
+    return liste(ch, "reperes").filter(function (r) {
+      var v = valeurDate(r.a).toFixed(3);
+      if (vus[v]) return false;
+      vus[v] = true;
+      return true;
+    });
+  }
+  function vueFriseJeu(ch, cible) {
+    var zone = el("div");
+    cible.appendChild(zone);
+    var evts, places, verifie;
+    function demarrer() {
+      var tous = evenementsFrise(ch);
+      evts = melanger(tous).slice(0, Math.min(6, tous.length));
+      places = []; verifie = false;
+      dessiner();
+    }
+    function dessiner() {
+      zone.innerHTML = "";
+      zone.appendChild(el("p", { class: "consigne-outil", text: verifie
+        ? "Voici la correction. Les dates sont maintenant affichées."
+        : "Touche les événements du plus ancien au plus récent. Touche un événement déjà placé pour le retirer." }));
+      var ol = el("ol", { class: "emplacements" });
+      var ordre = trierReperes(evts);
+      for (var i = 0; i < evts.length; i++) {
+        var e = places[i];
+        if (!e) {
+          ol.appendChild(el("li", { class: "emplacement" }, [el("span", { class: "num-rond", text: String(i + 1) }), el("span", { text: i === places.length ? "Événement n° " + (i + 1) + "…" : "" })]));
+          continue;
+        }
+        var etat = "";
+        if (verifie) etat = valeurDate(e.a) === valeurDate(ordre[i].a) ? " juste" : " faux";
+        var contenu = [el("span", { class: "num-rond", text: String(i + 1) }), el("span", { text: e.txt })];
+        if (verifie) contenu.push(el("span", { class: "date-rev", text: e.date }));
+        var li = el("li");
+        if (verifie) li.appendChild(el("div", { class: "emplacement rempli" + etat }, contenu));
+        else li.appendChild(el("button", { class: "emplacement rempli", type: "button", "aria-label": "Retirer : " + e.txt, onclick: retirer.bind(null, i) }, contenu));
+        ol.appendChild(li);
+      }
+      zone.appendChild(ol);
+
+      if (!verifie) {
+        var reste = evts.filter(function (e) { return places.indexOf(e) < 0; });
+        if (reste.length) {
+          var res = el("div", { class: "reserve" });
+          reste.forEach(function (e) {
+            res.appendChild(el("button", { class: "evt", type: "button", text: e.txt, onclick: function () { places.push(e); dessiner(); var p = zone.querySelector(".evt"); if (p) p.focus(); } }));
+          });
+          zone.appendChild(el("div", { class: "etiq", text: "Événements à placer" }));
+          zone.appendChild(res);
+        } else {
+          var v = el("button", { class: "btn plein", type: "button", text: "Vérifier", onclick: function () { verifie = true; dessiner(); } });
+          zone.appendChild(el("div", { class: "btns" }, [v, el("button", { class: "btn", type: "button", text: "Tout reprendre", onclick: function () { places = []; dessiner(); } })]));
+          v.focus();
+        }
+      } else {
+        var justes = 0;
+        for (var j = 0; j < evts.length; j++) if (valeurDate(places[j].a) === valeurDate(ordre[j].a)) justes++;
+        zone.insertBefore(el("div", { class: "bilan carte-panneau", style: "padding:16px;margin-bottom:14px" }, [
+          el("div", { class: "gros", text: justes + " / " + evts.length }),
+          el("p", { text: justes === evts.length ? "Tout est dans l'ordre, bravo !" : "événements à la bonne place" })
+        ]), zone.children[1]);
+        zone.appendChild(el("div", { class: "etiq", text: "La frise corrigée" }));
+        var ordreNum = trierReperes(evts);
+        zone.appendChild(blocFrise(ordreNum, [], zone));
+        var ul = el("ul", { class: "reperes" });
+        ordreNum.forEach(function (r, i) { ul.appendChild(el("li", null, [el("span", { class: "num-rond", text: String(i + 1) }), el("div", null, [el("span", { class: "date", text: r.date }), r.txt])])); });
+        zone.appendChild(ul);
+        zone.appendChild(el("div", { class: "btns" }, [
+          el("button", { class: "btn plein", type: "button", text: "Rejouer", onclick: demarrer }),
+          el("a", { class: "btn", href: lienChapitre(ch), text: "Retour au chapitre" })
+        ]));
+        annoncer(justes + " sur " + evts.length + " à la bonne place.");
+      }
+    }
+    function retirer(i) { places.splice(i, 1); dessiner(); }
+    demarrer();
+  }
+
+  // ---------- Associer ----------
+  function sourcesAssocier(ch) {
+    var s = [];
+    if (liste(ch, "notions").length >= 3) s.push({ id: "notions", nom: "Notions", paires: liste(ch, "notions").map(function (n) { return { g: n.mot, d: n.def }; }) });
+    if (liste(ch, "reperes").length >= 3) s.push({ id: "dates", nom: "Dates", paires: uniquesPar(liste(ch, "reperes"), function (r) { return r.date; }).map(function (r) { return { g: r.date, d: r.txt }; }) });
+    if (liste(ch, "personnages").length >= 3) s.push({ id: "acteurs", nom: "Acteurs", paires: liste(ch, "personnages").map(function (p) { return { g: p.nom, d: p.txt[p.txt.length - 1] }; }) });
+    if (liste(ch, "lieux").length >= 3) s.push({ id: "lieux", nom: "Lieux", paires: liste(ch, "lieux").map(function (l) { return { g: l.nom, d: l.txt }; }) });
+    return s;
+  }
+  function vueAssocier(ch, cible) {
+    var sources = sourcesAssocier(ch);
+    var source = sources[0];
+    var zone = el("div");
+    var seg = el("div", { class: "segments", role: "group", "aria-label": "Que veux-tu associer ?" });
+    function dessinerSegments() {
+      seg.innerHTML = "";
+      if (sources.length < 2) return;
+      sources.forEach(function (s) {
+        seg.appendChild(el("button", { class: "opt", type: "button", text: s.nom, "aria-pressed": String(s === source), onclick: function () { source = s; dessinerSegments(); demarrer(); } }));
+      });
+    }
+    cible.appendChild(el("p", { class: "consigne-outil", text: "Touche un élément à gauche, puis ce qui lui correspond." }));
+    cible.appendChild(seg);
+    cible.appendChild(zone);
+
+    var restantes, manche, erreurs, choixG, choixD, faites, totalErreurs;
+    function demarrer() {
+      restantes = melanger(source.paires);
+      totalErreurs = 0;
+      nouvelleManche();
+    }
+    function nouvelleManche() {
+      var n = restantes.length <= 6 ? restantes.length : 5;
+      manche = restantes.splice(0, n);
+      erreurs = 0; choixG = null; choixD = null; faites = [];
+      dessiner();
+    }
+    function dessiner() {
+      zone.innerHTML = "";
+      if (!manche.length) return;
+      var colG = el("div", { class: "col-mots" }), colD = el("div", { class: "col-defs" });
+      var ordreD = zone._ordreD && zone._manche === manche ? zone._ordreD : melanger(manche);
+      zone._ordreD = ordreD; zone._manche = manche;
+      manche.forEach(function (p) {
+        var fait = faites.indexOf(p);
+        colG.appendChild(el("button", {
+          class: "tuile mot" + (choixG === p ? " choisie" : "") + (fait >= 0 ? " appariee c" + (fait % 5) : ""),
+          type: "button", text: p.g, disabled: fait >= 0, "aria-pressed": String(choixG === p),
+          onclick: function (e) { choixG = choixG === p ? null : p; essayer(e.currentTarget); }
+        }));
+      });
+      ordreD.forEach(function (p) {
+        var fait = faites.indexOf(p);
+        colD.appendChild(el("button", {
+          class: "tuile" + (choixD === p ? " choisie" : "") + (fait >= 0 ? " appariee c" + (fait % 5) : ""),
+          type: "button", text: p.d, disabled: fait >= 0, "aria-pressed": String(choixD === p),
+          onclick: function (e) { choixD = choixD === p ? null : p; essayer(e.currentTarget); }
+        }));
+      });
+      zone.appendChild(el("div", { class: "assoc" }, [colG, colD]));
+      zone.appendChild(el("p", { class: "petit", text: faites.length + " / " + manche.length + " associés · " + pluriel(erreurs, "erreur") + (restantes.length ? " · encore " + restantes.length + " après cette manche" : "") }));
+    }
+    function essayer(bouton) {
+      if (choixG && choixD) {
+        if (choixG === choixD) {
+          faites.push(choixG);
+          annoncer("Bien : " + choixG.g);
+          choixG = null; choixD = null;
+          dessiner();
+          if (faites.length === manche.length) finManche();
+          else { var libre = zone.querySelector(".col-mots .tuile:not(:disabled)"); if (libre) libre.focus(); }
+        } else {
+          erreurs++; totalErreurs++;
+          var g = choixG, d = choixD;
+          choixG = null; choixD = null;
+          dessiner();
+          zone.querySelectorAll(".tuile").forEach(function (t) {
+            if (t.textContent === g.g || t.textContent === d.d) t.classList.add("erreur");
+          });
+          annoncer("Ce n'est pas la bonne association.");
+        }
+      } else {
+        var idx = Array.prototype.indexOf.call(zone.querySelectorAll(".tuile"), bouton);
+        dessiner();
+        var t = zone.querySelectorAll(".tuile")[idx];
+        if (t) t.focus();
+      }
+    }
+    function finManche() {
+      var bloc = el("div", { class: "bilan carte-panneau", style: "margin-top:14px;padding:18px" });
+      if (restantes.length) {
+        bloc.appendChild(el("p", { text: "Manche réussie" + (erreurs ? " avec " + pluriel(erreurs, "erreur") : " sans erreur") + "." }));
+        bloc.appendChild(el("div", { class: "btns" }, el("button", { class: "btn plein", type: "button", text: "Manche suivante", onclick: nouvelleManche })));
+      } else {
+        bloc.appendChild(el("div", { class: "gros", text: totalErreurs ? pluriel(totalErreurs, "erreur") : "0 erreur" }));
+        bloc.appendChild(el("p", { text: totalErreurs ? "Tout est associé. Recommence pour faire un sans-faute !" : "Sans-faute, bravo !" }));
+        bloc.appendChild(el("div", { class: "btns" }, [
+          el("button", { class: "btn plein", type: "button", text: "Recommencer", onclick: demarrer }),
+          el("a", { class: "btn", href: lienChapitre(ch), text: "Retour au chapitre" })
+        ]));
+      }
+      zone.appendChild(bloc);
+      bloc.querySelector(".btn").focus();
+    }
+    dessinerSegments();
+    demarrer();
+  }
+
+  // ---------- Texte à trous ----------
+  function vueTrous(ch, cible) {
+    var textes = liste(ch, "trous");
+    var idx = 0;
+    var onglets = el("div", { class: "onglets", role: "group", "aria-label": "Textes" });
+    var zone = el("div");
+    cible.appendChild(el("p", { class: "consigne-outil", text: "Touche un trou, puis le mot qui convient dans la banque de mots." }));
+    cible.appendChild(onglets);
+    cible.appendChild(zone);
+
+    function dessinerOnglets() {
+      onglets.innerHTML = "";
+      if (textes.length < 2) return;
+      textes.forEach(function (t, i) {
+        onglets.appendChild(el("button", { class: "opt", type: "button", text: (i + 1) + ". " + t.titre, "aria-pressed": String(i === idx), onclick: function () { idx = i; dessinerOnglets(); demarrer(); } }));
+      });
+    }
+
+    var morceaux, reponses, banque, remplis, actif, verifie;
+    function demarrer() {
+      morceaux = textes[idx].texte.split(/\[([^\]]+)\]/);
+      reponses = [];
+      for (var i = 1; i < morceaux.length; i += 2) reponses.push(morceaux[i]);
+      banque = melanger(reponses.map(function (m, i) { return { mot: m, cle: i }; }));
+      remplis = reponses.map(function () { return null; });
+      actif = 0; verifie = false;
+      dessiner();
+    }
+    function premierVide() { for (var i = 0; i < remplis.length; i++) if (!remplis[i]) return i; return -1; }
+    function dessiner() {
+      zone.innerHTML = "";
+      zone.appendChild(el("h2", { text: textes[idx].titre, style: "margin-bottom:10px" }));
+      var p = el("div", { class: "texte-trous" });
+      for (var i = 0; i < morceaux.length; i++) {
+        if (i % 2 === 0) { p.appendChild(document.createTextNode(morceaux[i])); continue; }
+        (function (n) {
+          var r = remplis[n];
+          var classe = "trou";
+          if (verifie) classe += r && normaliser(r.mot) === normaliser(reponses[n]) ? " juste" : " faux";
+          else if (n === actif) classe += " actif";
+          var b = el("button", { class: classe, type: "button", "aria-label": "Trou " + (n + 1) + (r ? " : " + r.mot : " : vide") }, r ? r.mot : "……");
+          if (verifie && !(r && normaliser(r.mot) === normaliser(reponses[n]))) {
+            b.appendChild(el("span", { class: "corr", text: reponses[n] }));
+          }
+          b.disabled = verifie;
+          b.addEventListener("click", function () {
+            if (remplis[n]) remplis[n] = null;
+            actif = n;
+            dessiner();
+            var t = zone.querySelectorAll(".trou")[n]; if (t) t.focus();
+          });
+          p.appendChild(b);
+        })((i - 1) / 2);
+      }
+      zone.appendChild(p);
+
+      if (!verifie) {
+        zone.appendChild(el("div", { class: "etiq", text: "Banque de mots" }));
+        var bq = el("div", { class: "banque" });
+        banque.forEach(function (m) {
+          var pris = remplis.indexOf(m) >= 0;
+          bq.appendChild(el("button", { class: "mot-banque", type: "button", text: m.mot, disabled: pris, onclick: function () {
+            var cibleTrou = actif >= 0 && !remplis[actif] ? actif : premierVide();
+            if (cibleTrou < 0) return;
+            remplis[cibleTrou] = m;
+            actif = premierVide();
+            dessiner();
+            var suivant = zone.querySelector(".mot-banque:not(:disabled)");
+            if (suivant) suivant.focus();
+          } }));
+        });
+        zone.appendChild(bq);
+        var complet = premierVide() < 0;
+        zone.appendChild(el("div", { class: "btns" }, [
+          el("button", { class: "btn plein", type: "button", text: "Vérifier", disabled: !complet, onclick: function () { verifie = true; dessiner(); } }),
+          el("button", { class: "btn", type: "button", text: "Tout effacer", onclick: demarrer })
+        ]));
+      } else {
+        var justes = 0;
+        remplis.forEach(function (r, n) { if (r && normaliser(r.mot) === normaliser(reponses[n])) justes++; });
+        zone.appendChild(el("div", { class: "bilan carte-panneau", style: "margin-top:14px;padding:18px" }, [
+          el("div", { class: "gros", text: justes + " / " + reponses.length }),
+          el("p", { text: justes === reponses.length ? "Tout est juste, bravo !" : "Les corrections apparaissent en vert dans le texte." }),
+          el("div", { class: "btns" }, [
+            el("button", { class: "btn plein", type: "button", text: "Recommencer", onclick: demarrer }),
+            idx < textes.length - 1 ? el("button", { class: "btn", type: "button", text: "Texte suivant", onclick: function () { idx++; dessinerOnglets(); demarrer(); } }) : null
+          ])
+        ]));
+        annoncer(justes + " sur " + reponses.length + " justes.");
+      }
+    }
+    dessinerOnglets();
+    demarrer();
+  }
+
+  // ---------- Qui suis-je ? ----------
+  // Les personnages du chapitre, et les « Qui suis-je ? » de la banque des rituels qui s'y rattachent.
+  function itemsQuiSuisJe(ch) {
+    var niv = chapitresNiveau(ch.n);
+    var duChap = {}, duNiveau = {}, lieux = {};
+    liste(ch, "personnages").concat(liste(ch, "lieux")).forEach(function (x) { duChap[normaliser(x.nom)] = true; });
+    niv.forEach(function (c) {
+      liste(c, "personnages").forEach(function (x) { duNiveau[normaliser(x.nom)] = true; });
+      liste(c, "lieux").forEach(function (x) { duNiveau[normaliser(x.nom)] = true; lieux[normaliser(x.nom)] = true; });
+    });
+    var items = [], pris = {};
+    BANQUE_Q.forEach(function (q) {
+      if (q.k !== "quisuisje" || q.n !== ch.n || q.t !== ch.rituel) return;
+      var k = normaliser(q.r);
+      // une question rattachée à un autre chapitre du niveau reste dans ce chapitre-là
+      if (duNiveau[k] && !duChap[k]) return;
+      if (!q.indices || q.indices.length < 2) return;
+      items.push({ r: q.r, indices: q.indices, lieu: !!lieux[k] });
+      pris[k] = true;
+    });
+    liste(ch, "personnages").forEach(function (p) {
+      if (pris[normaliser(p.nom)]) return;
+      items.push({ r: p.nom, indices: p.txt, dates: p.dates, lieu: false });
+    });
+    return items;
+  }
+  function vueQuiSuisJe(ch, cible) {
+    var zone = el("div");
+    cible.appendChild(el("p", { class: "consigne-outil", text: "Les indices arrivent un par un, du plus vague au plus précis. Réponds dès que tu as trouvé : moins tu utilises d'indices, plus tu gagnes de points." }));
+    cible.appendChild(zone);
+    var niv = chapitresNiveau(ch.n);
+    var nomsPers = [], nomsLieux = [];
+    niv.forEach(function (c) {
+      liste(c, "personnages").forEach(function (p) { nomsPers.push(p.nom); });
+      liste(c, "lieux").forEach(function (l) { nomsLieux.push(l.nom); });
+    });
+    BANQUE_Q.forEach(function (q) { if (q.k === "quisuisje" && q.n === ch.n && q.t === ch.rituel && nomsLieux.indexOf(q.r) < 0 && nomsPers.indexOf(q.r) < 0) nomsPers.push(q.r); });
+
+    var items, pos, vus, points, total, trouve, rates;
+    function demarrer() {
+      items = melanger(itemsQuiSuisJe(ch));
+      pos = 0; points = 0; total = 0;
+      suivant();
+    }
+    function suivant() {
+      vus = 1; trouve = false; rates = [];
+      dessiner();
+    }
+    function choixPour(it) {
+      var pool = (it.lieu ? nomsLieux : nomsPers).filter(function (n) { return normaliser(n) !== normaliser(it.r); });
+      if (pool.length < 3) pool = pool.concat((it.lieu ? nomsPers : nomsLieux).filter(function (n) { return normaliser(n) !== normaliser(it.r); }));
+      var d = uniquesPar(melanger(pool), function (n) { return n; }).slice(0, 3);
+      return melanger([it.r].concat(d));
+    }
+    function dessiner() {
+      zone.innerHTML = "";
+      if (pos >= items.length) { bilan(); return; }
+      var it = items[pos];
+      if (!it.choix) it.choix = choixPour(it);
+      zone.appendChild(el("div", { class: "compteur" }, [el("span", { text: "Énigme " + (pos + 1) + " sur " + items.length }), el("span", { class: "score-etoiles", text: pluriel(points, "point") })]));
+      var panneau = el("div", { class: "carte-panneau" });
+      panneau.appendChild(el("h2", { text: "Qui suis-je ?", style: "margin-bottom:6px" }));
+      var ul = el("ul", { class: "indices" });
+      it.indices.slice(0, vus).forEach(function (t, i) {
+        ul.appendChild(el("li", null, [el("span", { class: "num-rond", text: String(i + 1) }), el("span", { text: t })]));
+      });
+      panneau.appendChild(ul);
+      if (!trouve) {
+        if (vus < it.indices.length) {
+          panneau.appendChild(el("button", { class: "btn", type: "button", text: "Indice suivant (" + (vus + 1) + " / " + it.indices.length + ")", style: "margin-bottom:14px", onclick: function () { vus++; dessiner(); } }));
+        }
+        var opts = el("div", { class: "options" });
+        it.choix.forEach(function (c, i) {
+          var dejaRate = rates.indexOf(c) >= 0;
+          var b = el("button", { class: "option" + (dejaRate ? " faux" : ""), type: "button", disabled: dejaRate }, [el("span", { class: "lettre", text: "ABCD"[i] }), el("span", { text: c })]);
+          b.addEventListener("click", function () { repondre(c); });
+          opts.appendChild(b);
+        });
+        panneau.appendChild(opts);
+      } else {
+        var gagne = Math.max(0, it.indices.length - vus + 1 - rates.length);
+        panneau.appendChild(el("div", { class: "retour-q bien" }, [
+          el("strong", { text: "C'est : " + it.r + (it.dates ? " (" + it.dates + ")" : "") }),
+          el("span", { text: rates.length ? "Trouvé après " + pluriel(rates.length, "erreur") + "." : "Trouvé avec " + pluriel(vus, "indice") + " sur " + it.indices.length + " : +" + pluriel(gagne, "point") + "." })
+        ]));
+        panneau.appendChild(el("div", { class: "btns" }, el("button", { class: "btn plein", type: "button", text: pos === items.length - 1 ? "Voir mon score" : "Énigme suivante", onclick: function () { pos++; suivant(); } })));
+      }
+      zone.appendChild(panneau);
+    }
+    function repondre(c) {
+      var it = items[pos];
+      if (normaliser(c) === normaliser(it.r)) {
+        var gagne = Math.max(0, it.indices.length - vus + 1 - rates.length);
+        points += gagne; total += it.indices.length;
+        trouve = true;
+        annoncer("Bonne réponse : " + it.r);
+        dessiner();
+        var b = zone.querySelector(".btns .btn"); if (b) b.focus();
+      } else {
+        rates.push(c);
+        if (vus < it.indices.length) vus++;
+        annoncer("Non, ce n'est pas " + c + ". Un nouvel indice est affiché.");
+        dessiner();
+      }
+    }
+    function bilan() {
+      zone.appendChild(el("div", { class: "bilan carte-panneau" }, [
+        el("div", { class: "gros", text: points + " / " + total }),
+        el("p", { text: "points — un point par indice que tu n'as pas eu besoin de lire." }),
+        el("div", { class: "btns" }, [
+          el("button", { class: "btn plein", type: "button", text: "Rejouer", onclick: demarrer }),
+          el("a", { class: "btn", href: lienChapitre(ch), text: "Retour au chapitre" })
+        ])
+      ]));
+    }
+    demarrer();
+  }
+
+  // ---------- Je fais le point ----------
+  function vuePoint(ch, cible) {
+    var etat = prog.point[ch.id] || {};
+    var m = maitriseChapitre(ch);
+    var q = prog.quiz[ch.id];
+
+    cible.appendChild(el("div", { class: "etiq", text: "Mes résultats" }));
+    cible.appendChild(el("div", { class: "stats" }, [
+      el("div", { class: "stat" }, [el("b", { text: m.maitrisees + " / " + m.total }), el("span", { text: "cartes maîtrisées" })]),
+      el("div", { class: "stat" }, [el("b", { text: q ? q.score + " / " + q.sur : "—" }), el("span", { text: "meilleur score au quiz" })]),
+      el("div", { class: "stat" }, [el("b", { text: String(aRevoir(cartesChapitre(ch))) }), el("span", { text: "cartes à revoir aujourd'hui" })])
+    ]));
+
+    cible.appendChild(el("div", { class: "etiq", text: "Je suis capable de…" }));
+    var ul = el("ul", { class: "capable" });
+    var NIV = [{ id: "oui", nom: "Oui" }, { id: "presque", nom: "Presque" }, { id: "non", nom: "Pas encore" }];
+    liste(ch, "capable").forEach(function (txt, i) {
+      var groupe = el("div", { class: "niveaux3", role: "group", "aria-label": txt });
+      function dessinerGroupe() {
+        groupe.innerHTML = "";
+        NIV.forEach(function (n) {
+          groupe.appendChild(el("button", { class: "niv " + n.id, type: "button", text: n.nom, "aria-pressed": String(etat[i] === n.id), onclick: function () {
+            etat[i] = etat[i] === n.id ? undefined : n.id;
+            prog.point[ch.id] = etat; sauver();
+            dessinerGroupe(); dessinerConseil();
+            groupe.querySelectorAll("button")[NIV.indexOf(n)].focus();
+          } }));
+        });
+      }
+      dessinerGroupe();
+      ul.appendChild(el("li", null, [el("p", { text: txt }), groupe]));
+    });
+    cible.appendChild(ul);
+
+    var conseil = el("div");
+    cible.appendChild(conseil);
+    function dessinerConseil() {
+      conseil.innerHTML = "";
+      var pasEncore = liste(ch, "capable").filter(function (t, i) { return etat[i] === "non"; });
+      var presque = liste(ch, "capable").filter(function (t, i) { return etat[i] === "presque"; });
+      if (!pasEncore.length && !presque.length) return;
+      conseil.appendChild(el("div", { class: "etiq", text: "Ce que je dois revoir en priorité" }));
+      var p = el("ul", { class: "points carte-panneau" });
+      pasEncore.concat(presque).forEach(function (t) { p.appendChild(el("li", { text: t })); });
+      conseil.appendChild(p);
+      conseil.appendChild(el("div", { class: "btns" }, [
+        el("a", { class: "btn plein", href: lienChapitre(ch, "essentiel"), text: "Relire l'essentiel" }),
+        el("a", { class: "btn", href: lienChapitre(ch, "cartes"), text: "Cartes mémoire" })
+      ]));
+    }
+    dessinerConseil();
+  }
+
+  rendre();
+})();
+</script>
+</body>
+</html>
