@@ -21,6 +21,119 @@
      trous       textes à compléter : { titre, texte } — les mots entre [crochets] sont à retrouver
      capable     « Je suis capable de… » */
 
+/* Plan de l'année, classe par classe, dans l'ordre de la progression.
+   Chaque chapitre qui a une fiche (« fiche » = identifiant d'un chapitre de COURS ci-dessous)
+   s'ouvre dans la boîte à outils ; les autres s'affichent « à venir », en attendant d'être remplis. */
+const CLASSES = [
+  { id: "5e", nom: "5e", annee: [
+    { d: "histoire", theme: "Thème 1 · Chrétientés et islam (VIᵉ-XIIIᵉ siècle), des mondes en contact", chapitres: [
+      { num: "Chapitre 1", titre: "Byzance et l'Europe carolingienne", fiche: "5e-h1-c1" },
+      { num: "Chapitre 2", titre: "De la naissance de l'islam à la prise de Bagdad par les Mongols", fiche: "5e-h1-c2" }
+    ] },
+    { d: "histoire", theme: "Thème 2 · Société, Église et pouvoir politique dans l'Occident féodal (XIᵉ-XVᵉ siècle)", chapitres: [
+      { num: "Chapitre 3", titre: "L'ordre seigneurial : la formation et la domination des campagnes" },
+      { num: "Chapitre 4", titre: "L'émergence d'une nouvelle société urbaine" },
+      { num: "Chapitre 5", titre: "L'affirmation de l'État monarchique dans le royaume des Capétiens et des Valois" }
+    ] },
+    { d: "histoire", theme: "Thème 3 · Transformations de l'Europe et ouverture sur le monde aux XVIᵉ et XVIIᵉ siècles", chapitres: [
+      { num: "Chapitre 6", titre: "Le monde au temps de Charles Quint et Soliman le Magnifique" },
+      { num: "Chapitre 7", titre: "Humanisme, réformes et conflits religieux" },
+      { num: "Chapitre 8", titre: "Du Prince de la Renaissance au roi absolu" }
+    ] },
+    { d: "geo", theme: "Thème 1 · La question démographique et l'inégal développement", chapitres: [
+      { num: "Chapitre 1", titre: "La croissance démographique et ses effets" },
+      { num: "Chapitre 2", titre: "Répartition de la richesse et de la pauvreté dans le monde" }
+    ] },
+    { d: "geo", theme: "Thème 2 · Des ressources limitées, à gérer et à renouveler", chapitres: [
+      { num: "Chapitre 3", titre: "L'énergie, l'eau : des ressources à ménager et à mieux utiliser" },
+      { num: "Chapitre 4", titre: "L'alimentation : comment nourrir une humanité en croissance démographique et aux besoins alimentaires accrus ?" }
+    ] },
+    { d: "geo", theme: "Thème 3 · Prévenir les risques, s'adapter au changement global", chapitres: [
+      { num: "Chapitre 5", titre: "Le changement global et ses principaux effets géographiques régionaux" },
+      { num: "Chapitre 6", titre: "Prévenir les risques industriels et technologiques" }
+    ] }
+  ] },
+
+  { id: "2nde", nom: "Seconde", annee: [
+    { d: "histoire", theme: "Introduction", chapitres: [
+      { num: "Introduction", titre: "La périodisation" }
+    ] },
+    { d: "histoire", theme: "Thème 1 · Le monde méditerranéen : empreintes de l'Antiquité et du Moyen Âge", chapitres: [
+      { num: "Chapitre 1", titre: "La Méditerranée antique : les empreintes grecques et romaines", fiche: "2de-h1-c1" },
+      { num: "Chapitre 2", titre: "La Méditerranée médiévale : espace d'échanges et de conflits à la croisée de trois civilisations", fiche: "2de-h1-c2" }
+    ] },
+    { d: "histoire", theme: "Thème 2 · XVᵉ-XVIᵉ siècles : un nouveau rapport au monde, un temps de mutation intellectuelle", chapitres: [
+      { num: "Chapitre 3", titre: "L'ouverture atlantique : les conséquences de la découverte du « Nouveau Monde »" },
+      { num: "Chapitre 4", titre: "Renaissance, Humanisme et réformes religieuses : les mutations de l'Europe" }
+    ] },
+    { d: "histoire", theme: "Thème 3 · L'État à l'époque moderne : France et Angleterre", chapitres: [
+      { num: "Chapitre 5", titre: "L'affirmation de l'État dans le royaume de France" },
+      { num: "Chapitre 6", titre: "Le modèle britannique et son influence" }
+    ] },
+    { d: "histoire", theme: "Thème 4 · Dynamiques et ruptures dans les sociétés des XVIIᵉ et XVIIIᵉ siècles", chapitres: [
+      { num: "Chapitre 7", titre: "Les Lumières et le développement des sciences" },
+      { num: "Chapitre 8", titre: "Tensions, mutations et crispations de la société d'ordres" }
+    ] },
+    { d: "geo", theme: "Thème 1 · Sociétés et environnements : des équilibres fragiles", chapitres: [
+      { num: "Chapitres 1 et 2", titre: "Les sociétés face aux risques ; des ressources majeures sous pression", fiche: "2de-g1-c12" },
+      { num: "Chapitre 3", titre: "La France : des milieux métropolitains et ultramarins entre valorisation et protection", fiche: "2de-g1-c3" }
+    ] },
+    { d: "geo", theme: "Thème 2 · Territoires, populations et développement : quels défis ?", chapitres: [
+      { num: "Question 1", titre: "Des trajectoires démographiques différenciées : les défis du nombre et du vieillissement" },
+      { num: "Question 2", titre: "Développement et inégalités" },
+      { num: "Question spécifique", titre: "La France : dynamiques démographiques et inégalités socio-économiques" }
+    ] },
+    { d: "geo", theme: "Thème 3 · Des mobilités généralisées", chapitres: [
+      { num: "Question 1", titre: "Les migrations internationales" },
+      { num: "Question 2", titre: "Les mobilités touristiques internationales" },
+      { num: "Question spécifique", titre: "La France : mobilités, transports et enjeux d'aménagement" }
+    ] },
+    { d: "geo", theme: "Thème 4 · Thème conclusif", chapitres: [
+      { num: "Thème conclusif", titre: "L'Afrique australe : un espace en profonde mutation" }
+    ] }
+  ] },
+
+  { id: "1ere", nom: "Première", annee: [
+    { d: "histoire", theme: "Thème 1 · L'Europe face aux révolutions", chapitres: [
+      { num: "Chapitre 1", titre: "La Révolution française et l'Empire : une nouvelle conception de la nation", fiche: "1re-h1-c1" },
+      { num: "Chapitre 2", titre: "L'Europe entre restauration et révolution (1814-1848)", fiche: "1re-h1-c2" }
+    ] },
+    { d: "histoire", theme: "Thème 2 · La France dans l'Europe des nationalités : politique et société (1848-1871)", chapitres: [
+      { num: "Chapitre 3", titre: "La difficile entrée dans l'âge démocratique : la Deuxième République et le Second Empire" },
+      { num: "Chapitre 4", titre: "L'industrialisation et l'accélération des transformations économiques et sociales en France" },
+      { num: "Chapitre 5", titre: "La France et la construction de nouveaux États par la guerre et la diplomatie" }
+    ] },
+    { d: "histoire", theme: "Thème 3 · La Troisième République avant 1914 : un régime politique, un empire colonial", chapitres: [
+      { num: "Chapitre 6", titre: "La mise en œuvre du projet républicain" },
+      { num: "Chapitre 7", titre: "Permanences et mutations de la société française jusqu'en 1914" },
+      { num: "Chapitre 8", titre: "Métropole et colonies" }
+    ] },
+    { d: "histoire", theme: "Thème 4 · La Première Guerre mondiale : le « suicide de l'Europe » et la fin des empires européens", chapitres: [
+      { num: "Chapitre 9", titre: "Un embrasement mondial et ses grandes étapes" },
+      { num: "Chapitre 10", titre: "Les sociétés en guerre : des civils acteurs et victimes de la guerre" },
+      { num: "Chapitre 11", titre: "Sortir de la guerre : la tentative de construction d'un ordre des nations démocratiques" }
+    ] },
+    { d: "geo", theme: "Thème 1 · La métropolisation : un processus mondial différencié", chapitres: [
+      { num: "Question 1", titre: "Les villes à l'échelle mondiale : le poids croissant des métropoles" },
+      { num: "Question 2", titre: "Des métropoles inégales et en mutation" },
+      { num: "Question spécifique", titre: "La France : la métropolisation et ses effets" }
+    ] },
+    { d: "geo", theme: "Thème 2 · Une diversification des espaces et des acteurs de la production", chapitres: [
+      { num: "Question 1", titre: "Les espaces de production dans le monde : une diversité croissante" },
+      { num: "Question 2", titre: "Métropolisation, littoralisation des espaces productifs et accroissement des flux" },
+      { num: "Question spécifique", titre: "La France : les systèmes productifs entre valorisation locale et intégration européenne et mondiale" }
+    ] },
+    { d: "geo", theme: "Thème 3 · Les espaces ruraux : multifonctionnalité ou fragmentation ?", chapitres: [
+      { num: "Question 1", titre: "La fragmentation des espaces ruraux" },
+      { num: "Question 2", titre: "Affirmation des fonctions non agricoles et conflits d'usages" },
+      { num: "Question spécifique", titre: "La France : des espaces ruraux multifonctionnels, entre initiatives locales et politiques européennes" }
+    ] },
+    { d: "geo", theme: "Thème 4 · Thème conclusif", chapitres: [
+      { num: "Thème conclusif", titre: "La Chine : des recompositions spatiales multiples" }
+    ] }
+  ] }
+];
+
 const COURS = [
 
   /* =====================================================================

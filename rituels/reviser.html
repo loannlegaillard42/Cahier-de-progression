@@ -124,6 +124,13 @@
   .chap-titre { font-family: Fraunces, serif; font-size: 17px; font-weight: 600; line-height: 1.3; margin: 2px 0 10px; }
   .chap-prog { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--faint); }
   .chap-prog .barre { flex: 1; }
+  .avancement { font-size: 13.5px; color: var(--sub); margin: 16px 0 0; }
+  .theme-titre { font-family: Fraunces, serif; font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--sub); margin: 18px 0 8px; }
+  .chap.a-venir { background: transparent; border: 1px dashed var(--line); border-left: 4px solid var(--line); padding: 11px 16px; }
+  .chap.a-venir:hover { border-color: var(--line); }
+  .chap.a-venir .chap-titre { font-family: Inter, sans-serif; font-size: 14.5px; font-weight: 500; color: var(--faint); margin: 2px 0 0; }
+  .alerte { margin-top: 18px; padding: 14px 16px; border-radius: 12px; background: var(--warnSoft); border-left: 4px solid var(--warn); font-size: 14px; }
+  .alerte strong { color: var(--warn); }
   .pied { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--faint); display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: space-between; }
   .lien-discret { background: none; border: none; padding: 4px 0; color: var(--faint); text-decoration: underline; text-underline-offset: 2px; font-size: 12.5px; }
 
@@ -392,18 +399,19 @@
   var MAITRISE = 3;                      // une carte est « maîtrisée » à partir de la boîte 3
   var TAILLE_SERIE = 12;
 
-  var NIVEAUX = [
-    { id: "5e", nom: "5e" },
-    { id: "2nde", nom: "Seconde" },
-    { id: "1ere", nom: "Première" }
-  ];
+  // Les classes viennent du plan de l'année (cours.js) ; cette liste ne sert que si le fichier n'a pas pu être chargé.
+  var NIVEAUX = typeof CLASSES !== "undefined" && CLASSES.length
+    ? CLASSES.map(function (c) { return { id: c.id, nom: c.nom }; })
+    : [{ id: "5e", nom: "5e" }, { id: "2nde", nom: "Seconde" }, { id: "1ere", nom: "Première" }];
   var DISC = { histoire: "Histoire", geo: "Géographie" };
   var LIBELLE_TYPE = {
     notion: "Notion à définir", repere: "Repère à situer", vf: "Vrai ou faux",
     flash: "Question flash", quisuisje: "Qui suis-je ?"
   };
 
-  var CHAPITRES = typeof COURS !== "undefined" ? COURS : [];
+  var DONNEES_OK = typeof COURS !== "undefined";
+  var CHAPITRES = DONNEES_OK ? COURS : [];
+  var PLAN = typeof CLASSES !== "undefined" ? CLASSES : [];
   var BANQUE_Q = typeof BANQUE !== "undefined" ? BANQUE : [];
 
   // ---------- Icônes (tracés simples, 24 × 24) ----------
@@ -711,20 +719,25 @@
     return a;
   }
 
-  // ---------- Accueil ----------
+  // ---------- Accueil : les classes, puis le plan de l'année de la classe choisie ----------
   function vueAccueil() {
     document.title = "Réviser — Histoire-Géographie";
     var niveau = prog.niveau && NIVEAUX.some(function (n) { return n.id === prog.niveau; }) ? prog.niveau : null;
-    var avecChapitres = NIVEAUX.filter(function (n) { return chapitresNiveau(n.id).length; });
 
     app.appendChild(el("div", { class: "intro" }, [
       el("h1", { text: "La boîte à outils de la classe" }),
       el("p", { text: "Choisis ta classe, puis un chapitre : l'essentiel du cours, des cartes mémoire, des quiz et des jeux pour retenir." })
     ]));
+    if (!DONNEES_OK) {
+      app.appendChild(el("div", { class: "alerte", role: "alert" }, [
+        el("strong", { text: "Les fiches de révision n'ont pas pu être chargées." }),
+        " Ouvre la page depuis le site, puis recharge-la : un simple aperçu du fichier ne suffit pas."
+      ]));
+    }
 
     app.appendChild(el("div", { class: "etiq", text: "Ma classe" }));
     var choix = el("div", { class: "choix", role: "group", "aria-label": "Ma classe" });
-    avecChapitres.forEach(function (n) {
+    NIVEAUX.forEach(function (n) {
       choix.appendChild(el("button", {
         class: "opt", type: "button", text: n.nom, "aria-pressed": String(n.id === niveau),
         onclick: function () { location.hash = "#/niveau/" + n.id; }
@@ -739,35 +752,66 @@
     }
 
     var chaps = chapitresNiveau(niveau);
-    var toutes = [];
-    chaps.forEach(function (ch) { toutes = toutes.concat(cartesChapitre(ch)); });
-    var nbRevoir = aRevoir(toutes);
-    var ex = el("a", { class: "express", href: "#/express/" + niveau });
-    ex.innerHTML = icone("eclair");
-    ex.appendChild(el("span", null, [
-      el("strong", { text: "Révision express" }),
-      el("span", { class: "sous", text: nbRevoir
-        ? pluriel(nbRevoir, "carte") + " à revoir aujourd'hui, tous chapitres confondus"
-        : "Une série de cartes piochées dans tous tes chapitres" })
-    ]));
-    app.appendChild(ex);
+    var classe = PLAN.filter(function (c) { return c.id === niveau; })[0];
+    var annee = classe && Array.isArray(classe.annee) ? classe.annee : [];
+    var total = 0;
+    annee.forEach(function (t) { total += liste(t, "chapitres").length; });
+
+    if (total) {
+      app.appendChild(el("p", { class: "avancement", text: chaps.length
+        ? pluriel(chaps.length, "chapitre prêt", "chapitres prêts") + " sur " + total + " : les autres arrivent au fil de l'année."
+        : "Les chapitres arrivent au fil de l'année : reviens bientôt !" }));
+    }
+
+    if (chaps.length) {
+      var toutes = [];
+      chaps.forEach(function (ch) { toutes = toutes.concat(cartesChapitre(ch)); });
+      var nbRevoir = aRevoir(toutes);
+      var ex = el("a", { class: "express", href: "#/express/" + niveau });
+      ex.innerHTML = icone("eclair");
+      ex.appendChild(el("span", null, [
+        el("strong", { text: "Révision express" }),
+        el("span", { class: "sous", text: nbRevoir
+          ? pluriel(nbRevoir, "carte") + " à revoir aujourd'hui, tous chapitres confondus"
+          : "Une série de cartes piochées dans tous tes chapitres" })
+      ]));
+      app.appendChild(ex);
+    }
 
     ["histoire", "geo"].forEach(function (d) {
-      var dans = chaps.filter(function (c) { return c.d === d; });
-      if (!dans.length) return;
+      var themes = annee.filter(function (t) { return t.d === d; });
+      var fiches = chaps.filter(function (c) { return c.d === d; });
+      if (!themes.length && !fiches.length) return;
       app.appendChild(el("div", { class: "etiq", text: DISC[d] }));
-      dans.forEach(function (ch) {
-        var m = maitriseChapitre(ch);
-        var barre = el("div", { class: "barre", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(m.pct), "aria-label": "Cartes maîtrisées" }, el("span"));
-        barre.firstChild.style.width = m.pct + "%";
-        app.appendChild(el("a", { class: "chap" + (d === "geo" ? " geo" : ""), href: lienChapitre(ch) }, [
-          el("div", { class: "chap-num", text: ch.num + " · " + ch.theme }),
-          el("div", { class: "chap-titre", text: ch.titre }),
-          el("div", { class: "chap-prog" }, [barre, el("span", { text: m.vues ? m.pct + " % maîtrisé" : "pas encore commencé" })])
-        ]));
+      var placees = {};
+      themes.forEach(function (t) {
+        app.appendChild(el("div", { class: "theme-titre", text: t.theme }));
+        liste(t, "chapitres").forEach(function (c) {
+          var ch = c.fiche ? chapitre(c.fiche) : null;
+          if (ch && ch.n === niveau) { placees[ch.id] = true; app.appendChild(carteChapitre(ch)); }
+          else app.appendChild(el("div", { class: "chap a-venir" + (d === "geo" ? " geo" : "") }, [
+            el("div", { class: "chap-num", text: c.num + " · à venir" }),
+            el("div", { class: "chap-titre", text: c.titre })
+          ]));
+        });
       });
+      // une fiche que le plan de l'année ne mentionne pas reste accessible
+      var horsPlan = fiches.filter(function (c) { return !placees[c.id]; });
+      if (horsPlan.length && themes.length) app.appendChild(el("div", { class: "theme-titre", text: "Autres fiches" }));
+      horsPlan.forEach(function (ch) { app.appendChild(carteChapitre(ch)); });
     });
     piedAccueil();
+  }
+
+  function carteChapitre(ch) {
+    var m = maitriseChapitre(ch);
+    var barre = el("div", { class: "barre", role: "progressbar", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": String(m.pct), "aria-label": "Cartes maîtrisées" }, el("span"));
+    barre.firstChild.style.width = m.pct + "%";
+    return el("a", { class: "chap" + (ch.d === "geo" ? " geo" : ""), href: lienChapitre(ch) }, [
+      el("div", { class: "chap-num", text: ch.num }),
+      el("div", { class: "chap-titre", text: ch.titre }),
+      el("div", { class: "chap-prog" }, [barre, el("span", { text: m.vues ? m.pct + " % maîtrisé" : "pas encore commencé" })])
+    ]);
   }
 
   function piedAccueil() {
