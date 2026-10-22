@@ -433,6 +433,7 @@
   .k-terre { fill: var(--terre); stroke: var(--cote); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
   .k-mer-txt { fill: var(--accent); opacity: .55; font-family: Fraunces, serif; font-style: italic; text-anchor: middle; }
   .k-fleuve { fill: none; stroke: var(--cote); stroke-width: 1.2px; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; opacity: .85; }
+  .k-frontiere { fill: none; stroke: var(--cote); stroke-width: .9px; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; opacity: .75; }
   .k-fleuve-txt { fill: var(--accent); opacity: .6; font-family: Inter, sans-serif; font-style: italic; font-weight: 500; text-anchor: middle; }
   .k-apercu { position: absolute; left: 8px; bottom: 8px; width: 30%; max-width: 150px; height: auto; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 1px 4px var(--ombre); display: none; pointer-events: none; }
   .k-apercu.visible { display: block; }
@@ -668,8 +669,8 @@
   // « Tout le chapitre / Cours / PPO … » en tête d'un outil ; rien si le chapitre n'a pas de point de passage
   function selecteurBlocs(ch, actuel, avecTout, garder, auChoix) {
     var options = blocs(ch).filter(function (b) { return !garder || garder(b); }).map(function (b) { return { id: b.id, nom: b.nom }; });
-    if (avecTout) options.unshift({ id: null, nom: "Tout le chapitre" });
     if (options.length < 2) return null;
+    if (avecTout) options.unshift({ id: null, nom: "Tout le chapitre" });
     var g = el("div", { class: "segments", role: "group", "aria-label": "Que veux-tu réviser ?" });
     options.forEach(function (o) {
       g.appendChild(el("button", { class: "opt", type: "button", text: o.nom, "aria-pressed": String(o.id === actuel), onclick: function () { auChoix(o.id); } }));
@@ -2382,13 +2383,14 @@
     return cartesDuChapitre(ch, filtre, 3).reduce(function (n, r) { return n + r.lieux.length; }, 0);
   }
   // un même lieu cité dans le cours et dans un point de passage n'apparaît qu'une fois
+  // (même nom, ou mêmes coordonnées : « Rome » et « Rome (Vatican) »)
   function lieuxCarte(ch, filtre) {
     var vus = {}, res = [];
     blocsChoisis(ch, filtre).forEach(function (b) {
       liste(b.data, "lieux").forEach(function (x) {
         if (typeof x.lon !== "number" || typeof x.lat !== "number") return;
         var k = normaliser(x.nom);
-        if (vus[k]) return;
+        if (vus[k] || res.some(function (r) { return Math.abs(r.lon - x.lon) < .05 && Math.abs(r.lat - x.lat) < .05; })) return;
         vus[k] = true;
         res.push({ nom: x.nom, txt: x.txt, lon: x.lon, lat: x.lat, src: b.id === "cours" ? "" : b.nom, carte: b.prefixe + "|l|" + x.nom });
       });
@@ -2410,6 +2412,7 @@
     svg.appendChild(svgEl("rect", { class: "k-mer", x: -20, y: -20, width: L + 40, height: H + 40 }));
     svg.appendChild(svgEl("path", { id: idTerre, class: "k-terre", d: fond.terre, "fill-rule": "evenodd" }));
     if (fond.fleuves) svg.appendChild(svgEl("path", { class: "k-fleuve", d: fond.fleuves }));
+    if (fond.frontieres) svg.appendChild(svgEl("path", { class: "k-frontiere", d: fond.frontieres }));
     // noms des mers et des fleuves : ils s'effacent devant les lieux, et quand ils ne tiennent pas
     var gMers = svgEl("g", { class: "k-mers", "aria-hidden": "true" });
     function nomDecor(m, cls) {
