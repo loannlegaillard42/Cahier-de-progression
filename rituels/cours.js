@@ -17,7 +17,8 @@
      reperes     dates : { a, b?, date, txt } — a / b : année (négative avant J.-C.) ou "AAAA-MM-JJ"
      notions     { mot, def }
      personnages { nom, dates, txt: [indices, du plus vague au plus précis — sans le nom] }
-     lieux       { nom, txt }
+     lieux       { nom, txt, lon?, lat? } — avec ses coordonnées (degrés, est et nord positifs), le lieu se place sur la carte
+     carte       fond de carte du chapitre (identifiant dans cartes.js) pour l'outil « Carte à compléter »
      trous       textes à compléter : { titre, texte } — les mots entre [crochets] sont à retrouver
      capable     « Je suis capable de… »
      ppo         points de passage et d'ouverture, chacun avec ses propres champs :
@@ -430,7 +431,7 @@ const COURS = [
      2nde — HISTOIRE — Thème 1, chapitre 2
      ===================================================================== */
   {
-    id: "2de-h1-c2", n: "2nde", d: "histoire",
+    id: "2de-h1-c2", n: "2nde", d: "histoire", carte: "mediterranee",
     theme: "Le monde méditerranéen : empreintes de l'Antiquité et du Moyen Âge",
     rituel: "Le monde méditerranéen : Antiquité et Moyen Âge",
     num: "Chapitre 2",
@@ -505,14 +506,14 @@ const COURS = [
       ] }
     ],
     lieux: [
-      { nom: "Constantinople", txt: "Capitale de l'Empire byzantin et siège du patriarche ; pillée en 1204, prise par les Ottomans en 1453." },
-      { nom: "Rome", txt: "Siège du pape, chef de l'Église catholique." },
-      { nom: "Bagdad", txt: "Capitale du califat abbasside." },
-      { nom: "Cordoue", txt: "Capitale du califat omeyyade d'al-Andalus, en péninsule Ibérique." },
-      { nom: "Le Caire", txt: "Capitale du califat fatimide, fondée en 969." },
-      { nom: "Jérusalem", txt: "Ville sainte pour les juifs, les chrétiens et les musulmans ; objectif des croisades." },
-      { nom: "Venise", txt: "Cité maritime d'Italie, dirigée par un doge, qui bâtit sa puissance sur le commerce et ses comptoirs." },
-      { nom: "Tolède", txt: "Ville de la péninsule Ibérique où des traducteurs font passer en latin des savoirs grecs et arabes." }
+      { nom: "Constantinople", lon: 28.98, lat: 41.01, txt: "Capitale de l'Empire byzantin et siège du patriarche ; pillée en 1204, prise par les Ottomans en 1453." },
+      { nom: "Rome", lon: 12.48, lat: 41.89, txt: "Siège du pape, chef de l'Église catholique." },
+      { nom: "Bagdad", lon: 44.36, lat: 33.31, txt: "Capitale du califat abbasside." },
+      { nom: "Cordoue", lon: -4.78, lat: 37.88, txt: "Capitale du califat omeyyade d'al-Andalus, en péninsule Ibérique." },
+      { nom: "Le Caire", lon: 31.24, lat: 30.04, txt: "Capitale du califat fatimide, fondée en 969." },
+      { nom: "Jérusalem", lon: 35.23, lat: 31.78, txt: "Ville sainte pour les juifs, les chrétiens et les musulmans ; objectif des croisades." },
+      { nom: "Venise", lon: 12.34, lat: 45.44, txt: "Cité maritime d'Italie, dirigée par un doge, qui bâtit sa puissance sur le commerce et ses comptoirs." },
+      { nom: "Tolède", lon: -4.02, lat: 39.86, txt: "Ville de la péninsule Ibérique où des traducteurs font passer en latin des savoirs grecs et arabes." }
     ],
     trous: [
       { titre: "Trois civilisations", texte: "Vers l'an 1000, trois civilisations bordent la Méditerranée. À Constantinople, le [basileus] dirige l'Empire byzantin, de religion chrétienne [orthodoxe]. Le monde musulman est dirigé par des [califes]. En Occident, la société est organisée par la [féodalité], et le [pape] dirige l'Église catholique depuis Rome." },
@@ -585,14 +586,14 @@ const COURS = [
         ],
         personnages: [],
         lieux: [
-          { nom: "Venise", txt: "Cité bâtie sur une lagune de l'Adriatique, dirigée par un doge ; capitale du Stato da Mar." },
-          { nom: "Constantinople", txt: "Capitale byzantine où Venise obtient des privilèges en 1082 et un quartier de commerce ; prise par les Ottomans en 1453." },
-          { nom: "Alexandrie", txt: "Grand port d'Égypte (sultanat mamelouk) où les Vénitiens ont un fondouk et achètent les épices." },
-          { nom: "Crète (Candie)", txt: "Île achetée par Venise en 1204 : colonie d'exploitation qui fournit coton, blé et vin." },
-          { nom: "Chypre (Famagouste)", txt: "Île du sucre et du sel ; Famagouste devient un grand marché après 1291 ; vénitienne en 1489." },
-          { nom: "Modon", txt: "Port vénitien du Péloponnèse, tenu après 1204 ; avec Coron, l'un des « yeux de la République »." },
-          { nom: "Raguse", txt: "Port de l'Adriatique, escale des galères vénitiennes vers l'Orient." },
-          { nom: "Gênes", txt: "Cité marchande d'Italie, grande rivale de Venise en Méditerranée orientale." }
+          { nom: "Venise", lon: 12.34, lat: 45.44, txt: "Cité bâtie sur une lagune de l'Adriatique, dirigée par un doge ; capitale du Stato da Mar." },
+          { nom: "Constantinople", lon: 28.98, lat: 41.01, txt: "Capitale byzantine où Venise obtient des privilèges en 1082 et un quartier de commerce ; prise par les Ottomans en 1453." },
+          { nom: "Alexandrie", lon: 29.92, lat: 31.2, txt: "Grand port d'Égypte (sultanat mamelouk) où les Vénitiens ont un fondouk et achètent les épices." },
+          { nom: "Crète (Candie)", lon: 25.13, lat: 35.34, txt: "Île achetée par Venise en 1204 : colonie d'exploitation qui fournit coton, blé et vin." },
+          { nom: "Chypre (Famagouste)", lon: 33.94, lat: 35.12, txt: "Île du sucre et du sel ; Famagouste devient un grand marché après 1291 ; vénitienne en 1489." },
+          { nom: "Modon", lon: 21.7, lat: 36.82, txt: "Port vénitien du Péloponnèse, tenu après 1204 ; avec Coron, l'un des « yeux de la République »." },
+          { nom: "Raguse", lon: 18.09, lat: 42.65, txt: "Port de l'Adriatique, escale des galères vénitiennes vers l'Orient." },
+          { nom: "Gênes", lon: 8.93, lat: 44.41, txt: "Cité marchande d'Italie, grande rivale de Venise en Méditerranée orientale." }
         ],
         documents: [
           { titre: "Le sel et le navire", source: "Philippe Braunstein, historien, Les Collections de L'Histoire, n° 71, 2016.",
@@ -723,14 +724,14 @@ const COURS = [
           ] }
         ],
         lieux: [
-          { nom: "Clairvaux", txt: "Abbaye cistercienne de Champagne, dirigée par Bernard à partir de 1115." },
-          { nom: "Vézelay", txt: "Colline de Bourgogne, lieu de pèlerinage (basilique de la Madeleine), où Bernard prêche la croisade le 31 mars 1146." },
-          { nom: "Spire", txt: "Ville de l'Empire germanique où Conrad III prend la croix, à Noël 1146." },
-          { nom: "Édesse", txt: "Capitale du plus ancien des États latins d'Orient, prise par Zengi en 1144." },
-          { nom: "Dorylée", txt: "Lieu d'Asie Mineure où l'armée de Conrad III est battue par les Turcs, en octobre 1147." },
-          { nom: "Mont Cadmos", txt: "Montagne d'Asie Mineure où l'armée de Louis VII est battue, en janvier 1148." },
-          { nom: "Damas", txt: "Grande ville musulmane de Syrie, assiégée en vain par les croisés en juillet 1148." },
-          { nom: "Lisbonne", txt: "Ville prise en octobre 1147 par des croisés venus du Nord : le seul succès de la croisade." }
+          { nom: "Clairvaux", lon: 4.79, lat: 48.15, txt: "Abbaye cistercienne de Champagne, dirigée par Bernard à partir de 1115." },
+          { nom: "Vézelay", lon: 3.75, lat: 47.47, txt: "Colline de Bourgogne, lieu de pèlerinage (basilique de la Madeleine), où Bernard prêche la croisade le 31 mars 1146." },
+          { nom: "Spire", lon: 8.43, lat: 49.32, txt: "Ville de l'Empire germanique où Conrad III prend la croix, à Noël 1146." },
+          { nom: "Édesse", lon: 38.79, lat: 37.16, txt: "Capitale du plus ancien des États latins d'Orient, prise par Zengi en 1144." },
+          { nom: "Dorylée", lon: 30.52, lat: 39.78, txt: "Lieu d'Asie Mineure où l'armée de Conrad III est battue par les Turcs, en octobre 1147." },
+          { nom: "Mont Cadmos", lon: 29.27, lat: 37.68, txt: "Montagne d'Asie Mineure où l'armée de Louis VII est battue, en janvier 1148." },
+          { nom: "Damas", lon: 36.29, lat: 33.51, txt: "Grande ville musulmane de Syrie, assiégée en vain par les croisés en juillet 1148." },
+          { nom: "Lisbonne", lon: -9.14, lat: 38.72, txt: "Ville prise en octobre 1147 par des croisés venus du Nord : le seul succès de la croisade." }
         ],
         documents: [
           { titre: "Bernard justifie le combat du chevalier chrétien", source: "Bernard de Clairvaux, Éloge de la nouvelle chevalerie, vers 1128-1136, écrit à la demande des Templiers.",

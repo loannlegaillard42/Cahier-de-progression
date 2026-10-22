@@ -22,6 +22,7 @@
     --b0: #EBDDCC; --b1: #D5E4E9; --b2: #E5DDEC; --b3: #DCE9D7;
     --p0: #C9DDE5; --p1: #EED9C4; --p2: #DCD3EA; --p3: #D3E6CD; --p4: #F0D4D4;
     --ombre: rgba(34, 40, 42, .07);
+    --mer: #D6E6EC; --terre: #FBF8F2; --cote: #93ABB4;
   }
   [data-theme="dark"] {
     --bg: #14181A; --panel: #1F2528; --ink: #F1ECE3; --sub: #B6B1A7; --faint: #9C968B;
@@ -33,6 +34,7 @@
     --b0: #3B3127; --b1: #22353C; --b2: #322B3B; --b3: #283527;
     --p0: #23404B; --p1: #4A3624; --p2: #3A3150; --p3: #2C4228; --p4: #4C2B2B;
     --ombre: rgba(0, 0, 0, .3);
+    --mer: #16252B; --terre: #2A3236; --cote: #4F6870;
   }
 
   * { box-sizing: border-box; }
@@ -424,6 +426,44 @@
   .etiquette .corr { display: block; font-size: 12px; color: var(--ko); margin-top: 2px; }
   .reserve-etiquettes { display: flex; flex-wrap: wrap; gap: 8px; }
 
+  /* ---------- Carte à compléter ---------- */
+  .k-boite { position: relative; background: var(--mer); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; touch-action: manipulation; }
+  .k-svg { display: block; width: 100%; height: auto; cursor: pointer; -webkit-user-select: none; user-select: none; }
+  .k-mer { fill: var(--mer); }
+  .k-terre { fill: var(--terre); stroke: var(--cote); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+  .k-mer-txt { fill: var(--accent); opacity: .55; font-family: Fraunces, serif; font-style: italic; text-anchor: middle; }
+  .k-fleuve { fill: none; stroke: var(--cote); stroke-width: 1.2px; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; opacity: .85; }
+  .k-fleuve-txt { fill: var(--accent); opacity: .6; font-family: Inter, sans-serif; font-style: italic; font-weight: 500; text-anchor: middle; }
+  .k-apercu { position: absolute; left: 8px; bottom: 8px; width: 30%; max-width: 150px; height: auto; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 1px 4px var(--ombre); display: none; pointer-events: none; }
+  .k-apercu.visible { display: block; }
+  .k-apercu-cadre { fill: none; stroke: var(--ko); stroke-width: 2px; vector-effect: non-scaling-stroke; }
+  .k-pt { fill: var(--panel); stroke: var(--ink); stroke-width: 2px; vector-effect: non-scaling-stroke; }
+  .k-lieu { outline: none; }
+  .k-lieu.trouve .k-pt { fill: var(--ok); stroke: var(--panel); }
+  .k-lieu.rate .k-pt, .k-lieu.vise .k-pt { fill: var(--warn); stroke: var(--panel); }
+  .k-lieu.faux .k-pt { fill: var(--ko); stroke: var(--panel); }
+  .k-lieu.choisi .k-pt { fill: var(--accent); stroke: var(--panel); }
+  .k-lieu.cache { display: none; }
+  .k-lieu:focus-visible .k-pt { stroke: var(--accent); stroke-width: 4px; }
+  .k-anneau { fill: none; stroke: var(--warn); stroke-width: 3px; vector-effect: non-scaling-stroke; opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .k-lieu.vise .k-anneau { animation: k-pouls 1.3s ease-out infinite; }
+  @keyframes k-pouls { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(3.2); } }
+  .k-etq { fill: var(--ink); font-family: Inter, sans-serif; font-weight: 600; paint-order: stroke; stroke: var(--terre); stroke-linejoin: round; }
+  .k-etq.trouve { fill: var(--ok); } .k-etq.rate, .k-etq.vise { fill: var(--warn); } .k-etq.faux { fill: var(--ko); } .k-etq.choisi { fill: var(--accent); }
+  .k-croix { stroke: var(--ko); stroke-width: 3px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .k-dezoom {
+    position: absolute; top: 8px; right: 8px; min-height: 36px; padding: 6px 13px; border-radius: 18px;
+    border: 1px solid var(--line); background: var(--panel); font-size: 13px; font-weight: 600; box-shadow: 0 1px 4px var(--ombre);
+  }
+  .k-question { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 4px 0 10px; }
+  .k-nom { font-family: Fraunces, serif; font-size: 25px; font-weight: 600; line-height: 1.2; }
+  .k-statut { font-size: 13px; color: var(--faint); margin: 8px 2px 0; }
+  .k-infos { margin-top: 10px; }
+  .k-bloc { margin-bottom: 12px; }
+  .k-legende { font-size: 13px; font-weight: 600; color: var(--sub); margin: 12px 0 6px; }
+  .puces-lieux { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .puces-lieux .opt { min-height: 38px; padding: 6px 13px; font-size: 14px; }
+
   /* ---------- QR code ---------- */
   .voile {
     position: fixed; inset: 0; z-index: 50; background: var(--bg); display: flex; flex-direction: column;
@@ -467,6 +507,7 @@
 
 <script src="questions.js"></script>
 <script src="cours.js"></script>
+<script src="cartes.js"></script>
 <script src="../vendor/qrcode-generator-1.4.4.js"></script>
 <script>
 (function () {
@@ -515,6 +556,7 @@
     eclair: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
     fermer: '<path d="M6 6l12 12M18 6L6 18"/>',
     drapeau: '<path d="M5 21V4"/><path d="M5 4h12l-2.5 4L17 12H5"/>',
+    carte: '<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
     classer: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17.5h7M17.5 14v7"/>'
   };
   function icone(nom) {
@@ -595,7 +637,7 @@
   function chargerProgres() {
     prog = lire(CLE, null);
     if (!prog || typeof prog !== "object") prog = {};
-    ["cartes", "quiz", "point"].forEach(function (k) {
+    ["cartes", "quiz", "point", "carte"].forEach(function (k) {
       if (!prog[k] || typeof prog[k] !== "object") prog[k] = {};
     });
   }
@@ -942,7 +984,7 @@
       el("button", { class: "lien-discret", type: "button", text: "Effacer mes progrès", onclick: function () {
         if (!confirm("Effacer tous tes progrès (cartes, quiz, auto-évaluation) sur cet appareil ?")) return;
         var niveau = prog.niveau;
-        prog = { cartes: {}, quiz: {}, point: {}, niveau: niveau };
+        prog = { cartes: {}, quiz: {}, point: {}, carte: {}, niveau: niveau };
         sauver();
         rendre();
       } })
@@ -1023,6 +1065,10 @@
       dispo: function (ch) { return blocs(ch).some(function (b) { return evenementsFrise(b.data).length >= 4; }); },
       info: function () { return "Remets les événements dans l'ordre"; },
       vue: vueFriseJeu },
+    { id: "carte", nom: "Carte à compléter", icone: "carte",
+      dispo: function (ch) { return nbLieuxPlaces(ch) >= 3; },
+      info: function (ch) { var b = prog.carte[ch.id]; return b ? "Meilleur score : " + b.score + " / " + b.sur : "Situe les " + nbLieuxPlaces(ch) + " lieux du chapitre"; },
+      vue: vueCarte },
     { id: "associer", nom: "Associer", icone: "associer",
       dispo: function (ch) { return blocs(ch).some(function (b) { return sourcesAssocier(b.data).length > 0; }); },
       info: function () { return "Relie chaque mot à sa définition"; },
@@ -1136,6 +1182,7 @@
     }
     if (liste(ch, "lieux").length) {
       cible.appendChild(el("div", { class: "etiq", text: "Les lieux" }));
+      blocCarteLieux(ch, "cours", cible);
       var gl = el("div", { class: "grille" });
       liste(ch, "lieux").forEach(function (l) {
         gl.appendChild(el("div", { class: "notion" }, [el("strong", { text: l.nom }), el("p", { text: l.txt })]));
@@ -2150,6 +2197,7 @@
       }
       if (liste(p, "lieux").length) {
         zone.appendChild(el("div", { class: "etiq", text: "Les lieux" }));
+        blocCarteLieux(ch, p.id, zone);
         zone.appendChild(grille(liste(p, "lieux"), function (l) { return el("div", { class: "notion" }, [el("strong", { text: l.nom }), el("p", { text: l.txt })]); }));
       }
 
@@ -2199,10 +2247,11 @@
 
       zone.appendChild(el("div", { class: "etiq noprint", text: "S'entraîner sur ce point de passage" }));
       var liens = el("div", { class: "liens-ppo noprint" });
-      [["cartes", "Cartes mémoire"], ["quiz", "Quiz"], ["classer", "Classer"], ["trous", "Texte à trous"], ["frise", "Frise"]].forEach(function (o) {
+      [["cartes", "Cartes mémoire"], ["quiz", "Quiz"], ["classer", "Classer"], ["trous", "Texte à trous"], ["frise", "Frise"], ["carte", "Carte"]].forEach(function (o) {
         var outil = OUTILS.filter(function (x) { return x.id === o[0]; })[0];
         if (!outil.dispo(ch)) return;
         if (o[0] === "classer" && !p.schema) return;
+        if (o[0] === "carte" && nbLieuxPlaces(ch, p.id) < 3) return;
         liens.appendChild(el("a", { class: "btn", href: lienChapitre(ch, o[0]) + "/" + p.id }, avecIcone(outil.icone, o[1])));
       });
       zone.appendChild(liens);
@@ -2295,6 +2344,524 @@
       }
     }
     dessinerOnglets();
+    demarrer();
+  }
+
+  // ---------- Carte à compléter ----------
+  // Le fond vient de cartes.js (côtes déjà projetées) ; les lieux gardent leurs coordonnées (lon, lat) dans cours.js
+  // et sont placés avec la même projection. Les points et les noms gardent la même taille à l'écran quel que soit
+  // le zoom ; quand plusieurs points sont trop proches pour être touchés au doigt, la carte zoome sur la zone.
+  var ZOOM_MAX = 8;
+  var ZOOM_FLEUVES = 2.5; // les noms des fleuves n'apparaissent qu'à partir de ce zoom
+  var cartesVivantes = [];
+  var numeroCarte = 0;
+  window.addEventListener("resize", function () {
+    cartesVivantes = cartesVivantes.filter(function (c) { return c.boite.isConnected; });
+    cartesVivantes.forEach(function (c) { c.echelle(); });
+  });
+
+  // ch.carte : un fond (identifiant dans cartes.js) ou plusieurs, du plus détaillé au plus large
+  function fondsChapitre(ch) {
+    if (typeof FONDS === "undefined" || !ch.carte) return [];
+    return (Array.isArray(ch.carte) ? ch.carte : [ch.carte]).map(function (id) { return FONDS[id]; }).filter(Boolean);
+  }
+  function dansFond(f, p) {
+    var x = (p.lon - f.lon0) * f.kx, y = (f.lat0 - p.lat) * f.ky;
+    return x >= 0 && x <= f.l && y >= 0 && y <= f.h;
+  }
+  // chaque lieu va sur le premier fond qui le contient ; on ne garde que les fonds qui ont au moins « min » lieux
+  function cartesDuChapitre(ch, filtre, min) {
+    var fonds = fondsChapitre(ch);
+    var res = fonds.map(function (f) { return { fond: f, lieux: [] }; });
+    lieuxCarte(ch, filtre).forEach(function (p) {
+      for (var k = 0; k < fonds.length; k++) if (dansFond(fonds[k], p)) { res[k].lieux.push(p); return; }
+    });
+    return res.filter(function (r) { return r.lieux.length >= (min || 1); });
+  }
+  function nbLieuxPlaces(ch, filtre) {
+    return cartesDuChapitre(ch, filtre, 3).reduce(function (n, r) { return n + r.lieux.length; }, 0);
+  }
+  // un même lieu cité dans le cours et dans un point de passage n'apparaît qu'une fois
+  function lieuxCarte(ch, filtre) {
+    var vus = {}, res = [];
+    blocsChoisis(ch, filtre).forEach(function (b) {
+      liste(b.data, "lieux").forEach(function (x) {
+        if (typeof x.lon !== "number" || typeof x.lat !== "number") return;
+        var k = normaliser(x.nom);
+        if (vus[k]) return;
+        vus[k] = true;
+        res.push({ nom: x.nom, txt: x.txt, lon: x.lon, lat: x.lat, src: b.id === "cours" ? "" : b.nom, carte: b.prefixe + "|l|" + x.nom });
+      });
+    });
+    return res;
+  }
+
+  // opts : surLieu(i) quand un point est choisi au clavier ou d'un doigt sûr,
+  //        surTouche(pt, proches) pour un toucher sur la carte (proches : les points à portée de doigt, du plus près au plus loin)
+  function creerCarte(fond, lieux, opts) {
+    var L = fond.l, H = fond.h;
+    var vb = { x: 0, y: 0, w: L, h: H };
+    var anim = null;
+    var pts = lieux.map(function (p) { return { x: (p.lon - fond.lon0) * fond.kx, y: (fond.lat0 - p.lat) * fond.ky }; });
+    var voulu = lieux.map(function () { return 0; }); // priorité du nom : 0 caché, 1 si la place le permet, 3 toujours
+
+    var idTerre = "k-terre-" + (++numeroCarte);
+    var svg = svgEl("svg", { viewBox: "0 0 " + L + " " + H, class: "k-svg", role: "group", "aria-label": opts.titre || fond.nom });
+    svg.appendChild(svgEl("rect", { class: "k-mer", x: -20, y: -20, width: L + 40, height: H + 40 }));
+    svg.appendChild(svgEl("path", { id: idTerre, class: "k-terre", d: fond.terre, "fill-rule": "evenodd" }));
+    if (fond.fleuves) svg.appendChild(svgEl("path", { class: "k-fleuve", d: fond.fleuves }));
+    // noms des mers et des fleuves : ils s'effacent devant les lieux, et quand ils ne tiennent pas
+    var gMers = svgEl("g", { class: "k-mers", "aria-hidden": "true" });
+    function nomDecor(m, cls) {
+      var x = (m.lon - fond.lon0) * fond.kx, y = (fond.lat0 - m.lat) * fond.ky;
+      var t = svgEl("text", { class: cls, x: x, y: y, transform: m.rot ? "rotate(" + m.rot + " " + x + " " + y + ")" : "" });
+      m.nom.split("\n").forEach(function (ligne, k) { t.appendChild(svgEl("tspan", { x: x, dy: k ? "1.1em" : "0" }, ligne)); });
+      gMers.appendChild(t);
+      return { t: t, taille: m.grand ? 13.5 : cls === "k-fleuve-txt" ? 10.5 : 11.5, max: m.max, fleuve: cls === "k-fleuve-txt" };
+    }
+    var decors = liste(fond, "mers").map(function (m) { return nomDecor(m, "k-mer-txt"); })
+      .concat(liste(fond, "nomsFleuves").map(function (m) { return nomDecor(m, "k-fleuve-txt"); }));
+    svg.appendChild(gMers);
+    var gMarques = svgEl("g", { "aria-hidden": "true" });
+    var gPts = svgEl("g", {});
+    var gEtq = svgEl("g", { class: "k-etiquettes", "aria-hidden": "true" });
+    svg.appendChild(gMarques);
+    svg.appendChild(gPts);
+    svg.appendChild(gEtq);
+
+    var noeuds = lieux.map(function (p, i) {
+      var g = svgEl("g", { class: "k-lieu", tabindex: "0", role: "button", "aria-label": opts.nomAccessible ? opts.nomAccessible(i) : p.nom });
+      var anneau = svgEl("circle", { class: "k-anneau", cx: pts[i].x, cy: pts[i].y, r: 6 });
+      var c = svgEl("circle", { class: "k-pt", cx: pts[i].x, cy: pts[i].y, r: 6 });
+      g.appendChild(anneau);
+      g.appendChild(c);
+      g.addEventListener("click", function (e) { e.stopPropagation(); toucher(e); });
+      g.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!anim) opts.surLieu(i); }
+      });
+      gPts.appendChild(g);
+      var t = svgEl("text", { class: "k-etq" }, p.nom);
+      gEtq.appendChild(t);
+      return { g: g, c: c, anneau: anneau, t: t };
+    });
+
+    var dezoom = el("button", { class: "k-dezoom noprint", type: "button", hidden: true, onclick: function () { toutVoir(); } }, "Toute la carte");
+    // quand on zoome, une vignette rappelle où l'on se trouve
+    var apercu = svgEl("svg", { class: "k-apercu", viewBox: "0 0 " + L + " " + H, "aria-hidden": "true" });
+    apercu.appendChild(svgEl("rect", { class: "k-mer", x: 0, y: 0, width: L, height: H }));
+    apercu.appendChild(svgEl("use", { href: "#" + idTerre }));
+    var cadreApercu = svgEl("rect", { class: "k-apercu-cadre", x: 0, y: 0, width: L, height: H });
+    apercu.appendChild(cadreApercu);
+    var boite = el("div", { class: "k-boite" }, [svg, apercu, dezoom]);
+
+    function largeurEcran() { return svg.getBoundingClientRect().width || 360; }
+    function unite() { return vb.w / largeurEcran(); } // unités de la carte par pixel d'écran
+    function pointAffiche(i) { return noeuds[i].g.getAttribute("class").indexOf("cache") < 0; }
+
+    function echelle(sansNoms) {
+      var u = unite();
+      noeuds.forEach(function (n) { n.c.setAttribute("r", 6.5 * u); n.anneau.setAttribute("r", 6.5 * u); });
+      gEtq.setAttribute("font-size", 12.5 * u);
+      gEtq.setAttribute("stroke-width", 3.5 * u);
+      decors.forEach(function (m) { m.t.setAttribute("font-size", m.taille * u); });
+      if (sansNoms) { gEtq.setAttribute("display", "none"); gMers.setAttribute("display", "none"); }
+      else { gEtq.removeAttribute("display"); gMers.removeAttribute("display"); placerNoms(u); }
+    }
+
+    // chaque nom prend la première place libre à droite, à gauche, au-dessus ou au-dessous de son point ;
+    // un nom qui ne trouve pas de place attend que l'on zoome (sauf s'il doit être lu tout de suite)
+    function placerNoms(u) {
+      var h = 12.5 * u, ecart = 6.5 * u + 3 * u;
+      var prises = [];
+      noeuds.forEach(function (n, i) {
+        n.t.setAttribute("display", "none");
+        if (pointAffiche(i)) prises.push({ x: pts[i].x - 7 * u, y: pts[i].y - 7 * u, w: 14 * u, h: 14 * u, i: i });
+      });
+      // le bouton « Toute la carte » et la vignette cachent un coin de la carte : pas de nom dessous
+      var cadreSvg = svg.getBoundingClientRect();
+      [dezoom, apercu].forEach(function (e) {
+        var r = e.getBoundingClientRect();
+        if (!r.width) return;
+        prises.push({ x: vb.x + (r.left - cadreSvg.left) * u, y: vb.y + (r.top - cadreSvg.top) * u, w: r.width * u, h: r.height * u, i: -1 });
+      });
+      var ordre = voulu.map(function (v, i) { return i; }).filter(function (i) { return voulu[i] > 0; })
+        .sort(function (a, b) { return voulu[b] - voulu[a]; });
+      function libre(r, soi) {
+        if (r.x < vb.x + 2 * u || r.y < vb.y + 2 * u || r.x + r.w > vb.x + vb.w - 2 * u || r.y + r.h > vb.y + vb.h - 2 * u) return false;
+        return prises.every(function (o) {
+          return o.i === soi || r.x >= o.x + o.w || o.x >= r.x + r.w || r.y >= o.y + o.h || o.y >= r.y + r.h;
+        });
+      }
+      ordre.forEach(function (i) {
+        var n = noeuds[i], p = pts[i];
+        n.t.removeAttribute("display");
+        var w = n.t.getComputedTextLength();
+        var places = [
+          { x: p.x + ecart, y: p.y + h * .35, a: "start", r: { x: p.x + ecart, y: p.y - h * .6, w: w, h: h * 1.1 } },
+          { x: p.x - ecart, y: p.y + h * .35, a: "end", r: { x: p.x - ecart - w, y: p.y - h * .6, w: w, h: h * 1.1 } },
+          { x: p.x, y: p.y - ecart, a: "middle", r: { x: p.x - w / 2, y: p.y - ecart - h * .85, w: w, h: h * 1.05 } },
+          { x: p.x, y: p.y + ecart + h * .8, a: "middle", r: { x: p.x - w / 2, y: p.y + ecart - h * .1, w: w, h: h * 1.05 } }
+        ];
+        var choix = places.filter(function (pl) { return libre(pl.r, i); })[0];
+        if (!choix && voulu[i] >= 3) {
+          // nom à lire absolument : du côté où il reste dans le cadre
+          choix = p.x + ecart + w > vb.x + vb.w ? places[1] : places[0];
+        }
+        if (!choix) { n.t.setAttribute("display", "none"); return; }
+        n.t.setAttribute("x", choix.x);
+        n.t.setAttribute("y", choix.y);
+        n.t.setAttribute("text-anchor", choix.a);
+        prises.push({ x: choix.r.x, y: choix.r.y, w: choix.r.w, h: choix.r.h, i: -1 });
+      });
+      var zoom = L / vb.w;
+      decors.forEach(function (m) {
+        m.t.removeAttribute("display");
+        if (m.fleuve && zoom < ZOOM_FLEUVES) { m.t.setAttribute("display", "none"); return; }
+        var b = m.t.getBBox();
+        if ((m.max && b.width > m.max) || !libre({ x: b.x, y: b.y, w: b.width, h: b.height }, -2)) m.t.setAttribute("display", "none");
+      });
+    }
+
+    function appliquerVue() {
+      svg.setAttribute("viewBox", [vb.x, vb.y, vb.w, vb.h].map(function (v) { return Math.round(v * 10) / 10; }).join(" "));
+      cadreApercu.setAttribute("x", vb.x); cadreApercu.setAttribute("y", vb.y);
+      cadreApercu.setAttribute("width", vb.w); cadreApercu.setAttribute("height", vb.h);
+    }
+    function cadrer(c) {
+      c.w = Math.min(L, Math.max(L / ZOOM_MAX, c.w));
+      c.h = c.w * H / L;
+      c.x = Math.max(0, Math.min(L - c.w, c.x));
+      c.y = Math.max(0, Math.min(H - c.h, c.y));
+      return c;
+    }
+    function zoomer(cible, fin) {
+      cible = cadrer(cible);
+      var depart = { x: vb.x, y: vb.y, w: vb.w, h: vb.h };
+      var reduit = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var t0 = null, duree = reduit ? 0 : 320;
+      if (anim) cancelAnimationFrame(anim);
+      function pas(t) {
+        if (t0 === null) t0 = t;
+        var k = duree ? Math.min(1, (t - t0) / duree) : 1;
+        var e = 1 - Math.pow(1 - k, 3);
+        ["x", "y", "w", "h"].forEach(function (c) { vb[c] = depart[c] + (cible[c] - depart[c]) * e; });
+        appliquerVue();
+        if (k < 1) { echelle(true); anim = requestAnimationFrame(pas); return; }
+        anim = null;
+        dezoom.hidden = vb.w >= L - .5;
+        apercu.setAttribute("class", "k-apercu" + (dezoom.hidden ? "" : " visible"));
+        echelle();
+        if (fin) fin();
+      }
+      anim = requestAnimationFrame(pas);
+    }
+    function toutVoir(fin) { if (vb.w >= L - .5) { if (fin) fin(); return; } zoomer({ x: 0, y: 0, w: L, h: H }, fin); }
+    function zoomSur(i, facteur) {
+      var w = L / facteur;
+      zoomer({ x: pts[i].x - w / 2, y: pts[i].y - w * H / L / 2, w: w });
+    }
+    function dansLaVue(i) {
+      var p = pts[i];
+      return p.x >= vb.x && p.x <= vb.x + vb.w && p.y >= vb.y && p.y <= vb.y + vb.h;
+    }
+
+    function versCarte(e) {
+      var m = svg.getScreenCTM();
+      var pt = svg.createSVGPoint();
+      pt.x = e.clientX; pt.y = e.clientY;
+      var r = pt.matrixTransform(m.inverse());
+      return { x: r.x, y: r.y };
+    }
+    // Au doigt, on vise à une dizaine de pixels près : si deux points sont à portée et que le toucher
+    // ne penche pas nettement vers l'un d'eux, on zoome plutôt que de deviner. À la souris, on est plus précis.
+    function toucher(e) {
+      if (anim) return;
+      var pt = versCarte(e);
+      var u = unite();
+      var souris = e.pointerType === "mouse" || (!e.pointerType && window.matchMedia && window.matchMedia("(pointer: fine)").matches);
+      var portee = (souris ? 12 : 22) * u, marge = (souris ? 5 : 9) * u;
+      var tolerance = Math.max(portee, .045 * vb.w);
+      var tous = pts.map(function (p, i) { return { i: i, d: Math.sqrt(Math.pow(p.x - pt.x, 2) + Math.pow(p.y - pt.y, 2)) }; })
+        .sort(function (a, b) { return a.d - b.d; });
+      var douteux = tous.filter(function (o) { return o.d <= portee; });
+      if (douteux.length >= 2 && douteux[1].d - douteux[0].d < marge && L / vb.w < ZOOM_MAX - .01) {
+        // zoom juste assez pour écarter ces points d'environ 36 pixels, centré sur eux
+        var dmin = Infinity, cx = 0, cy = 0;
+        douteux.forEach(function (a, k) {
+          cx += pts[a.i].x / douteux.length; cy += pts[a.i].y / douteux.length;
+          douteux.slice(k + 1).forEach(function (b) {
+            dmin = Math.min(dmin, Math.sqrt(Math.pow(pts[a.i].x - pts[b.i].x, 2) + Math.pow(pts[a.i].y - pts[b.i].y, 2)));
+          });
+        });
+        var w = Math.max(dmin, .1) / 36 * largeurEcran();
+        zoomer({ x: cx - w / 2, y: cy - w * H / L / 2, w: w });
+        if (opts.surZoom) opts.surZoom();
+        return;
+      }
+      opts.surTouche(pt, tous.filter(function (o) { return o.d <= tolerance; }).map(function (o) { return o.i; }));
+    }
+    svg.addEventListener("click", toucher);
+
+    var api = {
+      boite: boite,
+      echelle: function () { if (!anim) echelle(); },
+      // classe d'état d'un point : "", "trouve", "rate", "vise", "faux", "choisi", "cache"
+      etat: function (i, cls) {
+        noeuds[i].g.setAttribute("class", "k-lieu" + (cls ? " " + cls : ""));
+        noeuds[i].t.setAttribute("class", "k-etq" + (cls ? " " + cls : ""));
+        if (cls === "cache") noeuds[i].g.setAttribute("tabindex", "-1"); else noeuds[i].g.setAttribute("tabindex", "0");
+      },
+      nom: function (i, priorite) { voulu[i] = priorite; },
+      croix: function (pt) {
+        var u = unite(), r = 7 * u;
+        gMarques.appendChild(svgEl("path", { class: "k-croix", d: "M" + (pt.x - r) + " " + (pt.y - r) + "L" + (pt.x + r) + " " + (pt.y + r) + "M" + (pt.x + r) + " " + (pt.y - r) + "L" + (pt.x - r) + " " + (pt.y + r) }));
+      },
+      effacerMarques: function () { gMarques.innerHTML = ""; },
+      toutVoir: toutVoir,
+      dansLaVue: dansLaVue,
+      // montre un point : zoom si son nom ne trouve pas de place à l'échelle actuelle
+      montrer: function (i) {
+        if (!dansLaVue(i)) { zoomSur(i, Math.max(1, L / vb.w)); return; }
+        if (noeuds[i].t.getAttribute("display") === "none" && L / vb.w < ZOOM_MAX - .01) zoomSur(i, Math.min(ZOOM_MAX, L / vb.w * 3));
+      },
+      focus: function (i) { noeuds[i].g.focus(); }
+    };
+    cartesVivantes.push(api);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (boite.isConnected) api.echelle(); });
+    return api;
+  }
+
+  // La carte « à observer » : tous les noms, un toucher affiche ce qu'il faut savoir du lieu
+  function carteObservee(conteneur, fond, lieux, avecListe) {
+    var choisi = -1;
+    var infos = el("div", { class: "k-infos", "aria-live": "polite" });
+    var carte = creerCarte(fond, lieux, { titre: "Carte des lieux à connaître", surLieu: choisir, surTouche: function (pt, proches) {
+      if (proches.length) choisir(proches[0]);
+    } });
+    lieux.forEach(function (p, i) { carte.nom(i, 1); });
+    var puces = avecListe ? el("div", { class: "puces-lieux noprint", role: "group", "aria-label": "Les lieux" }) : null;
+    function choisir(i) {
+      if (choisi >= 0) { carte.etat(choisi, ""); carte.nom(choisi, 1); }
+      choisi = i;
+      carte.etat(i, "choisi");
+      carte.nom(i, 3);
+      carte.echelle();
+      carte.montrer(i);
+      var p = lieux[i];
+      infos.innerHTML = "";
+      infos.appendChild(el("div", { class: "notion" }, [
+        el("strong", { text: p.nom }),
+        p.src ? el("span", { class: "dates", text: p.src }) : null,
+        el("p", { text: p.txt })
+      ]));
+      if (puces) puces.querySelectorAll(".opt").forEach(function (b, k) { b.setAttribute("aria-pressed", String(k === i)); });
+    }
+    conteneur.appendChild(carte.boite);
+    infos.appendChild(el("p", { class: "k-statut", text: "Touche un lieu sur la carte pour lire ce qu'il faut en savoir." }));
+    conteneur.appendChild(infos);
+    if (puces) {
+      lieux.forEach(function (p, i) {
+        puces.appendChild(el("button", { class: "opt", type: "button", text: p.nom, "aria-pressed": "false", onclick: function () { choisir(i); } }));
+      });
+      conteneur.appendChild(puces);
+    }
+    carte.echelle();
+    return carte;
+  }
+
+  // dans l'essentiel et les points de passage : la carte au-dessus de la liste des lieux
+  function blocCarteLieux(ch, filtre, conteneur) {
+    var cartes = cartesDuChapitre(ch, filtre);
+    if (!cartes.length) return;
+    var zone = el("div", { class: "k-bloc" });
+    conteneur.appendChild(zone);
+    cartes.forEach(function (r) {
+      if (cartes.length > 1) zone.appendChild(el("div", { class: "k-legende", text: r.fond.nom }));
+      carteObservee(zone, r.fond, r.lieux, false);
+    });
+    if (nbLieuxPlaces(ch, filtre) >= 3) {
+      zone.appendChild(el("div", { class: "btns noprint", style: "margin-top:10px" },
+        el("a", { class: "btn", href: lienChapitre(ch, "carte") + (filtre ? "/" + filtre : "") }, avecIcone("carte", "S'entraîner sur la carte"))));
+    }
+  }
+
+  function vueCarte(ch, cible) {
+    var assez = function (b) { return nbLieuxPlaces(ch, b.id) >= 3; };
+    var filtre = blocDemande(ch, assez);
+    var mode = "observer";
+    var idFond = null; // fond choisi, quand le chapitre en a plusieurs
+    var choixBloc = el("div"), choixFond = el("div"), choixMode = el("div"), zone = el("div");
+    cible.appendChild(choixBloc);
+    cible.appendChild(choixFond);
+    cible.appendChild(choixMode);
+    cible.appendChild(zone);
+    function cartes() { return cartesDuChapitre(ch, filtre, 3); }
+    function carteActuelle() {
+      var c = cartes();
+      return c.filter(function (r) { return r.fond.id === idFond; })[0] || c[0];
+    }
+    var MODES = [
+      { id: "observer", nom: "Observer" },
+      { id: "points", nom: "Me tester" },
+      { id: "expert", nom: "Expert : sans les points" }
+    ];
+
+    function dessinerChoix() {
+      choixBloc.innerHTML = "";
+      var g = selecteurBlocs(ch, filtre, true, assez, function (id) { filtre = id; dessinerChoix(); demarrer(); });
+      if (g) choixBloc.appendChild(g);
+      choixFond.innerHTML = "";
+      var c = cartes();
+      if (c.length > 1) {
+        var actuelle = carteActuelle().fond.id;
+        var f = el("div", { class: "segments", role: "group", "aria-label": "Carte" });
+        c.forEach(function (r) {
+          f.appendChild(el("button", { class: "opt", type: "button", text: r.fond.nom, "aria-pressed": String(r.fond.id === actuelle), onclick: function () { idFond = r.fond.id; dessinerChoix(); demarrer(); } }));
+        });
+        choixFond.appendChild(f);
+      }
+      choixMode.innerHTML = "";
+      var m = el("div", { class: "segments", role: "group", "aria-label": "Mode" });
+      MODES.forEach(function (o) {
+        m.appendChild(el("button", { class: "opt", type: "button", text: o.nom, "aria-pressed": String(o.id === mode), onclick: function () { mode = o.id; dessinerChoix(); demarrer(); } }));
+      });
+      choixMode.appendChild(m);
+    }
+
+    function demarrer() {
+      zone.innerHTML = "";
+      surToucheVue = null;
+      var r = carteActuelle();
+      var fond = r.fond, lieux = r.lieux;
+      if (mode === "observer") {
+        zone.appendChild(el("p", { class: "consigne-outil", text: "Repère les lieux du chapitre : touche un point pour lire ce qu'il faut en savoir. Quand plusieurs points sont serrés, la carte zoome." }));
+        carteObservee(zone, fond, lieux, true);
+        zone.appendChild(el("div", { class: "btns" }, el("button", { class: "btn plein", type: "button", text: "Je me teste", onclick: function () { mode = "points"; dessinerChoix(); demarrer(); } })));
+        return;
+      }
+      jouer(fond, lieux, mode === "expert");
+    }
+
+    function jouer(fond, lieux, expert) {
+      var serie = melanger(lieux.map(function (p, i) { return i; }));
+      if (serie.length > 12) serie = serie.slice(0, 10);
+      var pos = 0, score = 0, rates = [], repondu = false, faux = -1;
+      var etats = lieux.map(function () { return expert ? "cache" : ""; });
+
+      var compteur = el("div", { class: "compteur" });
+      var question = el("div", { class: "k-question" });
+      var bas = el("div");
+      var carte = creerCarte(fond, lieux, {
+        titre: "Carte muette",
+        nomAccessible: function (i) { return "Point " + (i + 1); },
+        surLieu: function (i) { if (!repondu) repondre(i, null); },
+        surTouche: function (pt, proches) {
+          if (repondu) return;
+          if (!expert && !proches.length) { statut("Touche l'un des points de la carte."); return; }
+          repondre(proches.length ? proches[0] : -1, expert ? pt : null);
+        },
+        surZoom: function () { statut("Zoom sur la zone : touche à nouveau le bon endroit."); }
+      });
+      lieux.forEach(function (p, i) { carte.etat(i, etats[i]); });
+      zone.appendChild(compteur);
+      zone.appendChild(question);
+      zone.appendChild(carte.boite);
+      zone.appendChild(bas);
+      carte.echelle();
+
+      function statut(t) {
+        var s = bas.querySelector(".k-statut");
+        if (s) s.textContent = t;
+        annoncer(t);
+      }
+      function dessinerQuestion() {
+        repondu = false;
+        var c = serie[pos];
+        var barre = el("div", { class: "barre" }, el("span"));
+        barre.firstChild.style.width = Math.round(pos / serie.length * 100) + "%";
+        compteur.innerHTML = "";
+        compteur.appendChild(el("span", { text: "Lieu " + (pos + 1) + " sur " + serie.length + " · " + score + " trouvé" + (score > 1 ? "s" : "") }));
+        compteur.appendChild(barre);
+        question.innerHTML = "";
+        question.appendChild(el("span", { class: "q-consigne", text: expert ? "Touche l'endroit exact :" : "Touche le point de…" }));
+        question.appendChild(el("span", { class: "k-nom", text: lieux[c].nom }));
+        bas.innerHTML = "";
+        bas.appendChild(el("p", { class: "k-statut", text: expert ? "Pas de points : à toi de situer le lieu." : "Plusieurs points serrés ? Touche la zone : la carte zoome." }));
+        annoncer("Où se trouve " + lieux[c].nom + " ?");
+      }
+      function repondre(i, pt) {
+        repondu = true;
+        var c = serie[pos];
+        var juste = i === c;
+        if (juste) { score++; etats[c] = "trouve"; carte.etat(c, "trouve"); carte.nom(c, 3); }
+        else {
+          rates.push(c);
+          oublierCarte(lieux[c].carte);
+          etats[c] = "rate";
+          carte.etat(c, "vise");
+          carte.nom(c, 3);
+          if (i >= 0) { faux = i; carte.etat(i, "faux"); carte.nom(i, 3); }
+          if (pt) carte.croix(pt);
+        }
+        var p = lieux[c];
+        var titre = juste ? "Bien vu !" : i >= 0 ? "Non : là, c'est " + lieux[i].nom + "." : "Raté : ce n'est pas là.";
+        var aide = juste ? "" : p.nom + " est le point orange qui clignote. ";
+        bas.innerHTML = "";
+        bas.appendChild(el("div", { class: "retour-q " + (juste ? "bien" : "mal") }, [el("strong", { text: titre }), el("span", { text: aide + p.txt })]));
+        var suivant = el("button", { class: "btn plein", type: "button", text: pos === serie.length - 1 ? "Voir mon score" : "Lieu suivant", onclick: suite });
+        bas.appendChild(el("div", { class: "btns" }, suivant));
+        annoncer(titre + " " + aide + p.txt);
+        // le bon point doit se voir : on dézoome s'il est hors du cadre
+        if (!juste && !carte.dansLaVue(c)) carte.toutVoir(); else carte.echelle();
+        suivant.focus({ preventScroll: true });
+      }
+      function suite() {
+        var c = serie[pos];
+        carte.effacerMarques();
+        if (faux >= 0) {
+          carte.etat(faux, etats[faux]);
+          carte.nom(faux, etats[faux] === "trouve" || etats[faux] === "rate" ? 1 : 0);
+          faux = -1;
+        }
+        carte.etat(c, etats[c]);
+        carte.nom(c, 1);
+        pos++;
+        carte.toutVoir(function () { carte.echelle(); });
+        if (pos >= serie.length) { bilan(); return; }
+        dessinerQuestion();
+      }
+      function bilan() {
+        var cle = ch.id + (filtre ? "|" + filtre : "") + (fond.id !== cartes()[0].fond.id ? "|" + fond.id : "") + (expert ? "|expert" : "");
+        var ancien = prog.carte[cle];
+        if (!ancien || score / serie.length > ancien.score / ancien.sur) { prog.carte[cle] = { score: score, sur: serie.length, t: Date.now() }; sauver(); }
+        compteur.innerHTML = "";
+        question.innerHTML = "";
+        question.appendChild(el("span", { class: "q-consigne", text: "Ta carte complétée" }));
+        var msg = score === serie.length ? "Parfait : tu sais situer tous ces lieux !" : score >= serie.length * .7 ? "Très bien !" : score >= serie.length * .5 ? "C'est en bonne voie." : "Observe encore la carte, puis recommence.";
+        var b = el("div", { class: "bilan carte-panneau", style: "margin-top:12px" }, [
+          el("div", { class: "gros", text: score + " / " + serie.length }),
+          el("p", { text: msg })
+        ]);
+        if (rates.length) {
+          b.appendChild(el("p", { class: "petit", text: "À revoir — en orange sur la carte, et en premier dans les cartes mémoire :" }));
+          var ul = el("div", { class: "mots", style: "justify-content:center" });
+          rates.forEach(function (i) { ul.appendChild(el("span", { class: "mot-cle", text: lieux[i].nom })); });
+          b.appendChild(ul);
+        }
+        b.appendChild(el("div", { class: "btns" }, [
+          el("button", { class: "btn plein", type: "button", text: "Rejouer", onclick: demarrer }),
+          !expert && score >= serie.length * .7 ? el("button", { class: "btn", type: "button", text: "Passer au mode expert", onclick: function () { mode = "expert"; dessinerChoix(); demarrer(); } }) : null,
+          el("button", { class: "btn", type: "button", text: "Observer la carte", onclick: function () { mode = "observer"; dessinerChoix(); demarrer(); } }),
+          el("a", { class: "btn", href: lienChapitre(ch), text: "Retour au chapitre" })
+        ]));
+        bas.innerHTML = "";
+        bas.appendChild(b);
+        b.querySelector(".btn").focus({ preventScroll: true });
+      }
+      dessinerQuestion();
+    }
+
+    dessinerChoix();
     demarrer();
   }
 
