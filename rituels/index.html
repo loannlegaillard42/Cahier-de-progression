@@ -238,8 +238,8 @@
   <p class="info" style="margin-top:26px">
     <strong>Boîte à outils des élèves</strong> — l'essentiel de chaque chapitre, cartes mémoire, quiz, frise, textes à trous.
     Le bouton QR code de la page permet de la projeter pour que les élèves la scannent.<br />
-    <a href="reviser.html">Ouvrir la boîte à outils →</a> ·
-    <a href="reviser.html#/prof">Choisir les chapitres visibles (espace professeur) →</a>
+    <a href="reviser.html">Ouvrir la boîte à outils →</a>
+    <span id="lien-prof" hidden> · <a href="reviser.html#/prof">Choisir les chapitres visibles (espace professeur) →</a></span>
   </p>
 </div>
 
@@ -908,6 +908,10 @@
     etat.theme = (sauvegarde.theme && themesOk.indexOf(sauvegarde.theme) !== -1) ? sauvegarde.theme : null;
   }
   rafraichirReglages();
+  // Le lien vers l'espace professeur n'apparaît que sur l'appareil où le professeur a connecté GitHub
+  // (même jeton que la boîte à outils) : un élève qui ouvre cette page ne le voit pas.
+  var prof = lire("reviser-prof-v1", null);
+  if (prof && prof.token) document.getElementById("lien-prof").hidden = false;
 })();
 </script>
 </body>
