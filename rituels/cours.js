@@ -18,13 +18,18 @@
      notions     { mot, def }
      personnages { nom, dates, txt: [indices, du plus vague au plus précis — sans le nom] }
      lieux       { nom, txt, lon?, lat? } — avec ses coordonnées (degrés, est et nord positifs), le lieu se place sur la carte
+     documents   documents des fiches d'activités (au niveau du chapitre ou d'un point de passage) :
+                 texte  { id?, titre, extrait, source, montre }
+                 image  { id, titre, image (chemin dans rituels/), nature, auteur, date, annee?, source, credit,
+                          contexte?, montre, details: [{ nom, x, y (en % de la largeur et de la hauteur), r?, txt }] }
+                 — un document image ajoute l'outil « Les documents » (présenter le document, repérer ses détails)
      carte       fond de carte du chapitre (identifiant dans cartes.js : mediterranee, europe, france, atlantique-nord,
                  monde), ou liste de fonds du plus détaillé au plus large : chaque lieu va sur le premier qui le contient
      trous       textes à compléter : { titre, texte } — les mots entre [crochets] sont à retrouver
      capable     « Je suis capable de… »
      ppo         points de passage et d'ouverture, chacun avec ses propres champs :
                  { id, titre, court, question, branches: [{ titre, points }], reperes, notions, personnages, lieux,
-                   documents: [{ titre, extrait, source, montre }], pieges, mots, reponse, trous, schema, capable }
+                   documents, pieges, mots, reponse, trous, schema, capable }
                  — schema : { titre, cases: [{ titre, aide, etiquettes }] } pour l'exercice « Classer » */
 
 /* Plan de l'année, classe par classe, dans l'ordre de la progression.
