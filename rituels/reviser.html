@@ -780,8 +780,9 @@
   btnQr.addEventListener("click", montrerQR);
 
   function montrerQR() {
-    var url = location.href;
-    var ch = chapitre(routeActuelle().ch);
+    var r = routeActuelle();
+    var url = r.vue === "prof" ? location.href.split("#")[0] : location.href;
+    var ch = chapitre(r.ch);
     var titre = ch ? (nomNiveau(ch.n) + " — " + ch.titre) : "Réviser l'histoire-géo";
     var boite = el("div", { class: "qr" });
     if (typeof qrcode === "function") {
@@ -981,7 +982,8 @@
   function piedAccueil() {
     app.appendChild(el("div", { class: "pied" }, [
       el("span", { text: "Tes progrès restent sur cet appareil : rien n'est envoyé." }),
-      el("a", { class: "lien-discret", href: "#/prof", text: "Espace professeur" }),
+      // les élèves ne voient pas ce lien : le professeur entre par reviser.html#/prof, puis il reste sur son appareil
+      estProf() ? el("a", { class: "lien-discret", href: "#/prof", text: "Espace professeur" }) : null,
       el("button", { class: "lien-discret", type: "button", text: "Effacer mes progrès", onclick: function () {
         if (!confirm("Effacer tous tes progrès (cartes, quiz, auto-évaluation) sur cet appareil ?")) return;
         var niveau = prog.niveau;
@@ -2934,6 +2936,16 @@
     if (!classeProf) classeProf = prog.niveau && NIVEAUX.some(function (n) { return n.id === prog.niveau; }) ? prog.niveau : NIVEAUX[0].id;
 
     app.appendChild(lienRetour("#/", "Retour à la boîte à outils"));
+    if (!estProf()) {
+      // un élève qui tombe sur cette adresse ne voit que la connexion, réservée au compte GitHub du site
+      app.appendChild(el("div", { class: "chap-entete" }, [
+        el("h1", { text: "Espace professeur" }),
+        el("p", { class: "consigne-outil", text: "Cet espace est réservé au professeur. Élève ? Retourne à la boîte à outils pour réviser." })
+      ]));
+      if (messageProf) app.appendChild(el("div", { class: "alerte" + (messageProf.ok ? " ok" : ""), role: "status" }, messageProf.texte));
+      app.appendChild(blocConnexion());
+      return;
+    }
     app.appendChild(el("div", { class: "chap-entete" }, [
       el("h1", { text: "Espace professeur" }),
       el("p", { class: "consigne-outil", text: "Choisissez les chapitres que les élèves voient. Un chapitre masqué s'affiche « à venir » : il peut être préparé à l'avance et ouvert le moment venu." })
@@ -3062,11 +3074,16 @@
       if (!t) { champ.focus(); return; }
       btn.disabled = true;
       retour.textContent = "Vérification auprès de GitHub…";
-      appelGitHub(urlDepot(), { headers: enTetesGitHub(t), cache: "no-store" }).then(function () {
+      appelGitHub(urlDepot(), { headers: enTetesGitHub(t), cache: "no-store" }).then(function (depot) {
+        if (depot && depot.permissions && depot.permissions.push === false) {
+          var e = new Error(messageErreurGitHub(403));
+          e.statut = 403;
+          throw e;
+        }
         ecrire(CLE_PROF, { token: t });
         messageProf = { ok: true, texte: "Jeton enregistré sur cet appareil. Vous pouvez publier." };
         rendre();
-      }, function (e) {
+      }).catch(function (e) {
         btn.disabled = false;
         retour.textContent = e.message;
       });
