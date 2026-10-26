@@ -632,6 +632,8 @@ function withDefaults(raw) {
   });
   if (!Array.isArray(data.competences)) data.competences = DEFAULT_COMPETENCES.map(c => ({ ...c }));
   if (!data.trimestres || typeof data.trimestres !== "object") data.trimestres = {};
+  if (!data.appreciations || typeof data.appreciations !== "object") data.appreciations = {};
+  if (!data.apprOptions || typeof data.apprOptions !== "object") data.apprOptions = { prenom: true };
   data.evaluations.forEach(ev => {
     if (!ev.grades || typeof ev.grades !== "object") ev.grades = {};
     if (!Array.isArray(ev.comps)) ev.comps = [];
@@ -3851,6 +3853,155 @@ function CompBook({ cls, evals, students, competences }) {
       h("span", null, mode === "moyenne" ? "· niveau retenu = moyenne des évaluations, arrondie ; ×3 = évalué 3 fois" : "· niveau retenu = dernière évaluation de la compétence")));
 }
 
+/* ---------- Appréciations de bulletin ----------
+   Brouillon proposé à partir des résultats du trimestre (moyenne, évolution, compétences) et des
+   observations cochées ; le texte reste entièrement modifiable. Les phrases évitent pronoms et
+   accords (« le travail est sérieux » plutôt que « il est sérieux ») : elles conviennent à tous. */
+const APPR_TAGS = [
+  { id: "participation", label: "Participe", plus: true, text: "La participation orale est active et pertinente." },
+  { id: "regulier", label: "Travail régulier", plus: true, text: "Le travail est sérieux et régulier." },
+  { id: "efforts", label: "Efforts", plus: true, text: "Des efforts sont visibles et doivent se poursuivre." },
+  { id: "autonomie", label: "Autonomie", plus: true, text: "Le travail en classe montre une belle autonomie." },
+  { id: "soin", label: "Soin", plus: true, text: "Les productions sont soignées." },
+  { id: "oral", label: "Peu à l'oral", plus: false, text: "Il faut oser participer davantage à l'oral." },
+  { id: "bavardages", label: "Bavardages", plus: false, text: "Les bavardages nuisent à la concentration." },
+  { id: "attention", label: "Concentration", plus: false, text: "La concentration en classe doit être plus constante." },
+  { id: "travailperso", label: "Travail perso.", plus: false, text: "Le travail personnel (leçons, exercices) doit être plus régulier." },
+  { id: "materiel", label: "Matériel", plus: false, text: "Le matériel doit être apporté à chaque séance." },
+  { id: "organisation", label: "Organisation", plus: false, text: "Un effort de soin et d'organisation est attendu." }
+];
+const COMP_PHRASES = { "c4-temps": "les repères chronologiques", "c4-espace": "les repères géographiques", "c4-raisonner": "le raisonnement",
+  "c4-numerique": "la recherche d'informations", "c4-document": "l'analyse de documents", "c4-langages": "la pratique des langages (croquis, récit…)", "c4-cooperer": "le travail en équipe" };
+const compPhrase = c => COMP_PHRASES[c.id] || c.label.charAt(0).toLowerCase() + c.label.slice(1);
+// Prénom : « Adam Benali » → Adam ; « BENALI Adam » → Adam
+function firstName(name) {
+  const t = String(name || "").trim().split(/\s+/);
+  return t.length > 1 && t[0].length > 1 && t[0] === t[0].toUpperCase() && /[A-Z]/.test(t[0]) ? t.slice(1).join(" ") : t[0];
+}
+const deP = P => /^[aeiouyhàâäéèêëîïôöûü]/i.test(P) ? `d'${P}` : `de ${P}`;
+const joinFr = list => list.length <= 1 ? list.join("") : `${list.slice(0, -1).join(", ")} et ${list[list.length - 1]}`;
+const hashStr = str => { let x = 0; for (const ch of str) x = (x * 31 + ch.charCodeAt(0)) >>> 0; return x; };
+function apprDraft({ name, avg, prev, comps, tags, withName, seed }) {
+  const pick = arr => arr[seed % arr.length];
+  const P = withName ? firstName(name) : null;
+  const strong = comps.filter(c => c.mean >= 3.5), weak = comps.filter(c => c.mean <= 2);
+  const compMean = comps.length ? comps.reduce((a, c) => a + c.mean, 0) / comps.length : null;
+  const lv = avg !== null ? (avg >= 16 ? 5 : avg >= 14 ? 4 : avg >= 12 ? 3 : avg >= 10 ? 2 : avg >= 8 ? 1 : 0)
+    : compMean !== null ? (compMean >= 3.5 ? 4 : compMean >= 2.75 ? 3 : compMean >= 2 ? 2 : 1) : null;
+  const OPEN = [
+    [["Trimestre difficile : les résultats sont très insuffisants.", "Les résultats de ce trimestre sont très insuffisants."], ["{P} traverse un trimestre difficile : les résultats sont très insuffisants.", "Les résultats {deP} sont très insuffisants ce trimestre."]],
+    [["Trimestre fragile : les résultats restent insuffisants.", "Les résultats sont encore insuffisants ce trimestre."], ["{P} réalise un trimestre fragile : les résultats restent insuffisants.", "Les résultats {deP} sont encore insuffisants ce trimestre."]],
+    [["Trimestre correct, mais les résultats restent fragiles.", "Des résultats corrects, à consolider."], ["{P} réalise un trimestre correct, mais les résultats restent fragiles.", "{P} obtient des résultats corrects, à consolider."]],
+    [["Bon trimestre.", "Trimestre satisfaisant : les résultats sont solides."], ["{P} réalise un bon trimestre.", "{P} obtient des résultats satisfaisants ce trimestre."]],
+    [["Très bon trimestre : les résultats sont solides.", "Très bon ensemble ce trimestre."], ["{P} réalise un très bon trimestre.", "{P} obtient de très bons résultats ce trimestre."]],
+    [["Excellent trimestre : les résultats sont remarquables.", "Excellent ensemble ce trimestre."], ["{P} réalise un excellent trimestre.", "{P} obtient d'excellents résultats ce trimestre."]]
+  ];
+  const out = [];
+  if (lv === null) out.push(P ? `Pas encore assez d'évaluations pour faire le bilan du trimestre ${deP(P)}.` : "Pas encore assez d'évaluations pour faire le bilan du trimestre.");
+  else out.push(pick(OPEN[lv][P ? 1 : 0]).replace("{deP}", P ? deP(P) : "").replace("{P}", P));
+  if (avg !== null && prev !== null) {
+    const d = avg - prev;
+    if (d >= 1.5) out.push(pick(["Nette progression depuis le trimestre précédent, c'est encourageant.", "La progression est nette depuis le trimestre précédent."]));
+    else if (d >= 0.75) out.push(pick(["Une progression se dessine depuis le trimestre précédent.", "Une progression est sensible depuis le trimestre précédent."]));
+    else if (d <= -1.5) out.push(pick(["Nette baisse par rapport au trimestre précédent : il faut se ressaisir.", "La baisse est nette par rapport au trimestre précédent."]));
+    else if (d <= -0.75) out.push(pick(["Léger fléchissement par rapport au trimestre précédent.", "Un léger fléchissement est à surveiller."]));
+  }
+  if (strong.length) out.push(`Points forts : ${joinFr(strong.map(compPhrase))}.`);
+  if (weak.length) out.push(`À consolider : ${joinFr(weak.map(compPhrase))}.`);
+  APPR_TAGS.filter(t => t.plus && tags.includes(t.id)).forEach(t => out.push(t.text));
+  APPR_TAGS.filter(t => !t.plus && tags.includes(t.id)).forEach(t => out.push(t.text));
+  if (lv !== null) out.push(pick(lv >= 4 ? ["Il faut poursuivre dans cette voie.", "Cette dynamique est à maintenir."]
+    : lv >= 2 ? ["Un travail régulier permettra de progresser encore.", "Des efforts réguliers permettront d'aller plus loin."]
+    : ["Un travail plus régulier est indispensable pour progresser.", "Il faut se remettre au travail avec régularité : les progrès sont possibles."]));
+  return out.join(" ");
+}
+
+// Une carte par élève : repères chiffrés, observations à cocher, texte modifiable
+function ApprCard({ s, info, entry, withName, seed, onSave }) {
+  const h = React.createElement;
+  const tags = entry.tags || [];
+  const draft = apprDraft({ name: s.name, avg: info.avg, prev: info.prev, comps: info.comps, tags, withName, seed });
+  const [local, setLocal] = useState(null);
+  const save = useDebouncedSave(text => onSave({ text, edited: true }));
+  const value = local !== null ? local : entry.edited ? entry.text : draft;
+  // La zone de texte s'agrandit pour montrer toute l'appréciation
+  const taRef = useRef(null);
+  React.useLayoutEffect(() => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + 2 + "px";
+  }, [value]);
+  const toggleTag = id => onSave({ tags: tags.includes(id) ? tags.filter(x => x !== id) : [...tags, id] });
+  const chip = t => {
+    const on = tags.includes(t.id);
+    return h("button", { key: t.id, onClick: () => toggleTag(t.id), "aria-pressed": on,
+      style: { fontFamily: "Inter, sans-serif", fontSize: 12, padding: "4px 9px", borderRadius: 999, cursor: "pointer", fontWeight: on ? 600 : 400,
+        border: `1px solid ${on ? (t.plus ? COLORS.doneInk : "var(--danger)") : COLORS.line}`, background: on ? (t.plus ? COLORS.doneSoft : "var(--histoireSoft)") : "transparent",
+        color: on ? (t.plus ? COLORS.doneInk : "var(--danger)") : COLORS.sub } }, (t.plus ? "+ " : "− ") + t.label);
+  };
+  const fmt = v => v === null ? "—" : fmtGrade(v);
+  return h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderLeft: `4px solid ${entry.ok ? COLORS.done : COLORS.line}`, borderRadius: 8, padding: "12px 14px" } },
+    h("div", { style: { display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap", marginBottom: 6 } },
+      h("span", { style: { fontFamily: "Fraunces, serif", fontSize: 15, color: COLORS.ink, fontWeight: 600 } }, s.name),
+      h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub } }, `moy. ${fmt(info.avg)}`, info.prev !== null ? ` · avant ${fmt(info.prev)}` : ""),
+      info.comps.length > 0 && h("span", { style: { display: "inline-flex", gap: 4, flexWrap: "wrap" } }, info.comps.map(c => h("span", { key: c.id, title: c.label, style: { display: "inline-flex", alignItems: "center", gap: 3, fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.sub } }, c.short, h(LevelChip, { n: Math.min(4, Math.max(1, Math.round(c.mean))), small: true }))))),
+    s.note && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub, margin: "0 0 6px", fontStyle: "italic" } }, `Ta remarque : ${s.note}`),
+    h("div", { style: { display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 8 } }, APPR_TAGS.map(chip)),
+    h("textarea", { ref: taRef, value, rows: 3, "aria-label": `Appréciation de ${s.name}`,
+      onChange: e => { setLocal(e.target.value); save(e.target.value); }, onBlur: save.flush,
+      style: { ...inputStyle, resize: "vertical", lineHeight: 1.45, fontFamily: "Inter, sans-serif" } }),
+    h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginTop: 6 } },
+      h(CopyBtn, { text: value }),
+      h("button", { onClick: () => onSave({ ok: !entry.ok }), "aria-pressed": !!entry.ok, style: { ...ghostBtn, padding: "4px 10px", fontSize: 11.5, color: entry.ok ? COLORS.doneInk : COLORS.sub, borderColor: entry.ok ? COLORS.doneInk : COLORS.line } }, entry.ok ? "✓ Relue" : "Marquer comme relue"),
+      entry.edited && h("button", { onClick: () => { if (confirm("Remplacer ton texte par une nouvelle proposition ?")) { save.cancel(); setLocal(null); onSave({ edited: false, text: "" }); } }, style: { ...ghostBtn, padding: "4px 10px", fontSize: 11.5 } }, "Nouvelle proposition"),
+      h("span", { style: { marginLeft: "auto", fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: COLORS.faint } }, `${value.length} car.`, entry.edited ? " · modifiée" : " · proposée")));
+}
+
+function AppreciationsView({ data, cls, classId, students, allEvals, tri, per, onSave, onSetOptions }) {
+  const h = React.createElement;
+  if (per === 0) return h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.sub } }, "Les appréciations se rédigent trimestre par trimestre : choisis T1, T2 ou T3 ci-dessus.");
+  if (students.length === 0) return h(EmptyState, { icon: h(IconUsers, { size: 26 }), text: `Ajoute les élèves de ${cls.name} dans l'onglet Élèves pour rédiger leurs appréciations.` });
+  const key = `${tri.annee}-T${per}`;
+  const store = ((data.appreciations || {})[key] || {})[classId] || {};
+  const withName = (data.apprOptions || {}).prenom !== false;
+  const inT = k => allEvals.filter(ev => ev.date && trimestreOf(tri, ev.date) === k);
+  const noted = k => inT(k).filter(ev => !ev.sansNote);
+  const infoOf = sid => {
+    const evs = inT(per);
+    const comps = data.competences.map(c => {
+      const vals = evs.filter(ev => (ev.comps || []).includes(c.id)).map(ev => levelOf(ev, sid, c.id)).filter(Boolean);
+      return vals.length ? { ...c, mean: vals.reduce((a, b) => a + b, 0) / vals.length } : null;
+    }).filter(Boolean);
+    return { avg: studentAverage(sid, noted(per)), prev: per > 1 ? studentAverage(sid, noted(per - 1)) : null, comps };
+  };
+  const texts = students.map(st => { const e = store[st.id] || {}; return e.edited ? e.text : apprDraft({ name: st.name, ...infoOf(st.id), tags: e.tags || [], withName, seed: hashStr(st.id + key) }); });
+  const relues = students.filter(st => (store[st.id] || {}).ok).length;
+  const exportCSV = () => {
+    const esc = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [["Élève", `Appréciation ${TRIM_NAME[per]}`].map(esc).join(";"), ...students.map((st, i) => [st.name, texts[i]].map(esc).join(";"))];
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" }));
+    a.download = `appreciations-${cls.name.replace(/\s+/g, "_")}-T${per}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  return h("div", null,
+    h("div", { style: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 6 } },
+      h("div", { style: { flex: "1 1 160px" } }, h(LevelBar, { counts: [0, 0, relues, 0], total: Math.max(1, students.length) })),
+      h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub } }, `${relues}/${students.length} relues`)),
+    h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 } },
+      h("label", { style: { display: "flex", alignItems: "center", gap: 6, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, cursor: "pointer" } },
+        h("input", { type: "checkbox", checked: withName, onChange: e => onSetOptions({ ...(data.apprOptions || {}), prenom: e.target.checked }) }), "Commencer par le prénom"),
+      h("span", { style: { flex: 1 } }),
+      h(CopyBtn, { text: students.map((st, i) => `${st.name} : ${texts[i]}`).join("\n\n"), label: "Copier tout" }),
+      h("button", { onClick: exportCSV, style: { ...ghostBtn, padding: "4px 10px", fontSize: 11.5 } }, "Exporter (tableur)")),
+    h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, margin: "0 0 12px", lineHeight: 1.5 } },
+      "Proposition construite à partir de la moyenne, de l'évolution, des compétences et des observations cochées. Modifie librement le texte : il ne sera plus remplacé."),
+    h("div", { className: "list-grid", style: { display: "flex", flexDirection: "column", gap: 10 } },
+      students.map(st => h(ApprCard, { key: st.id + key, s: st, info: infoOf(st.id), entry: store[st.id] || {}, withName, seed: hashStr(st.id + key), onSave: patch => onSave(key, classId, st.id, patch) }))));
+}
+
 // Réglages : fins de trimestre de l'année en cours
 function TrimestreSettings({ data, onChange }) {
   const h = React.createElement;
@@ -4054,7 +4205,7 @@ function GradeBook({ data, cls, evals, students, onSetGrade, trimCols, emptyText
       h("span", null, "Moyennes ramenées sur 20 et pondérées par les coefficients · Entrée ou ↓ pour passer à l'élève suivant")));
 }
 
-function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, onDelete, onSetGrade, onSetLevel }) {
+function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, onDelete, onSetGrade, onSetLevel, onSaveAppreciation, onSetApprOptions }) {
   const h = React.createElement;
   const [tab, setTab] = useState(() => { try { return localStorage.getItem("evals-tab-v1") || "liste"; } catch (e) { return "liste"; } });
   const [adding, setAdding] = useState(false);
@@ -4082,7 +4233,8 @@ function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, on
     h("div", { style: { display: "inline-flex", flexWrap: "wrap", gap: 4, padding: 3, borderRadius: 9, background: COLORS.encadre, marginBottom: 18 } },
       h("button", { onClick: () => switchTab("liste"), style: tabStyle(tab === "liste") }, `Évaluations (${evals.length})`, toCorrect ? ` · ${toCorrect} à corriger` : ""),
       h("button", { onClick: () => switchTab("releve"), style: tabStyle(tab === "releve") }, "Relevé de notes"),
-      h("button", { onClick: () => switchTab("competences"), style: tabStyle(tab === "competences") }, "Compétences")),
+      h("button", { onClick: () => switchTab("competences"), style: tabStyle(tab === "competences") }, "Compétences"),
+      h("button", { onClick: () => switchTab("appreciations"), style: tabStyle(tab === "appreciations") }, "Appréciations")),
     h("div", { style: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 16 } },
       h("span", { style: { ...labelStyle, marginBottom: 0, marginRight: 2 } }, "Période"),
       [[1, "T1"], [2, "T2"], [3, "T3"], [0, "Année"]].map(([k, l]) => h("button", { key: k, onClick: () => setPeriode(k), "aria-pressed": per === k, title: k ? `${TRIM_NAME[k]} : ${trimestreRange(tri, k).map(formatDate).join(" → ")}` : "Toute l'année",
@@ -4094,6 +4246,7 @@ function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, on
     tab === "releve" ? h(GradeBook, { data, cls, evals: dated.filter(ev => !ev.sansNote), students, onSetGrade, emptyText: per ? `Aucune évaluation notée au ${TRIM_NAME[per]} pour ${cls.name}.` : null,
       trimCols: per === 0 ? [1, 2, 3].map(k => ({ label: `T${k}`, evals: allEvals.filter(ev => !ev.sansNote && ev.date && trimestreOf(tri, ev.date) === k) })) : null }) :
     tab === "competences" ? h(CompBook, { cls, evals: dated, students, competences: data.competences }) :
+    tab === "appreciations" ? h(AppreciationsView, { data, cls, classId: activeClass, students, allEvals, tri, per, onSave: onSaveAppreciation, onSetOptions: onSetApprOptions }) :
     h(React.Fragment, null,
       evals.length === 0 && !adding && h(EmptyState, { icon: h(IconClipboard, { size: 26 }), text: `Aucune évaluation pour ${cls.name} pour l'instant.` }),
       h("div", { className: "list-grid", style: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 } },
@@ -5728,6 +5881,26 @@ function App() {
       };
     })
   });
+  const saveAppreciation = (key, cid, sid, patch) => {
+    const all = data.appreciations || {};
+    const byClass = (all[key] || {})[cid] || {};
+    persist({
+      ...data,
+      appreciations: {
+        ...all,
+        [key]: {
+          ...(all[key] || {}),
+          [cid]: {
+            ...byClass,
+            [sid]: {
+              ...(byClass[sid] || {}),
+              ...patch
+            }
+          }
+        }
+      }
+    });
+  };
   const addStudent = (cid, name) => {
     const next = {
       ...data
@@ -6077,7 +6250,12 @@ function App() {
     onCycleStatus: cycleEvalStatus,
     onDelete: deleteEvaluation,
     onSetGrade: setGrade,
-    onSetLevel: setLevel
+    onSetLevel: setLevel,
+    onSaveAppreciation: saveAppreciation,
+    onSetApprOptions: opts => persist({
+      ...data,
+      apprOptions: opts
+    })
   }) : view === "students" ? /*#__PURE__*/React.createElement(StudentsView, {
     data: data,
     activeClass: activeClass,
