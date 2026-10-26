@@ -465,6 +465,34 @@
   .puces-lieux { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
   .puces-lieux .opt { min-height: 38px; padding: 6px 13px; font-size: 14px; }
 
+  /* ---------- Suivi des résultats ---------- */
+  .bloc-eleve { margin-top: 14px; }
+  .champ-texte { font: 15px Inter, sans-serif; flex: 1 1 150px; min-width: 150px; }
+  .champ-court { flex: 0 0 100px; min-width: 100px; }
+  .suivi-note { font-size: 13px; color: var(--faint); margin: 10px 0 0; }
+  .suivi-note.ok { color: var(--ok); font-weight: 600; }
+  .etapes-suivi li { margin: 10px 0; }
+  .script-google { display: block; width: 100%; margin-top: 8px; font-size: 11.5px; line-height: 1.4; white-space: pre; overflow: auto; }
+  .groupes { display: grid; gap: 8px; }
+  .ligne-groupe { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; }
+  .ligne-groupe span { flex: 0 0 82px; }
+  .suivi-liste { display: grid; gap: 6px; margin-top: 8px; }
+  .suivi-eleve {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; text-align: left;
+    padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); font-size: 15px;
+  }
+  .suivi-eleve[aria-expanded="true"] { border-color: var(--accent); }
+  .suivi-chiffres { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 13.5px; color: var(--sub); }
+  .suivi-moy { font-weight: 700; padding: 2px 8px; border-radius: 8px; }
+  .suivi-moy.ok { color: var(--ok); background: var(--okSoft); }
+  .suivi-moy.moyen { color: var(--warn); background: var(--warnSoft); }
+  .suivi-moy.bas { color: var(--ko); background: var(--koSoft); }
+  .suivi-details { list-style: none; margin: 0 0 6px; padding: 4px 14px 8px; border-left: 3px solid var(--accent); }
+  .suivi-details li { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; line-height: 1.35; }
+  .suivi-details li .petit { display: block; font-size: 12px; }
+  .suivi-details li strong { white-space: nowrap; }
+  .suivi-details li:last-child { border-bottom: none; }
+
   /* ---------- Les documents ---------- */
   button.retour { background: none; border: none; }
   .docs-galerie { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
@@ -877,7 +905,7 @@
       try { return decodeURIComponent(s); } catch (e) { return s; }
     });
     if (p[0] === "c") return { vue: p[2] ? "outil" : "chapitre", ch: p[1], outil: p[2], sous: p[3] };
-    if (p[0] === "prof") return { vue: "prof" };
+    if (p[0] === "prof") return { vue: "prof", sous: p[1] };
     if (p[0] === "express") return { vue: "express", niveau: p[1] };
     if (p[0] === "niveau") return { vue: "accueil", niveau: p[1] };
     return { vue: "accueil" };
@@ -900,7 +928,7 @@
     var ch = r.ch ? chapitre(r.ch) : null;
     if ((r.vue === "chapitre" || r.vue === "outil") && !ch) { vueAccueil(); return; }
     if ((r.vue === "chapitre" || r.vue === "outil") && !estVisible(ch) && !estProf()) { vueFermee(ch); return; }
-    if (r.vue === "prof") vueProf();
+    if (r.vue === "prof") { if (r.sous === "suivi") vueSuivi(); else vueProf(); }
     else if (r.vue === "chapitre") vueChapitre(ch);
     else if (r.vue === "outil") {
       var outil = OUTILS.filter(function (o) { return o.id === r.outil; })[0];
@@ -957,6 +985,8 @@
       }));
     });
     app.appendChild(choix);
+
+    if (niveau && suiviActif()) app.appendChild(blocEleve(niveau));
 
     if (!niveau) {
       app.appendChild(el("p", { class: "vide", text: "Commence par choisir ta classe." }));
@@ -1029,7 +1059,7 @@
 
   function piedAccueil() {
     app.appendChild(el("div", { class: "pied" }, [
-      el("span", { text: "Tes progrès restent sur cet appareil : rien n'est envoyé." }),
+      el("span", { text: suiviActif() && eleve() ? "Tes scores d'exercices sont envoyés à ton professeur (prénom, classe, score) ; le reste reste sur cet appareil." : "Tes progrès restent sur cet appareil : rien n'est envoyé." }),
       // les élèves ne voient pas ce lien : le professeur entre par reviser.html#/prof, puis il reste sur son appareil
       estProf() ? el("a", { class: "lien-discret", href: "#/prof", text: "Espace professeur" }) : null,
       el("button", { class: "lien-discret", type: "button", text: "Effacer mes progrès", onclick: function () {
@@ -1104,7 +1134,7 @@
           if (choix) zone.appendChild(choix);
           var serie = el("div");
           zone.appendChild(serie);
-          vueCartes(serie, cartesChapitre(ch, filtre), { retour: lienChapitre(ch), progresChapitre: ch });
+          vueCartes(serie, cartesChapitre(ch, filtre), { retour: lienChapitre(ch), progresChapitre: ch, suivi: { ch: ch, outil: "cartes", detail: filtre } });
         }
         afficher(blocDemande(ch));
       } },
@@ -1145,7 +1175,7 @@
       info: function (ch) { return pluriel(cartesRituel(ch).length, "question") + " posée" + (cartesRituel(ch).length > 1 ? "s" : "") + " en début de cours"; },
       vue: function (ch, cible) {
         cible.appendChild(el("p", { class: "consigne-outil", text: "Les questions des rituels de début d'heure sur ce thème. Réponds dans ta tête, puis retourne la carte." }));
-        vueCartes(cible, cartesRituel(ch), { retour: lienChapitre(ch) });
+        vueCartes(cible, cartesRituel(ch), { retour: lienChapitre(ch), suivi: { ch: ch, outil: "rituel" } });
       } },
     { id: "point", nom: "Je fais le point", icone: "point",
       dispo: function (ch) { return objectifs(ch).length > 0; },
@@ -1460,9 +1490,11 @@
 
     function dessinerBilan() {
       var vues = file.length - Object.keys(remises).length;
+      var envoye = options.suivi ? envoyerResultat(options.suivi.ch, options.suivi.outil, premierCoup, vues, options.suivi.detail) : false;
       var b = el("div", { class: "bilan carte-panneau" }, [
         el("div", { class: "gros", text: premierCoup + " / " + vues }),
-        el("p", { text: "carte" + (vues > 1 ? "s" : "") + " sue" + (premierCoup > 1 ? "s" : "") + " du premier coup" })
+        el("p", { text: "carte" + (vues > 1 ? "s" : "") + " sue" + (premierCoup > 1 ? "s" : "") + " du premier coup" }),
+        options.suivi ? ligneSuivi(envoye) : null
       ]);
       if (options.progresChapitre) {
         var m = maitriseChapitre(options.progresChapitre);
@@ -1509,7 +1541,7 @@
     var toutes = [];
     chapitresNiveau(niveau).forEach(function (ch) { toutes = toutes.concat(cartesChapitre(ch)); });
     app.appendChild(el("p", { class: "consigne-outil", text: "D'abord les cartes ratées et celles qu'il est temps de revoir, puis de nouvelles." }));
-    vueCartes(app, toutes, { retour: "#/", taille: 15 });
+    vueCartes(app, toutes, { retour: "#/", taille: 15, suivi: { ch: null, outil: "express", detail: niveau } });
   }
 
   // ---------- Quiz ----------
@@ -1659,7 +1691,8 @@
       var msg = score === qs.length ? "Parfait !" : score >= qs.length * 0.7 ? "Très bien !" : score >= qs.length * 0.5 ? "C'est en bonne voie." : "Encore un effort : revois les cartes, puis recommence.";
       var b = el("div", { class: "bilan carte-panneau" }, [
         el("div", { class: "gros", text: score + " / " + qs.length }),
-        el("p", { text: msg })
+        el("p", { text: msg }),
+        ligneSuivi(envoyerResultat(ch, "quiz", score, qs.length, filtre))
       ]);
       if (erreurs.length) {
         var ul = el("ul", { class: "erreurs" });
@@ -1710,11 +1743,11 @@
       var g = selecteurBlocs(ch, bloc, false, assez, function (id) { bloc = id; dessinerChoix(); demarrer(); });
       if (g) choix.appendChild(g);
     }
-    var evts, places, verifie;
+    var evts, places, verifie, envoi;
     function demarrer() {
       var tous = evenementsFrise(blocsChoisis(ch, bloc)[0].data);
       evts = melanger(tous).slice(0, Math.min(6, tous.length));
-      places = []; verifie = false;
+      places = []; verifie = false; envoi = null;
       dessiner();
     }
     function dessiner() {
@@ -1758,9 +1791,11 @@
       } else {
         var justes = 0;
         for (var j = 0; j < evts.length; j++) if (valeurDate(places[j].a) === valeurDate(ordre[j].a)) justes++;
+        if (envoi === null) envoi = envoyerResultat(ch, "frise", justes, evts.length, bloc);
         zone.insertBefore(el("div", { class: "bilan carte-panneau", style: "padding:16px;margin-bottom:14px" }, [
           el("div", { class: "gros", text: justes + " / " + evts.length }),
-          el("p", { text: justes === evts.length ? "Tout est dans l'ordre, bravo !" : "événements à la bonne place" })
+          el("p", { text: justes === evts.length ? "Tout est dans l'ordre, bravo !" : "événements à la bonne place" }),
+          ligneSuivi(envoi)
         ]), zone.children[1]);
         zone.appendChild(el("div", { class: "etiq", text: "La frise corrigée" }));
         var ordreNum = trierReperes(evts);
@@ -1888,6 +1923,9 @@
       } else {
         bloc.appendChild(el("div", { class: "gros", text: totalErreurs ? pluriel(totalErreurs, "erreur") : "0 erreur" }));
         bloc.appendChild(el("p", { text: totalErreurs ? "Tout est associé. Recommence pour faire un sans-faute !" : "Sans-faute, bravo !" }));
+        var nPaires = source.paires.length;
+        var ls = ligneSuivi(envoyerResultat(ch, "associer", Math.max(0, nPaires - totalErreurs), nPaires, source.nom));
+        if (ls) bloc.appendChild(ls);
         bloc.appendChild(el("div", { class: "btns" }, [
           el("button", { class: "btn plein", type: "button", text: "Recommencer", onclick: demarrer }),
           el("a", { class: "btn", href: lienChapitre(ch), text: "Retour au chapitre" })
@@ -1929,14 +1967,14 @@
       });
     }
 
-    var morceaux, reponses, banque, remplis, actif, verifie;
+    var morceaux, reponses, banque, remplis, actif, verifie, envoi;
     function demarrer() {
       morceaux = textes[idx].texte.split(/\[([^\]]+)\]/);
       reponses = [];
       for (var i = 1; i < morceaux.length; i += 2) reponses.push(morceaux[i]);
       banque = melanger(reponses.map(function (m, i) { return { mot: m, cle: i }; }));
       remplis = reponses.map(function () { return null; });
-      actif = 0; verifie = false;
+      actif = 0; verifie = false; envoi = null;
       dessiner();
     }
     function premierVide() { for (var i = 0; i < remplis.length; i++) if (!remplis[i]) return i; return -1; }
@@ -1991,9 +2029,11 @@
       } else {
         var justes = 0;
         remplis.forEach(function (r, n) { if (r && normaliser(r.mot) === normaliser(reponses[n])) justes++; });
+        if (envoi === null) envoi = envoyerResultat(ch, "trous", justes, reponses.length, textes[idx].titre);
         zone.appendChild(el("div", { class: "bilan carte-panneau", style: "margin-top:14px;padding:18px" }, [
           el("div", { class: "gros", text: justes + " / " + reponses.length }),
           el("p", { text: justes === reponses.length ? "Tout est juste, bravo !" : "Les corrections apparaissent en vert dans le texte." }),
+          ligneSuivi(envoi),
           el("div", { class: "btns" }, [
             el("button", { class: "btn plein", type: "button", text: "Recommencer", onclick: demarrer }),
             idx < textes.length - 1 ? el("button", { class: "btn", type: "button", text: "Texte suivant", onclick: function () { idx++; dessinerOnglets(); demarrer(); } }) : null
@@ -2122,6 +2162,7 @@
       zone.appendChild(el("div", { class: "bilan carte-panneau" }, [
         el("div", { class: "gros", text: points + " / " + total }),
         el("p", { text: "points — un point par indice que tu n'as pas eu besoin de lire." }),
+        ligneSuivi(envoyerResultat(ch, "quisuisje", points, total)),
         el("div", { class: "btns" }, [
           el("button", { class: "btn plein", type: "button", text: "Rejouer", onclick: demarrer }),
           el("a", { class: "btn", href: lienChapitre(ch), text: "Retour au chapitre" })
@@ -2351,7 +2392,7 @@
     cible.appendChild(onglets);
     cible.appendChild(zone);
 
-    var etiquettes, place, choisie, verifie;
+    var etiquettes, place, choisie, verifie, envoi;
     function dessinerOnglets() {
       onglets.innerHTML = "";
       if (lesPPO.length < 2) return;
@@ -2363,7 +2404,7 @@
       etiquettes = [];
       lesPPO[idx].schema.cases.forEach(function (c, i) { liste(c, "etiquettes").forEach(function (t) { etiquettes.push({ txt: t, bonne: i }); }); });
       etiquettes = melanger(etiquettes);
-      place = {}; choisie = null; verifie = false;
+      place = {}; choisie = null; verifie = false; envoi = null;
       dessiner();
     }
     function bouton(e, n) {
@@ -2413,9 +2454,11 @@
       }
       if (verifie) {
         var justes = etiquettes.filter(function (e, n) { return place[n] === e.bonne; }).length;
+        if (envoi === null) envoi = envoyerResultat(ch, "classer", justes, etiquettes.length, lesPPO[idx].id);
         zone.appendChild(el("div", { class: "bilan carte-panneau", style: "margin-top:14px;padding:18px" }, [
           el("div", { class: "gros", text: justes + " / " + etiquettes.length }),
           el("p", { text: justes === etiquettes.length ? "Tout est bien classé, bravo !" : "Les étiquettes en rouge indiquent la bonne case." }),
+          ligneSuivi(envoi),
           el("div", { class: "btns" }, [
             el("button", { class: "btn plein", type: "button", text: "Recommencer", onclick: demarrer }),
             el("a", { class: "btn", href: lienChapitre(ch, "ppo") + "/" + lesPPO[idx].id, text: "Revoir le point de passage" })
@@ -2923,7 +2966,8 @@
         var msg = score === serie.length ? "Parfait : tu sais situer tous ces lieux !" : score >= serie.length * .7 ? "Très bien !" : score >= serie.length * .5 ? "C'est en bonne voie." : "Observe encore la carte, puis recommence.";
         var b = el("div", { class: "bilan carte-panneau", style: "margin-top:12px" }, [
           el("div", { class: "gros", text: score + " / " + serie.length }),
-          el("p", { text: msg })
+          el("p", { text: msg }),
+          ligneSuivi(envoyerResultat(ch, "carte", score, serie.length, (filtre || "chapitre") + (fond.id !== cartes()[0].fond.id ? " · " + fond.nom : "") + (expert ? " · expert" : "")))
         ]);
         if (rates.length) {
           b.appendChild(el("p", { class: "petit", text: "À revoir — en orange sur la carte, et en premier dans les cartes mémoire :" }));
@@ -3236,6 +3280,7 @@
         corps.appendChild(el("div", { class: "bilan carte-panneau" }, [
           el("div", { class: "gros", text: score + " / " + etapes.length }),
           el("p", { text: msg }),
+          ligneSuivi(envoyerResultat(ch, "documents", score, etapes.length, x.id)),
           el("div", { class: "btns" }, [
             el("button", { class: "btn plein", type: "button", text: "Recommencer", onclick: function () { entrainer(x); } }),
             el("button", { class: "btn", type: "button", text: "Revoir le document", onclick: function () { ouvrir(x); } }),
@@ -3281,6 +3326,410 @@
     return qs;
   }
 
+  // ---------- Suivi des résultats par le professeur (facultatif) ----------
+  // Le professeur publie l'adresse de son script Google (rituels/suivi.json). Un élève qui a écrit son prénom
+  // envoie chaque score : date, classe, prénom et initiale, chapitre, outil, score. Sans prénom, rien ne part.
+  // Les scores attendent sur l'appareil tant qu'ils ne sont pas arrivés ; chacun porte un identifiant, et le
+  // script ignore un score déjà reçu : un envoi répété ne crée pas de doublon.
+  var CLE_ELEVE = "reviser-eleve-v1";
+  var CLE_FILE = "reviser-envois-v1";
+  var CLE_SUIVI = "reviser-suivi-v1";
+  var CLE_SUIVI_PROF = "reviser-suivi-prof-v1"; // clé de lecture des résultats, sur l'appareil du professeur seulement
+  var FICHIER_SUIVI = "rituels/suivi.json";
+  var suivi = lire(CLE_SUIVI, null);
+  var envoiEnCours = false;
+
+  function suiviActif() { return !!(suivi && suivi.url); }
+  function eleve() { var e = lire(CLE_ELEVE, null); return e && e.prenom ? e : null; }
+  function nomEleve(e) { return e.prenom + (e.initiale ? " " + e.initiale + "." : ""); }
+  function groupesNiveau(n) { return suivi && suivi.groupes && Array.isArray(suivi.groupes[n]) ? suivi.groupes[n] : []; }
+  function identifiant() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+  // renvoie true si le score part (ou partira dès que la connexion revient)
+  function envoyerResultat(ch, outil, score, sur, detail) {
+    if (!suiviActif() || !sur) return false;
+    var e = eleve();
+    if (!e) return false;
+    var n = ch ? ch.n : prog.niveau;
+    var file = lire(CLE_FILE, []);
+    file.push({
+      id: identifiant(), t: new Date().toISOString(), classe: e.groupe || nomNiveau(n), eleve: nomEleve(e),
+      chapitre: ch ? ch.id : "", outil: outil, detail: detail || "", score: score, sur: sur
+    });
+    ecrire(CLE_FILE, file.slice(-300));
+    viderFile();
+    return true;
+  }
+  function viderFile() {
+    if (!suiviActif() || envoiEnCours) return;
+    var lot = lire(CLE_FILE, []).slice(0, 40);
+    if (!lot.length) return;
+    envoiEnCours = true;
+    fetch(suivi.url, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ resultats: lot }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        envoiEnCours = false;
+        if (!j || !j.ok) return;
+        var envoyes = {};
+        lot.forEach(function (x) { envoyes[x.id] = true; });
+        var reste = lire(CLE_FILE, []).filter(function (x) { return !envoyes[x.id]; });
+        ecrire(CLE_FILE, reste);
+        if (reste.length) viderFile();
+      }, function () { envoiEnCours = false; });
+  }
+  window.addEventListener("online", viderFile);
+
+  // sous un bilan : « envoyé à ton professeur », ou l'invitation à écrire son prénom
+  function ligneSuivi(envoye) {
+    if (!suiviActif()) return null;
+    if (envoye) return el("p", { class: "suivi-note ok", text: "✓ Score envoyé à ton professeur (" + nomEleve(eleve()) + ")." });
+    return el("p", { class: "suivi-note" }, ["Pour que ton professeur voie ce score, ", el("a", { href: "#/", text: "écris ton prénom sur l'accueil" }), "."]);
+  }
+
+  // accueil : l'élève se présente une fois, sur cet appareil
+  function blocEleve(niveau) {
+    var bloc = el("div", { class: "carte-panneau bloc-eleve" });
+    var e = eleve();
+    if (e) {
+      bloc.appendChild(el("p", { style: "margin:0" }, [
+        "Ton professeur suit tes résultats. Ils lui sont envoyés au nom de ",
+        el("strong", { text: nomEleve(e) + (e.groupe ? " (" + e.groupe + ")" : "") }), "."
+      ]));
+      bloc.appendChild(el("div", { class: "btns", style: "margin-top:10px" }, [
+        el("button", { class: "btn", type: "button", text: "Modifier", onclick: function () { formulaire(e); } }),
+        el("button", { class: "lien-discret", type: "button", text: "Ne plus envoyer mes résultats", onclick: function () {
+          if (!confirm("Ne plus envoyer tes résultats à ton professeur, sur cet appareil ?")) return;
+          try { localStorage.removeItem(CLE_ELEVE); localStorage.removeItem(CLE_FILE); } catch (x) {}
+          rendre();
+        } })
+      ]));
+      return bloc;
+    }
+    formulaire(null);
+    return bloc;
+
+    function formulaire(actuel) {
+      bloc.innerHTML = "";
+      bloc.appendChild(el("h2", { text: "Suivi par ton professeur", style: "font-size:17px" }));
+      bloc.appendChild(el("p", { class: "petit", style: "margin:4px 0 10px", text: "Écris ton prénom et l'initiale de ton nom : ton professeur verra tes scores. Seuls ton prénom, l'initiale, ta classe et tes scores lui sont envoyés." }));
+      var prenom = el("input", { class: "champ champ-texte", type: "text", maxlength: "20", autocomplete: "given-name", placeholder: "Prénom", "aria-label": "Prénom", value: actuel ? actuel.prenom : "" });
+      var initiale = el("input", { class: "champ champ-texte champ-court", type: "text", maxlength: "2", placeholder: "Initiale", "aria-label": "Initiale du nom", value: actuel ? actuel.initiale : "" });
+      var ligne = el("div", { class: "ligne-champ" }, [prenom, initiale]);
+      var gs = groupesNiveau(niveau);
+      var groupe = null;
+      if (gs.length) {
+        groupe = el("select", { class: "champ champ-texte", "aria-label": "Ta classe" }, [el("option", { value: "", text: "Ta classe…" })].concat(gs.map(function (g) {
+          return el("option", { value: g, text: g, selected: actuel && actuel.groupe === g ? true : null });
+        })));
+        ligne.appendChild(groupe);
+      }
+      bloc.appendChild(ligne);
+      var retour = el("p", { class: "petit", role: "status", style: "margin:8px 0 0" });
+      var btn = el("button", { class: "btn plein", type: "button", text: "Enregistrer", onclick: function () {
+        var p = prenom.value.trim().replace(/\s+/g, " ");
+        var i = initiale.value.trim().replace(/[^A-Za-zÀ-ÿ]/g, "").slice(0, 1).toUpperCase();
+        if (!/^[A-Za-zÀ-ÿ' -]{2,20}$/.test(p)) { retour.textContent = "Écris ton prénom (lettres seulement)."; prenom.focus(); return; }
+        if (groupe && !groupe.value) { retour.textContent = "Choisis ta classe."; groupe.focus(); return; }
+        p = p.charAt(0).toUpperCase() + p.slice(1);
+        ecrire(CLE_ELEVE, { prenom: p, initiale: i, groupe: groupe ? groupe.value : "" });
+        rendre();
+      } });
+      bloc.appendChild(el("div", { class: "btns", style: "margin-top:10px" }, btn));
+      bloc.appendChild(retour);
+    }
+  }
+
+  // le professeur lit les résultats avec sa clé ; le script les renvoie à qui la connaît
+  function lireResultats(cfg) {
+    return fetch(cfg.url + (cfg.url.indexOf("?") < 0 ? "?" : "&") + "cle=" + encodeURIComponent(cfg.cle) + "&t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || !j.ok) throw new Error(j && j.erreur === "cle" ? "Le script ne reconnaît pas la clé : collez le script affiché ci-dessous, sans le modifier." : "Le script a répondu par une erreur.");
+        return j;
+      });
+  }
+  function chargerSuivi() {
+    return fetch("suivi.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      if (r.status === 404) return null;
+      if (!r.ok) throw new Error("suivi.json : " + r.status);
+      return r.json();
+    }).then(function (j) {
+      var change = JSON.stringify(j) !== JSON.stringify(suivi);
+      suivi = j && j.url ? j : null;
+      ecrire(CLE_SUIVI, suivi);
+      viderFile();
+      return change;
+    });
+  }
+
+  // le script à coller dans la feuille Google, avec la clé de lecture du professeur
+  function scriptGoogle(cle) {
+    return [
+      "// Boîte à outils Réviser — suivi des résultats des élèves.",
+      "// À coller dans la feuille Google : Extensions > Apps Script, à la place du code présent.",
+      "var CLE_PROF = \"" + cle + "\"; // clé de lecture des résultats : ne la communiquez pas",
+      "var ENTETES = [\"Date\", \"Classe\", \"Élève\", \"Chapitre\", \"Outil\", \"Détail\", \"Score\", \"Sur\", \"%\", \"Identifiant\"];",
+      "",
+      "function feuille_() {",
+      "  var ss = SpreadsheetApp.getActiveSpreadsheet();",
+      "  var f = ss.getSheetByName(\"Résultats\");",
+      "  if (!f) {",
+      "    f = ss.insertSheet(\"Résultats\");",
+      "    f.appendRow(ENTETES);",
+      "    f.setFrozenRows(1);",
+      "    f.getRange(1, 1, 1, ENTETES.length).setFontWeight(\"bold\");",
+      "  }",
+      "  return f;",
+      "}",
+      "",
+      "// un texte venu de l'extérieur ne doit jamais devenir une formule",
+      "function texte_(v, n) {",
+      "  v = String(v == null ? \"\" : v).slice(0, n);",
+      "  return /^[=+\\-@]/.test(v) ? \"'\" + v : v;",
+      "}",
+      "",
+      "function doPost(e) {",
+      "  var verrou = LockService.getScriptLock();",
+      "  verrou.waitLock(20000);",
+      "  try {",
+      "    var lignes = (JSON.parse(e.postData.contents).resultats || []).slice(0, 50);",
+      "    var f = feuille_();",
+      "    var n = f.getLastRow();",
+      "    var deja = {};",
+      "    if (n > 1) {",
+      "      var debut = Math.max(2, n - 1998);",
+      "      f.getRange(debut, 10, n - debut + 1, 1).getValues().forEach(function (l) { deja[l[0]] = true; });",
+      "    }",
+      "    var nouvelles = [];",
+      "    lignes.forEach(function (r) {",
+      "      var id = texte_(r.id, 40);",
+      "      if (!id || deja[id]) return;",
+      "      deja[id] = true;",
+      "      var score = Number(r.score) || 0, sur = Number(r.sur) || 0;",
+      "      nouvelles.push([new Date(r.t || Date.now()), texte_(r.classe, 30), texte_(r.eleve, 40), texte_(r.chapitre, 40),",
+      "        texte_(r.outil, 30), texte_(r.detail, 60), score, sur, sur ? Math.round(score / sur * 100) : \"\", id]);",
+      "    });",
+      "    if (nouvelles.length) f.getRange(n + 1, 1, nouvelles.length, ENTETES.length).setValues(nouvelles);",
+      "    return json_({ ok: true, ajoutes: nouvelles.length });",
+      "  } catch (err) {",
+      "    return json_({ ok: false, erreur: String(err) });",
+      "  } finally {",
+      "    verrou.releaseLock();",
+      "  }",
+      "}",
+      "",
+      "function doGet(e) {",
+      "  if (!e || !e.parameter || e.parameter.cle !== CLE_PROF) return json_({ ok: false, erreur: \"cle\" });",
+      "  var lignes = feuille_().getDataRange().getValues().slice(1).map(function (l) {",
+      "    return [l[0] instanceof Date ? l[0].toISOString() : String(l[0])].concat(l.slice(1, 9));",
+      "  });",
+      "  return json_({ ok: true, feuille: SpreadsheetApp.getActiveSpreadsheet().getUrl(), lignes: lignes });",
+      "}",
+      "",
+      "function json_(o) {",
+      "  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);",
+      "}",
+      ""
+    ].join("\n");
+  }
+
+  var NOMS_OUTILS = { quiz: "Quiz", carte: "Carte", documents: "Documents", cartes: "Cartes mémoire", frise: "Frise", trous: "Texte à trous", associer: "Associer", quisuisje: "Qui suis-je ?", classer: "Classer", rituel: "Rituels", express: "Révision express" };
+  function dateCourte(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return "";
+    return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + " " + String(d.getHours()).padStart(2, "0") + " h " + String(d.getMinutes()).padStart(2, "0");
+  }
+
+  // Espace professeur : mise en place, puis tableau des résultats
+  function vueSuivi() {
+    document.title = "Suivi des élèves — Réviser";
+    app.appendChild(lienRetour("#/prof", "Retour à l'espace professeur"));
+    app.appendChild(el("div", { class: "chap-entete" }, el("h1", { text: "Suivi des élèves" })));
+    if (!estProf()) {
+      app.appendChild(el("p", { class: "consigne-outil", text: "Cet espace est réservé au professeur." }));
+      return;
+    }
+    var cfg = lire(CLE_SUIVI_PROF, null);
+    if (!cfg || !cfg.cle) {
+      // la clé est tirée au hasard une fois, et reste sur cet appareil
+      var a = new Uint8Array(12);
+      (window.crypto || window.msCrypto).getRandomValues(a);
+      cfg = { cle: Array.prototype.map.call(a, function (b) { return ("0" + b.toString(36)).slice(-2); }).join("") };
+      ecrire(CLE_SUIVI_PROF, cfg);
+    }
+    if (suiviActif() && cfg.url === suivi.url) tableauSuivi(cfg);
+    else miseEnPlace(cfg);
+  }
+
+  function champGroupes(valeurs) {
+    var champs = {};
+    var bloc = el("div", { class: "groupes" });
+    NIVEAUX.forEach(function (n) {
+      var c = el("input", { class: "champ champ-texte", type: "text", placeholder: "ex. " + n.nom + " 2, " + n.nom + " 4", value: (valeurs && valeurs[n.id] || []).join(", "), "aria-label": "Classes de " + n.nom });
+      champs[n.id] = c;
+      bloc.appendChild(el("label", { class: "ligne-groupe" }, [el("span", { text: n.nom }), c]));
+    });
+    return { bloc: bloc, valeur: function () {
+      var g = {};
+      Object.keys(champs).forEach(function (k) {
+        var l = champs[k].value.split(",").map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 12);
+        if (l.length) g[k] = l;
+      });
+      return g;
+    } };
+  }
+
+  function miseEnPlace(cfg) {
+    app.appendChild(el("p", { class: "consigne-outil", text: "Les élèves écrivent leur prénom une fois ; chaque score part ensuite dans une feuille Google Sheets que vous seul voyez, et s'affiche ici. Mise en place, une seule fois :" }));
+    var etapes = el("ol", { class: "etapes etapes-suivi" });
+    var lienSheets = el("a", { href: "https://sheets.new", target: "_blank", rel: "noopener", text: "sheets.new" });
+    var zoneScript = el("textarea", { class: "champ script-google", readonly: true, rows: "8", "aria-label": "Script à coller" });
+    zoneScript.value = scriptGoogle(cfg.cle);
+    var btnCopier = el("button", { class: "btn", type: "button", text: "Copier le script", onclick: function () {
+      zoneScript.select();
+      var fait = function () { btnCopier.textContent = "Script copié ✓"; };
+      if (navigator.clipboard) navigator.clipboard.writeText(zoneScript.value).then(fait, function () { document.execCommand("copy"); fait(); });
+      else { document.execCommand("copy"); fait(); }
+    } });
+    [
+      ["Créez une feuille Google Sheets (", lienSheets, "), donnez-lui un nom, puis menu Extensions > Apps Script."],
+      ["Effacez le code présent et collez ce script, puis enregistrez (icône disquette) :", zoneScript, el("div", { class: "btns", style: "margin-top:6px" }, btnCopier)],
+      ["Cliquez sur Déployer > Nouveau déploiement. Type : Application Web. Exécuter en tant que : moi. Qui a accès : tout le monde. Cliquez sur Déployer, puis autorisez l'accès demandé par Google (« Paramètres avancés » puis « Accéder au projet » si Google affiche un avertissement)."],
+      ["Copiez l'URL de l'application Web (elle se termine par /exec) et collez-la ci-dessous."]
+    ].forEach(function (e) { etapes.appendChild(el("li", null, e)); });
+    app.appendChild(etapes);
+    var champUrl = el("input", { class: "champ", type: "url", placeholder: "https://script.google.com/macros/s/…/exec", "aria-label": "URL de l'application Web", value: cfg.url || "" });
+    app.appendChild(el("div", { class: "ligne-champ" }, champUrl));
+    app.appendChild(el("div", { class: "etiq", text: "Vos classes (facultatif)" }));
+    app.appendChild(el("p", { class: "petit", style: "margin:0 0 8px", text: "Si vous avez plusieurs classes d'un même niveau, écrivez-les, séparées par des virgules : chaque élève choisira la sienne." }));
+    var groupes = champGroupes(suivi && suivi.groupes);
+    app.appendChild(groupes.bloc);
+    var retour = el("p", { class: "petit", role: "status", style: "margin:10px 0 0" });
+    var btn = el("button", { class: "btn plein", type: "button", text: "Tester et activer le suivi" });
+    btn.addEventListener("click", function () {
+      var url = champUrl.value.trim();
+      if (!/^https:\/\/script\.google(usercontent)?\.com\/.+/.test(url)) { retour.textContent = "Collez l'URL de l'application Web donnée par Google (https://script.google.com/…/exec)."; champUrl.focus(); return; }
+      btn.disabled = true;
+      retour.textContent = "Test du script…";
+      lireResultats({ url: url, cle: cfg.cle }).then(function () {
+        retour.textContent = "Le script répond. Publication du réglage…";
+        var config = { url: url, groupes: groupes.valeur(), modifie: new Date().toISOString() };
+        return publierFichier(jeton(), FICHIER_SUIVI, config, "Espace professeur : suivi des résultats").then(function () {
+          cfg.url = url;
+          ecrire(CLE_SUIVI_PROF, cfg);
+          suivi = config;
+          ecrire(CLE_SUIVI, suivi);
+          rendre();
+        });
+      }).catch(function (e) {
+        btn.disabled = false;
+        retour.textContent = e && e.message && e.message.indexOf("Failed to fetch") < 0 ? e.message : "Le script ne répond pas : vérifiez l'URL, et que l'accès est ouvert à « tout le monde ».";
+      });
+    });
+    app.appendChild(el("div", { class: "btns" }, btn));
+    app.appendChild(retour);
+  }
+
+  function tableauSuivi(cfg) {
+    var etat = { lignes: null, classe: null, jours: 30, ouvert: null };
+    var barre = el("div", { class: "btns", style: "margin-top:6px" });
+    var filtres = el("div");
+    var zone = el("div");
+    app.appendChild(el("p", { class: "consigne-outil", text: "Les scores envoyés par les élèves qui ont écrit leur prénom. Les données sont dans votre feuille Google Sheets." }));
+    app.appendChild(barre);
+    app.appendChild(filtres);
+    app.appendChild(zone);
+    var btnActu = el("button", { class: "btn plein", type: "button", text: "Actualiser", onclick: charger });
+    barre.appendChild(btnActu);
+    var lienFeuille = el("a", { class: "btn", target: "_blank", rel: "noopener", text: "Ouvrir la feuille Google", hidden: true });
+    barre.appendChild(lienFeuille);
+    barre.appendChild(el("button", { class: "btn", type: "button", text: "Réglages", onclick: function () {
+      app.innerHTML = "";
+      app.appendChild(lienRetour("#/prof", "Retour à l'espace professeur"));
+      app.appendChild(el("div", { class: "chap-entete" }, el("h1", { text: "Suivi des élèves" })));
+      miseEnPlace(cfg);
+    } }));
+
+    function charger() {
+      btnActu.disabled = true;
+      zone.innerHTML = "";
+      zone.appendChild(el("p", { class: "vide", text: "Chargement des résultats…" }));
+      lireResultats(cfg).then(function (j) {
+        btnActu.disabled = false;
+        etat.lignes = (j.lignes || []).map(function (l) {
+          return { t: l[0], classe: String(l[1]), eleve: String(l[2]), chapitre: String(l[3]), outil: String(l[4]), detail: String(l[5]), score: Number(l[6]) || 0, sur: Number(l[7]) || 0 };
+        }).reverse();
+        if (j.feuille) { lienFeuille.href = j.feuille; lienFeuille.hidden = false; }
+        dessiner();
+      }, function (e) {
+        btnActu.disabled = false;
+        zone.innerHTML = "";
+        zone.appendChild(el("div", { class: "alerte", role: "alert" }, e.message && e.message.indexOf("Failed to fetch") < 0 ? e.message : "Le script ne répond pas pour l'instant : réessayez dans un moment."));
+      });
+    }
+
+    function dessiner() {
+      var depuis = etat.jours ? Date.now() - etat.jours * JOUR : 0;
+      var lignes = etat.lignes.filter(function (l) { return !depuis || new Date(l.t).getTime() >= depuis; });
+      var classes = [];
+      etat.lignes.forEach(function (l) { if (classes.indexOf(l.classe) < 0) classes.push(l.classe); });
+      classes.sort();
+      if (etat.classe && classes.indexOf(etat.classe) < 0) etat.classe = null;
+      if (!etat.classe && classes.length) etat.classe = classes[0];
+
+      filtres.innerHTML = "";
+      if (classes.length > 1) {
+        var gc = el("div", { class: "segments", role: "group", "aria-label": "Classe" });
+        classes.forEach(function (c) { gc.appendChild(el("button", { class: "opt", type: "button", text: c, "aria-pressed": String(c === etat.classe), onclick: function () { etat.classe = c; etat.ouvert = null; dessiner(); } })); });
+        filtres.appendChild(gc);
+      }
+      var gp = el("div", { class: "segments", role: "group", "aria-label": "Période" });
+      [[7, "7 jours"], [30, "30 jours"], [0, "Toute l'année"]].forEach(function (o) {
+        gp.appendChild(el("button", { class: "opt", type: "button", text: o[1], "aria-pressed": String(o[0] === etat.jours), onclick: function () { etat.jours = o[0]; dessiner(); } }));
+      });
+      filtres.appendChild(gp);
+
+      zone.innerHTML = "";
+      var dela = lignes.filter(function (l) { return l.classe === etat.classe; });
+      if (!dela.length) { zone.appendChild(el("p", { class: "vide", text: etat.lignes.length ? "Aucun score sur cette période." : "Aucun score pour l'instant : les résultats apparaîtront dès que des élèves auront écrit leur prénom et fait des exercices." })); return; }
+      // un élève par ligne : nombre d'exercices, moyenne, dernière activité
+      var parEleve = {};
+      dela.forEach(function (l) {
+        var e = parEleve[l.eleve] || (parEleve[l.eleve] = { nom: l.eleve, n: 0, somme: 0, dernier: l.t, lignes: [] });
+        e.n++; e.somme += l.sur ? l.score / l.sur : 0; e.lignes.push(l);
+        if (l.t > e.dernier) e.dernier = l.t;
+      });
+      var eleves = Object.keys(parEleve).map(function (k) { return parEleve[k]; }).sort(function (a, b) { return a.nom.localeCompare(b.nom, "fr"); });
+      zone.appendChild(el("p", { class: "petit", text: pluriel(eleves.length, "élève") + " · " + pluriel(dela.length, "exercice") }));
+      var liste = el("div", { class: "suivi-liste" });
+      eleves.forEach(function (e) {
+        var moy = Math.round(e.somme / e.n * 100);
+        var ligne = el("button", { class: "suivi-eleve", type: "button", "aria-expanded": String(etat.ouvert === e.nom), onclick: function () { etat.ouvert = etat.ouvert === e.nom ? null : e.nom; dessiner(); } }, [
+          el("strong", { text: e.nom }),
+          el("span", { class: "suivi-chiffres" }, [
+            el("span", { text: pluriel(e.n, "exercice") }),
+            el("span", { class: "suivi-moy " + (moy >= 70 ? "ok" : moy >= 50 ? "moyen" : "bas"), text: moy + " %" }),
+            el("span", { class: "petit", text: dateCourte(e.dernier) })
+          ])
+        ]);
+        liste.appendChild(ligne);
+        if (etat.ouvert === e.nom) {
+          var det = el("ul", { class: "suivi-details" });
+          e.lignes.slice(0, 40).forEach(function (l) {
+            var c = chapitre(l.chapitre);
+            det.appendChild(el("li", null, [
+              el("span", null, [el("span", { class: "petit", text: dateCourte(l.t) }), (NOMS_OUTILS[l.outil] || l.outil) + (c ? " · " + nomNiveau(c.n) + " " + c.num : "")]),
+              el("strong", { text: l.score + " / " + l.sur })
+            ]));
+          });
+          liste.appendChild(det);
+        }
+      });
+      zone.appendChild(liste);
+    }
+    charger();
+  }
+
   // ---------- Espace professeur : choisir les chapitres que voient les élèves ----------
   // Le réglage est publié dans rituels/activation.json, sur GitHub, avec un jeton personnel
   // que le professeur colle une fois sur son appareil. Sans jeton, on ne peut rien publier.
@@ -3324,18 +3773,18 @@
     });
   }
   function publierVisibles(t, ids) {
-    var url = urlDepot() + "/contents/" + FICHIER_VISIBLES;
+    return publierFichier(t, FICHIER_VISIBLES, { visibles: ids, modifie: new Date().toISOString() }, "Espace professeur : chapitres visibles par les élèves");
+  }
+  // écrit un fichier JSON du site (branche main) : on lit d'abord sa version actuelle, que GitHub demande pour la remplacer
+  function publierFichier(t, chemin, objet, message) {
+    var url = urlDepot() + "/contents/" + chemin;
     var h = enTetesGitHub(t);
     return appelGitHub(url + "?ref=main", { headers: h, cache: "no-store" }).catch(function (e) {
       if (e.statut === 404) return null; // le fichier n'existe pas encore : on le crée
       throw e;
     }).then(function (actuel) {
-      var contenu = JSON.stringify({ visibles: ids, modifie: new Date().toISOString() }, null, 2) + "\n";
-      var corps = {
-        message: "Espace professeur : chapitres visibles par les élèves",
-        content: btoa(unescape(encodeURIComponent(contenu))),
-        branch: "main"
-      };
+      var contenu = JSON.stringify(objet, null, 2) + "\n";
+      var corps = { message: message, content: btoa(unescape(encodeURIComponent(contenu))), branch: "main" };
       if (actuel && actuel.sha) corps.sha = actuel.sha;
       return appelGitHub(url, { method: "PUT", headers: h, body: JSON.stringify(corps) });
     });
@@ -3363,6 +3812,13 @@
     ]));
     if (messageProf) app.appendChild(el("div", { class: "alerte" + (messageProf.ok ? " ok" : ""), role: "status" }, messageProf.texte));
     app.appendChild(blocConnexion());
+    var lienSuivi = el("a", { class: "express", href: "#/prof/suivi" });
+    lienSuivi.innerHTML = icone("point");
+    lienSuivi.appendChild(el("span", null, [
+      el("strong", { text: "Suivi des élèves" }),
+      el("span", { class: "sous", text: suiviActif() ? "Les scores de vos élèves, classe par classe" : "Activer le suivi des résultats (Google Sheets)" })
+    ]));
+    app.appendChild(lienSuivi);
 
     app.appendChild(el("div", { class: "etiq", text: "Classe" }));
     var choix = el("div", { class: "choix", role: "group", "aria-label": "Classe" });
@@ -3529,6 +3985,11 @@
     }
     rendre();
   }
+  // réglage du suivi : sans effet sur l'affichage, sauf sur l'accueil (le formulaire du prénom)
+  chargerSuivi().then(function (change) {
+    var r = routeActuelle();
+    if (change && r.vue === "accueil") rendre();
+  }, function () {});
   if (Array.isArray(visibles)) {
     rendre();
     chargerVisibles().then(function (change) { if (change) rafraichirApresChargement(); }, function () {});
