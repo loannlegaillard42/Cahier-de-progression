@@ -485,9 +485,10 @@
   .doc-cadre.petit-cadre { display: table; margin: 0 auto; }
   .doc-cadre.petit-cadre img { width: auto; max-width: 100%; max-height: 220px; }
   .doc-cadre.visable { cursor: crosshair; }
+  .doc-cadre.sans-numeros .pastille-detail { display: none; }
   .pastille-detail {
-    position: absolute; transform: translate(-50%, -50%); width: 30px; height: 30px; padding: 0; border-radius: 50%;
-    border: 2px solid #fff; background: var(--accent); color: #fff; font: 700 13px Inter, sans-serif; line-height: 1;
+    position: absolute; transform: translate(-50%, -50%); width: 26px; height: 26px; padding: 0; border-radius: 50%;
+    border: 2px solid #fff; background: var(--accent); color: #fff; font: 700 12px Inter, sans-serif; line-height: 1; opacity: .92;
     box-shadow: 0 1px 4px rgba(0, 0, 0, .45); display: flex; align-items: center; justify-content: center;
   }
   [data-theme="dark"] .pastille-detail { color: #10181B; }
@@ -1249,7 +1250,7 @@
       var gd = el("div", { class: "docs-galerie" });
       docsCours.forEach(function (x) {
         gd.appendChild(el("a", { class: "doc-vignette", href: lienChapitre(ch, "documents") + "/" + encodeURIComponent(x.id) }, [
-          el("img", { src: x.d.image, alt: "", loading: "lazy", decoding: "async" }),
+          el("img", { src: x.d.image, alt: "", loading: "lazy", decoding: "async", style: x.d.vignette ? "object-position:" + x.d.vignette : null }),
           el("strong", { text: x.d.titre }),
           el("span", { class: "petit", text: [x.d.nature, x.d.date].filter(Boolean).join(" · ") })
         ]));
@@ -3035,11 +3036,12 @@
       choix.hidden = false;
       zone.appendChild(el("p", { class: "consigne-outil", text: "Les documents de tes fiches d'activités. Ouvre-en un pour le présenter, repérer ses détails, puis t'entraîner." }));
       var g = el("div", { class: "docs-galerie" });
-      documentsChapitre(ch, filtre).forEach(function (x) {
+      var tous = documentsChapitre(ch, filtre);
+      tous.filter(function (x) { return x.d.image; }).concat(tous.filter(function (x) { return !x.d.image; })).forEach(function (x) {
         var d = x.d;
         var meilleur = prog.docs[ch.id + "|" + x.id];
         var carte = el("button", { class: "doc-vignette", type: "button", onclick: function () { ouvrir(x); } }, [
-          d.image ? el("img", { src: d.image, alt: "", loading: "lazy", decoding: "async" }) : el("span", { class: "doc-texte-icone", "aria-hidden": "true", text: "« »" }),
+          d.image ? el("img", { src: d.image, alt: "", loading: "lazy", decoding: "async", style: d.vignette ? "object-position:" + d.vignette : null }) : el("span", { class: "doc-texte-icone", "aria-hidden": "true", text: "« »" }),
           el("strong", { text: d.titre }),
           el("span", { class: "petit", text: [d.nature || "Texte", d.date].filter(Boolean).join(" · ") + (x.bloc.id !== "cours" ? " · " + x.bloc.nom : "") }),
           meilleur ? el("span", { class: "doc-score", text: "Meilleur score : " + meilleur.score + " / " + meilleur.sur }) : null
@@ -3078,8 +3080,15 @@
         c = cadreImage(d, { surDetail: montrer });
         var fig = el("figure", { class: "doc-figure" }, [c.cadre, creditImage(d)]);
         zone.appendChild(fig);
+        var btnNumeros = el("button", { class: "btn", type: "button", "aria-pressed": "false" }, "Masquer les numéros");
+        btnNumeros.addEventListener("click", function () {
+          var cache = c.cadre.classList.toggle("sans-numeros");
+          btnNumeros.textContent = cache ? "Afficher les numéros" : "Masquer les numéros";
+          btnNumeros.setAttribute("aria-pressed", String(cache));
+        });
         zone.appendChild(el("div", { class: "btns noprint", style: "margin-top:8px" }, [
-          el("button", { class: "btn", type: "button", onclick: function () { agrandir(d); } }, "Agrandir l'image")
+          el("button", { class: "btn", type: "button", onclick: function () { agrandir(d); } }, "Agrandir l'image"),
+          liste(d, "details").length ? btnNumeros : null
         ]));
         if (liste(d, "details").length) {
           info.appendChild(el("p", { class: "k-statut", style: "margin:0", text: "Touche une pastille numérotée pour lire le détail." }));
