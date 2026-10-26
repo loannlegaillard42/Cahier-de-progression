@@ -465,6 +465,53 @@
   .puces-lieux { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
   .puces-lieux .opt { min-height: 38px; padding: 6px 13px; font-size: 14px; }
 
+  /* ---------- Les documents ---------- */
+  button.retour { background: none; border: none; }
+  .docs-galerie { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .doc-vignette {
+    display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 8px 8px 10px;
+    border-radius: 12px; border: 1px solid var(--line); background: var(--panel);
+  }
+  .doc-vignette:hover { border-color: var(--accent); }
+  a.doc-vignette { text-decoration: none; color: inherit; }
+  .doc-vignette img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; background: var(--line); }
+  .doc-texte-icone { display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; border-radius: 8px; background: var(--accentSoft); color: var(--accent); font-family: Fraunces, serif; font-size: 40px; }
+  .doc-vignette strong { font-size: 14.5px; line-height: 1.3; }
+  .doc-vignette .petit { font-size: 12px; line-height: 1.35; }
+  .doc-score { font-size: 12px; color: var(--ok); font-weight: 600; }
+  .doc-figure { margin: 10px 0 0; }
+  .doc-cadre { position: relative; display: block; border-radius: 12px; overflow: hidden; background: var(--line); line-height: 0; }
+  .doc-cadre img { display: block; width: 100%; height: auto; }
+  .doc-cadre.petit-cadre { display: table; margin: 0 auto; }
+  .doc-cadre.petit-cadre img { width: auto; max-width: 100%; max-height: 220px; }
+  .doc-cadre.visable { cursor: crosshair; }
+  .doc-cadre.sans-numeros .pastille-detail { display: none; }
+  .pastille-detail {
+    position: absolute; transform: translate(-50%, -50%); width: 26px; height: 26px; padding: 0; border-radius: 50%;
+    border: 2px solid #fff; background: var(--accent); color: #fff; font: 700 12px Inter, sans-serif; line-height: 1; opacity: .92;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .45); display: flex; align-items: center; justify-content: center;
+  }
+  [data-theme="dark"] .pastille-detail { color: #10181B; }
+  .pastille-detail.actif { background: var(--warn); }
+  .pastille-detail.trouve { background: var(--ok); }
+  .pastille-detail.vise { background: var(--warn); animation: pastille-pouls 1.2s ease-out infinite; }
+  @keyframes pastille-pouls { from { box-shadow: 0 0 0 0 rgba(226, 170, 60, .8); } to { box-shadow: 0 0 0 16px rgba(226, 170, 60, 0); } }
+  .marque-touche { position: absolute; width: 18px; height: 18px; transform: translate(-50%, -50%); border-radius: 50%; border: 3px solid var(--ko); background: rgba(255, 255, 255, .45); pointer-events: none; }
+  .marque-touche.juste { border-color: var(--ok); }
+  .doc-credit { font-size: 12px; color: var(--faint); margin-top: 6px; line-height: 1.4; }
+  .detail-info { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--accentSoft); }
+  .detail-info strong { display: flex; align-items: center; gap: 8px; font-family: Fraunces, serif; font-size: 16px; }
+  .detail-info p { margin: 6px 0 0; font-size: 14.5px; }
+  dl.presentation { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; font-size: 14.5px; }
+  dl.presentation dt { font-weight: 700; color: var(--accent); }
+  dl.presentation dd { margin: 0; }
+  .details-liste li { cursor: pointer; border-radius: 8px; }
+  .details-liste li.actif { background: var(--warnSoft); }
+  .voile-image { gap: 10px; }
+  .voile-image .doc-cadre.plein { display: inline-block; width: auto; }
+  .voile-image .doc-cadre.plein img { width: auto; max-width: 94vw; max-height: 78vh; }
+  .doc-image-ppo { margin-top: 8px; }
+
   /* ---------- QR code ---------- */
   .voile {
     position: fixed; inset: 0; z-index: 50; background: var(--bg); display: flex; flex-direction: column;
@@ -558,6 +605,7 @@
     fermer: '<path d="M6 6l12 12M18 6L6 18"/>',
     drapeau: '<path d="M5 21V4"/><path d="M5 4h12l-2.5 4L17 12H5"/>',
     carte: '<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+    document: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/>',
     classer: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17.5h7M17.5 14v7"/>'
   };
   function icone(nom) {
@@ -638,7 +686,7 @@
   function chargerProgres() {
     prog = lire(CLE, null);
     if (!prog || typeof prog !== "object") prog = {};
-    ["cartes", "quiz", "point", "carte"].forEach(function (k) {
+    ["cartes", "quiz", "point", "carte", "docs"].forEach(function (k) {
       if (!prog[k] || typeof prog[k] !== "object") prog[k] = {};
     });
   }
@@ -987,7 +1035,7 @@
       el("button", { class: "lien-discret", type: "button", text: "Effacer mes progrès", onclick: function () {
         if (!confirm("Effacer tous tes progrès (cartes, quiz, auto-évaluation) sur cet appareil ?")) return;
         var niveau = prog.niveau;
-        prog = { cartes: {}, quiz: {}, point: {}, carte: {}, niveau: niveau };
+        prog = { cartes: {}, quiz: {}, point: {}, carte: {}, docs: {}, niveau: niveau };
         sauver();
         rendre();
       } })
@@ -1068,6 +1116,10 @@
       dispo: function (ch) { return blocs(ch).some(function (b) { return evenementsFrise(b.data).length >= 4; }); },
       info: function () { return "Remets les événements dans l'ordre"; },
       vue: vueFriseJeu },
+    { id: "documents", nom: "Les documents", icone: "document",
+      dispo: function (ch) { return imagesChapitre(ch).length > 0; },
+      info: function (ch) { return pluriel(documentsChapitre(ch).length, "document") + " à présenter et à analyser"; },
+      vue: vueDocuments },
     { id: "carte", nom: "Carte à compléter", icone: "carte",
       dispo: function (ch) { return nbLieuxPlaces(ch) >= 3; },
       info: function (ch) { var b = prog.carte[ch.id]; return b ? "Meilleur score : " + b.score + " / " + b.sur : "Situe les " + nbLieuxPlaces(ch) + " lieux du chapitre"; },
@@ -1191,6 +1243,19 @@
         gl.appendChild(el("div", { class: "notion" }, [el("strong", { text: l.nom }), el("p", { text: l.txt })]));
       });
       cible.appendChild(gl);
+    }
+    var docsCours = imagesChapitre(ch, "cours");
+    if (docsCours.length) {
+      cible.appendChild(el("div", { class: "etiq", text: "Les documents" }));
+      var gd = el("div", { class: "docs-galerie" });
+      docsCours.forEach(function (x) {
+        gd.appendChild(el("a", { class: "doc-vignette", href: lienChapitre(ch, "documents") + "/" + encodeURIComponent(x.id) }, [
+          el("img", { src: x.d.image, alt: "", loading: "lazy", decoding: "async", style: x.d.vignette ? "object-position:" + x.d.vignette : null }),
+          el("strong", { text: x.d.titre }),
+          el("span", { class: "petit", text: [x.d.nature, x.d.date].filter(Boolean).join(" · ") })
+        ]));
+      });
+      cible.appendChild(gd);
     }
     if (liste(ch, "essentiel").length) {
       cible.appendChild(el("div", { class: "etiq", text: "L'essentiel du cours" }));
@@ -2206,7 +2271,19 @@
 
       if (liste(p, "documents").length) {
         zone.appendChild(el("div", { class: "etiq", text: "Les documents clés" }));
-        liste(p, "documents").forEach(function (d) {
+        liste(p, "documents").forEach(function (d, i) {
+          if (d.image) {
+            var idDoc = d.id || p.id + "-" + (i + 1);
+            var lien = el("a", { href: lienChapitre(ch, "documents") + "/" + encodeURIComponent(idDoc), class: "doc-image-ppo" }, cadreImage(d, { sansPastilles: true }).cadre);
+            zone.appendChild(el("figure", { class: "doc" }, [
+              el("div", { class: "doc-titre", text: d.titre }),
+              lien,
+              creditImage(d),
+              d.montre ? el("p", { class: "doc-montre" }, [el("strong", { text: "Ce qu'il montre : " }), d.montre]) : null,
+              el("a", { class: "btn noprint", style: "margin-top:10px", href: lienChapitre(ch, "documents") + "/" + encodeURIComponent(idDoc) }, avecIcone("document", "Analyser ce document"))
+            ]));
+            return;
+          }
           zone.appendChild(el("figure", { class: "doc" }, [
             el("div", { class: "doc-titre", text: d.titre }),
             el("blockquote", { text: d.extrait }),
@@ -2250,11 +2327,12 @@
 
       zone.appendChild(el("div", { class: "etiq noprint", text: "S'entraîner sur ce point de passage" }));
       var liens = el("div", { class: "liens-ppo noprint" });
-      [["cartes", "Cartes mémoire"], ["quiz", "Quiz"], ["classer", "Classer"], ["trous", "Texte à trous"], ["frise", "Frise"], ["carte", "Carte"]].forEach(function (o) {
+      [["cartes", "Cartes mémoire"], ["quiz", "Quiz"], ["classer", "Classer"], ["trous", "Texte à trous"], ["frise", "Frise"], ["carte", "Carte"], ["documents", "Documents"]].forEach(function (o) {
         var outil = OUTILS.filter(function (x) { return x.id === o[0]; })[0];
         if (!outil.dispo(ch)) return;
         if (o[0] === "classer" && !p.schema) return;
         if (o[0] === "carte" && nbLieuxPlaces(ch, p.id) < 3) return;
+        if (o[0] === "documents" && !imagesChapitre(ch, p.id).length) return;
         liens.appendChild(el("a", { class: "btn", href: lienChapitre(ch, o[0]) + "/" + p.id }, avecIcone(outil.icone, o[1])));
       });
       zone.appendChild(liens);
@@ -2868,6 +2946,339 @@
 
     dessinerChoix();
     demarrer();
+  }
+
+  // ---------- Les documents : les sources des fiches d'activités, à présenter et à analyser ----------
+  // Un document est un texte (extrait) ou une image (image, avec ses détails à repérer : x, y en % de l'image).
+  // Il appartient au cours (champ documents du chapitre) ou à un point de passage.
+  function documentsChapitre(ch, filtre) {
+    var res = [];
+    blocsChoisis(ch, filtre).forEach(function (b) {
+      liste(b.data, "documents").forEach(function (d, i) {
+        res.push({ d: d, bloc: b, id: d.id || b.id + "-" + (i + 1) });
+      });
+    });
+    return res;
+  }
+  function imagesChapitre(ch, filtre) { return documentsChapitre(ch, filtre).filter(function (x) { return !!x.d.image; }); }
+  function documentParId(ch, id) { return documentsChapitre(ch).filter(function (x) { return x.id === id; })[0] || null; }
+
+  var CHIFFRES_ROMAINS = [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
+  function romain(n) {
+    var s = "";
+    CHIFFRES_ROMAINS.forEach(function (p) { while (n >= p[0]) { s += p[1]; n -= p[0]; } });
+    return s;
+  }
+  function nomSiecle(n) { return romain(n) + (n === 1 ? "ᵉʳ" : "ᵉ") + " siècle"; }
+  // le siècle d'un document : champ annee (nombre), sinon la première année écrite dans sa date
+  function siecleDocument(d) {
+    var a = typeof d.annee === "number" ? d.annee : parseInt((String(d.date || "").match(/\d{3,4}/) || [])[0], 10);
+    return a ? Math.floor((a - 1) / 100) + 1 : null;
+  }
+
+  // l'image et ses détails numérotés ; surDetail(i) quand on touche une pastille
+  function cadreImage(d, opts) {
+    opts = opts || {};
+    var cadre = el("div", { class: "doc-cadre" });
+    var img = el("img", { src: d.image, alt: d.titre + (d.nature ? " — " + d.nature : ""), loading: "lazy", decoding: "async" });
+    cadre.appendChild(img);
+    var pastilles = liste(d, "details").map(function (dt, i) {
+      var b = el("button", { class: "pastille-detail", type: "button", text: String(i + 1), "aria-label": "Détail " + (i + 1) + " : " + dt.nom });
+      b.style.left = dt.x + "%";
+      b.style.top = dt.y + "%";
+      b.addEventListener("click", function (e) { e.stopPropagation(); if (opts.surDetail) opts.surDetail(i); });
+      if (opts.sansPastilles) b.hidden = true;
+      cadre.appendChild(b);
+      return b;
+    });
+    return { cadre: cadre, img: img, pastilles: pastilles };
+  }
+  function creditImage(d) {
+    return el("figcaption", { class: "doc-credit" }, [d.source || "", d.credit ? (d.source ? " · " : "") + d.credit : ""].join(""));
+  }
+
+  // image en plein écran (pour lire les détails sur un petit écran)
+  function agrandir(d) {
+    var precedent = document.activeElement;
+    var fermer = el("button", { class: "btn-icone fermer", type: "button", "aria-label": "Fermer", icone: "fermer" });
+    var c = cadreImage(d, { sansPastilles: false });
+    c.cadre.classList.add("plein");
+    var voile = el("div", { class: "voile voile-image", role: "dialog", "aria-modal": "true", "aria-label": d.titre }, [fermer, c.cadre, el("p", { class: "petit", text: d.titre })]);
+    function close() { document.removeEventListener("keydown", touche, true); voile.remove(); if (precedent && precedent.focus) precedent.focus(); }
+    function touche(e) { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); } }
+    fermer.addEventListener("click", close);
+    voile.addEventListener("click", function (e) { if (e.target === voile) close(); });
+    document.addEventListener("keydown", touche, true);
+    document.body.appendChild(voile);
+    fermer.focus();
+  }
+
+  function vueDocuments(ch, cible) {
+    var garder = function (b) { return imagesChapitre(ch, b.id).length > 0; };
+    var sous = routeActuelle().sous;
+    var demande = sous ? documentParId(ch, sous) : null;
+    var filtre = demande ? null : blocDemande(ch, garder);
+    var choix = el("div"), zone = el("div");
+    cible.appendChild(choix);
+    cible.appendChild(zone);
+
+    function dessinerChoix() {
+      choix.innerHTML = "";
+      var g = selecteurBlocs(ch, filtre, true, garder, function (id) { filtre = id; dessinerChoix(); galerie(); });
+      if (g) choix.appendChild(g);
+    }
+    function adresse(x) { return lienChapitre(ch, "documents") + (x ? "/" + encodeURIComponent(x.id) : ""); }
+
+    function galerie() {
+      surToucheVue = null;
+      history.replaceState(null, "", adresse(null) + (filtre ? "/" + filtre : ""));
+      zone.innerHTML = "";
+      choix.hidden = false;
+      zone.appendChild(el("p", { class: "consigne-outil", text: "Les documents de tes fiches d'activités. Ouvre-en un pour le présenter, repérer ses détails, puis t'entraîner." }));
+      var g = el("div", { class: "docs-galerie" });
+      var tous = documentsChapitre(ch, filtre);
+      tous.filter(function (x) { return x.d.image; }).concat(tous.filter(function (x) { return !x.d.image; })).forEach(function (x) {
+        var d = x.d;
+        var meilleur = prog.docs[ch.id + "|" + x.id];
+        var carte = el("button", { class: "doc-vignette", type: "button", onclick: function () { ouvrir(x); } }, [
+          d.image ? el("img", { src: d.image, alt: "", loading: "lazy", decoding: "async", style: d.vignette ? "object-position:" + d.vignette : null }) : el("span", { class: "doc-texte-icone", "aria-hidden": "true", text: "« »" }),
+          el("strong", { text: d.titre }),
+          el("span", { class: "petit", text: [d.nature || "Texte", d.date].filter(Boolean).join(" · ") + (x.bloc.id !== "cours" ? " · " + x.bloc.nom : "") }),
+          meilleur ? el("span", { class: "doc-score", text: "Meilleur score : " + meilleur.score + " / " + meilleur.sur }) : null
+        ]);
+        g.appendChild(carte);
+      });
+      zone.appendChild(g);
+    }
+
+    function enTete(x, texte, action) {
+      zone.appendChild(el("button", { class: "retour", type: "button", onclick: action || galerie }, [avecIcone("retour", texte || "Tous les documents")]));
+      zone.appendChild(el("h2", { class: "titre-ppo", text: x.d.titre }));
+      if (x.bloc.id !== "cours") zone.appendChild(el("p", { class: "petit", style: "margin:2px 0 0", text: x.bloc.nom }));
+    }
+
+    function ouvrir(x) {
+      surToucheVue = null;
+      history.replaceState(null, "", adresse(x));
+      var d = x.d;
+      zone.innerHTML = "";
+      choix.hidden = true;
+      enTete(x);
+      var info = el("div", { class: "detail-info", "aria-live": "polite" });
+      var choisi = -1, c = null, lignes = [];
+      function montrer(i) {
+        if (choisi >= 0) { c.pastilles[choisi].classList.remove("actif"); if (lignes[choisi]) lignes[choisi].classList.remove("actif"); }
+        choisi = i;
+        c.pastilles[i].classList.add("actif");
+        if (lignes[i]) lignes[i].classList.add("actif");
+        var dt = d.details[i];
+        info.innerHTML = "";
+        info.appendChild(el("strong", null, [el("span", { class: "num-rond", text: String(i + 1) }), dt.nom]));
+        info.appendChild(el("p", { text: dt.txt }));
+      }
+      if (d.image) {
+        c = cadreImage(d, { surDetail: montrer });
+        var fig = el("figure", { class: "doc-figure" }, [c.cadre, creditImage(d)]);
+        zone.appendChild(fig);
+        var btnNumeros = el("button", { class: "btn", type: "button", "aria-pressed": "false" }, "Masquer les numéros");
+        btnNumeros.addEventListener("click", function () {
+          var cache = c.cadre.classList.toggle("sans-numeros");
+          btnNumeros.textContent = cache ? "Afficher les numéros" : "Masquer les numéros";
+          btnNumeros.setAttribute("aria-pressed", String(cache));
+        });
+        zone.appendChild(el("div", { class: "btns noprint", style: "margin-top:8px" }, [
+          el("button", { class: "btn", type: "button", onclick: function () { agrandir(d); } }, "Agrandir l'image"),
+          liste(d, "details").length ? btnNumeros : null
+        ]));
+        if (liste(d, "details").length) {
+          info.appendChild(el("p", { class: "k-statut", style: "margin:0", text: "Touche une pastille numérotée pour lire le détail." }));
+          zone.appendChild(info);
+        }
+      } else {
+        zone.appendChild(el("figure", { class: "doc" }, [el("blockquote", { text: d.extrait }), el("figcaption", { text: d.source })]));
+      }
+
+      zone.appendChild(el("div", { class: "etiq", text: "Présenter le document" }));
+      var tab = el("dl", { class: "presentation" });
+      [["Nature", d.nature], ["Auteur", d.auteur], ["Date", d.date], ["Source", d.image ? d.source : null]].forEach(function (l) {
+        if (!l[1]) return;
+        tab.appendChild(el("dt", { text: l[0] }));
+        tab.appendChild(el("dd", { text: l[1] }));
+      });
+      if (d.contexte) { tab.appendChild(el("dt", { text: "Contexte" })); tab.appendChild(el("dd", { text: d.contexte })); }
+      zone.appendChild(tab);
+
+      if (d.montre) {
+        zone.appendChild(el("div", { class: "etiq", text: "Ce qu'il montre" }));
+        zone.appendChild(el("p", { class: "doc-montre carte-panneau", style: "margin:0", text: d.montre }));
+      }
+      if (d.image && liste(d, "details").length) {
+        zone.appendChild(el("div", { class: "etiq", text: "Les détails à repérer" }));
+        var ol = el("ol", { class: "reperes details-liste" });
+        d.details.forEach(function (dt, i) {
+          var li = el("li", { tabindex: "0" }, [el("span", { class: "num-rond", text: String(i + 1) }), el("div", null, [el("strong", { text: dt.nom }), el("br"), dt.txt])]);
+          li.addEventListener("click", function () { montrer(i); zone.querySelector(".doc-cadre").scrollIntoView({ block: "nearest", behavior: "smooth" }); });
+          li.addEventListener("keydown", function (e) { if (e.key === "Enter") li.click(); });
+          ol.appendChild(li);
+          lignes.push(li);
+        });
+        zone.appendChild(ol);
+      }
+      var questions = questionsDocument(ch, x);
+      if (questions.length || (d.image && liste(d, "details").length)) {
+        zone.appendChild(el("div", { class: "btns noprint" }, [
+          el("button", { class: "btn plein", type: "button", text: "Je m'entraîne sur ce document", onclick: function () { entrainer(x); } }),
+          el("button", { class: "btn", type: "button", text: "Tous les documents", onclick: galerie })
+        ]));
+      }
+      window.scrollTo(0, 0);
+    }
+
+    // 1. présenter le document (nature, auteur, siècle), puis 2. retrouver ses détails sur l'image
+    function entrainer(x) {
+      var d = x.d;
+      var etapes = questionsDocument(ch, x).map(function (q) { return { type: "q", q: q }; });
+      if (d.image) melanger(liste(d, "details").map(function (dt, i) { return i; })).slice(0, 5).forEach(function (i) { etapes.push({ type: "detail", i: i }); });
+      var pos = 0, score = 0, repondu = false;
+      zone.innerHTML = "";
+      enTete(x, "Retour au document", function () { ouvrir(x); });
+      var compteur = el("div", { class: "compteur" });
+      var corps = el("div");
+      zone.appendChild(compteur);
+      zone.appendChild(corps);
+      window.scrollTo(0, 0);
+
+      function suivant() { pos++; repondu = false; dessiner(); }
+      function boutonSuivant() {
+        return el("button", { class: "btn plein", type: "button", text: pos === etapes.length - 1 ? "Voir mon score" : "Question suivante", onclick: suivant });
+      }
+      function dessiner() {
+        corps.innerHTML = "";
+        if (pos >= etapes.length) { bilan(); return; }
+        var barre = el("div", { class: "barre" }, el("span"));
+        barre.firstChild.style.width = Math.round(pos / etapes.length * 100) + "%";
+        compteur.innerHTML = "";
+        compteur.appendChild(el("span", { text: "Question " + (pos + 1) + " sur " + etapes.length + " · " + score + " juste" + (score > 1 ? "s" : "") }));
+        compteur.appendChild(barre);
+        var e = etapes[pos];
+        if (e.type === "q") dessinerQuestion(e.q); else dessinerDetail(e.i);
+      }
+      function dessinerQuestion(q) {
+        if (d.image) {
+          var c = cadreImage(d, { sansPastilles: true });
+          c.cadre.classList.add("petit-cadre");
+          corps.appendChild(c.cadre);
+        }
+        var panneau = el("div", { class: "carte-panneau", style: "margin-top:12px" });
+        panneau.appendChild(el("div", { class: "q-consigne", text: "Présenter le document" }));
+        panneau.appendChild(el("div", { class: "q-enonce", text: q.enonce }));
+        var opts = el("div", { class: "options", role: "group", "aria-label": "Propositions" });
+        q.options.forEach(function (o, i) {
+          var b = el("button", { class: "option", type: "button" }, [el("span", { class: "lettre", text: "ABCD"[i] }), el("span", { text: o })]);
+          b.addEventListener("click", function () {
+            if (repondu) return;
+            repondu = true;
+            var juste = o === q.bonne;
+            if (juste) score++;
+            opts.querySelectorAll(".option").forEach(function (x) { x.disabled = true; if (x.lastChild.textContent === q.bonne) x.classList.add("juste"); });
+            if (!juste) b.classList.add("faux");
+            panneau.appendChild(el("div", { class: "retour-q " + (juste ? "bien" : "mal") }, [el("strong", { text: juste ? "Bonne réponse !" : "Pas tout à fait." }), el("span", { text: q.expl })]));
+            var s = boutonSuivant();
+            panneau.appendChild(el("div", { class: "btns" }, s));
+            annoncer((juste ? "Bonne réponse. " : "Pas tout à fait. ") + q.expl);
+            s.focus({ preventScroll: true });
+          });
+          opts.appendChild(b);
+        });
+        panneau.appendChild(opts);
+        corps.appendChild(panneau);
+      }
+      function dessinerDetail(i) {
+        var dt = d.details[i];
+        corps.appendChild(el("div", { class: "k-question" }, [el("span", { class: "q-consigne", text: "Touche sur l'image :" }), el("span", { class: "k-nom", text: dt.nom })]));
+        var c = cadreImage(d, { sansPastilles: true });
+        corps.appendChild(c.cadre);
+        var bas = el("div");
+        bas.appendChild(el("p", { class: "k-statut", text: "Touche l'endroit de l'image où se trouve ce détail." }));
+        corps.appendChild(bas);
+        c.cadre.classList.add("visable");
+        c.cadre.addEventListener("click", function (e) {
+          if (repondu) return;
+          var r = c.img.getBoundingClientRect();
+          if (!r.width) return;
+          var px = (e.clientX - r.left) / r.width * 100, py = (e.clientY - r.top) / r.height * 100;
+          // distance mesurée en % de la largeur, la hauteur ramenée à la même échelle
+          var dx = px - dt.x, dy = (py - dt.y) * r.height / r.width;
+          var juste = Math.sqrt(dx * dx + dy * dy) <= (dt.r || 9);
+          repondu = true;
+          if (juste) score++;
+          var marque = el("span", { class: "marque-touche" + (juste ? " juste" : "") });
+          marque.style.left = px + "%"; marque.style.top = py + "%";
+          c.cadre.appendChild(marque);
+          var p = c.pastilles[i];
+          p.hidden = false;
+          p.classList.add(juste ? "trouve" : "vise");
+          bas.innerHTML = "";
+          bas.appendChild(el("div", { class: "retour-q " + (juste ? "bien" : "mal") }, [el("strong", { text: juste ? "Bien vu !" : "Pas là : le détail est à la pastille orange." }), el("span", { text: dt.txt })]));
+          var s = boutonSuivant();
+          bas.appendChild(el("div", { class: "btns" }, s));
+          annoncer((juste ? "Bien vu ! " : "Pas là. ") + dt.txt);
+          s.focus({ preventScroll: true });
+        });
+      }
+      function bilan() {
+        compteur.innerHTML = "";
+        var cle = ch.id + "|" + x.id;
+        var ancien = prog.docs[cle];
+        if (!ancien || score / etapes.length > ancien.score / ancien.sur) { prog.docs[cle] = { score: score, sur: etapes.length, t: Date.now() }; sauver(); }
+        var msg = score === etapes.length ? "Parfait : tu sais présenter et lire ce document !" : score >= etapes.length * .7 ? "Très bien !" : "Relis la présentation du document et ses détails, puis recommence.";
+        var autres = documentsChapitre(ch, null).filter(function (y) { return y.id !== x.id && y.d.image; });
+        corps.appendChild(el("div", { class: "bilan carte-panneau" }, [
+          el("div", { class: "gros", text: score + " / " + etapes.length }),
+          el("p", { text: msg }),
+          el("div", { class: "btns" }, [
+            el("button", { class: "btn plein", type: "button", text: "Recommencer", onclick: function () { entrainer(x); } }),
+            el("button", { class: "btn", type: "button", text: "Revoir le document", onclick: function () { ouvrir(x); } }),
+            autres.length ? el("button", { class: "btn", type: "button", text: "Document suivant", onclick: function () {
+              var tous = documentsChapitre(ch, null).filter(function (y) { return y.d.image; });
+              ouvrir(tous[(tous.map(function (y) { return y.id; }).indexOf(x.id) + 1) % tous.length]);
+            } }) : null
+          ])
+        ]));
+        corps.querySelector(".btn").focus({ preventScroll: true });
+      }
+      dessiner();
+    }
+
+    dessinerChoix();
+    if (demande) ouvrir(demande); else galerie();
+  }
+
+  // Questions de présentation : nature, auteur, siècle — les mauvaises réponses viennent des autres documents
+  var NATURES_PIEGES = ["Enluminure (miniature d'un manuscrit)", "Gravure", "Peinture sur bois", "Monnaie", "Sculpture", "Carte", "Mosaïque", "Texte (chronique)"];
+  function questionsDocument(ch, x) {
+    var d = x.d, qs = [];
+    var autres = documentsChapitre(ch, null).filter(function (y) { return y.id !== x.id; }).map(function (y) { return y.d; });
+    function quatre(bonne, pieges) {
+      var vus = {}; vus[normaliser(bonne)] = true;
+      var p = melanger(pieges).filter(function (v) { var k = normaliser(v); if (!v || vus[k]) return false; vus[k] = true; return true; }).slice(0, 3);
+      return p.length >= 2 ? melanger([bonne].concat(p)) : null;
+    }
+    if (d.nature) {
+      var o = quatre(d.nature, autres.map(function (a) { return a.nature; }).concat(NATURES_PIEGES));
+      if (o) qs.push({ enonce: "Quelle est la nature de ce document ?", options: o, bonne: d.nature, expl: "C'est : " + d.nature.charAt(0).toLowerCase() + d.nature.slice(1) + (d.source ? " (" + d.source + ")." : ".") });
+    }
+    if (d.auteur) {
+      var oa = quatre(d.auteur, autres.map(function (a) { return a.auteur; }));
+      if (oa) qs.push({ enonce: "Qui en est l'auteur ?", options: oa, bonne: d.auteur, expl: d.auteur + (d.date ? ", " + d.date : "") + "." });
+    }
+    var s = siecleDocument(d);
+    if (s) {
+      var bonneS = nomSiecle(s);
+      var os = quatre(bonneS, [s - 2, s - 1, s + 1, s + 2].filter(function (n) { return n > 0 && n <= 21; }).map(nomSiecle));
+      if (os) qs.push({ enonce: "De quel siècle date ce document ?", options: os, bonne: bonneS, expl: "Il date de " + d.date + " : " + bonneS + "." });
+    }
+    return qs;
   }
 
   // ---------- Espace professeur : choisir les chapitres que voient les élèves ----------

@@ -18,13 +18,19 @@
      notions     { mot, def }
      personnages { nom, dates, txt: [indices, du plus vague au plus précis — sans le nom] }
      lieux       { nom, txt, lon?, lat? } — avec ses coordonnées (degrés, est et nord positifs), le lieu se place sur la carte
+     documents   documents des fiches d'activités (au niveau du chapitre ou d'un point de passage) :
+                 texte  { id?, titre, extrait, source, montre }
+                 image  { id, titre, image (chemin dans rituels/), vignette? (cadrage de la vignette, ex. "12% 50%"),
+                          nature, auteur, date, annee?, source, credit,
+                          contexte?, montre, details: [{ nom, x, y (en % de la largeur et de la hauteur), r?, txt }] }
+                 — un document image ajoute l'outil « Les documents » (présenter le document, repérer ses détails)
      carte       fond de carte du chapitre (identifiant dans cartes.js : mediterranee, europe, france, atlantique-nord,
                  monde), ou liste de fonds du plus détaillé au plus large : chaque lieu va sur le premier qui le contient
      trous       textes à compléter : { titre, texte } — les mots entre [crochets] sont à retrouver
      capable     « Je suis capable de… »
      ppo         points de passage et d'ouverture, chacun avec ses propres champs :
                  { id, titre, court, question, branches: [{ titre, points }], reperes, notions, personnages, lieux,
-                   documents: [{ titre, extrait, source, montre }], pieges, mots, reponse, trous, schema, capable }
+                   documents, pieges, mots, reponse, trous, schema, capable }
                  — schema : { titre, cases: [{ titre, aide, etiquettes }] } pour l'exercice « Classer » */
 
 /* Plan de l'année, classe par classe, dans l'ordre de la progression.
@@ -1506,7 +1512,7 @@ const COURS = [
     personnages: [
       { nom: "Bernard de Clairvaux", dates: "1090-1153", txt: [
         "Moine de l'ordre cistercien, réputé pour sa rigueur.",
-        "Il dirige l'abbaye de Clairvaux, en Champagne, qui devient célèbre dans toute l'Europe.",
+        "Il dirige une abbaye de Champagne qui devient célèbre dans toute l'Europe.",
         "Il écrit un éloge des chevaliers-moines de l'ordre du Temple.",
         "En 1146, à Vézelay, il prêche la deuxième croisade."
       ] },
@@ -1550,6 +1556,21 @@ const COURS = [
       "Confronter deux récits d'un même événement.",
       "Expliquer pourquoi la date d'écriture d'un document compte.",
       "Retracer le trajet d'un savoir d'une civilisation à l'autre."
+    ],
+
+    /* Documents images, repris des fiches d'activités (Wikimedia Commons, domaine public ou licence libre) */
+    documents: [
+      { id: "expulsion-1182", titre: "L'expulsion des juifs du domaine royal (1182)", image: "docs/2de-h1-c2/expulsion-1182.jpg",
+        nature: "Enluminure (miniature d'un manuscrit)", auteur: "Enlumineur anonyme", date: "XIVᵉ siècle", annee: 1350,
+        source: "Grandes Chroniques de France (photographie d'une reproduction, musée de la Diaspora, Tel-Aviv)",
+        credit: "Wikimedia Commons, domaine public",
+        contexte: "En 1182, Philippe Auguste chasse les juifs du domaine royal et confisque leurs biens ; il les rappelle en 1198. L'enluminure est peinte plus d'un siècle après les faits.",
+        montre: "Le roi, couronné, ordonne le départ d'un groupe d'hommes qui portent la rouelle, rond de tissu imposé aux juifs du royaume en 1269. L'image renseigne d'abord sur la manière dont on représente les juifs au XIVᵉ siècle, pas sur ce que l'on voyait en 1182.",
+        details: [
+          { nom: "Le roi Philippe Auguste", x: 16, y: 17, txt: "Reconnaissable à sa couronne, il montre le chemin de l'exil : c'est lui qui décide l'expulsion." },
+          { nom: "La rouelle", x: 65, y: 43, txt: "Rond de tissu cousu sur le vêtement. Saint Louis l'impose aux juifs en 1269 : en 1182, elle n'existait pas encore. Le peintre projette son époque sur l'événement." },
+          { nom: "Les expulsés", x: 80, y: 20, txt: "Les juifs partent en groupe, chassés du domaine royal. Philippe Auguste les rappellera en 1198." }
+        ] }
     ],
 
     /* Les deux points de passage, repris des fiches et des jeux Canva :
@@ -1623,9 +1644,34 @@ const COURS = [
           { titre: "Un intermédiaire entre les puissances", source: "Philippe Braunstein, historien, Les Collections de L'Histoire, n° 71, 2016.",
             extrait: "« Venise a toujours été un intermédiaire entre de grandes puissances. […] En 993 et 1082, ils obtiennent de Byzance des droits et des positions de commerce privilégiées. Puis, lorsque les Turcs s'emparent de Constantinople en 1453, ils continuent à commercer avec eux. »",
             montre: "Venise commerce avec des mondes qui se font la guerre : le commerce continue au milieu des conflits." },
-          { titre: "Le ducat d'or", source: "Monnaie créée à Venise en 1284.",
-            extrait: "D'un côté, saint Marc, patron de Venise, remet l'étendard au doge agenouillé ; de l'autre, le Christ debout. Or presque pur, poids inchangé pendant des siècles.",
-            montre: "Une monnaie de confiance : sa valeur est garantie par l'or, par son poids fixe et par les images religieuses." }
+          { id: "venise-1572", titre: "Venise vue par un graveur", image: "docs/2de-h1-c2/venise-1572.jpg",
+            nature: "Gravure coloriée (vue à vol d'oiseau)", auteur: "Georg Braun et Frans Hogenberg", date: "1572", annee: 1572,
+            source: "Civitates orbis terrarum, livre I, Cologne, 1572 (collection Eran Laor, Bibliothèque nationale d'Israël)",
+            credit: "Wikimedia Commons, domaine public",
+            contexte: "Au XVIᵉ siècle, Venise est encore une grande puissance marchande, même si les Ottomans et la route portugaise des Indes la menacent.",
+            montre: "Une ville bâtie sur des îles au milieu d'une lagune, sans muraille : l'eau la protège. Le port, l'Arsenal et les nombreux navires rappellent que sa puissance vient de la mer et du commerce.",
+            details: [
+              { nom: "Le Grand Canal", x: 30.7, y: 25.9, txt: "La grande artère de la ville, bordée des palais des marchands : à Venise, on circule en bateau." },
+              { nom: "Le Rialto", x: 40.3, y: 36.2, txt: "Le pont et le marché du Rialto, cœur du commerce : marchands et banquiers venus de toute l'Europe s'y retrouvent." },
+              { nom: "La place Saint-Marc", x: 43.4, y: 53.9, txt: "Le centre du pouvoir, face à la lagune : le palais des Doges, la basilique Saint-Marc et le campanile." },
+              { nom: "L'Arsenal", x: 75.6, y: 39.3, txt: "Le grand chantier naval entouré de murs : on y construit et on y arme les galères de la République." },
+              { nom: "Murano", x: 60.8, y: 22.3, txt: "L'île des verriers : le verre de Murano fait partie des produits que Venise vend en Orient." },
+              { nom: "Un navire", x: 52.3, y: 82.1, txt: "Navires et galères relient Venise à ses comptoirs de Méditerranée : la flotte fait sa puissance." },
+              { nom: "La lagune", x: 61.4, y: 67.9, txt: "Pas de muraille : la lagune et ses passes étroites protègent la ville mieux qu'un rempart." }
+            ] },
+          { id: "ducat", titre: "Le ducat d'or vénitien", image: "docs/2de-h1-c2/ducat.jpg", vignette: "12% 50%",
+            nature: "Monnaie (ducat d'or)", auteur: "Atelier monétaire de Venise (la Zecca)", date: "entre 1423 et 1457, sous le doge Francesco Foscari", annee: 1440,
+            source: "Pièce trouvée en Angleterre (Portable Antiquities Scheme, n° 805820)",
+            credit: "Photo National Museums Liverpool, V. Oakden, CC BY-SA 2.0, via Wikimedia Commons",
+            contexte: "Venise frappe le ducat depuis 1284 ; son poids (environ 3,5 g) et son or presque pur ne changent pas pendant des siècles.",
+            montre: "Sur une face, saint Marc, patron de Venise, remet l'étendard au doge agenouillé ; sur l'autre, le Christ bénit. Une monnaie stable, acceptée dans toute la Méditerranée et jusqu'en Angleterre, où celle-ci a été retrouvée : le signe d'une puissance commerciale placée sous la protection de Dieu.",
+            details: [
+              { nom: "Saint Marc", x: 15.4, y: 26.2, txt: "Le patron de Venise, avec son auréole : la cité se place sous sa protection." },
+              { nom: "L'étendard", x: 24.6, y: 27.8, txt: "Saint Marc remet l'étendard au doge : le pouvoir du doge vient du saint, donc de Dieu." },
+              { nom: "Le doge agenouillé", x: 28.5, y: 55, txt: "Le chef élu de la République, à genoux devant le saint : il sert Venise, il n'en est pas le maître." },
+              { nom: "L'inscription", x: 32.1, y: 15.9, txt: "Autour, le nom du doge (Francesco Foscari, « DVX ») et « S M VENETI », saint Marc de Venise : on sait qui a fait frapper la pièce." },
+              { nom: "Le Christ", x: 77.6, y: 53.3, txt: "Au revers, le Christ bénit, entouré d'étoiles : la richesse de Venise est dédiée à Dieu." }
+            ] }
         ],
         pieges: [
           "1204 : ne pas écrire que les croisés ont attaqué Constantinople « pour le compte de Venise ». Endettés envers Venise pour leur transport, ils suivent un prétendant byzantin, Alexis IV Ange, qui ne tient pas ses promesses. Venise en tire un immense profit, mais ce n'était pas un plan préparé à l'avance.",
@@ -1714,9 +1760,9 @@ const COURS = [
             "Parti en 1147, son armée est battue au mont Cadmos, puis échoue devant Damas."
           ] },
           { nom: "Aliénor d'Aquitaine", dates: "vers 1122-1204", txt: [
-            "Duchesse d'Aquitaine, reine par son mariage avec le roi des Francs.",
             "Elle assiste au sermon de Vézelay en 1146.",
-            "Elle accompagne le roi en Orient pendant la deuxième croisade."
+            "Elle accompagne le roi en Orient pendant la deuxième croisade.",
+            "Héritière d'un immense duché du sud-ouest, elle est reine par son mariage avec Louis VII."
           ] },
           { nom: "Conrad III", dates: "roi germanique de 1138 à 1152", txt: [
             "Roi germanique, à la tête de l'Empire.",
@@ -1766,7 +1812,45 @@ const COURS = [
             montre: "Bernard attribue l'échec aux péchés des croisés et ne remet pas en cause son appel." },
           { titre: "Un même argument dans les deux camps", source: "Urbain II à Clermont (1095), d'après Foucher de Chartres ; al-Sulamî, Livre du djihad, Damas, 1105.",
             extrait: "Urbain II : « Qu'ils soient désormais des chevaliers du Christ, ceux-là qui n'étaient que des brigands ! » — Al-Sulamî : « Tout musulman, qu'il soit riche ou pauvre, doit s'engager contre elles. »",
-            montre: "Des deux côtés, des hommes de religion présentent la guerre comme voulue par Dieu." }
+            montre: "Des deux côtés, des hommes de religion présentent la guerre comme voulue par Dieu." },
+          { id: "tympan-vezelay", titre: "Le tympan de l'avant-nef de Vézelay", image: "docs/2de-h1-c2/tympan-vezelay.jpg",
+            nature: "Sculpture (tympan d'un portail d'église)", auteur: "Sculpteurs anonymes", date: "vers 1125-1130", annee: 1128,
+            source: "Basilique Sainte-Marie-Madeleine de Vézelay (Yonne), portail central de l'avant-nef",
+            credit: "Photo Vassil, Wikimedia Commons, domaine public",
+            contexte: "Vézelay est un grand lieu de pèlerinage : c'est là que Bernard prêche la deuxième croisade, le 31 mars 1146.",
+            montre: "Le Christ envoie ses apôtres porter sa parole à tous les peuples de la Terre, connus et inconnus. Les pèlerins qui entrent voient ce message de mission universelle : une quinzaine d'années plus tard, Bernard appelle ici à la croisade.",
+            details: [
+              { nom: "Le Christ en gloire", x: 47, y: 33, txt: "Immense, au centre : de ses mains partent des rayons qui transmettent l'Esprit saint aux apôtres (la Pentecôte)." },
+              { nom: "Les apôtres", x: 30, y: 48, txt: "Assis de part et d'autre du Christ, avec les Évangiles : ils reçoivent la mission de prêcher." },
+              { nom: "Les peuples à évangéliser", x: 25, y: 67, txt: "Sur le linteau défilent les peuples de la Terre, ceux qu'on connaît et ceux qu'on imagine : la parole doit aller jusqu'à eux." },
+              { nom: "Le zodiaque et les travaux des mois", x: 7, y: 52, txt: "Dans les médaillons de l'arc, les signes du zodiaque et les travaux des champs : le temps de l'année, le monde des paysans." },
+              { nom: "Saint Jean-Baptiste", x: 46, y: 80, txt: "Sur le pilier central (le trumeau), il annonce la venue du Christ." }
+            ] },
+          { id: "chapiteau-moulin", titre: "Le chapiteau du moulin mystique", image: "docs/2de-h1-c2/chapiteau-moulin.jpg",
+            nature: "Sculpture (chapiteau)", auteur: "Sculpteurs anonymes", date: "XIIᵉ siècle", annee: 1130,
+            source: "Basilique Sainte-Marie-Madeleine de Vézelay, nef",
+            credit: "Photo David89, CC BY-SA 3.0, via Wikimedia Commons",
+            contexte: "Au XIIᵉ siècle, la plupart des fidèles ne savent pas lire : les sculptures des églises leur enseignent la foi.",
+            montre: "Moïse verse le grain dans un moulin ; saint Paul recueille la farine. L'Ancien Testament (le grain) est transformé par le Christ (le moulin) en Nouveau Testament (la farine) : une leçon de foi sculptée pour tous.",
+            details: [
+              { nom: "Moïse", x: 44.6, y: 17.4, txt: "Il verse le grain : il représente l'Ancien Testament, la loi donnée aux Hébreux." },
+              { nom: "Le moulin", x: 56.8, y: 31.5, txt: "La trémie et la meule : le moulin symbolise le Christ, qui transforme l'ancienne loi." },
+              { nom: "Saint Paul", x: 73, y: 34.8, txt: "Il recueille la farine : il représente le Nouveau Testament, qu'il a fait connaître." },
+              { nom: "Le sac de farine", x: 55.4, y: 62, txt: "La farine, nourriture des fidèles : le message chrétien que l'Église distribue." }
+            ] },
+          { id: "trois-ordres", titre: "Un clerc, un chevalier et un paysan", image: "docs/2de-h1-c2/trois-ordres.jpg",
+            nature: "Lettrine d'un manuscrit enluminé", auteur: "Enlumineur anonyme", date: "fin du XIIIᵉ siècle", annee: 1285,
+            source: "Aldobrandin de Sienne, Li Livres dou santé, British Library, Sloane 2435, f. 85",
+            credit: "British Library, domaine public, via Wikimedia Commons",
+            contexte: "Vers 1030, l'évêque Adalbéron de Laon décrit une société voulue par Dieu, en trois ordres : « les uns prient, d'autres combattent, d'autres encore travaillent ».",
+            montre: "Les trois ordres réunis dans une seule lettre : ceux qui prient, ceux qui combattent, ceux qui travaillent. Une vision idéale de la société, imaginée par des clercs, où chacun reste à sa place.",
+            details: [
+              { nom: "Le clerc", x: 23, y: 18, txt: "Ceux qui prient : on le reconnaît à sa tonsure (le sommet du crâne rasé) et à sa robe longue." },
+              { nom: "Le chevalier", x: 51, y: 13, txt: "Ceux qui combattent : heaume sur la tête, cotte de mailles, prêt à la guerre." },
+              { nom: "L'écu", x: 57, y: 63, txt: "Le bouclier du chevalier, décoré : il protège et fait reconnaître celui qui le porte." },
+              { nom: "Le paysan", x: 70, y: 21, txt: "Ceux qui travaillent : vêtu simplement, il nourrit les deux autres ordres." },
+              { nom: "La bêche", x: 76, y: 73, txt: "L'outil du travail de la terre : neuf personnes sur dix vivent alors du travail des champs." }
+            ] }
         ],
         pieges: [
           "Bernard ne décide pas la croisade : c'est le pape Eugène III, par sa bulle de 1145. Bernard la prêche.",
