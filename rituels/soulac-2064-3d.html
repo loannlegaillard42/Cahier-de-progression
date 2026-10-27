@@ -1,0 +1,2296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Soulac 2064 en 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Jeu de rôle sur une maquette 3D : maire de Soulac-sur-Mer de 1964 à 2064, faut-il défendre le littoral ou reculer face à la mer ? (2de, géographie, thème 1, chapitre 3)" />
+<meta name="theme-color" content="#1F4E5F" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,700;1,400&display=swap" />
+<style>
+  /* Même charte que « Vézelay, 31 mars 1146 » : bleu canard, vermillon, crème, Arimo.
+     Mise en page : la maquette 3D occupe l'écran, les jauges dessous, l'étape en cours à droite,
+     la frise 1964 → 2064 en bas. Sur téléphone, tout s'empile. */
+  :root {
+    --ground: #FBFAF6; --surface: #FFFEFB; --ink: #22313A; --muted: #4F5E66; --caption: #5E6A72;
+    --teal: #1F4E5F; --teal-ink: #FBF7EF; --teal-soft: #E6EEF0;
+    --vermilion: #C0492B; --on-vermilion: #FBF7EF; --cream: #FBF4E9; --cream-line: #E8DCC6;
+    --line: #E3DCCD; --dot: #D6CDBA; --shadow: 0 2px 12px rgb(31 78 95 / .14);
+    --ok: #2F7A45; --ok-soft: #E5F1E7; --ko: #B03A2A; --ko-soft: #F8E6E2; --gold-soft: #FBF1DC;
+    --bar: #1F4E5F; --bar-ink: #FBF7EF;
+    /* Scène : le littoral médocain. La coupe, le plan et les cartes sont des illustrations :
+       leurs couleurs restent les mêmes en mode sombre, comme une image. */
+    --ciel-haut: #C9DFEA; --ciel-bas: #EEF4F1; --orage-haut: #56646C; --orage-bas: #8D989C;
+    --mer: #2E7DA0; --mer-fond: #1D5A77; --ecume: #EAF5F8;
+    --sable: #E6D09C; --sable-mouille: #CDB37C; --sable-apport: #F4E5BD; --dune: #D9C089; --oyat: #6E8D45;
+    --terre: #ECE4CC; --pin: #3D6844; --tronc: #7A5B3E; --roche: #77746D; --roche-clair: #9A968D; --beton: #A7A59E;
+    --route: #4B5154; --immeuble: #F1EBDF; --trait: #5F574B; --vitre: #8FBBD0; --vitre-vide: #3A3E41;
+    --ville: #D6C9AE; --foret: #CFE0C4; --zone: #C0492B;
+    --sc-ink: #22313A; --sc-muted: #4F5E66; --sc-surface: #FFFEFB; --sc-on-zone: #FBF7EF; --sc-titre: #1F4E5F;
+    --font: 'Arimo', Arial, 'Helvetica Neue', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground: #0F242B; --surface: #15313A; --ink: #EDF3F4; --muted: #AFC3C8; --caption: #9DB2B8;
+      --teal: #8CC4D4; --teal-ink: #0F242B; --teal-soft: #1C3B45;
+      --vermilion: #F08D72; --on-vermilion: #0F242B; --cream: #1C3B45; --cream-line: #2E5360;
+      --line: #2B4C57; --dot: #3C5F6B; --shadow: 0 2px 12px rgb(0 0 0 / .4);
+      --ok: #7CC98F; --ok-soft: #1B3A2A; --ko: #F08D72; --ko-soft: #3A2320; --gold-soft: #2C3A33;
+      --bar: #123640; --bar-ink: #EDF3F4;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #0F242B; --surface: #15313A; --ink: #EDF3F4; --muted: #AFC3C8; --caption: #9DB2B8;
+    --teal: #8CC4D4; --teal-ink: #0F242B; --teal-soft: #1C3B45;
+    --vermilion: #F08D72; --on-vermilion: #0F242B; --cream: #1C3B45; --cream-line: #2E5360;
+    --line: #2B4C57; --dot: #3C5F6B; --shadow: 0 2px 12px rgb(0 0 0 / .4);
+    --ok: #7CC98F; --ok-soft: #1B3A2A; --ko: #F08D72; --ko-soft: #3A2320; --gold-soft: #2C3A33;
+    --bar: #123640; --bar-ink: #EDF3F4;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--vermilion); outline-offset: 2px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .app { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+
+  /* ---------- Bandeau ---------- */
+  .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 18px; background: var(--bar); color: var(--bar-ink); padding-block: 9px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .eyebrow { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+  .bar h1 { margin: 2px 0 0; font-size: clamp(19px, 1.6vw, 26px); line-height: 1.15; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; text-wrap: balance; }
+  .bar h1 small { font-size: .64em; font-weight: 400; font-style: italic; opacity: .92; }
+  .outils { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tbtn { font-size: 14px; font-weight: 700; min-height: 36px; padding: 6px 14px; border-radius: 8px; border: 1.5px solid currentColor; background: transparent; color: var(--bar-ink); }
+  .tbtn:hover { background: rgb(255 255 255 / .12); }
+  a.tbtn { display: inline-flex; align-items: center; text-decoration: none; }
+  .tbtn .compte { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 99px; background: rgb(255 255 255 / .2); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- Plateau : maquette 3D, jauges, étape ---------- */
+  .stage { min-height: 0; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); grid-template-rows: minmax(0, 1fr) auto; grid-template-areas: "vue panneau" "jauges panneau"; padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .carte { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); min-width: 0; }
+  .vtitre { margin: 0; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+  .vue { grid-area: vue; position: relative; overflow: hidden; min-height: 320px; background: #CFE2EC; }
+  .vue3d { position: absolute; inset: 0; }
+  .vue3d canvas { display: block; touch-action: none; cursor: grab; outline: none; }
+  .vue3d canvas:active { cursor: grabbing; }
+  .vue3d canvas:focus-visible { box-shadow: inset 0 0 0 3px var(--vermilion); }
+  .etiquettes { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .etq { position: absolute; left: 0; top: 0; padding: 3px 9px; border-radius: 99px; background: rgb(255 254 251 / .92); color: #22313A; font-size: 12px; font-weight: 700; line-height: 1.35; white-space: nowrap; box-shadow: 0 1px 4px rgb(0 0 0 / .2); will-change: transform; }
+  .etq.mer { background: none; box-shadow: none; color: #F4FAFC; letter-spacing: .12em; text-transform: uppercase; text-shadow: 0 1px 3px rgb(0 0 0 / .45); }
+  .etq.rouge { background: #C0492B; color: #FBF7EF; }
+  .etq.mesure { background: #22313A; color: #FBF7EF; font-size: 13px; }
+  .vue-tete { position: absolute; top: 10px; left: 14px; pointer-events: none; }
+  .annee { margin: 0; font-size: clamp(28px, 3.4vw, 46px); font-weight: 700; line-height: 1; color: #FBF7EF; font-variant-numeric: tabular-nums; text-shadow: 0 2px 10px rgb(15 36 43 / .6); }
+  .vue-boutons { position: absolute; top: 10px; right: 10px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; max-width: calc(100% - 130px); }
+  .vbtn { font-size: 13px; font-weight: 700; min-height: 34px; padding: 6px 12px; border-radius: 9px; border: 0; background: rgb(15 36 43 / .82); color: #FBF7EF; box-shadow: 0 2px 8px rgb(0 0 0 / .2); }
+  .vbtn:hover { background: rgb(15 36 43 / .95); }
+  .vbtn[aria-pressed="true"] { background: #C0492B; }
+  .vue-bas { position: absolute; left: 10px; right: 10px; bottom: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; pointer-events: none; }
+  .boussole { flex: none; width: 36px; height: 36px; border-radius: 50%; background: rgb(15 36 43 / .82); color: #FBF7EF; display: grid; place-items: center; font-size: 11px; font-weight: 700; position: relative; }
+  .boussole::before { content: ""; position: absolute; top: 3px; left: 50%; margin-left: -5px; border: 5px solid transparent; border-bottom: 8px solid #F08D72; border-top: 0; }
+  .boussole b { margin-top: 8px; }
+  .pastille-vue { padding: 5px 10px; border-radius: 99px; background: rgb(15 36 43 / .74); color: #FBF7EF; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .pastille-vue i { display: inline-block; width: 18px; border-top: 2.5px dashed #FFFFFF; }
+  .pastille-vue i.rouge { border-top-color: #F08D72; }
+  .chargement, .secours { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 20px; }
+  .chargement { background: radial-gradient(ellipse at 50% 85%, #2F6B7D 0%, #16333D 75%); color: #FBF7EF; }
+  .chargement p { margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #E3B67A; }
+  .chargement b { font-size: clamp(20px, 2.2vw, 30px); }
+  .secours { background: var(--ground); }
+  .secours-carte { max-width: 460px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .secours-carte p { margin: 0; color: var(--muted); }
+  .secours-carte .btn { text-decoration: none; }
+
+  .jauges { grid-area: jauges; padding: 10px 14px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px 18px; align-items: start; }
+  .jauges > .vtitre { display: none; }
+  .jauge { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; grid-template-areas: "ico nom delta" "ico barre barre"; column-gap: 7px; row-gap: 4px; align-items: center; }
+  .j-ico { grid-area: ico; width: 24px; height: 24px; color: var(--teal); }
+  .j-nom { grid-area: nom; font-size: 12.5px; font-weight: 700; line-height: 1.2; }
+  .j-delta { grid-area: delta; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; padding: 1px 6px; border-radius: 99px; }
+  .j-delta.plus { color: var(--ok); background: var(--ok-soft); }
+  .j-delta.moins { color: var(--ko); background: var(--ko-soft); }
+  .j-barre { grid-area: barre; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 2px; }
+  .j-barre i { height: 8px; border-radius: 2px; background: var(--line); }
+  .j-barre i.on { background: var(--teal); }
+  .jauge.bas .j-barre i.on { background: var(--vermilion); }
+  .jauge.bas .j-ico { color: var(--vermilion); }
+  .jauge.expo { grid-template-areas: "ico nom delta" "ico chiffre chiffre"; }
+  .j-chiffre { grid-area: chiffre; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; font-size: 11.5px; color: var(--caption); line-height: 1.2; }
+  .j-chiffre b { font-size: 19px; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .jauge.expo.bas .j-chiffre b { color: var(--vermilion); }
+
+  /* ---------- Panneau de l'étape ---------- */
+  .panneau { grid-area: panneau; min-height: 0; overflow: auto; display: flex; flex-direction: column; }
+  .p-corps { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 14px; }
+  .p-tag { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--vermilion); }
+  .p-tag .rappel { padding: 2px 8px; border-radius: 99px; background: var(--gold-soft); color: var(--ink); letter-spacing: .04em; }
+  .panneau h2 { margin: 0; font-size: 22px; line-height: 1.2; color: var(--teal); text-wrap: balance; }
+  .situation { display: flex; flex-direction: column; gap: 8px; font-size: 15.5px; line-height: 1.5; }
+  .situation p { margin: 0; }
+  .chez { margin: 0; display: flex; gap: 10px; align-items: flex-start; padding: 9px 12px; border-radius: 10px; background: var(--teal-soft); font-size: 14.5px; }
+  .chez svg { flex: none; width: 20px; height: 20px; color: var(--teal); margin-top: 1px; }
+  .chez b { color: var(--teal); }
+  .mot { border: 0; background: none; padding: 0 1px; font: inherit; font-weight: 700; color: var(--teal); text-decoration: underline dotted 2px; text-underline-offset: 3px; cursor: help; }
+  .mot:hover { background: var(--teal-soft); border-radius: 4px; }
+
+  .equation { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-weight: 700; }
+  .equation .terme { display: flex; flex-direction: column; padding: 6px 10px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); line-height: 1.2; }
+  .equation .terme small { font-weight: 400; font-size: 12px; color: var(--caption); }
+  .equation .terme.risque { border-color: var(--vermilion); color: var(--vermilion); }
+  .equation .op { color: var(--caption); font-size: 18px; }
+
+  .docs { display: grid; gap: 10px; }
+  .doc { margin: 0; padding: 10px 12px 12px; border-radius: 12px; background: var(--cream); border: 1.5px solid var(--cream-line); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .doc-type { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vermilion); }
+  .doc h3 { margin: 0; font-size: 15px; color: var(--ink); }
+  .doc blockquote { margin: 0; padding: 2px 0 2px 12px; border-left: 4px solid var(--vermilion); font-style: italic; font-size: 14.5px; line-height: 1.5; }
+  .doc blockquote p { margin: 0; }
+  .doc-visuel svg { display: block; width: 100%; height: auto; }
+  .doc figcaption { font-size: 12.5px; color: var(--caption); line-height: 1.45; display: flex; flex-direction: column; gap: 3px; }
+  .doc figcaption .leg { color: var(--ink); font-size: 13.5px; }
+  .doc a { color: var(--teal); font-weight: 700; }
+  .photo-cadre { position: relative; border-radius: 8px; overflow: hidden; background: var(--ciel-bas); }
+  .photo-cadre img { display: block; width: 100%; height: auto; }
+  .photo-cadre .croquis-tag { position: absolute; left: 8px; top: 8px; padding: 2px 8px; border-radius: 99px; background: var(--surface); color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+
+  .choix { display: grid; gap: 8px; }
+  .choix-titre { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+  .opt { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 2px 10px; align-items: center; text-align: left; padding: 10px 12px; border-radius: 12px; border: 2px solid var(--teal); background: var(--surface); color: var(--ink); min-height: 56px; }
+  .opt:hover:not(:disabled) { background: var(--teal-soft); }
+  .opt svg { grid-row: 1 / span 2; width: 34px; height: 34px; color: var(--teal); }
+  .opt b { font-size: 15px; line-height: 1.25; }
+  .opt small { font-size: 12.5px; color: var(--caption); line-height: 1.3; }
+  .opt:disabled { cursor: default; opacity: .45; border-color: var(--line); }
+  .opt.choisi, .opt.choisi:disabled { opacity: 1; border-color: var(--vermilion); background: var(--cream); }
+  .opt.choisi svg { color: var(--vermilion); }
+
+  .consequence { padding: 12px 14px; border-radius: 12px; border: 2px solid var(--vermilion); background: var(--surface); display: flex; flex-direction: column; gap: 8px; animation: monte .3s ease; }
+  .consequence .q-tag { margin: 0; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vermilion); }
+  .consequence p { margin: 0; font-size: 15px; line-height: 1.5; }
+  .bilan-deltas { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .bilan-deltas li { font-size: 12.5px; font-weight: 700; padding: 2px 9px; border-radius: 99px; }
+  .bilan-deltas li.plus { color: var(--ok); background: var(--ok-soft); }
+  .bilan-deltas li.moins { color: var(--ko); background: var(--ko-soft); }
+  .fiche-note { margin: 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; color: var(--muted); padding-top: 8px; border-top: 1px dashed var(--line); }
+  .fiche-note svg { flex: none; width: 18px; height: 18px; color: var(--vermilion); margin-top: 1px; }
+  @keyframes monte { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 18px; border-radius: 10px; border: 2px solid var(--teal); background: var(--teal); color: var(--teal-ink); font-weight: 700; font-size: 15.5px; }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.or { background: var(--vermilion); border-color: var(--vermilion); color: var(--on-vermilion); }
+  .btn.second { background: transparent; color: var(--teal); }
+  .btn.grand { width: 100%; }
+
+  /* ---------- Frise ---------- */
+  .frise { background: var(--surface); border-top: 1px solid var(--line); padding-block: 4px calc(6px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .frise-piste { position: relative; height: 50px; margin-inline: 12px; }
+  .f-axe { position: absolute; left: 0; right: 0; top: 28px; height: 4px; border-radius: 2px; background: var(--dot); }
+  .f-futur { position: absolute; right: 0; top: 28px; height: 4px; background: repeating-linear-gradient(90deg, var(--surface) 0 5px, transparent 5px 9px); }
+  .f-bande { position: absolute; top: 27px; height: 6px; border-radius: 3px; background: var(--caption); }
+  .f-bande.fait { background: var(--teal); }
+  .f-bande.cours { top: 25px; height: 10px; border-radius: 5px; background: var(--vermilion); }
+  .f-pt { position: absolute; top: 0; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; border: 2px solid var(--dot); background: var(--surface); color: var(--muted); font-size: 11.5px; font-weight: 700; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; }
+  .f-pt.fait { border-color: var(--teal); color: var(--teal); }
+  .f-pt.cours { background: var(--vermilion); border-color: var(--vermilion); color: var(--on-vermilion); }
+  .f-tick { position: absolute; top: 36px; transform: translateX(-50%); font-size: 11px; color: var(--caption); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .f-tick.auj { color: var(--vermilion); font-weight: 700; }
+  .f-tick:first-of-type { transform: none; }
+
+  /* ---------- Bulle de notion ---------- */
+  .pop { position: fixed; z-index: 40; width: min(330px, calc(100vw - 32px)); padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 2px solid var(--teal); box-shadow: 0 10px 30px rgb(0 0 0 / .22); display: flex; flex-direction: column; gap: 6px; }
+  .pop-mot { margin: 0; font-weight: 700; font-size: 16px; color: var(--teal); }
+  .pop p { margin: 0; font-size: 14.5px; line-height: 1.5; }
+  .pop small { color: var(--caption); font-size: 12px; }
+  .toast { position: fixed; z-index: 45; left: 50%; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 9px 16px; border-radius: 10px; background: var(--bar); color: var(--bar-ink); font-size: 14px; font-weight: 700; box-shadow: var(--shadow); }
+
+  /* ---------- Fenêtres ---------- */
+  .voile { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgb(10 22 27 / .6); }
+  .boite { width: min(620px, 100%); max-height: calc(100% - 24px); overflow-y: auto; padding: 22px 24px; border-radius: 16px; background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px rgb(0 0 0 / .3); display: flex; flex-direction: column; gap: 12px; }
+  .boite.large { width: min(860px, 100%); }
+  .boite h2 { margin: 0; font-size: 22px; line-height: 1.2; color: var(--teal); text-wrap: balance; }
+  .boite h3 { margin: 6px 0 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vermilion); }
+  .boite p, .boite li { margin: 0; font-size: 14.5px; line-height: 1.55; }
+  .boite ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+  .boite a { color: var(--teal); font-weight: 700; }
+  .boite-tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .x { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface); font-size: 22px; line-height: 1; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .lexique { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+  .lex { padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--cream-line); background: var(--cream); display: flex; flex-direction: column; gap: 4px; }
+  .lex b { color: var(--teal); }
+  .lex p { margin: 0; font-size: 13.5px !important; line-height: 1.45; }
+  .lex.cache { background: transparent; border-style: dashed; border-color: var(--dot); color: var(--caption); }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chips span { padding: 3px 9px; border-radius: 999px; background: var(--teal-soft); color: var(--teal); font-size: 12.5px; font-weight: 700; }
+  .tab-wrap { overflow-x: auto; }
+  table.t { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.t th, table.t td { text-align: left; vertical-align: top; padding: 8px; border-bottom: 1px solid var(--line); line-height: 1.45; }
+  table.t th { font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--caption); }
+
+  /* ---------- Écrans plein écran : accueil et bilan ---------- */
+  .plein { position: fixed; inset: 0; z-index: 25; overflow-y: auto; background: var(--ground); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .plein .contenu { max-width: 980px; margin: 0 auto; padding-block: 28px 60px; display: flex; flex-direction: column; gap: 16px; }
+  #accueil { background: radial-gradient(ellipse at 50% 100%, #2F6B7D 0%, #16333D 75%); }
+  .carte-accueil { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 18px 26px; padding: clamp(20px, 3vw, 34px); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); }
+  .carte-accueil .niveau { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vermilion); }
+  .carte-accueil h1 { margin: 4px 0 0; font-size: clamp(34px, 5vw, 54px); line-height: 1; color: var(--teal); letter-spacing: -.01em; }
+  .accueil-texte { display: flex; flex-direction: column; gap: 12px; }
+  .accueil-texte p { margin: 0; font-size: 16px; line-height: 1.55; max-width: 62ch; }
+  .question-depart { padding: 12px 16px; border-radius: 12px; border: 2px solid var(--teal); }
+  .question-depart small { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); margin-bottom: 3px; }
+  .question-depart b { font-size: 19px; line-height: 1.3; }
+  .regles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .regle { padding: 10px 12px; border-radius: 10px; background: var(--cream); font-size: 13.5px; line-height: 1.45; color: var(--muted); }
+  .regle b { display: block; color: var(--ink); margin-bottom: 2px; }
+  .accueil-carte { display: flex; flex-direction: column; gap: 8px; }
+  .accueil-carte svg { width: 100%; height: auto; display: block; border-radius: 12px; background: var(--mer-fond); }
+  .accueil-carte p { margin: 0; font-size: 12.5px; color: var(--caption); }
+  .reprise { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--gold-soft); font-size: 15px; }
+
+  .bilan-tete h2 { margin: 4px 0 0; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; color: var(--teal); }
+  .bilan-tete p { margin: 6px 0 0; font-size: 16px; color: var(--muted); }
+  .bloc { padding: clamp(14px, 2vw, 22px); display: flex; flex-direction: column; gap: 12px; }
+  .bloc h3 { margin: 0; font-size: 18px; color: var(--teal); }
+  .faits { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+  .bilan-fait { padding: 10px 12px; border-radius: 10px; background: var(--cream); display: flex; flex-direction: column; gap: 2px; }
+  .bilan-fait small { font-size: 12px; color: var(--caption); }
+  .bilan-fait b { font-size: 17px; font-variant-numeric: tabular-nums; }
+  .pareil { color: var(--ok); font-weight: 700; white-space: nowrap; }
+  .different { color: var(--vermilion); font-weight: 700; white-space: nowrap; }
+  .synthese { padding: 16px 18px; border-radius: 14px; background: var(--bar); color: var(--bar-ink); display: flex; flex-direction: column; gap: 6px; }
+  .synthese small { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+  .synthese b { font-size: 20px; line-height: 1.3; }
+  .synthese p { margin: 0; font-size: 15px; opacity: .92; }
+  .credits { font-size: 13px; color: var(--caption); }
+  .credits summary { cursor: pointer; font-weight: 700; color: var(--muted); padding: 4px 0; }
+  .credits ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; line-height: 1.45; }
+  .credits a { color: var(--teal); }
+
+  .bilan-images { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .bilan-images figure { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+  .bilan-images img { display: block; width: 100%; height: auto; border-radius: 10px; background: #CFE2EC; }
+  .bilan-images figcaption { font-size: 13px; color: var(--caption); }
+
+  @media (max-width: 1180px) {
+    .jauges { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 980px) {
+    .app { height: auto; min-height: 100%; }
+    .stage { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "vue" "jauges" "panneau"; }
+    .vue { height: 62vh; height: 62svh; min-height: 340px; }
+    .panneau { overflow: visible; }
+    .frise { position: sticky; bottom: 0; z-index: 5; }
+    .carte-accueil { grid-template-columns: minmax(0, 1fr); }
+    .bilan-images { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .bar .outils .tbtn { padding: 5px 10px; font-size: 13px; }
+    .p-corps { padding: 14px; }
+    .regles { grid-template-columns: minmax(0, 1fr); }
+    .frise-piste { margin-inline: 8px; }
+    .f-tick.option { display: none; }
+    .jauges { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .vue-boutons { max-width: calc(100% - 110px); }
+    .vbtn { font-size: 12px; min-height: 32px; padding: 5px 9px; }
+    .aide-souris { display: none !important; }
+    .etq { font-size: 11px; padding: 2px 7px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .houle, .pluie g, .consequence { animation: none; }
+    .niveau-mer { transition: none; }
+  }
+  @media print {
+    .bar, .frise, .stage, .pop, .toast { display: none !important; }
+    .plein { position: static; background: #fff; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="bar">
+    <div>
+      <p class="eyebrow">2de · Géographie · Thème 1 · Ch. 3 · II-A et II-B</p>
+      <h1>Soulac 2064 <small>Défendre le littoral ou reculer face à la mer ?</small></h1>
+    </div>
+    <div class="outils">
+      <button type="button" class="tbtn" id="b-lexique">Lexique<span class="compte" id="lex-compte">0/12</span></button>
+      <button type="button" class="tbtn" id="b-prof">Fiche prof</button>
+      <button type="button" class="tbtn" id="b-recommencer">Recommencer</button>
+      <a class="tbtn" id="lien-2d" href="soulac-2064.html" title="La même activité, sans 3D">Version 2D</a>
+    </div>
+  </header>
+
+  <main class="stage">
+    <section class="carte vue" aria-label="Maquette 3D de la côte de Soulac-sur-Mer">
+      <div id="vue3d" class="vue3d"></div>
+      <div id="etiquettes" class="etiquettes" aria-hidden="true"></div>
+      <div class="vue-tete"><p class="annee" id="annee">1964</p></div>
+      <div class="vue-boutons" role="group" aria-label="Points de vue sur la maquette">
+        <button type="button" class="vbtn" data-vue="ensemble" aria-pressed="true">Vue d'ensemble</button>
+        <button type="button" class="vbtn" data-vue="signal" aria-pressed="false">Le Signal</button>
+        <button type="button" class="vbtn" data-vue="coupe" aria-pressed="false">Coupe</button>
+        <button type="button" class="vbtn" data-vue="ciel" aria-pressed="false">Vu du ciel</button>
+        <button type="button" class="vbtn" id="b-etiq" aria-pressed="true">Étiquettes</button>
+      </div>
+      <div class="vue-bas">
+        <span class="boussole" id="boussole" aria-hidden="true"><b>N</b></span>
+        <span class="pastille-vue"><i></i>trait de côte de 1967</span>
+        <span class="pastille-vue" id="leg-2064" hidden><i class="rouge"></i>2064, si rien ne change</span>
+        <span class="pastille-vue aide-souris">Glisser : tourner · molette : zoomer · clic droit : déplacer</span>
+      </div>
+      <div class="chargement" id="chargement"><div><p>Soulac-sur-Mer · pointe du Médoc</p><b>La maquette se construit…</b></div></div>
+      <div class="secours" id="secours" hidden></div>
+    </section>
+
+    <section class="carte jauges" id="jauges" aria-label="Jauges de la commune"></section>
+
+    <aside class="carte panneau" id="panneau" aria-label="Étape en cours"></aside>
+    <p class="sr" id="annonce" aria-live="polite"></p>
+  </main>
+
+  <footer class="frise" aria-label="Frise chronologique de 1964 à 2064">
+    <div class="frise-piste" id="frise"></div>
+  </footer>
+</div>
+
+<section id="accueil" class="plein" hidden><div class="contenu" id="accueil-contenu"></div></section>
+<section id="bilan" class="plein" hidden><div class="contenu" id="bilan-contenu"></div></section>
+<div id="modal" class="voile" hidden><div class="boite" id="modal-boite" role="dialog" aria-modal="true"></div></div>
+<div id="pop" class="pop" role="dialog" hidden></div>
+<p id="toast" class="toast" role="status" hidden></p>
+
+<noscript><p style="padding:20px">Cet outil a besoin de JavaScript pour fonctionner.</p></noscript>
+
+<script src="../vendor/three-0.128.0.min.js"></script>
+<script>
+"use strict";
+document.documentElement.lang = "fr";
+
+/* =====================================================================
+   Soulac 2064 — 2de, géographie, thème 1, chapitre 3 (II-A et II-B).
+   Rôle fictif (l'élève est maire), lieu, dates, chiffres et citations réels.
+   Modèle : distances en mètres sur un axe ouest → est, 0 = rivage de 1967.
+   1967 : immeuble à 200 m du rivage (AFP), front de dune à 70 m.
+   2014 : immeuble à ≈ 20 m de la dune (AFP) → recul ≈ 2,3 m/an, dans la fourchette
+   de l'Observatoire de la côte aquitaine (1 à 3 m/an ; 1,7 à 2,5 m/an en Gironde).
+   Les coûts sans source sont fictifs et présentés comme tels.
+   ===================================================================== */
+
+const F0 = 70, PLAGE0 = 70;
+const X_FRONT = 200, X_BOULEVARD = 240, X_CAMPING = 250, X_LOTISSEMENT = 275, X_TERRES = 500;
+const TAUX = 2.0, TAUX_RECHARGE = 1.6, TAUX_FUTUR = 2.1, TEMPETE_2014 = 18;
+const CLE = "soulac-2064-3d-v1";
+const LIEN_2D = "soulac-2064.html";
+const reduit = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* Fond de carte : côtes Natural Earth (domaine public), même projection que rituels/cartes.js
+   (x = (lon + 5,6) × 64,103 ; y = (51,4 − lat) × 92,784), simplifiées. */
+const TERRE = "M1008,687.3L1006.9,685.1L1002.3,682.2L999.3,681L998.3,682.4L996.9,682.1L992.8,678L992.1,678.5L990,676.6L988.9,676.6L989.3,677.4L988.4,678L990.3,679.9L989.3,681.8L990.3,682.2L989.3,682.7L988.4,680.7L985.4,679.3L979.6,673.9L975.7,672.8L972.7,668.8L967.9,666.1L966.9,663.9L963.9,664.4L963,662.8L960,661.4L959.6,659.4L950.8,653.7L949.4,658.3L945.3,656.1L944.3,652.9L942.5,651.8L936,650.7L930.9,648.4L926.1,648.2L924.7,646.8L918.9,646.8L915.3,650L908.1,653.4L901.6,658.4L900.3,660.3L900.7,662L899.8,664.4L898.2,665.5L897.9,668.6L890.1,672.8L888.3,674.7L886.6,677.1L885.7,682.4L881.6,688.2L882.5,690.7L877.4,694L876.3,696.2L869.3,700.2L858,703.1L855,705.3L842.6,706.7L839.8,705.9L838.2,706.7L838.2,708.4L833.6,712.8L830.3,712.9L828.9,715.8L824.1,715.3L820.9,719.7L820.4,718.4L817.4,718.6L815.8,723.1L816.7,728L815.8,728.6L814.9,727L813.3,726.6L810,729.7L809.6,728.6L805.2,729.2L804,731.9L804.7,733L800.8,739.7L799.4,739.9L798.9,738.6L798.7,740.8L793.9,741.5L792,740.2L790.4,741.6L789.7,746.8L786.9,747.3L785.3,750.2L781.9,753L781.4,754.5L782.8,754.9L788.1,754L787.6,756.3L786.5,757.1L787.2,760.7L782.8,763.2L781.6,762L778.2,762.4L776.1,765.4L769.4,765.7L767.1,768.4L767.6,770.9L765.5,770.9L761.6,768.4L756,769.3L753.9,770.8L753.5,772.6L753.5,775L755.6,775.1L755.1,776.1L749.8,776.5L749.3,776.1L752.1,774.5L750.7,771.5L745.4,772.2L744.7,770.3L741,770L739.4,768.9L739.9,767L735.9,768.2L737.8,770.8L740.6,772L739.9,772.8L735.7,772.9L734.3,775.3L732,774.4L729.7,772L732,770.1L731.6,769.5L729.7,768.7L729.3,767.3L724.2,765.7L723.5,763.7L721.4,762.1L720.3,762L718.6,764.5L716.1,763.7L713.1,759.6L711.7,760.3L703.2,760.1L701.8,759.3L703.2,754.3L701.3,748.3L698.3,746.5L694.9,749L683.6,749L681.7,748.2L679.9,744L681.3,741.5L683.1,740.2L690.7,739.6L693.3,736.9L693.9,734.9L693.7,732.7L690,734.6L688.4,734.2L686.3,729.9L682.9,729.4L681.3,727.5L680.1,730.6L680.3,733.2L682.6,735.2L683.6,737.5L682.9,739.6L679.4,741L675,738.5L670.4,740.8L669.9,742.1L671.1,745.5L673.2,745.4L670.2,747.7L668.8,744L663.9,740.2L663,737.7L663,730.6L660,725.6L662.1,730.3L662.1,737.1L663,740.2L668.1,745.4L667.9,747.3L658.2,747.1L653.3,746L651.7,744.9L653.1,740.7L652.6,739.4L648.3,737.1L641.6,737.9L627,736.3L623.8,734.2L622.9,732.1L623.8,729.7L622.2,728.1L618.5,727.8L612.5,729.2L598.6,741.1L591.2,744.6L584.1,753.4L582.9,754L580.2,752.6L576,753L571.6,754.9L567,759L558.5,769.5L555.7,776.9L553.9,784.7L554.8,786.1L553.6,808.8L554.6,820.7L560.6,824.3L560.6,826.5L562.6,829.8L562.4,838.4L563.3,839.7L571.6,842.2L569.8,847.8L568.2,849.9L564.7,849.9L562.2,848.1L561,848.3L558.9,851.9L559.2,859.1L562.4,861.8L564.9,865.9L563.8,869.1L564.7,873.1L566.3,875.4L563.8,882.5L561,886.5L558.7,886.4L556.4,888.3L555.7,890.8L548.1,896.9L546.9,898.9L540.7,900.6L539.3,902.8L537.9,902.8L537,905L516,915.4L510.9,919.6L506.1,921.8L504.2,923.4L497.6,934.6L491.1,939.5L484.2,940.7L477.7,943.1L475.6,942.9L463.2,947.2L457.6,947.6L442,954L-8,954L-8,724.8L-6.9,726.6L-5.8,725.6L-5.1,727.4L13.2,727.8L13.4,729.2L11.5,731.7L12,732.4L15.7,729.4L19.2,729.5L27,733.9L32.5,734.2L34.2,734.7L34.9,736L35.5,735.3L40.2,736.8L42.9,735.8L55.4,740.7L69.9,742.1L71.8,743.8L72.9,742.4L74.8,742.1L78.2,743.8L79.6,742.2L82.6,742.7L90.5,741.8L96.2,738.9L100.6,738.8L101.8,737.4L103.9,738.8L105,738.2L104.1,736.8L106.4,735.2L113.8,733.3L117.5,734.9L112.6,738.2L113.8,739.4L113.3,740L114.7,739.9L117.2,737.4L118.9,738.8L118.2,735.7L120,736.1L120,734.9L129.5,731.3L131.1,731.4L131.1,733L133.6,734.6L138.7,735.7L139.2,737.9L138,738.2L136.6,737.2L134.5,739.4L137.1,741.1L138,739.4L139.6,740.7L141.5,740L149.3,741.9L153.2,743.2L156.9,746L159.5,746.5L160.9,745.4L166.2,749.6L164.8,744.4L170.6,740.7L170.1,739.4L179.1,738.5L181.4,737.4L185.6,741L186.5,745.2L188.3,741.1L199.9,745.1L201,746.9L209.8,750.9L218.1,750.2L219.5,751.8L221.6,751.5L222.5,752.7L233.3,747.6L236.1,749.6L236.8,749L235.6,747.6L242.8,742.7L245.1,744.4L252.5,742.2L256.6,738.3L264.2,725.6L272.8,684.9L276.9,658.6L279,639.8L278.3,635.1L280.2,632.4L281.6,626.5L282.9,624.9L288.5,625.8L291.9,624.4L290.8,620L283.9,614.4L279.9,621L278.1,628.3L282,582.6L284.8,567.9L285.9,548.3L288.5,542.5L289.4,541.1L291,540.9L290.8,544.4L291.7,546.1L300.2,552L309.9,563.6L312.7,580.2L315.2,586.7L323.1,595.1L323.3,601.4L324.7,603.6L323.8,598.6L324.5,596.1L323.8,594L320.8,591.5L324.5,592L327.2,594L325.6,591L320.3,588.9L318,587L316.9,584.6L312.9,560.3L308.1,549.5L305.1,546.1L295.9,539.3L295.4,537.2L292.9,536.1L289.4,532.6L285.2,530.9L282.5,527.9L279,527.9L280.2,520.2L284.3,519L285.7,519L291.2,525.1L295.6,527.3L286.9,518.8L285.2,513.3L290.6,508.8L289.2,505.7L290.6,504.4L288.7,502.4L287.8,499.4L290.1,500.3L291.7,497.4L289.4,495.8L288.7,491.6L286.6,490.3L287.3,489.2L285,487.6L285.2,486.5L282,486.2L281.3,484.8L282.9,482.8L283.4,479.8L287.8,477L287.8,472.9L286.4,471L283.4,470.7L281.1,472.1L281.3,475.1L279.5,474.6L277.2,471.4L272.1,468.5L266.1,469.2L264.9,464.9L262.6,462.1L254.8,461L255.2,459.9L254.3,458.8L250.9,458.3L248.8,456.3L246,455.4L244.4,451.6L244.9,455.1L243.9,455.2L242.1,445.8L237.2,439.2L236.6,436.9L233.1,435.2L231,431.2L227.6,427.5L223.2,425L222.7,423.6L222.2,420.1L222.9,417.1L224.6,416L224.3,414.6L227.6,412.1L229.4,407.4L231.5,404.9L230.6,401.8L228.9,399.8L225,397.6L215.3,395.1L217.6,393.3L220.2,392.7L220.6,389.3L219.7,385.3L220.4,383.1L222.5,381.6L229.9,380.5L234,382.4L235.2,382.4L234.7,381.7L236.8,382.2L237.2,382.8L235.9,382.8L235.9,383.6L241.9,386.4L243.2,388L248.3,388.6L244.4,387.4L236.8,380.9L230.1,378.6L221.3,379.2L217.6,382.8L213,385.3L210.5,384.9L207,381.7L204.2,382L204,383.6L201.9,383.5L195.9,380.5L195.9,379.7L197.6,380L200.3,381.3L202.9,379.7L199.9,375.9L198.7,378.4L197.8,374.4L195,372.6L200.3,369.7L202.6,370.1L202.6,371.5L205.6,368.9L201.9,368.3L202.6,367L199.4,365.6L199.9,363.9L199.2,362.6L207.5,361.2L203.6,361.2L197.6,359.2L190.9,360.6L190.2,360L192.2,359.2L193.9,356.8L189.9,358.1L191.1,359.3L188.1,358.7L188.1,360.9L187.2,361.5L183.9,360.7L178.4,362L175.2,357.9L172.4,356.5L175.4,355.7L176.3,357.6L177.5,356.8L178.4,357.6L178.9,355.6L181.4,357.3L183.2,357.1L184.6,356.2L186.9,350.4L185.6,348.7L186.2,350.4L185.1,351L186,351.7L184.6,352.4L181.2,349.9L183.7,350.6L183,349.5L180.2,348.7L181.2,349.1L176.3,350.1L175.2,352L171.9,353.1L172.2,351.7L170.6,352.4L170.3,351.3L171,349.1L169.4,348.7L168.2,346.6L168.9,352.3L171,354.9L170.8,355.9L167.1,353.1L167.1,354.8L166.4,354.6L165.9,352L165.2,353.1L165.7,354.3L163.9,353.7L162,354.8L159.9,354.3L160.9,353.7L158.8,352.7L158.8,360.1L161.3,363.9L158.3,363.9L157.4,361.2L158.1,354.3L156.9,351.5L153.7,348.8L154.6,345.1L159.5,342.9L159,340.4L157.9,341L157.9,338.5L156.9,339.4L154.4,339L156.5,342.3L153.5,343.5L154.4,344.8L152.3,347.4L149.8,344.8L143.8,343.5L144.9,343L148.6,344.1L147.5,342.9L143.8,342.3L144.9,339.6L146.3,339.7L148.6,335.2L145.4,338.5L142.2,339.9L143.3,341.6L138,342.9L132.7,335.8L132,336.5L127.2,336L125.1,334.6L121.4,334.3L120.2,332.9L117,334.6L116.1,333.8L112.2,333.9L109.6,330L109.9,328.9L105,324.7L103.4,324.4L103.9,326.3L102,329.2L100.6,328.9L101.8,328.8L102.5,327.5L100.2,328.9L95.8,326.6L94.2,322.5L93.7,325L95.5,327.5L92.8,328.9L91.6,326.9L90.7,327.1L90.9,330.2L92.8,330.2L90.7,332.9L88.2,333.8L78.7,333.3L78.7,330.8L80.3,330.5L80.3,328.2L78.7,323.3L74.8,317.7L68.3,313L66,315L63.9,313.1L55.9,311.7L57.7,308.6L58.6,309.2L79.4,304.8L84,305.4L84.9,302.1L83.1,297.3L82.4,296.3L79.6,295.9L78.2,293.8L76.6,294.5L73.2,292.4L71.5,292.9L68.5,298.5L66.9,299L67.6,296.5L66.5,293.8L67.4,292L66.9,291L62.3,290.7L62.3,288.8L65.8,288.5L65.5,286.9L67.6,283.3L68.5,283.8L67.9,287.3L69.5,288L75.2,287.6L78.5,288.8L85.6,287.6L84,288.2L85.4,288.7L90.5,287.6L90.5,286.9L87.7,286.8L87.5,285.7L86.1,286.6L84.9,285.4L81.7,285.7L85.4,281.8L81.7,283.2L81.7,281.8L81,283.2L79.9,282.7L76.4,284.3L77.1,283.8L76.4,283.2L73.4,284.3L77.1,279.4L84,275.4L79.6,277.4L75.2,278L64.2,283L58.4,281.8L57.5,283.8L53.3,283.3L52.4,280.5L53.5,280.4L53.5,279.3L52.2,275L54.5,271L52.9,269.9L53.5,267.2L56.3,262.8L57.7,263.4L57.2,262.8L58.2,262L61.4,261.4L65.5,262.8L63.7,259.5L64.4,258.9L68.5,259.7L66.9,258.9L66.5,257L72.9,256.9L76.4,255.8L75.2,254.5L80.5,252.5L82.2,252.5L83.3,253.9L82.9,255.9L87,254.5L90.2,255.1L88.9,254L91.4,251.4L97.4,250.8L98.5,251.9L99,249.3L104.3,247.5L105.5,254.5L108.2,252.3L109.4,252.5L108.5,253.9L112.2,257L111.7,251.9L113.1,253.3L113.1,249.8L114.5,249L114.7,247.5L116.8,248.9L119.8,248.7L122.5,250.6L125.8,250.1L125.8,251.7L127.4,252.2L130.2,251.7L129.5,247.5L132.7,246.8L129.7,243.7L129.5,242.1L131.8,240.6L133.6,237.3L139.9,239.3L138.9,240.6L141.2,240.6L142.9,239.2L150,236.8L151.9,234.5L153.5,236L152.1,240.6L152.6,241.8L155.3,237.4L159.9,234.1L161.3,235.4L160.9,237.9L161.8,238.7L158.6,245L162.5,239L165.5,238.7L166.2,240.6L163.9,242.3L166.4,243.7L171,244.3L170.1,247.5L177.7,254.5L178.6,260L185.1,263.4L183.7,266L186.9,268.3L187.4,265.3L191.1,265L194.3,260.8L201.2,256.4L199.6,255.1L202.4,254.4L203.8,254.5L204.2,255.8L206.1,255.1L210.5,250.6L211.2,252.5L212.8,252.5L212.8,253.3L209.6,257L210.7,258L214.6,255.1L217.2,261.4L218.3,260.5L218.3,258.3L219.7,261.4L220.6,260.8L219.7,259.7L220.4,258.6L222,258.1L222.7,258.9L221.6,256.4L227.3,255.1L229.4,259.8L230.8,260.8L230.3,262L232.4,265.8L231.9,267.8L234.7,266L232.9,264.7L231.9,260.8L233.8,262L230.8,259.7L228.9,255.8L231.7,251.7L234.7,251.4L234.2,250.6L240.7,249.3L241.2,251.4L239.8,253.9L239.8,256.1L241.2,257.6L243.9,258.3L253.6,257.6L256.6,255.9L262.9,256.4L269.8,255L272.1,255.8L269.6,253.4L266.6,253.9L265.6,252L262.6,250.9L261.7,248.2L259.4,246.2L258.5,239.2L256.2,236.7L257.8,235.4L258.7,229.9L260.1,228.7L258.7,226.6L259.9,219.9L262.4,219.6L259.6,219L257.8,221.5L256.6,219.3L257.1,215L256.2,214.9L255.9,213.2L256.6,210.8L258.5,209.4L257.6,208.8L257.1,209.4L255.7,202.7L256.2,201.7L259.6,202.3L259.6,201.7L255.2,200.6L254.8,202.3L251.8,196.7L252.7,196.1L249.5,192.2L250.9,192.2L250.2,189.7L249,191.2L245.1,188.4L245.6,187.1L243.2,187.8L242.6,187.1L242.6,181.3L238.2,173.4L240.5,170.5L241.2,165.2L239.1,161.3L234.2,159.7L234.9,155.5L241.2,156.3L242.8,158.6L255.2,161L255.9,162.4L258.2,161L262.2,161.1L265.6,157.5L268.6,156.6L278.1,158.2L280.2,164.7L278.6,165.8L277.9,168L275.6,168.7L275.3,170.9L278.1,177L283.6,184.2L283.2,189.7L285.2,189L287.1,190.6L288.2,190.3L288,187.5L290.3,185.9L298.6,186.4L306.2,189L321.5,190.6L324,189.3L328.2,190.9L332.6,190.9L345,196.7L346.6,195.3L359.8,191.7L369.5,184.2L385.4,180.7L388.4,179.3L390.5,177L386.1,179.6L380.8,180.3L368.3,178.1L363.9,174.9L363.9,173L370.9,157.4L397.2,143.1L402.2,141.4L407.8,141.6L434.1,133.6L448.2,122.9L452.3,118.4L454.4,112.7L456.5,109.9L458.8,109.7L465,112.6L466.2,112.1L464.3,110.2L465.7,110.2L465.7,109.4L463.2,109.1L461.1,106.1L457.9,104.1L458.3,97.5L459.7,95L462.2,95.5L458.6,92.4L459.9,88.6L460.2,80.5L462.2,79L460.4,76.5L459.2,65.1L462,56.6L460.4,49.3L465,47.4L469.9,42.4L485.6,36.4L495.7,35.3L507.5,31.6L511.9,32L517.2,30.8L559.4,6.5L585,-1.5L590.1,0.9L596.3,2.4L598.4,4.2L604.6,5.2L612.5,2.6L614.3,-1L618.3,0.1L619.9,2.7L623.1,3.8L625.4,4L627,2.1L628.2,2.3L630.9,4L631.9,6.7L634.9,9.6L634.4,12.3L635.1,12L636.5,9.6L633.9,8.4L633.5,4.6L630.5,-1.8L628.2,-0.5L622.4,-0.7L616.4,-4.5L612.7,-5.2L609,-0.4L604.4,0.9L595.4,-5.1L590.3,-4.2L586.9,-4.9L584,-8L620.1,-8L622.2,-4.3L628.2,-3.7L633.5,-4.5L634.1,-8L1008,-8ZM387.6,-8L386.6,-6.2L383.6,-4.9L387.7,-5.6L389.1,-7.4L391.2,-8L403.6,-7.1L405.2,-5.2L404.8,-3.8L400.2,-4.2L398.1,-2.3L394.6,-1.2L396.5,0.9L404.8,1.5L403.9,-0.9L404.1,-1.8L405.5,-1.8L408,3.4L421.6,4.8L429.5,2.4L450.2,0.7L451.9,1.6L450,6.5L447.2,6.8L449.6,16.5L447.7,23.1L445.9,25L439.9,27.5L437.8,27.5L434.1,30L429.9,30L427.4,31.1L420.9,38.8L421.9,44.7L419.6,45.5L410.3,42.7L407.8,43.5L401.6,49.1L399,50.2L382.4,54L376.4,60.6L366.7,59.3L365.1,58L347.8,53L345.7,52.7L344.1,53.7L341.8,52.7L333.5,55.5L322.4,55.5L312,58.7L310.4,57.7L309.5,58.8L309.5,61.5L308.3,62.1L300.9,58.2L300.9,56.8L303.7,54.9L300.9,52.9L299.3,53.5L300,52.2L298.9,51.6L293.6,51.6L291.2,57.3L289.6,57.4L288.2,56.2L290.6,51.6L284.3,51.6L286.9,54L286.9,56.8L285.2,57.4L278.6,52.7L275.6,51.6L273.2,49L264.9,44.7L274.2,53.3L274.6,55.7L267.9,56.8L268.9,58L263.6,59.6L261.2,59.3L258.9,63.2L250.4,61.2L245.3,63.1L240,62.4L234.7,65.7L234,63.7L229.4,63.1L228.2,61.2L225.5,65.1L228.5,63.7L230.6,66.7L233.8,67.1L233.8,69.5L235.2,70.1L232.9,72.6L233.1,74L226.6,74.7L220.6,72.3L205.2,70L202.9,70.7L201.2,73.6L201,75.6L203.3,78.1L201.7,80.9L199.9,75.1L186.2,65.6L175.4,61.8L169.2,62.7L166.9,64.2L162.9,63.7L158.6,66.4L156,65.6L150,67.3L147.7,70.7L143.1,72.6L139.6,71.5L136.9,67L136.6,68.1L138.9,73.2L135.7,77.2L134.3,81.5L135.5,87.3L132.5,87.7L131.1,89.9L132.5,91.9L135.5,91.7L135.5,92.4L134.8,94.2L133.6,94.7L132.9,97.4L132,98L130.2,96.9L129.7,98.9L126.2,101L125.1,104.4L125.3,109L120.7,110.2L117,109.3L116.1,110.2L110.1,104L105,100L101.1,102.4L99,102.1L98.1,101.1L98.5,100L95.5,98.6L94.9,97.2L95.8,95.5L91.9,95L90.2,91.1L92.3,87.3L89.8,87.3L88.9,88.9L87.5,89.2L88.6,91.3L87.9,93L84,93L85.2,94.4L88.6,93.9L90.2,94.9L87.9,95.5L89.8,96.1L89.3,96.9L90.9,96.9L89.8,98.2L90.2,100L88.9,99.9L86.3,96.9L81,95.5L78,95.8L70.9,99.4L60.2,100L59.8,100.7L58.2,98L53.5,100L54.2,101.9L52.6,103.5L52.9,105.7L51.2,108.7L48,108.2L41.8,111.5L38.3,116.5L37.2,112.1L35.1,111.8L34.4,115.2L35.8,116.5L33.2,117.6L33,119.8L30.5,121L33.7,121.5L34.9,124.3L32.1,128.5L29.1,128.9L26.3,133.7L23.1,131.1L22.2,127.3L18.9,122.4L8.1,117.7L3.7,119.3L4.2,122.3L1.4,124.8L-4.4,125.9L-6.7,125.1L-7.4,122.3L-6,121L-6.9,117.6L-5.5,114.9L5.8,109.6L7.2,109.4L10.4,111.9L11.8,111.2L13.6,107.6L15.9,107.6L18.2,106.3L25.6,99.3L28.9,97.4L28.6,92.8L35.3,90.2L37.4,80L41.8,77.8L42.7,81.7L43.6,80.9L48.5,82.2L47.8,80.9L43.4,78.4L43.6,75.3L51.7,74.7L54.5,70.1L54.9,67.3L55.9,67.4L60.5,63.8L61.6,61.2L65.5,58L67.4,54.8L66.9,46.6L69,39.7L68.8,35.8L82.2,37.1L89.3,30L86.1,23.1L88.9,23.1L89.1,21.1L87.9,19.2L92.8,17.5L114.2,15.3L116.3,14.2L138.9,17.6L141.9,19.8L162.9,17.8L164.8,16.7L164.3,18.6L165.2,19.2L166.6,16.7L165.2,7.1L167.1,7.3L169.2,2.4L168.2,1.5L169.6,0.1L171.7,0.5L180.3,-8L387.6,-8ZM158.9,-8L157.4,-5.6L155.6,-4.9L156.5,-2.9L156,-1L154.9,0.2L152.6,-0.2L148.2,1.5L132,0.1L124.2,-7.1L122.1,-6.7L119.8,-8L158.9,-8ZM276.9,486.5L273.2,485.5L267,481.5L262.6,481.7L259.2,477.6L262.9,476.7L264.9,477.8L264.5,478.9L262.9,478.2L263.3,480.3L268.6,478.9L267.7,479.7L268.6,480.8L275.1,481.8L277.9,484.2L278.6,485.9L277.4,486.2ZM217.9,409.6L221.6,412.1L221.6,416.7L216.7,410.7L214.9,411.5L211.9,405.2L216.7,405.2L217.9,406L217.9,408.2ZM159.2,377.5L162,377.8L162.5,380.2L155.6,380.3L151.2,378.4L150.9,375.5L149.8,372.6L150.7,371.5L157.2,375.3ZM417.5,-1.2L419.3,1.6L419.1,2.7L417.5,3.4L409.9,2.7L407.6,1.3L405.9,-1.2L407.3,-4.3L416.8,-1.6ZM1008,803.2L1006.4,799.4L1007.1,797.9L1008,797.1L1008,803.2ZM280.9,506.3L280.4,507.1L282.9,508.8L283.6,510.4L281.6,518.4L280.4,517.7L278.1,511.9L270.7,503.3L270.9,501.4L268.9,496.1L270.9,496.4L277.4,501.3L279,500.8L280.9,505.7ZM225.5,198.6L229.4,200.8L230.3,203L229.2,206.7L225.7,206.1L222,203.6L219.9,206.1L217.9,204.8L215.8,205.6L215.3,198.6L218.1,199.2L221.1,198L223.6,199.2L224.6,198.6ZM289.6,63.7L290.8,66.4L284.8,69.5L284.1,73.9L276.9,75.9L274.6,75.3L263.1,67.4L259.6,68.2L258.5,68.9L259.9,66.2L262.4,64.2L267.9,61.8L267.7,63.1L269.1,62.9L274.4,58.2L287.3,61.8L289.4,63.7ZM989.8,773.4L990.7,775.3L989.8,777L988.6,778.6L987.3,778.6L986.1,776.7L988.9,772.5ZM209.1,433.1L212.8,435.2L213.5,436.3L212.1,435.8L207,435.6L206.3,434.1L207.9,433ZM35.3,271L36,272.4L31.6,274.3L31.9,273.5L32.5,273.6L32.1,272.7L30,272.4L33.9,270.5ZM297.5,54.9L298.9,57.4L293.6,56.2L296.6,52.9L298.2,53.5L297.9,54.4ZM219.5,154.9L219.9,155.7L218.8,156.8L216.9,157.4L216.2,157.1L216.7,156L219.2,154.9ZM966.3,943.1L966.3,948.3L966,949L965.1,948.3L963.9,947.6L964.4,944.5L965.8,942.6ZM963.5,944L963.7,944.8L960,945.1L959.8,943.6L961.4,942L961.4,941.2L963,940.7L963.5,943.7ZM1005.9,816.8L1006.2,818.7L1003.9,818.7L1003.4,817.4L1005,815.2L1005.7,816.2ZM758.6,777.3L759.7,777.8L759.7,779.2L757.4,780.3L754.2,779.4L758.6,778ZM193.6,177L197.6,174.9L198.7,175.7L196.6,182.1L195.5,183.1L187.9,182.8L189,179.6L190.6,179.5ZM936.1,954L942.7,952L944.6,950.1L945,950.8L946.4,947.8L946.4,944L948,941.7L950.8,940.6L953.1,942.9L953.1,946.2L953.8,946.9L953.8,944.3L954.5,945.9L954.3,946.9L955.9,946.2L957.3,947.5L957.5,945.3L960.7,948.3L960.7,947.5L963,948.3L962.1,950.1L964.2,952.6L963.9,954L936.1,954ZM965.3,954L966,953.3L965.1,951.9L968.6,951.9L969.5,951.1L969.5,952.6L972.2,954L965.3,954ZM908.1,852.8L908.6,851.8L906.7,850.5L906.9,849.7L909.5,849.6L915.9,846.9L911.8,842.5L910.4,843L912.5,840.8L911.1,839.5L907.2,840.8L906.9,837.2L907.2,836.2L910.2,836.2L911.1,833.6L914.1,832.3L915.3,828.4L913.9,827.6L914.6,824.8L917.8,822.9L917.3,818.4L918.3,819.6L919.2,819L921.3,820.4L923.1,819.2L923.3,815.9L925.9,815.7L939,810.7L939.3,809L943.4,804.3L947.8,804.1L951,805.1L953.3,806.9L954.7,809.6L957.9,802.7L957.5,797.2L955.4,794.3L957.3,791.7L957,788.3L959.1,785.9L957.7,780.3L959.1,778.3L963,777.8L965.6,780.3L965.1,782.8L966,784.7L966.9,797.7L964.2,812.7L965.6,814.6L965.1,815.9L966,817.8L968.8,819.6L967.2,815.4L969.7,819.9L970.9,831.9L969.9,837.5L971.8,844.9L971.8,858.6L970.9,862.6L961.6,876.5L961.6,899.4L959.3,902.4L960.3,902.4L959.8,905L957.9,905.5L958.2,907.5L955.4,906.7L954,908.6L954.7,910L957.9,908.9L958.4,911L952.9,915.7L952.9,918.3L953.8,919.3L953.3,921.5L949.4,923.4L950.3,925.2L949.4,927.1L951.9,925.2L951.3,928.2L949.2,931L946.6,929.1L942,927.6L943.6,924.6L940.2,922.1L941.1,920.2L938.3,922.1L938.3,920.8L937.2,921.5L936,920.1L931.9,919.6L925.6,915.7L926.6,914.4L922.9,913.3L922.9,911.1L921.7,910L923.1,905.6L924.3,906.3L927.7,904.6L930.9,900.5L922.4,898.9L921.5,898L922.2,896.1L916.4,897.3L916.9,896.1L913.9,895.3L917.3,894.1L918,892.3L917.3,890.3L922.2,888.4L919.9,886.5L922.6,885.3L921.7,884L923.3,880.7L920.8,878.2L911.1,881.4L910.6,880.1L911.6,878.5L909.5,875.1L913.9,874.2L914.3,870.9L919.4,868L919.6,866.9L916.6,862.1L914.1,862.4L913.4,860.8L909.5,859.7L909.5,858.2L907.6,857.9L909.9,856.6L908.1,856L908.8,853.2Z";
+const proj = (lon, lat) => [(lon + 5.6) * 64.103, (51.4 - lat) * 92.784];
+
+/* ---------- Notions (définitions de niveau 2de, reprises du cours quand elles existent) ---------- */
+const NOTIONS = {
+  valoriser: { mot: "valoriser", def: "Mettre en valeur un milieu pour en tirer des richesses : tourisme, logements, agriculture…" },
+  anthropisation: { mot: "anthropisation", def: "Transformation d'un milieu par les activités humaines." },
+  enjeux: { mot: "enjeux", def: "Ce qui peut être touché par un aléa : des personnes, des logements, des routes, des activités, des milieux naturels." },
+  alea: { mot: "aléa", def: "Phénomène naturel plus ou moins probable et plus ou moins intense (tempête, érosion, submersion…) qui peut causer des dégâts." },
+  erosion: { mot: "érosion côtière", def: "Recul du trait de côte sous l'effet des vagues, des tempêtes et de la montée du niveau de la mer." },
+  submersion: { mot: "submersion marine", def: "Inondation temporaire de la côte par la mer, quand une tempête arrive en même temps qu'une forte marée." },
+  vulnerabilite: { mot: "vulnérabilité", def: "Fragilité des enjeux face à un aléa : elle dépend de l'endroit où ils sont, de la façon dont ils sont construits et de la préparation des habitants." },
+  prevention: { mot: "prévention", def: "Mesures prises avant une catastrophe pour réduire le risque : informer, cartographier les zones dangereuses, interdire de construire, se préparer à évacuer." },
+  risque: { mot: "risque", def: "Possibilité qu'un aléa touche des enjeux vulnérables. Aléa + enjeux vulnérables = risque." },
+  acteurs: { mot: "acteurs", def: "Personnes ou groupes qui prennent des décisions sur un territoire : commune, État, propriétaires, touristes, associations, justice…" },
+  recomposition: { mot: "recomposition spatiale (recul stratégique)", def: "Réorganiser un territoire en déplaçant logements, routes et activités loin de la côte menacée, au lieu de lutter contre la mer." },
+  dd: { mot: "développement durable", def: "Développement qui répond aux besoins actuels sans compromettre ceux des générations futures (économie, société, environnement)." },
+};
+const ORDRE_NOTIONS = Object.keys(NOTIONS);
+const N = (id, texte) => `<button type="button" class="mot" data-n="${id}">${texte || NOTIONS[id].mot}</button>`;
+
+/* ---------- Petites icônes ---------- */
+const I = {
+  immeuble: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 28V6h14v22M6 28h20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M13 10h2M17 10h2M13 15h2M17 15h2M13 20h2M17 20h2" stroke="currentColor" stroke-width="2.2"/></svg>',
+  terres: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 22c3-2 5-2 8 0s5 2 8 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M14 12h12m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  stop: '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M8.5 23.5 23.5 8.5" stroke="currentColor" stroke-width="2.2"/></svg>',
+  roche: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 26l4-8 6-2 4 3 5-5 5 4v8z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M14 16l-1 10M18 19l2 7" stroke="currentColor" stroke-width="1.6"/></svg>',
+  sable: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 25c5-5 21-5 26 0" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10 6h12l-3 7h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M14 16v3M18 15v4M16 20v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  oyat: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 26h24M16 26c0-8-1-13-5-18M16 26c0-7 2-12 7-16M16 26c-1-5-4-8-9-9M16 26c1-4 4-6 9-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  plan: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 7l7-3 8 3 7-3v21l-7 3-8-3-7 3z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 4v21M20 7v21" stroke="currentColor" stroke-width="1.6"/></svg>',
+  rien: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 16h18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
+  sirene: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 24v-8a7 7 0 0 1 14 0v8M6 24h20v4H6z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M16 3v3M5 9l2 2M27 9l-2 2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  attendre: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 4h14M9 28h14M10 4c0 7 12 7 12 12S10 21 10 28M22 4c0 7-12 7-12 12s12 5 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  mur: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 9h24v17H4zM4 15h24M4 21h24M11 9v6M21 9v6M16 15v6M8 21v5M24 21v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+  personnes: '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="11" cy="10" r="4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="22" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3 27c0-6 4-9 8-9s8 3 8 9M18 27c0-4 2-7 5-7s6 3 6 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  mairie: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 27h24M6 27V14h20v13M3 14l13-9 13 9M11 27v-7h10v7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>',
+  etat: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 12l12-7 12 7zM6 27h20M5 12h22M8 14v10M13 14v10M19 14v10M24 14v10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>',
+  parasol: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 14a12 12 0 0 1 24 0zM16 14v13M10 27h12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/></svg>',
+  parking: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="4" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M13 23V10h5a4 4 0 0 1 0 8h-5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>',
+  garder: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4l10 4v7c0 7-4 11-10 13C10 26 6 22 6 15V8z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>',
+  digue: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 26h26M7 26l5-14h8l5 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M2 19c2-2 4-2 6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  deplacer: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 22l5-6 5 6zM18 22l5-6 5 6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 9h14m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  interdit: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="6" width="24" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M4 13l9-7M4 21l17-15M10 26l18-14M18 26l10-7" stroke="currentColor" stroke-width="1.6"/></svg>',
+  maison: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 15 16 6l11 9M8 13v13h16V13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>',
+  bouclier: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3l11 4v8c0 7-5 12-11 14C10 27 5 22 5 15V7z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="16" cy="13" r="3" fill="currentColor"/><path d="M11 22c1-3 3-4 5-4s4 1 5 4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  euro: '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M21 11a6 6 0 1 0 0 10M9 14h9M9 18h9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  expo: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 15 16 7l9 8M9.5 13v8h13v-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M3 26c3-2 5-2 8 0s5 2 8 0 5-2 8 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  crayon: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 26l2-7L21 6l5 5L13 24zM18 9l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>',
+  loupe: '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="14" cy="14" r="8" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M20 20l7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
+};
+
+/* ---------- Photos libres (Wikimedia Commons) ----------
+   Si le fichier est présent à côté de la page (docs/2de-g1-c3/…), la photo s'affiche ;
+   sinon, un croquis la remplace, avec le lien vers Commons. */
+const PHOTOS = {
+  s2015: { fichier: "docs/2de-g1-c3/signal-2015.jpg", titre: "Le Signal au bord de la dune, juin 2015",
+    credit: "Photo : Gadjo_Niglo (Flickr), 12 juin 2015, licence CC BY 2.0", url: "https://commons.wikimedia.org/wiki/File:Le_Signal_(ocean_stronger_than_building..)_-_Flickr_-_Gadjo_Niglo.jpg" },
+  s2017: { fichier: "docs/2de-g1-c3/signal-2017.jpg", titre: "Le Signal, novembre 2017",
+    credit: "Photo : jacme31 (Flickr), 28 novembre 2017, licence CC BY-SA 2.0", url: "https://commons.wikimedia.org/wiki/File:Le_Signal_-_Soulac-sur-Mer_-_2017.jpg" },
+  s2021: { fichier: "docs/2de-g1-c3/signal-2021.jpg", titre: "Le Signal, mars 2021",
+    credit: "Photo : Anthony Baratier, 28 mars 2021, licence CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Le_Signal,_Soulac_(2021).jpg" },
+};
+
+/* =====================================================================
+   État de la partie
+   ===================================================================== */
+function etatInitial() {
+  return {
+    etape: 0, phase: "intro", annee: 1964,
+    choix: {}, labels: {}, textes: {}, deltasEtape: {},
+    F: F0, Fb: F0, plage: PLAGE0,
+    mur: null, murUrgence: null, digue: null, recharge: false, tempete: false,
+    front: null, frontEtat: null,
+    signalTerres: false, lotissement: false, prevention: false,
+    terrain: null, reconstruit: false,
+    routeDeplacee: false, campingDeplace: false, interdit: false,
+    j: { secu: 7, recettes: 4, budget: 6, nature: 9 },
+    deltas: null, dexpo: 0,
+    notions: [], lues: [],
+  };
+}
+let S = etatInitial();
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const r0 = v => Math.round(v);
+const protege = s => !!(s.digue || (s.mur && s.mur.etat !== "casse"));
+
+/* Le temps passe : la côte recule (plus vite si le climat se réchauffe, un peu moins si on recharge). */
+function evoluer(s, an) {
+  const dt = an - s.annee;
+  if (dt > 0) {
+    const taux = an > 2024 ? TAUX_FUTUR * (s.terrain === "dune" ? 0.9 : 1) : (s.recharge ? TAUX_RECHARGE : TAUX);
+    s.Fb += taux * dt;
+    if (!protege(s)) s.F = Math.min(s.Fb, s.F + Math.max(taux, 5) * dt); // sans protection, la dune rattrape son retard
+  }
+  s.annee = an;
+  majPlage(s);
+}
+function majPlage(s) {
+  if (protege(s)) s.plage = Math.max(0, PLAGE0 - (s.Fb - s.F)); // devant un ouvrage, la plage maigrit
+  else s.plage = s.recharge && !s.tempete ? PLAGE0 + 15 : PLAGE0;
+}
+function tempete2014(s) {
+  s.tempete = true;
+  s.Fb += TEMPETE_2014;
+  if (s.mur) s.mur.etat = "abime"; else s.F += TEMPETE_2014;
+  majPlage(s);
+}
+function appliquer(s, d) {
+  s.deltas = {};
+  for (const k of ["secu", "recettes", "budget", "nature"]) {
+    if (!d[k]) continue;
+    const avant = s.j[k];
+    s.j[k] = clamp(s.j[k] + d[k], 0, 10);
+    if (s.j[k] !== avant) s.deltas[k] = s.j[k] - avant;
+  }
+}
+
+/* Enjeux visibles sur la coupe, du plus proche de la mer au plus loin */
+function enjeux(s) {
+  const L = [];
+  if (s.front === "signal" && s.frontEtat !== "demoli") L.push({ x: X_FRONT, nom: "l'immeuble" });
+  if (s.front === "parking" && s.frontEtat !== "demoli") L.push({ x: X_FRONT, nom: "le poste de secours" });
+  if (s.terrain === "parking") L.push({ x: X_FRONT + 4, nom: "le parking" });
+  if (!s.routeDeplacee) L.push({ x: X_BOULEVARD, nom: "le boulevard" });
+  if (s.lotissement) L.push({ x: X_LOTISSEMENT, nom: "le lotissement" });
+  if (s.signalTerres || s.reconstruit) L.push({ x: X_TERRES, nom: s.reconstruit ? "le nouvel immeuble" : "l'immeuble" });
+  return L.filter(e => e.x > s.F + 0.5).sort((a, b) => a.x - b.x);
+}
+const premier = s => enjeux(s)[0] || null;
+const dist = s => { const e = premier(s); return e ? Math.max(0, r0(e.x - s.F)) : null; };
+const nomFront = s => (premier(s) || { nom: "le front de mer" }).nom;
+const Maj = t => t.charAt(0).toUpperCase() + t.slice(1);
+const menace = s => { const d = dist(s); return d !== null && d <= 40; };
+const debout = s => s.frontEtat === "occupe";
+
+/* Logements que la mer pourrait atteindre d'ici 2064 si la côte reculait sans protection */
+function limite2064(s) { return s.Fb + TAUX_FUTUR * Math.max(0, 2064 - s.annee); }
+function logementsExposes(s) {
+  const lim = limite2064(s) + 20;
+  let n = 0;
+  if (s.front === "signal" && s.frontEtat !== "demoli" && X_FRONT < lim) n += 78;
+  if (s.lotissement && X_LOTISSEMENT < lim) n += 30;
+  if ((s.signalTerres || s.reconstruit) && X_TERRES < lim) n += 78;
+  return n;
+}
+/* Année où la côte (sans protection) atteindrait le point x */
+const anneeAtteint = (s, x) => Math.max(r0(s.annee) + 1, r0(s.annee + (x - s.Fb) / TAUX_FUTUR));
+
+/* =====================================================================
+   Documents réels
+   ===================================================================== */
+const SRC_AFP = 'AFP, « Le "Signal", dix ans de bataille autour de l\'érosion côtière », <a href="https://www.linfodurable.fr/le-signal-dix-ans-de-bataille-autour-de-lerosion-cotiere-36724" target="_blank" rel="noopener">L\'Info Durable</a>, 3 février 2023.';
+const SRC_OCA = 'DIRM Sud-Atlantique, <a href="https://www.dirm.sud-atlantique.developpement-durable.gouv.fr/IMG/pdf/5_15_l_evolution_du_trait_de_cote.pdf" target="_blank" rel="noopener"><i>Atlas de la mer et du littoral</i>, « L\'évolution du trait de côte »</a>, 2022, d\'après l\'Observatoire de la côte aquitaine (BRGM/ONF).';
+const SRC_CEREMA = 'Cerema, chiffres présentés par le <a href="https://www.ecologie.gouv.fr/erosion-cotiere-christophe-bechu-presente-scenarios-nationaux-et-cartographie-nationales-ainsi" target="_blank" rel="noopener">ministère de la Transition écologique</a>, 5 avril 2024.';
+
+const DOCS = {
+  carteFrance: () => ({ type: "Carte", titre: "Où est Soulac-sur-Mer ?", visuel: carteFrance(),
+    leg: "À la pointe du Médoc (Gironde), entre l'océan Atlantique et l'estuaire de la Gironde.", source: "Fond de carte : Natural Earth (domaine public)." }),
+  projet: () => ({ type: "Fiche du projet", titre: "L'immeuble « Le Signal »", visuel: visuelProjet(),
+    leg: "Permis de construire accordé en 1964, construction achevée en 1967.", source: SRC_AFP + " Date du permis : fiche Act. 2." }),
+  taux: () => ({ type: "Graphique", titre: "Combien de mètres de côte perdus en un an ?", visuel: graphiqueTaux(),
+    leg: "Côte sableuse aquitaine, de la pointe de Grave à l'Adour : 230 km de dunes.", source: SRC_OCA }),
+  citOCA: () => ({ type: "Texte", citation: "le recul moyen de la côte sableuse aquitaine est compris entre 1 et 3 mètres par an avec un maximum de 6 mètres par an. Des reculs ponctuellement plus importants peuvent être localement observés lors de certaines tempêtes. Du fait de la proximité d'enjeux importants, la pointe du Médoc fait partie des territoires les plus vulnérables du département.", source: SRC_OCA }),
+  carteXynthia: () => ({ type: "Carte", titre: "Xynthia, à ≈ 90 km au nord", visuel: carteRegion(),
+    leg: "La Faute-sur-Mer (Vendée) est à environ 90 km de Soulac à vol d'oiseau.", source: "Fond de carte : Natural Earth (domaine public)." }),
+  victimes: () => ({ type: "Chiffres", titre: "Le bilan humain de Xynthia", visuel: pictosVictimes(),
+    leg: "Nuit du 27 au 28 février 2010 : tempête + forte marée = submersion marine.", source: 'Bilan de la tempête Xynthia (2010). Image satellite de la tempête : <a href="https://commons.wikimedia.org/wiki/File:Xynthia_MODIS_image_2010-02-27.jpg" target="_blank" rel="noopener">NASA, domaine public</a>.' }),
+  cit2014: () => ({ type: "Texte", citation: "Du haut de ses quatre étages, Le Signal et ses 78 logements sont en danger. Construit en 1967 à 200 mètres du rivage, l'immeuble a vu la distance grignotée, au fil des ans, par une érosion côtière accentuée. Début 2014, après une série de grandes marées et de fortes houles, il n'est plus qu'à une vingtaine de mètres de la dune, transformée en falaise sableuse, et menace de s'effondrer.", source: SRC_AFP }),
+  photo2015: () => ({ type: "Photographie", photo: "s2015", croquis: croquis2015() }),
+  cit20000: () => ({ type: "Texte", citation: "Contraints de laisser leur logement, les copropriétaires se voient proposer par l'Etat 20.000 euros par logement. Insuffisant selon eux : ils veulent bénéficier du fonds d'indemnisation dit \"Barnier\", réservé aux risques naturels majeurs mais pas à l'érosion dunaire, pour couvrir le prix d'achat de leur appartement.", source: SRC_AFP + " (septembre 2014)" }),
+  acteurs: () => ({ type: "Schéma", titre: "Qui fait quoi ?", visuel: schemaActeurs(),
+    leg: "« Soixante-quinze avaient lancé la bataille, dont beaucoup de retraités […]. »", source: SRC_AFP }),
+  citDemol: () => ({ type: "Texte", citation: "Craignant une \"catastrophe écologique\" liée à un éventuel affaissement de l'immeuble, [le préfet] fait désamianter le bâtiment afin d'empêcher la libération de \"12.000 tonnes de gravats contaminés\". Un chantier à 870.000 euros, pris en charge exceptionnellement par l'État et achevé en juillet 2019. […] Le chantier de démolition de l'immeuble à l'abandon, qui doit durer trois semaines, est lancé le 3 février.", source: SRC_AFP + " (juin 2018 et février 2023)" }),
+  photo2021: () => ({ type: "Photographie", photo: "s2021", croquis: croquis2021() }),
+  cerema: () => ({ type: "Graphique", titre: "Logements menacés par le recul du trait de côte en France", visuel: pictosCerema(),
+    leg: "2050 : si tous les ouvrages de protection sont entretenus. 2100 : si rien n'est fait, avec une hausse possible d'1 m du niveau de la mer (estimation haute du GIEC). Ce sont des ordres de grandeur.", source: SRC_CEREMA }),
+  cit2050: () => ({ type: "Chiffres-clés", citation: "50 m en 2050 : le recul moyen sur la côte sableuse du littoral aquitain prévu d'ici 2050. […] Jusqu'à -25 m en un hiver : les reculs brutaux lors de tempêtes pouvant intervenir à tout moment et s'additionner aux projections établies.", source: SRC_OCA }),
+};
+
+/* =====================================================================
+   Les 7 étapes
+   ===================================================================== */
+const ETAPES = [
+  {
+    cle: "bati", an: "1964-1967", debut: 1964, fin: 1967, titre: "Construire face à la mer ?",
+    notions: ["valoriser", "anthropisation", "enjeux"], vrai: "face",
+    entrer(s) { s.annee = 1964; },
+    situation: () => `<p>Les vacanciers sont de plus en plus nombreux à Soulac. Un promoteur demande un <b>permis de construire</b> pour un immeuble sur la dune, face à l'océan : <b>78 logements</b> sur <b>4 étages</b>, à environ <b>200 m du rivage</b>.</p><p>Construire ici, c'est ${N("valoriser")} la côte… et transformer la dune : c'est l'${N("anthropisation")}.</p>`,
+    docs: ["carteFrance", "projet"],
+    choix: () => [
+      { id: "face", label: "Autoriser l'immeuble face à la mer", aide: "vue sur l'océan, à ≈ 200 m du rivage", icone: "immeuble" },
+      { id: "terres", label: "Le faire construire plus loin, dans les terres", aide: "à ≈ 500 m du rivage, sans vue sur la mer", icone: "terres" },
+      { id: "refus", label: "Refuser le permis de construire", aide: "la dune reste libre", icone: "stop" },
+    ],
+    effet(s, id) {
+      s.annee = 1967; // origine du modèle : le trait de côte de 1967
+      s.frontEtat = "occupe";
+      if (id === "face") {
+        s.front = "signal";
+        appliquer(s, { recettes: 3, budget: 2, nature: -2 });
+        return `L'immeuble <b>Le Signal</b> est construit en 1967. Les appartements avec vue sur l'océan se vendent vite, souvent comme résidences secondaires : Soulac gagne des vacanciers et des impôts. Mais 78 logements se trouvent maintenant à ≈ 130 m du bord de la dune : ce sont des ${N("enjeux")}.`;
+      }
+      s.front = "parking";
+      if (id === "terres") {
+        s.signalTerres = true;
+        appliquer(s, { recettes: 2, budget: 1, nature: -1 });
+        return `L'immeuble est construit en 1967 à ≈ 500 m du rivage, derrière le boulevard, à la place de quelques pins. Sans vue sur la mer, les appartements se vendent un peu moins cher, mais ils sont loin de la dune. En haut de plage, la commune aménage seulement un parking et un poste de secours : peu d'${N("enjeux")} près de la mer.`;
+      }
+      appliquer(s, { nature: 1 });
+      return `Le promoteur part construire ailleurs. La dune reste libre ; la commune aménage seulement un parking et un poste de secours en haut de plage. Soulac gagne moins de vacanciers et d'impôts, mais n'expose presque aucun des ${N("enjeux")} qui comptent : pas de logement près de la mer.`;
+    },
+  },
+  {
+    cle: "defense", an: "1970-2000", debut: 1970, fin: 2000, titre: "La dune recule : que faire ?",
+    notions: ["alea", "erosion"], vrai: "laisser",
+    entrer(s) { evoluer(s, 1970); },
+    situation: () => `<p>Chaque hiver, les tempêtes emportent du sable : c'est l'${N("erosion")}, un ${N("alea")} naturel. Sur la côte sableuse aquitaine, la dune recule en moyenne de <b>1 à 3 m par an</b>.</p><p>À 2 m par an, en 30 ans, la dune perd <b>60 m</b>.</p>`,
+    chez: s => `${Maj(nomFront(s))} est à <b>≈ ${dist(s)} m</b> du bord de la dune.`,
+    docs: ["taux", "citOCA"],
+    choix: () => [
+      { id: "enroch", label: "Enrocher", aide: "un mur de gros blocs de roche au pied de la dune", icone: "roche" },
+      { id: "recharge", label: "Recharger la plage en sable", aide: "apporter du sable, et recommencer souvent", icone: "sable" },
+      { id: "laisser", label: "Laisser faire la nature", aide: "ne rien construire, surveiller", icone: "oyat" },
+    ],
+    effet(s, id) {
+      if (id === "enroch") {
+        s.mur = { x: s.F - 5, etat: "intact" };
+        evoluer(s, 2000);
+        appliquer(s, { budget: -2, nature: -2, recettes: -1, secu: 1 });
+        return `Des blocs de roche protègent le pied de la dune devant ${nomFront(s)}. Ici, la dune ne recule plus… mais la mer continue d'emporter le sable devant les rochers : en 2000, il ne reste que <b>≈ ${r0(s.plage)} m de plage</b>, contre 70 m en 1967. De chaque côté des rochers, la dune continue de reculer (regardez la maquette). Après chaque tempête, il faut réparer.`;
+      }
+      if (id === "recharge") {
+        s.recharge = true;
+        evoluer(s, 2000);
+        appliquer(s, { budget: -2, recettes: 1 });
+        return `Tous les deux ou trois hivers, des camions apportent du sable. La plage reste large et les touristes viennent. Mais chaque tempête en emporte une partie : la dune recule un peu moins vite, sans s'arrêter. En 2000, ${nomFront(s)} est à <b>≈ ${dist(s)} m</b> du bord. Et il faut payer à chaque fois.`;
+      }
+      evoluer(s, 2000);
+      appliquer(s, { secu: -1 });
+      return `Vous ne dépensez rien. La plage et la dune restent naturelles… et reculent : en 2000, la dune a perdu <b>≈ ${r0(s.F - F0)} m</b> depuis 1967. ${Maj(nomFront(s))} n'est plus qu'à <b>≈ ${dist(s)} m</b> du bord.`;
+    },
+  },
+  {
+    cle: "prevention", an: "2010", debut: 2010, fin: 2010, titre: "Rappel : la tempête Xynthia", rappel: true,
+    notions: ["submersion", "vulnerabilite", "prevention"], vrai: "plan",
+    entrer(s) { evoluer(s, 2010); },
+    situation: () => `<p><b>Nuit du 27 au 28 février 2010</b> : la tempête Xynthia arrive en même temps qu'une forte marée. En Vendée et en Charente-Maritime, la mer passe par-dessus les digues : c'est une ${N("submersion")}.</p><p><b>47 morts</b> en France, dont <b>29 à La Faute-sur-Mer</b>, où beaucoup de maisons de plain-pied avaient été construites dans des zones basses : leur ${N("vulnerabilite")} était très forte.</p><p>Soulac est loin de La Faute-sur-Mer, mais toutes les communes du littoral se posent la même question : comment se préparer ?</p>`,
+    chez: s => `${Maj(nomFront(s))} est à <b>≈ ${dist(s)} m</b> du bord de la dune.`,
+    docs: ["carteXynthia", "victimes"],
+    choix: () => [
+      { id: "plan", label: "Faire un plan de prévention et informer les habitants", aide: "carte des zones dangereuses, interdictions, consignes", icone: "plan" },
+      { id: "rien", label: "Ne rien changer", aide: "Xynthia, c'était en Vendée", icone: "rien" },
+    ],
+    effet(s, id) {
+      if (id === "plan") {
+        s.prevention = true;
+        appliquer(s, { secu: 2, recettes: -1 });
+        return `Vous faites cartographier les zones que la mer peut atteindre. Dans la bande la plus menacée, on ne construit plus. Les habitants sont informés et savent quoi faire en cas d'alerte. C'est la ${N("prevention")} : elle ne supprime pas l'aléa, elle réduit la vulnérabilité. Quelques projets immobiliers sont refusés.`;
+      }
+      s.lotissement = true;
+      appliquer(s, { recettes: 1, budget: 1, secu: -2 });
+      return `Pas de ${N("prevention")}. Un promoteur obtient le droit de construire <b>30 logements</b> juste derrière le front de mer : les impôts rentrent… et les enjeux exposés augmentent. En cas d'alerte, personne ne sait vraiment quoi faire.`;
+    },
+  },
+  {
+    cle: "crise", an: "Hiver 2013-2014", debut: 2013, fin: 2014, titre: "Tempêtes : la dune devient une falaise",
+    notions: ["risque"], vrai: "evacuer",
+    entrer(s) { evoluer(s, 2013); tempete2014(s); s.annee = 2014; },
+    situation: s => `<p>Hiver 2013-2014 : une série de <b>grandes marées</b> et de <b>fortes houles</b> frappe la côte. En un seul hiver, la dune peut reculer de plusieurs dizaines de mètres (jusqu'à 25 m). Elle devient une falaise de sable.</p>
+      <div class="equation" aria-label="Aléa plus enjeux égale risque"><span class="terme">Aléa<small>tempêtes, érosion</small></span><span class="op">+</span><span class="terme">Enjeux<small>${s.front === "signal" ? "78 logements" : "parking, poste de secours"}</small></span><span class="op">=</span><span class="terme risque">${N("risque", "Risque")}<small>${menace(s) ? "très élevé" : "pour l'instant contenu"}</small></span></div>`,
+    chez: s => menace(s)
+      ? `${Maj(nomFront(s))} n'est plus qu'à <b>≈ ${dist(s)} m</b> du bord de la falaise. Une seule tempête peut en emporter 25.`
+      : `Les rochers ont tenu, mais ils sont abîmés et il n'y a plus de plage devant. De chaque côté, la dune a reculé : la mer contourne l'ouvrage (regardez la maquette). ${Maj(nomFront(s))} est à ≈ ${dist(s)} m du bord.`,
+    docs: ["cit2014", "photo2015"],
+    choix: s => [
+      s.front === "signal"
+        ? { id: "evacuer", label: "Évacuer l'immeuble", aide: "reloger les habitants tout de suite", icone: "sirene" }
+        : { id: "evacuer", label: "Fermer le parking et le poste de secours", aide: "interdire l'accès au haut de plage", icone: "sirene" },
+      { id: "attendre", label: "Attendre la fin de l'hiver", aide: "la dune tiendra peut-être", icone: "attendre" },
+      s.mur ? { id: "mur", label: "Réparer et rehausser les rochers en urgence", aide: "de nouveaux blocs, très vite", icone: "mur" }
+            : { id: "mur", label: "Construire un mur en urgence", aide: "béton et blocs au pied de la falaise", icone: "mur" },
+    ],
+    effet(s, id) {
+      const signal = s.front === "signal";
+      if (menace(s)) {
+        if (id === "evacuer") {
+          s.frontEtat = signal ? "evacue" : "ferme";
+          if (signal) {
+            appliquer(s, { secu: s.prevention ? 3 : 2, recettes: -1, budget: -1 });
+            return `Les habitants quittent leur appartement${s.prevention ? " dans le calme : grâce au plan de prévention, chacun savait quoi faire" : " en quelques jours, dans l'urgence"}. Ils sont relogés ailleurs. L'immeuble vide reste au bord de la falaise : 78 logements que plus personne ne peut habiter.`;
+          }
+          appliquer(s, { secu: 1, recettes: -1 });
+          return `Le haut de plage est fermé. Les vacanciers se garent plus loin et les sauveteurs s'installent dans un préfabriqué. Personne n'habite ici : aucune famille à reloger.`;
+        }
+        if (id === "attendre") {
+          s.F += 6; s.Fb += 6; majPlage(s);
+          s.frontEtat = signal ? "evacue" : "ferme";
+          if (signal) {
+            appliquer(s, { secu: s.prevention ? -2 : -3, recettes: -1 });
+            return `Fin janvier, un nouveau coup de mer emporte encore ≈ 6 m de dune : l'immeuble n'est plus qu'à <b>≈ ${dist(s) ?? 0} m</b> du vide. L'État ordonne l'évacuation en urgence : les habitants partent avec quelques affaires${s.prevention ? "" : ", sans lieu d'accueil prévu"}. Attendre a mis des vies en danger.`;
+          }
+          appliquer(s, { secu: -1, budget: -1 });
+          return `Un nouveau coup de mer fait s'effondrer une partie du parking sur la plage. Heureusement, il n'y avait personne. Il faut tout fermer en urgence et déblayer.`;
+        }
+        s.murUrgence = s.F - 4;
+        s.frontEtat = signal ? "evacue" : "ferme";
+        if (signal) {
+          appliquer(s, { budget: -3, nature: -1, recettes: -1, secu: 1 });
+          return `En quelques jours, un mur de béton et de blocs est construit au pied de la falaise. Il coûte très cher et il est posé sur le sable : à la tempête suivante, la mer creuse dessous et il commence à pencher. Les experts jugent l'immeuble trop dangereux : il faut quand même l'évacuer.`;
+        }
+        appliquer(s, { budget: -3, nature: -1 });
+        return `Le mur protège le parking quelques semaines. Puis la mer creuse dessous et il penche. Beaucoup d'argent dépensé pour un parking que la mer finira par prendre : il faut le fermer.`;
+      }
+      // Rochers : l'enjeu n'est pas encore au bord de la falaise
+      if (id === "evacuer") {
+        s.frontEtat = signal ? "evacue" : "ferme";
+        appliquer(s, signal ? { recettes: -2, secu: 1 } : { recettes: -1 });
+        return signal
+          ? `Évacuation par précaution : l'immeuble est encore à ≈ ${dist(s)} m du bord, derrière ses rochers. Les propriétaires protestent : leur logement n'est pas encore menacé, mais il ne vaut plus rien.`
+          : `Le parking est fermé par précaution, alors qu'il est encore à ≈ ${dist(s)} m du bord. Les commerçants protestent.`;
+      }
+      if (id === "attendre") {
+        appliquer(s, { budget: -1 });
+        return `Les rochers tiennent… de justesse. Plusieurs blocs ont roulé sur la plage : il faudra réparer. Sur les côtés, la dune continue de reculer.`;
+      }
+      s.mur.etat = "intact";
+      appliquer(s, { budget: -3, nature: -1, secu: 1 });
+      return `Des camions apportent de nouveaux blocs : l'enrochement est réparé et rehaussé. Il protège ${nomFront(s)}… tant qu'on l'entretient. Devant, il n'y a plus de plage du tout.`;
+    },
+  },
+  {
+    cle: "payeur", an: "2014-2018", debut: 2014, fin: 2018, titre: "Qui doit payer ?",
+    notions: ["acteurs"], vrai: "etat",
+    variante(s) { return debout(s) ? "protege" : s.front === "signal" ? "signal" : "parking"; },
+    entrer(s) { evoluer(s, 2018); },
+    situation(s) {
+      const v = this.variante(s);
+      if (v === "signal") return `<p>L'immeuble est vide : ses 78 logements ne valent plus rien, personne ne veut les acheter. Les propriétaires, souvent des retraités, réclament de l'argent pour se reloger. En septembre 2014, l'État leur propose <b>20 000 € par logement</b> : ils refusent et vont en justice.</p><p>Plusieurs ${N("acteurs")} s'opposent : propriétaires, commune, État… et la justice.</p>`;
+      const reel = `<p>Dans la réalité, l'immeuble Le Signal a été évacué en 2014 et ses propriétaires réclament de l'argent (documents).</p>`;
+      if (v === "protege") return reel + `<p>Chez vous, ${nomFront(s)} tient encore, derrière ses rochers. Mais l'enrochement doit être réparé et rehaussé : environ <b>3 millions d'euros</b> (montant fictif) dans les années qui viennent. Plusieurs ${N("acteurs")} sont concernés.</p>`;
+      return reel + `<p>Chez vous, pas de logement au bord de la dune : il faut reconstruire plus loin le parking et le poste de secours. Coût : environ <b>2 millions d'euros</b> (montant fictif). Plusieurs ${N("acteurs")} sont concernés.</p>`;
+    },
+    docs: ["cit20000", "acteurs"],
+    choix(s) {
+      const v = this.variante(s);
+      const premierChoix = v === "parking"
+        ? { id: "usagers", label: "Les usagers : touristes et riverains", aide: "parking payant, taxe de séjour", icone: "parasol" }
+        : { id: "proprio", label: v === "signal" ? "Les propriétaires" : "Les propriétaires protégés", aide: v === "signal" ? "c'était leur choix d'acheter face à la mer" : "ce sont eux que les rochers protègent", icone: "personnes" };
+      return [
+        premierChoix,
+        { id: "commune", label: "La commune", aide: v === "signal" ? "elle a accordé le permis de construire" : "avec les impôts locaux", icone: "mairie" },
+        { id: "etat", label: "L'État : la solidarité nationale", aide: "tous les contribuables du pays", icone: "etat" },
+      ];
+    },
+    effet(s, id) {
+      const v = this.variante(s);
+      if (v === "signal") {
+        if (id === "proprio") { appliquer(s, { secu: -1, recettes: -1 }); return `Les propriétaires perdent presque tout. Ils attaquent la commune et l'État en justice : des années de procès. Pendant ce temps, l'immeuble vide se dégrade, il est tagué et squatté : il devient dangereux.`; }
+        if (id === "commune") { appliquer(s, { budget: -4, secu: 1 }); return `La commune rachète les 78 logements : environ 10 millions d'euros. C'est énorme pour une petite commune : il faut emprunter, augmenter les impôts locaux et repousser d'autres projets.`; }
+        appliquer(s, { secu: 1 });
+        return `C'est la solidarité nationale : tous les contribuables du pays paient un peu. Les propriétaires sont indemnisés et peuvent se reloger. Mais une question se pose : si l'État paie ici, devra-t-il payer pour tous les logements menacés du littoral ?`;
+      }
+      if (v === "protege") {
+        s.mur.etat = "intact"; // quelqu'un paie : les rochers sont réparés
+        if (id === "proprio") { appliquer(s, { recettes: -1 }); return `Les propriétaires créent une association pour payer l'entretien des rochers. Chacun doit verser plusieurs milliers d'euros : certains ne peuvent pas et vendent… à perte.`; }
+        if (id === "commune") { appliquer(s, { budget: -3 }); return `La commune paie : il faut augmenter les impôts de tous les habitants pour protéger quelques-uns. Et il faudra recommencer après chaque grosse tempête.`; }
+        appliquer(s, { budget: -1 });
+        return `L'État accepte de payer une partie, la commune paie le reste. Mais d'autres communes du littoral demandent aussitôt la même aide.`;
+      }
+      if (id === "usagers") { appliquer(s, { recettes: -1 }); return `Le stationnement devient payant et la taxe de séjour augmente. Certains vacanciers vont ailleurs, mais le budget de la commune est préservé.`; }
+      if (id === "commune") { appliquer(s, { budget: -2 }); return `La commune paie seule : il faut repousser d'autres projets. Mais aucune famille n'a perdu son logement.`; }
+      appliquer(s, { budget: -1 });
+      return `L'État verse une aide, mais une partie seulement : le parking et le poste de secours appartiennent à la commune, qui paie le reste.`;
+    },
+  },
+  {
+    cle: "terrain", an: "2018-2023", debut: 2018, fin: 2023, titre: "Démolir… et après ?",
+    notions: ["recomposition"], vrai: "dune",
+    variante(s) { return debout(s) ? "protege" : s.front === "signal" ? "signal" : "parking"; },
+    entrer() {},
+    situation(s) {
+      const v = this.variante(s);
+      if (v === "signal") return `<p>L'immeuble vide menace de s'effondrer sur la plage avec ses matériaux dangereux. Il est désamianté (2018-2019), puis démoli à partir du <b>3 février 2023</b>. Une bande de terrain se libère face à la mer.</p><p>Que faire de cette place ? C'est l'occasion d'une ${N("recomposition", "recomposition spatiale")}.</p>`;
+      if (v === "protege") return `<p>Dans la réalité, le Signal est désamianté puis démoli à partir du 3 février 2023 (documents). Chez vous, ${nomFront(s)} est toujours debout derrière ses rochers… mais il n'y a plus de plage devant, et l'enrochement coûte de plus en plus cher.</p><p>Que décidez-vous pour le front de mer ? C'est peut-être l'occasion d'une ${N("recomposition", "recomposition spatiale")}.</p>`;
+      return `<p>Dans la réalité, le Signal est désamianté puis démoli à partir du 3 février 2023 (documents). Chez vous, le vieux parking et le poste de secours sont démolis : une bande de terrain se libère face à la mer.</p><p>Que faire de cette place ? C'est l'occasion d'une ${N("recomposition", "recomposition spatiale")}.</p>`;
+    },
+    docs: ["citDemol", "photo2021"],
+    choix(s) {
+      const v = this.variante(s);
+      if (v === "protege") return [
+        { id: "dune", label: "Tout retirer et rendre la place à la dune", aide: "racheter, démolir, enlever les rochers", icone: "oyat" },
+        { id: "reconstruire", label: "Reconstruire plus loin, puis démolir", aide: "à ≈ 500 m du rivage, hors de la zone menacée", icone: "terres" },
+        { id: "garder", label: "Tout garder derrière les rochers", aide: "et continuer à payer l'entretien", icone: "garder" },
+      ];
+      return [
+        { id: "dune", label: "Rendre le terrain à la dune", aide: "oyats et ganivelles : la dune se reforme", icone: "oyat" },
+        v === "signal"
+          ? { id: "reconstruire", label: "Reconstruire des logements plus loin", aide: "à ≈ 500 m du rivage, hors de la zone menacée", icone: "terres" }
+          : { id: "reconstruire", label: "Reconstruire le poste de secours plus loin", aide: "avec quelques commerces, hors de la zone menacée", icone: "terres" },
+        { id: "parking", label: "Faire un parking", aide: "pratique pour les touristes l'été", icone: "parking" },
+      ];
+    },
+    effet(s, id) {
+      const v = this.variante(s), signal = s.front === "signal";
+      if (v === "protege") {
+        if (id === "garder") {
+          s.terrain = "garder";
+          s.mur.etat = "intact";
+          evoluer(s, 2023);
+          appliquer(s, { budget: -2, nature: -1, recettes: -1 });
+          return `Vous gardez tout : il faut encore réparer et rehausser l'enrochement. Sans plage, les vacanciers vont sur les plages voisines.`;
+        }
+        s.frontEtat = "demoli"; s.mur = null; s.murUrgence = null;
+        if (id === "dune") {
+          s.terrain = "dune";
+          evoluer(s, 2023);
+          appliquer(s, { budget: -2, nature: 2 });
+          return `${signal ? "L'immeuble est racheté et démoli" : "Le parking est démoli"}, et les rochers sont retirés. Sans protection, la dune rattrape vite son retard : elle recule de plusieurs mètres par an jusqu'à rejoindre le reste de la côte. Des oyats sont plantés ; la plage revient.`;
+        }
+        s.terrain = "reconstruire"; s.reconstruit = signal;
+        evoluer(s, 2023);
+        appliquer(s, { budget: -3, recettes: 1, nature: -1 });
+        return `${signal ? "Les logements sont reconstruits" : "Le parking et le poste de secours sont reconstruits"} à ≈ 500 m du rivage, puis l'ancien bâtiment est démoli et les rochers retirés. C'est un ${N("recomposition", "recul stratégique")} : cher, mais fait une seule fois.`;
+      }
+      s.frontEtat = "demoli"; s.murUrgence = null;
+      // sans rien à protéger derrière, les rochers sont retirés (sauf pour garder un parking)
+      const sansRochers = s.mur && id !== "parking" ? " Les rochers, devenus inutiles, sont retirés : la dune rattrape vite son retard." : "";
+      if (sansRochers) s.mur = null;
+      if (id === "dune") {
+        s.terrain = "dune";
+        evoluer(s, 2023);
+        appliquer(s, { nature: 2 });
+        return `Après la démolition, des oyats sont plantés et des ganivelles (barrières de bois) retiennent le sable : la dune se reforme. Elle amortira mieux les tempêtes. L'érosion continue, mais ici, ${signal ? "plus aucun logement n'est menacé" : "il n'y a plus rien à protéger"}.${sansRochers}`;
+      }
+      if (id === "reconstruire") {
+        s.terrain = "reconstruire"; s.reconstruit = signal;
+        evoluer(s, 2023);
+        appliquer(s, signal ? { recettes: 2, budget: -1, nature: -1 } : { recettes: 1, budget: -1, nature: -1 });
+        return (signal
+          ? `Un nouvel immeuble est construit à ≈ 500 m du rivage, hors de la zone menacée. C'est un ${N("recomposition", "recul stratégique")} : on déplace les logements au lieu de lutter contre la mer. Il a fallu trouver un terrain, le payer et couper des pins.`
+          : `Le poste de secours et quelques commerces sont reconstruits plus loin, hors de la zone menacée. C'est un ${N("recomposition", "recul stratégique")} : on recule au lieu de lutter contre la mer.`) + sansRochers;
+      }
+      s.terrain = "parking";
+      evoluer(s, 2023);
+      appliquer(s, { recettes: 1, budget: 1, nature: -1 });
+      return `Le parking rapporte de l'argent l'été. Mais il est au bord de la dune : vers ${anneeAtteint(s, X_FRONT + 4)}, la mer l'atteindra et il faudra le déplacer à son tour.`;
+    },
+  },
+  {
+    cle: "avenir", an: "2024-2064", debut: 2024, fin: 2064, titre: "Préparer Soulac pour 2064",
+    notions: ["dd"], vrai: null,
+    entrer(s) { evoluer(s, 2024); },
+    situation: () => `<p>Le climat se réchauffe et le niveau de la mer monte : l'érosion va continuer. Sur la côte sableuse aquitaine, on prévoit environ <b>50 m de recul moyen d'ici 2050</b>. C'est un ordre de grandeur, et les tempêtes peuvent s'y ajouter.</p><p>Comment préparer Soulac ? Pensez au ${N("dd")} : l'économie, les habitants et la nature, aujourd'hui et demain.</p>`,
+    chez(s) {
+      const lim = limite2064(s);
+      const touches = [];
+      if (s.terrain === "parking" && X_FRONT + 4 < lim) touches.push("le parking");
+      if (s.frontEtat !== "demoli" && X_FRONT < lim) touches.push(s.front === "signal" ? "l'immeuble" : "le poste de secours");
+      if (X_BOULEVARD < lim) touches.push("le boulevard du Front-de-Mer");
+      if (X_CAMPING < lim) touches.push("le camping");
+      if (s.lotissement && X_LOTISSEMENT < lim) touches.push("les 30 logements construits après 2010");
+      const liste = touches.length ? touches.join(", ").replace(/, ([^,]*)$/, " et $1") : "aucun enjeu important";
+      return `Si la côte recule sans protection, en 2064 le bord de la dune sera vers la <b>ligne rouge en pointillés</b> : la mer aura atteint ${liste}.`;
+    },
+    docs: ["cerema", "cit2050"],
+    choix: () => [
+      { id: "digue", label: "Défendre : construire une digue", aide: "garder le trait de côte où il est", icone: "digue" },
+      { id: "deplacer", label: "Déplacer la route et le camping", aide: "reculer avant que la mer n'arrive", icone: "deplacer" },
+      { id: "interdire", label: "Interdire de construire dans la bande menacée", aide: "ne plus ajouter d'enjeux", icone: "interdit" },
+    ],
+    effet(s, id) {
+      const aRoute = anneeAtteint(s, X_BOULEVARD), aCamping = anneeAtteint(s, X_CAMPING);
+      const parking = s.terrain === "parking" ? ` Le parking de 2023, lui, est emporté vers ${anneeAtteint(s, X_FRONT + 4)}.` : "";
+      const lot = s.lotissement ? ` Restent les 30 logements construits après 2010 : vers ${anneeAtteint(s, X_LOTISSEMENT)}, la mer les atteint.` : "";
+      const rochers = s.mur ? ` Devant ${nomFront(s)}, les rochers restent : il faut toujours les entretenir, et la mer les contourne de plus en plus.` : "";
+      if (id === "digue") {
+        s.digue = Math.min(s.F, s.mur ? s.mur.x + 4 : s.F) - 3;
+        s.mur = null;
+        evoluer(s, 2064);
+        appliquer(s, { budget: -4, nature: -3, recettes: -2 });
+        return `Une digue de béton et de roches est construite le long du front de mer. Le trait de côte ne bouge plus ici… mais la plage devant disparaît, et il faut rehausser la digue à mesure que la mer monte. Au sud, au bout de la digue, l'érosion continue. Derrière, les habitants se croient à l'abri : si la digue cède un jour de tempête, l'eau entre d'un coup, comme pendant Xynthia.`;
+      }
+      if (id === "deplacer") {
+        s.routeDeplacee = true; s.campingDeplace = true;
+        evoluer(s, 2064);
+        appliquer(s, { budget: -2, nature: 1, secu: 1 });
+        return `La route et le camping sont reconstruits plus loin, hors de la bande menacée. Cela coûte cher, mais une seule fois. La dune peut reculer librement et la plage reste : les vacanciers continuent de venir. C'est une ${N("recomposition", "recomposition spatiale")}.${parking}${lot}${rochers}`;
+      }
+      s.interdit = true;
+      evoluer(s, 2064);
+      appliquer(s, { recettes: -2, secu: 1, budget: -1 });
+      const pertes = [aRoute <= 2064 ? `vers ${aRoute}, le boulevard est coupé` : "", aCamping <= 2064 ? `vers ${aCamping}, le camping doit fermer` : ""].filter(Boolean);
+      return `Plus aucune construction nouvelle dans la bande menacée. Mais ce qui existe déjà reste… jusqu'à ce que la mer arrive${pertes.length ? " : " + pertes.join(" ; ") + ". Il faut alors démolir et déplacer dans l'urgence, et payer plus cher" : ""}.${parking}${lot}${rochers}`;
+    },
+  },
+];
+
+/* Ce qui s'est vraiment passé (écran final) */
+const REALITE = [
+  "Permis de construire accordé en 1964. Le Signal est construit en 1967 à 200 m du rivage : 78 logements sur 4 étages, face à l'océan.",
+  "Pas de protection durable devant le Signal : la dune recule, comme sur toute la côte sableuse aquitaine (1 à 3 m par an en moyenne). Les copropriétaires demanderont un enrochement : « On leur a refusé l'enrochement autour de l'immeuble » (Sénat, 16 mai 2018).",
+  "Après Xynthia, l'État renforce la prévention sur tout le littoral : plans de prévention des risques littoraux, vigilance « vagues-submersion » de Météo-France (2011).",
+  "Début 2014, le Signal n'est plus qu'à une vingtaine de mètres de la dune, devenue une falaise de sable. Les autorités ordonnent son évacuation.",
+  "Septembre 2014 : l'État propose 20 000 € par logement, refusés. La justice refuse le fonds Barnier, jusqu'au Conseil constitutionnel (avril 2018) et au Conseil d'État (août 2018). Décembre 2018 : les députés votent 7 millions d'euros pour indemniser les propriétaires à 70 % de la valeur d'origine.",
+  "Désamiantage payé par l'État (870 000 €, achevé en juillet 2019), puis démolition à partir du 3 février 2023. La commune prévoit de « re-végétaliser » la zone.",
+  "L'histoire n'est pas écrite. Projections : ≈ 50 m de recul moyen d'ici 2050 sur la côte sableuse aquitaine (OCA) ; en France, 5 200 logements menacés en 2050 et 450 000 en 2100 si rien n'est fait (Cerema, 2024). Ce sont des ordres de grandeur.",
+];
+
+/* =====================================================================
+   Maquette 3D : un bloc-diagramme de la côte (three.js r128)
+   x : ouest → est, en mètres (0 = rivage de 1967) ; z : du nord (−700) au sud (0) ;
+   y : altitude. La face avant du bloc (z = 0) est une coupe qui passe au sud du Signal.
+   Relief et bâtiments exagérés × 2. Distances en ordres de grandeur, comme dans le modèle.
+   ===================================================================== */
+const EXAG = 2;
+const XMIN = -250, XMAX = 650, ZMIN = -700, ZMAX = 0, PAS_X = 3, PAS_Z = 7;
+const NX = Math.round((XMAX - XMIN) / PAS_X) + 1, NZ = Math.round((ZMAX - ZMIN) / PAS_Z) + 1;
+const X_EAU = 380;                 // la mer s'arrête là (la côte n'ira jamais aussi loin)
+const FOND = -26, Z_SIGNAL = -28, Z_PROTEGE = -90;
+
+function hash2(i, j) {
+  let h = (Math.imul(i, 374761393) + Math.imul(j, 668265263)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+function bruit(x, z) {
+  const i = Math.floor(x), j = Math.floor(z), fx = x - i, fz = z - j;
+  const sx = fx * fx * (3 - 2 * fx), sz = fz * fz * (3 - 2 * fz);
+  const a = hash2(i, j), b = hash2(i + 1, j), c = hash2(i, j + 1), d = hash2(i + 1, j + 1);
+  return a + (b - a) * sx + (c - a) * sz + (a - b - c + d) * sx * sz;
+}
+const fbm = (x, z) => bruit(x, z) * .5 + bruit(x * 2.1 + 5.3, z * 2.1 + 1.7) * .3 + bruit(x * 4.3 + 9.1, z * 4.3 + 3.3) * .2;
+const lisse = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+const lerp = (a, b, t) => a + (b - a) * t;
+const ondulation = z => 3 * Math.sin((z - Z_SIGNAL) / 47);   // nulle au droit du Signal
+let graine = 7;
+const alea = () => (graine = (graine * 16807) % 2147483647) / 2147483647;
+
+/* Relief intact (x local, sans l'ondulation du trait de côte), en mètres */
+function solBrut(x, z) {
+  const n = fbm(x / 38, z / 38) - .5;
+  const crete = 12.5 + 5 * (fbm(x / 90 + 7, z / 60) - .5);
+  const arriere = 5 + 1.6 * (fbm(x / 70, z / 70) - .5) + (x > 300 && !(x > 325 && z < -405) ? 3 * (fbm(x / 55 + 3, z / 55) - .45) : 0);
+  if (x <= F0) return 2.4;
+  if (x < 96) return lerp(2.4, crete + 2 * n, lisse((x - F0) / 26));
+  if (x < 140) return crete + 2.4 * n + 1.2 * Math.sin(z / 19 + x / 13);
+  if (x < 178) return lerp(crete + 2.4 * n, arriere, lisse((x - 140) / 38));
+  return arriere;
+}
+
+/* Trait de côte (front de dune) à la latitude z, selon les ouvrages */
+function coteF(v, z) {
+  let F = v.Fb;
+  if (v.digue != null) F = Math.min(v.Fb, v.F);
+  else if (v.mur && v.mur.etat !== "casse") {
+    if (z >= Z_PROTEGE) F = v.F;
+    else { const d = Z_PROTEGE - z; if (d < 50) F = v.Fb + 12 * Math.sin(Math.PI * d / 50); } // effet de bout
+  } else if (v.F < v.Fb - .5 && z >= Z_PROTEGE - 40) F = lerp(v.Fb, v.F, lisse((z - (Z_PROTEGE - 40)) / 40));
+  return F;
+}
+function cote(v, z) {
+  const F = coteF(v, z);
+  const prot = v.digue != null || (v.mur && z >= Z_PROTEGE);
+  const naturel = F <= F0 + .3 && !prot;
+  let pied = naturel ? F0 : F - 5, bord = pied;
+  if (v.mur && z >= Z_PROTEGE && v.digue == null) { pied = v.mur.x; bord = v.mur.x - 13; }
+  if (v.digue != null) { pied = v.digue; bord = v.digue - 16; }
+  const plage = prot ? v.plage : (v.recharge && !v.tempete ? PLAGE0 + 15 : PLAGE0);
+  return { F, naturel, pied, bord, R: bord - plage, solF: solBrut(F, z) };
+}
+function bosseDune(v, xl, z, F) {
+  if (v.terrain !== "dune" || xl < 186 || xl > 244 || z < -64 || xl < F) return 0;
+  return 3.2 * Math.sin(Math.PI * (xl - 186) / 58) * lisse((z + 64) / 14);
+}
+function hauteur(v, c, xl, z, sol) {
+  if (xl < c.R) return Math.max(-6.5, -.35 - (c.R - xl) * .04);
+  if (xl < c.bord) return 2.3 * lisse((xl - c.R) / Math.max(1, c.bord - c.R));
+  if (xl < c.pied) return 1.8;
+  if (c.naturel || xl >= c.F) return sol + bosseDune(v, xl, z, c.F);
+  const t = (xl - c.pied) / Math.max(.5, c.F - c.pied);
+  return lerp(2.4, c.solF, Math.pow(t, .6));
+}
+
+/* Couleurs */
+const C3 = {};
+function couleurs3D() {
+  const c = h => new THREE.Color(h);
+  Object.assign(C3, {
+    fondMer: c("#6E8E8C"), mouille: c("#BFA46C"), sable: c("#DCC38F"), apport: c("#EBD9A8"), falaise: c("#E0BC7E"),
+    dune: c("#CDB27A"), oyatSol: c("#9AA160"), sousBois: c("#8D9358"), sousBois2: c("#6F7F48"),
+    ville: c("#D9D2C1"), ville2: c("#CFC6B2"),
+    coupe: [c("#E2CB97"), c("#C9A266"), c("#8C6642"), c("#77736A")],
+  });
+}
+const tmpC = { r: 0, g: 0, b: 0 };
+function melange(a, b, t) { tmpC.r = a.r + (b.r - a.r) * t; tmpC.g = a.g + (b.g - a.g) * t; tmpC.b = a.b + (b.b - a.b) * t; return tmpC; }
+function couleurSol(xl, z) {
+  const n = fbm(xl / 23 + 11, z / 23);
+  if (xl < 178) return Object.assign({}, melange(C3.dune, C3.oyatSol, lisse((n - .42) / .2) * lisse((xl - 84) / 14) * .8));
+  if (xl > 325 && z < -405) return Object.assign({}, melange(C3.ville, C3.ville2, n));
+  return Object.assign({}, melange(C3.sousBois, C3.sousBois2, n));
+}
+
+function creerMoteur3D(hote, calques) {
+  if (!window.THREE) return null;
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+  } catch (e) { return null; }
+  couleurs3D();
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  hote.appendChild(renderer.domElement);
+  const canvas = renderer.domElement;
+  canvas.setAttribute("tabindex", "0");
+  canvas.setAttribute("aria-label", "Maquette 3D : glisser pour tourner, molette pour zoomer");
+
+  const scene = new THREE.Scene();
+  const CIEL = new THREE.Color("#CFE2EC"), CIEL_ORAGE = new THREE.Color("#5F6D74");
+  scene.background = CIEL.clone();
+  scene.fog = new THREE.Fog(CIEL.clone(), 1500, 3400);
+  const camera = new THREE.PerspectiveCamera(38, 1, 5, 6000);
+
+  const hemi = new THREE.HemisphereLight(0xeef6ff, 0x9c8c68, .78);
+  scene.add(hemi);
+  const soleil = new THREE.DirectionalLight(0xfff1d8, .85);
+  soleil.position.set(-180, 620, 240);
+  soleil.target.position.set(200, 0, -350);
+  soleil.castShadow = true;
+  soleil.shadow.mapSize.set(2048, 2048);
+  Object.assign(soleil.shadow.camera, { left: -620, right: 620, top: 560, bottom: -560, near: 100, far: 1700 });
+  soleil.shadow.bias = -.0006;
+  scene.add(soleil, soleil.target);
+
+  /* ---------- Relief ---------- */
+  const SOL = new Float32Array(NX * NZ), SOLC = new Float32Array(NX * NZ * 3);
+  const pos = new Float32Array(NX * NZ * 3), col = new Float32Array(NX * NZ * 3);
+  for (let j = 0; j < NZ; j++) for (let i = 0; i < NX; i++) {
+    const k = j * NX + i, x = XMIN + i * PAS_X, z = ZMIN + j * PAS_Z, xl = x - ondulation(z);
+    SOL[k] = solBrut(xl, z);
+    const cs = couleurSol(xl, z); SOLC[k * 3] = cs.r; SOLC[k * 3 + 1] = cs.g; SOLC[k * 3 + 2] = cs.b;
+    pos[k * 3] = x; pos[k * 3 + 2] = z;
+  }
+  const idx = [];
+  for (let j = 0; j < NZ - 1; j++) for (let i = 0; i < NX - 1; i++) {
+    const a = j * NX + i, b = a + 1, c = a + NX, d = c + 1;
+    idx.push(a, c, b, b, c, d);
+  }
+  const geoSol = new THREE.BufferGeometry();
+  geoSol.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  geoSol.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  geoSol.setIndex(idx);
+  const sol = new THREE.Mesh(geoSol, new THREE.MeshLambertMaterial({ vertexColors: true }));
+  sol.receiveShadow = true; sol.castShadow = true;
+  scene.add(sol);
+  const COTES = new Array(NZ);
+  const rang = z => clamp(Math.round((z - ZMIN) / PAS_Z), 0, NZ - 1);
+  let Vcourant = null;
+  function hPoint(x, z) {          // hauteur (m) d'un point quelconque, selon l'état dessiné
+    const c = COTES[rang(z)], xl = x - ondulation(z);
+    return hauteur(Vcourant, c, xl, z, solBrut(xl, z));
+  }
+
+  /* Jupes : les quatre faces du bloc, en couches (sable, sable ocre, alios, argile) */
+  const NIVEAUX = [-3, -10, -17, FOND];
+  function creerJupe(n) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array((n - 1) * 4 * 18), 3));
+    g.setAttribute("color", new THREE.BufferAttribute(new Float32Array((n - 1) * 4 * 18), 3));
+    const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }));
+    scene.add(m);
+    return m;
+  }
+  function majJupe(m, pts) {  // pts : [[x, z, yHaut], …]
+    const P = m.geometry.attributes.position.array, Cl = m.geometry.attributes.color.array;
+    let o = 0;
+    const niv = y => { const L = [y]; for (const b of NIVEAUX) L.push(Math.min(L[L.length - 1], b)); return L; };
+    for (let s = 0; s < pts.length - 1; s++) {
+      const A = pts[s], B = pts[s + 1], la = niv(A[2]), lb = niv(B[2]);
+      for (let k = 0; k < 4; k++) {
+        const q = [[A[0], la[k], A[1]], [B[0], lb[k], B[1]], [A[0], la[k + 1], A[1]], [B[0], lb[k], B[1]], [B[0], lb[k + 1], B[1]], [A[0], la[k + 1], A[1]]];
+        const cc = C3.coupe[k];
+        for (const p of q) { P[o] = p[0]; P[o + 1] = p[1]; P[o + 2] = p[2]; Cl[o] = cc.r; Cl[o + 1] = cc.g; Cl[o + 2] = cc.b; o += 3; }
+      }
+    }
+    m.geometry.attributes.position.needsUpdate = true; m.geometry.attributes.color.needsUpdate = true;
+    m.geometry.computeVertexNormals();
+    m.geometry.computeBoundingSphere();
+  }
+  const jupeSud = creerJupe(NX), jupeNord = creerJupe(NX), jupeOuest = creerJupe(NZ), jupeEst = creerJupe(NZ);
+
+  /* ---------- Mer ---------- */
+  const LX = X_EAU - XMIN, LZ = ZMAX - ZMIN;
+  const geoMer = new THREE.PlaneGeometry(LX, LZ, 76, 70);
+  geoMer.rotateX(-Math.PI / 2);
+  geoMer.translate(XMIN + LX / 2, 0, ZMIN + LZ / 2);
+  const merBase = geoMer.attributes.position.array.slice();
+  const matMer = new THREE.MeshPhongMaterial({ color: 0x2f7fa2, transparent: true, opacity: .86, shininess: 70, specular: 0x9ac4d8, flatShading: true });
+  const mer = new THREE.Mesh(geoMer, matMer);
+  mer.receiveShadow = true;
+  scene.add(mer);
+  const matMerCote = new THREE.MeshLambertMaterial({ color: 0x1f6587, transparent: true, opacity: .78, side: THREE.DoubleSide });
+  const faceMer = (w, x, z, ry) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, -FOND), matMerCote); m.position.set(x, FOND / 2, z); m.rotation.y = ry; scene.add(m); };
+  faceMer(LX, XMIN + LX / 2, ZMAX - .4, 0);
+  faceMer(LX, XMIN + LX / 2, ZMIN + .4, 0);
+  faceMer(LZ, XMIN + .4, ZMIN + LZ / 2, Math.PI / 2);
+
+  /* Écume au bord de l'eau : une frange fixe et une vague qui déferle */
+  function creerFrange(opacite) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(NZ * 2 * 3), 3));
+    const ix = []; for (let j = 0; j < NZ - 1; j++) { const a = j * 2; ix.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+    g.setIndex(ix);
+    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xf4fbfd, transparent: true, opacity: opacite, depthWrite: false }));
+    scene.add(m);
+    return m;
+  }
+  const frange = creerFrange(.75), deferlante = creerFrange(.5);
+  function majFrange(m, decal, larg, y) {
+    const P = m.geometry.attributes.position.array;
+    for (let j = 0; j < NZ; j++) {
+      const z = ZMIN + j * PAS_Z, R = COTES[j].R + ondulation(z) - decal;
+      P[j * 6] = R - larg; P[j * 6 + 1] = y; P[j * 6 + 2] = z;
+      P[j * 6 + 3] = R + 2; P[j * 6 + 4] = y; P[j * 6 + 5] = z;
+    }
+    m.geometry.attributes.position.needsUpdate = true;
+    m.geometry.computeBoundingSphere();
+  }
+
+  /* ---------- Outils pour les objets ---------- */
+  const factice = new THREE.Object3D();
+  const lambert = (c, extra) => new THREE.MeshLambertMaterial(Object.assign({ color: c }, extra || {}));
+  function instances(geo, mat, n, ombre) {
+    const m = new THREE.InstancedMesh(geo, mat, n);
+    m.castShadow = !!ombre; m.receiveShadow = true;
+    m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    scene.add(m);
+    return m;
+  }
+  function poser(m, i, x, y, z, sx, sy, sz, ry) {
+    factice.position.set(x, y, z); factice.rotation.set(0, ry || 0, 0); factice.scale.set(sx, sy, sz);
+    factice.updateMatrix(); m.setMatrixAt(i, factice.matrix);
+  }
+  const cacher = (m, i) => poser(m, i, 0, -500, 0, .001, .001, .001);
+  const geoToit = (() => { // prisme triangulaire de 1 × 1 × 1, faîtage selon z
+    const g = new THREE.BufferGeometry();
+    const v = [-.5, 0, -.5, .5, 0, -.5, 0, 1, -.5, -.5, 0, .5, .5, 0, .5, 0, 1, .5];
+    g.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
+    g.setIndex([0, 2, 1, 3, 4, 5, 0, 3, 5, 0, 5, 2, 1, 2, 5, 1, 5, 4, 0, 1, 4, 0, 4, 3]);
+    g.computeVertexNormals();
+    return g;
+  })();
+  const geoBoite = new THREE.BoxGeometry(1, 1, 1); geoBoite.translate(0, .5, 0);
+
+  /* Façades de l'immeuble, dessinées sur un canevas */
+  function facade(cols, rows, vide) {
+    const c = document.createElement("canvas"); c.width = cols * 32; c.height = rows * 34;
+    const g = c.getContext("2d");
+    g.fillStyle = vide ? "#d5ccbb" : "#efe8da"; g.fillRect(0, 0, c.width, c.height);
+    for (let r = 0; r < rows; r++) {
+      g.fillStyle = "#b9ae9a"; g.fillRect(0, r * 34 + 30, c.width, 4);
+      for (let k = 0; k < cols; k++) {
+        const x = k * 32 + 6, y = r * 34 + 6;
+        const contreplaque = vide && hash2(k + 3, r + 11) < .35;
+        g.fillStyle = vide ? (contreplaque ? "#9a7a4f" : "#2a2e31") : (hash2(k, r) < .25 ? "#a8c6d4" : "#6f97ac");
+        g.fillRect(x, y, 20, 18);
+        g.fillStyle = vide ? "#9d978d" : "#ffffff"; g.fillRect(x - 3, y + 18, 26, 3);
+      }
+    }
+    if (vide) { // tags au rez-de-chaussée
+      const couleursTag = ["#c0492b", "#2f7a45", "#3b5ba8", "#d4a21e"];
+      for (let t = 0; t < 7; t++) {
+        g.strokeStyle = couleursTag[t % 4]; g.lineWidth = 3; g.beginPath();
+        const x0 = hash2(t, 5) * (c.width - 60), y0 = c.height - 30 + hash2(t, 9) * 12;
+        g.moveTo(x0, y0); for (let s = 1; s < 6; s++) g.lineTo(x0 + s * 10, y0 + (s % 2 ? -10 : 6));
+        g.stroke();
+      }
+    }
+    const t = new THREE.CanvasTexture(c); t.anisotropy = 4;
+    return t;
+  }
+  function creerImmeuble() {
+    const mats = vide => {
+      const longue = lambert(0xffffff, { map: facade(12, 5, vide) }), courte = lambert(0xffffff, { map: facade(7, 5, vide) }), toit = lambert(0x9a958c);
+      return [longue, longue, toit, toit, courte, courte];
+    };
+    const plein = mats(false), vide = mats(true);
+    const g = new THREE.BoxGeometry(22, 15 * EXAG, 40); g.translate(0, 15 * EXAG / 2, 0);
+    const m = new THREE.Mesh(g, plein);
+    m.castShadow = true; m.receiveShadow = true;
+    const groupe = new THREE.Group(); groupe.add(m);
+    groupe.userData = { m, plein, vide, k: 0, cible: 0 };
+    scene.add(groupe);
+    return groupe;
+  }
+  const signal = creerImmeuble(), immTerres = creerImmeuble(), immNeuf = creerImmeuble();
+  const placerSur = (o, x, z) => o.position.set(x, solBrut(x - ondulation(z), z) * EXAG - .5, z);
+  placerSur(signal, 211, Z_SIGNAL); placerSur(immTerres, 511, -40); placerSur(immNeuf, 541, -120);
+  // barrières rouges et blanches autour de l'immeuble évacué
+  const barrieres = new THREE.Group();
+  for (let i = 0; i < 18; i++) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(5, 1.2, .3), lambert(i % 2 ? 0xffffff : 0xc0492b));
+    const a = i / 18 * Math.PI * 2; b.position.set(211 + Math.cos(a) * 20, signal.position.y + 1.6, Z_SIGNAL + Math.sin(a) * 28); b.rotation.y = -a + Math.PI / 2;
+    barrieres.add(b);
+  }
+  scene.add(barrieres);
+
+  /* Parking et poste de secours (si l'immeuble n'est pas sur la dune) */
+  const poste = new THREE.Group();
+  const asphalte = new THREE.Mesh(new THREE.BoxGeometry(34, 1.6, 52), lambert(0x55595b)); asphalte.position.set(213, 0, -32); asphalte.receiveShadow = true;
+  const cabane = new THREE.Mesh(new THREE.BoxGeometry(8, 4 * EXAG, 6), lambert(0xf3efe6)); cabane.position.set(226, 2 * EXAG, -14); cabane.castShadow = true;
+  const croixC = document.createElement("canvas"); croixC.width = croixC.height = 64;
+  const cg = croixC.getContext("2d"); cg.fillStyle = "#f3efe6"; cg.fillRect(0, 0, 64, 64); cg.fillStyle = "#c0392b"; cg.fillRect(26, 10, 12, 44); cg.fillRect(10, 26, 44, 12);
+  const croix = new THREE.Mesh(new THREE.PlaneGeometry(5, 5), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(croixC) })); croix.position.set(221.9, 3.6 * EXAG, -14); croix.rotation.y = -Math.PI / 2;
+  const mat = new THREE.Mesh(new THREE.CylinderGeometry(.2, .2, 12, 6), lambert(0xdddddd)); mat.position.set(220, 7, -4);
+  const matDrapeau = new THREE.MeshBasicMaterial({ color: 0x2f9a4f, side: THREE.DoubleSide });
+  const drapeau = new THREE.Mesh(new THREE.PlaneGeometry(4, 2.6), matDrapeau); drapeau.position.set(222, 11.5, -4);
+  poste.add(asphalte, cabane, croix, mat, drapeau);
+  const voituresParking = [];
+  for (let i = 0; i < 6; i++) { const v = new THREE.Mesh(geoBoite, lambert([0xc0492b, 0x2f5d8a, 0xe8e2d4, 0x3d6844, 0x8a8f93, 0xd4a21e][i])); v.scale.set(2, 1.6, 4.4); v.position.set(202 + (i % 3) * 7, .8, -50 + Math.floor(i / 3) * 14); v.castShadow = true; poste.add(v); voituresParking.push(v); }
+  poste.position.y = 5 * EXAG;
+  poste.userData = { k: 0, cible: 0 };
+  scene.add(poste);
+  const posteNeuf = cabane.clone(); posteNeuf.position.set(432, 6.5 * EXAG, -20); scene.add(posteNeuf);
+
+  /* Parking construit en 2023 sur le terrain libéré */
+  const parking6 = new THREE.Group();
+  const asph6 = asphalte.clone(); asph6.scale.set(.95, 1, .85); asph6.position.set(220, 0, -30); parking6.add(asph6);
+  for (let i = 0; i < 5; i++) { const v = voituresParking[i].clone(); v.position.set(208 + (i % 3) * 8, .8, -44 + Math.floor(i / 3) * 16); parking6.add(v); }
+  parking6.position.y = 5 * EXAG; scene.add(parking6);
+
+  /* Routes : le boulevard du Front-de-Mer, et la route déplacée */
+  function creerRoute(x0, z0, z1, larg) {
+    const n = Math.round((z0 - z1) / PAS_Z) + 1;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 2 * 3), 3));
+    const m = new THREE.Mesh(g, lambert(0x4e5356));
+    m.receiveShadow = true;
+    m.userData = { x0, z0, n, larg };
+    scene.add(m);
+    return m;
+  }
+  function majRoute(m, active) {
+    const { x0, z0, n, larg } = m.userData, P = m.geometry.attributes.position.array, ix = [];
+    const visibles = [];
+    for (let s = 0; s < n; s++) {
+      const z = z0 - s * PAS_Z, x = x0 + ondulation(z) * 0, c = COTES[rang(z)];
+      const y = Math.max(hPoint(x, z), hPoint(x + larg, z)) * EXAG + .35;
+      P.set([x, y, z, x + larg, y, z], s * 6);
+      visibles.push(active && x - ondulation(z) > c.F + 2);
+    }
+    for (let s = 0; s < n - 1; s++) if (visibles[s] && visibles[s + 1]) { const a = s * 2; ix.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+    m.geometry.setIndex(ix);
+    m.geometry.attributes.position.needsUpdate = true;
+    m.geometry.computeVertexNormals(); m.geometry.computeBoundingSphere();
+    m.userData.visibles = visibles;
+  }
+  const boulevard = creerRoute(240, 0, ZMIN, 10), routeNeuve = creerRoute(420, 0, -406, 10);
+  const voitures = [0xc0492b, 0xe8e2d4, 0x2f5d8a].map((c, i) => {
+    const v = new THREE.Mesh(geoBoite, lambert(c)); v.scale.set(2, 1.6, 4.4); v.castShadow = true; v.userData = { t: i / 3, sens: i % 2 ? 1 : -1 }; scene.add(v); return v;
+  });
+
+  /* Centre-ville : villas balnéaires et basilique */
+  const villasMurs = instances(geoBoite, lambert(0xffffff), 220, true), villasToits = instances(geoToit, lambert(0xffffff), 220, true);
+  let nv = 0;
+  const teintesMurs = ["#f2ede2", "#e9dcc3", "#f0d9b5", "#e4c7a8", "#f5f1ea", "#d9c2a2"].map(h => new THREE.Color(h));
+  const teintesToits = ["#a5523a", "#8f4a35", "#5d6670", "#b46446"].map(h => new THREE.Color(h));
+  for (let gx = 0; gx < 13; gx++) for (let gz = 0; gz < 12; gz++) {
+    if (gx % 4 === 3 || gz % 4 === 3) continue;
+    const x = 340 + gx * 24 + (hash2(gx, gz) - .5) * 4, z = -690 + gz * 24 + (hash2(gz, gx) - .5) * 4;
+    if (Math.abs(x - 520) < 34 && Math.abs(z + 568) < 42) continue;
+    if (hash2(gx * 7, gz * 3) < .12) continue;
+    const w = 10 + hash2(gx, gz + 9) * 6, d = 10 + hash2(gx + 9, gz) * 6, h = (6 + hash2(gx + 4, gz + 2) * 5) * EXAG;
+    const y = solBrut(x - ondulation(z), z) * EXAG - .4;
+    poser(villasMurs, nv, x, y, z, w, h, d); villasMurs.setColorAt(nv, teintesMurs[Math.floor(hash2(gx, gz + 1) * 6)]);
+    poser(villasToits, nv, x, y + h, z, w + 1, 4 * EXAG, d + 1); villasToits.setColorAt(nv, teintesToits[Math.floor(hash2(gx + 2, gz) * 4)]);
+    nv++;
+  }
+  villasMurs.count = villasToits.count = nv;
+  const pierre = lambert(0xcdbfa3);
+  const yB = solBrut(520, -560) * EXAG - .4;
+  const nef = new THREE.Mesh(geoBoite, pierre); nef.scale.set(15, 13 * EXAG, 46); nef.position.set(520, yB, -558);
+  const toitNef = new THREE.Mesh(geoToit, lambert(0x6f6a64)); toitNef.scale.set(16, 6 * EXAG, 47); toitNef.position.set(520, yB + 13 * EXAG, -558);
+  const tour = new THREE.Mesh(geoBoite, pierre); tour.scale.set(11, 30 * EXAG, 11); tour.position.set(520, yB, -588);
+  const fleche = new THREE.Mesh(new THREE.ConeGeometry(8, 9 * EXAG, 4), lambert(0x6f6a64)); fleche.rotation.y = Math.PI / 4; fleche.position.set(520, yB + 30 * EXAG + 4.5 * EXAG, -588);
+  for (const o of [nef, toitNef, tour, fleche]) { o.castShadow = true; o.receiveShadow = true; scene.add(o); }
+
+  /* Lotissement construit après 2010 */
+  const lotMurs = instances(geoBoite, lambert(0xf4efe4), 12, true), lotToits = instances(geoToit, lambert(0xa5523a), 12, true);
+  const LOTS = []; for (let a = 0; a < 4; a++) for (let b = 0; b < 3; b++) LOTS.push([282 + a * 15, -150 + b * 26]);
+
+  /* Camping : tentes et mobil-homes, à sa place d'origine ou déplacé */
+  const geoTente = new THREE.ConeGeometry(2.6, 3 * EXAG, 4); geoTente.translate(0, 1.5 * EXAG, 0);
+  const tentes = instances(geoTente, lambert(0xffffff), 48, true), mobils = instances(geoBoite, lambert(0xf1f1ee), 24, true);
+  const TENTES = [], MOBILS = [];
+  for (let i = 0; i < 24; i++) TENTES.push([268 + (i % 6) * 22 + hash2(i, 1) * 6, -322 + Math.floor(i / 6) * 24 + hash2(i, 2) * 6, i]);
+  for (let i = 0; i < 12; i++) MOBILS.push([280 + (i % 4) * 30, -258 + Math.floor(i / 4) * 12 - 70 * (i % 2), i]);
+  const teintesTentes = ["#d9782b", "#2e6fa8", "#3e7f5a", "#c0492b", "#d4a21e"].map(h => new THREE.Color(h));
+  for (let i = 0; i < 48; i++) tentes.setColorAt(i, teintesTentes[i % 5]);
+
+  /* Pins maritimes */
+  const geoTronc = new THREE.CylinderGeometry(.35, .5, 1, 5); geoTronc.translate(0, .5, 0);
+  const geoHouppe = new THREE.IcosahedronGeometry(1, 0);
+  const troncs = instances(geoTronc, lambert(0x7a5b3e), 900, true), houppes = instances(geoHouppe, new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true, shininess: 3 }), 900, true);
+  const PINS = [];
+  const libre = (x, z) => !(x > 255 && x < 406 && z > -336 && z < -224) && !(x > 268 && x < 345 && z > -165 && z < -45)
+    && !(x > 488 && x < 536 && z > -72 && z < -6) && !(x > 518 && x < 566 && z > -150 && z < -92) && !(x > 228 && x < 258)
+    && !(x > 408 && x < 446 && z > -420) && !(x > 325 && z < -405) && !(x > 190 && x < 236 && z > -64);
+  for (let t = 0; t < 4000 && PINS.length < 900; t++) {
+    const x = 160 + alea() * 488, z = -695 + alea() * 690;
+    if (!libre(x, z)) continue;
+    if (x < 300 && alea() < .55) continue;
+    const dens = fbm(x / 60 + 2, z / 60);
+    if (dens < .38) continue;
+    PINS.push({ x, z, h: (8 + alea() * 5) * EXAG, r: 5 + alea() * 3, teinte: new THREE.Color().setHSL(.27 + alea() * .06, .34, .24 + alea() * .09), ry: alea() * 6 });
+  }
+  PINS.forEach((p, i) => houppes.setColorAt(i, p.teinte));
+
+  /* Oyats et ganivelles */
+  const geoOyat = new THREE.ConeGeometry(.9, 2.4, 4); geoOyat.translate(0, 1.2, 0);
+  const OYATS = [];
+  for (let t = 0; t < 1300; t++) { const xl = 74 + alea() * 96, z = -698 + alea() * 696; if (fbm(xl / 23 + 11, z / 23) > .4 || alea() < .3) OYATS.push([xl, z, false]); }
+  for (let t = 0; t < 150; t++) OYATS.push([188 + alea() * 54, -60 + alea() * 58, true]);
+  const oyats = instances(geoOyat, lambert(0x8f9c4e), OYATS.length, false);
+  const GANIV = []; for (let a = 0; a < 7; a++) for (let b = 0; b < 34; b++) GANIV.push([192 + a * 8 + (b % 2) * 1.2, -58 + b * 1.6]);
+  const ganivelles = instances(geoBoite, lambert(0x8a6a45), GANIV.length, false);
+
+  /* Rochers de l'enrochement */
+  const geoRoche = new THREE.DodecahedronGeometry(1.7, 0);
+  const ROCHES = []; for (let i = 0; i < 170; i++) ROCHES.push({ t: alea(), z: Z_PROTEGE + alea() * (-Z_PROTEGE - 2), s: .8 + alea() * .9, couche: Math.floor(alea() * 3), roule: alea() < .25, ry: alea() * 6 });
+  const roches = instances(geoRoche, new THREE.MeshPhongMaterial({ color: 0x7d7a73, flatShading: true, shininess: 6 }), ROCHES.length, true);
+
+  /* Mur d'urgence, digue, drague */
+  const murUrg = new THREE.Mesh(geoBoite, lambert(0xa7a59e)); murUrg.scale.set(1.6, 6 * EXAG, 92); murUrg.castShadow = true; scene.add(murUrg);
+  const digue = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshPhongMaterial({ color: 0xa9a69e, flatShading: true, shininess: 4 })); digue.castShadow = true; digue.receiveShadow = true; scene.add(digue);
+  let digueX = null;
+  function construireDigue(x) {
+    const P = [], ix = [];
+    const prof = [[-16, -1], [-5, 9.5 * EXAG], [3, 9.5 * EXAG], [3, 1]];
+    for (let j = 0; j < NZ; j++) { const z = ZMIN + j * PAS_Z, o = ondulation(z); for (const [dx, y] of prof) P.push(x + o + dx, y, z); }
+    for (let j = 0; j < NZ - 1; j++) for (let k = 0; k < 3; k++) { const a = j * 4 + k, b = a + 1, c = a + 4, d = c + 1; ix.push(a, b, c, b, d, c); }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(P, 3)); g.setIndex(ix); g.computeVertexNormals();
+    digue.geometry.dispose(); digue.geometry = g; digueX = x;
+  }
+  const drague = new THREE.Group();
+  const coque = new THREE.Mesh(geoBoite, lambert(0x2f4f62)); coque.scale.set(10, 3, 30);
+  const cabine = new THREE.Mesh(geoBoite, lambert(0xf2f0ea)); cabine.scale.set(7, 5, 8); cabine.position.set(0, 3, 8);
+  const tuyau = new THREE.Mesh(new THREE.CylinderGeometry(.6, .6, 1, 6), lambert(0x222222)); tuyau.rotation.z = Math.PI / 2;
+  drague.add(coque, cabine, tuyau); scene.add(drague);
+
+  /* Parasols : plus il y a de recettes touristiques, plus la plage est pleine */
+  const geoMat = new THREE.CylinderGeometry(.12, .12, 3.4, 4); geoMat.translate(0, 1.7, 0);
+  const geoToile = new THREE.ConeGeometry(2.3, .9, 8); geoToile.translate(0, 3.5, 0);
+  const mats = instances(geoMat, lambert(0xeeeeee), 50, false), toiles = instances(geoToile, lambert(0xffffff), 50, true);
+  const PARASOLS = []; for (let i = 0; i < 50; i++) PARASOLS.push({ z: -680 + alea() * 640, t: .25 + alea() * .55 });
+  const teintesParasols = ["#c0492b", "#f2c230", "#2e6fa8", "#f7f3ea", "#3e8f6a"].map(h => new THREE.Color(h));
+  for (let i = 0; i < 50; i++) toiles.setColorAt(i, teintesParasols[i % 5]);
+
+  /* Goélands, pluie, poussière de démolition */
+  const goelands = [];
+  for (let i = 0; i < 7; i++) {
+    const g = new THREE.Group(), m = lambert(0xf7f7f4, { side: THREE.DoubleSide });
+    const ailes = [-1, 1].map(s => { const a = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 1), m); a.position.x = s * 1.5; g.add(a); return a; });
+    g.userData = { r: 60 + alea() * 120, v: .12 + alea() * .12, ph: alea() * 6, y: 35 + alea() * 30, ailes };
+    scene.add(g); goelands.push(g);
+  }
+  const NGOUTTES = 2600, geoPluie = new THREE.BufferGeometry(), pp = new Float32Array(NGOUTTES * 6);
+  for (let i = 0; i < NGOUTTES; i++) { const x = XMIN + alea() * (XMAX - XMIN), z = ZMIN + alea() * 700, y = alea() * 260; pp.set([x, y, z, x - 2, y - 9, z], i * 6); }
+  geoPluie.setAttribute("position", new THREE.BufferAttribute(pp, 3));
+  const pluie = new THREE.LineSegments(geoPluie, new THREE.LineBasicMaterial({ color: 0xd4dde1, transparent: true, opacity: .5 }));
+  pluie.visible = false; scene.add(pluie);
+  const geoPoussiere = new THREE.BufferGeometry(), np = 260, pd = new Float32Array(np * 3), vit = [];
+  for (let i = 0; i < np; i++) vit.push([(alea() - .5) * 1.6, alea() * 1.2, (alea() - .5) * 1.6]);
+  geoPoussiere.setAttribute("position", new THREE.BufferAttribute(pd, 3));
+  const poussiere = new THREE.Points(geoPoussiere, new THREE.PointsMaterial({ color: 0xcfc6b4, size: 4, transparent: true, opacity: .8, depthWrite: false }));
+  poussiere.visible = false; scene.add(poussiere);
+  let tPoussiere = -1, origPoussiere = null;
+  function souffler(x, y, z) {
+    origPoussiere = [x, y, z]; tPoussiere = 0; poussiere.visible = true;
+    for (let i = 0; i < np; i++) pd.set([x + (alea() - .5) * 22, y + alea() * 20, z + (alea() - .5) * 40], i * 3);
+    geoPoussiere.attributes.position.needsUpdate = true;
+  }
+
+  /* Lignes : trait de côte de 1967, projection 2064, mesure dune ↔ enjeu */
+  function ligne(n, materiau) {
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    const l = new THREE.Line(g, materiau); l.frustumCulled = false; scene.add(l); return l;
+  }
+  const l1967 = ligne(NZ, new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 6, gapSize: 5, depthTest: false, transparent: true, opacity: .9 }));
+  const l2064 = ligne(NZ, new THREE.LineDashedMaterial({ color: 0xc0492b, dashSize: 9, gapSize: 6, depthTest: false, linewidth: 2 }));
+  const geoBande = new THREE.BufferGeometry(); geoBande.setAttribute("position", new THREE.BufferAttribute(new Float32Array(NZ * 2 * 3), 3));
+  { const ix = []; for (let j = 0; j < NZ - 1; j++) { const a = j * 2; ix.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); } geoBande.setIndex(ix); }
+  const bande = new THREE.Mesh(geoBande, new THREE.MeshBasicMaterial({ color: 0xc0492b, transparent: true, opacity: .3, depthWrite: false, side: THREE.DoubleSide }));
+  bande.frustumCulled = false; scene.add(bande);
+  const mesure = ligne(4, new THREE.LineBasicMaterial({ color: 0x22313a, depthTest: false }));
+
+  /* ---------- Étiquettes HTML posées sur la maquette ---------- */
+  const ETIQ = {};
+  function etiquette(id, cls) { const e = document.createElement("span"); e.className = "etq " + (cls || ""); calques.appendChild(e); ETIQ[id] = { e, p: null, txt: "" }; }
+  ["ocean", "plage", "dune", "falaise", "signal", "poste", "boulevard", "ville", "basilique", "camping", "lotissement", "foret", "terres", "neuf", "t1967", "enroch", "digue", "murU"].forEach(id => etiquette(id));
+  etiquette("t2064", "rouge"); etiquette("mesure", "mesure");
+  ETIQ.ocean.e.classList.add("mer");
+  function etq(id, txt, p) { const o = ETIQ[id]; if (o.txt !== txt) { o.e.textContent = txt; o.txt = txt; } o.p = p; }
+
+  /* ---------- Caméra : tourner, zoomer, se déplacer ---------- */
+  const VUES = {
+    ensemble: { c: [175, 0, -250], r: 780, th: 2.1, ph: .98 },
+    signal: { c: [205, 14, -42], r: 300, th: 2.2, ph: 1.12 },
+    coupe: { c: [140, -2, 0], r: 235, th: Math.PI / 2, ph: 1.42 },
+    ciel: { c: [210, 0, -350], r: 1250, th: Math.PI / 2, ph: .05 },
+  };
+  const cam = { c: new THREE.Vector3(175, 0, -250), r: 780, th: 2.1, ph: .98 };
+  let vers = null, vueCourante = "ensemble";
+  function appliquerCamera() {
+    const sp = Math.sin(cam.ph);
+    camera.position.set(cam.c.x + cam.r * sp * Math.cos(cam.th), cam.c.y + cam.r * Math.cos(cam.ph), cam.c.z + cam.r * sp * Math.sin(cam.th));
+    camera.lookAt(cam.c);
+  }
+  function allerVue(nom, instant) {
+    const v = VUES[nom]; if (!v) return;
+    vueCourante = nom;
+    const etroit = camera.aspect < 1.1 ? 1.35 : 1;
+    const but = { c: new THREE.Vector3(...v.c), r: v.r * etroit, th: v.th, ph: v.ph };
+    if (instant || reduit) { cam.c.copy(but.c); cam.r = but.r; cam.th = but.th; cam.ph = but.ph; vers = null; appliquerCamera(); }
+    else vers = { de: { c: cam.c.clone(), r: cam.r, th: cam.th, ph: cam.ph }, but, t0: performance.now() };
+    document.querySelectorAll("[data-vue]").forEach(b => b.setAttribute("aria-pressed", b.dataset.vue === nom ? "true" : "false"));
+  }
+  const pointeurs = new Map();
+  let glisse = null;
+  canvas.addEventListener("contextmenu", e => e.preventDefault());
+  canvas.addEventListener("pointerdown", e => {
+    canvas.setPointerCapture(e.pointerId);
+    pointeurs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    glisse = { bouton: e.button, maj: e.shiftKey };
+    vers = null;
+  });
+  canvas.addEventListener("pointermove", e => {
+    if (!pointeurs.has(e.pointerId)) return;
+    const p = pointeurs.get(e.pointerId), dx = e.clientX - p.x, dy = e.clientY - p.y;
+    if (pointeurs.size === 2) {
+      const [a, b] = [...pointeurs.values()];
+      const d0 = Math.hypot(a.x - b.x, a.y - b.y);
+      p.x = e.clientX; p.y = e.clientY;
+      const [a2, b2] = [...pointeurs.values()];
+      const d1 = Math.hypot(a2.x - b2.x, a2.y - b2.y);
+      if (d0 > 0) cam.r = clamp(cam.r * d0 / d1, 70, 1900);
+      deplacer(dx / 2, dy / 2);
+    } else {
+      p.x = e.clientX; p.y = e.clientY;
+      if (glisse.bouton === 2 || glisse.maj) deplacer(dx, dy);
+      else { cam.th += dx * .006; cam.ph = clamp(cam.ph - dy * .005, .05, 1.5); }
+    }
+    appliquerCamera();
+  });
+  const lacher = e => { pointeurs.delete(e.pointerId); };
+  canvas.addEventListener("pointerup", lacher); canvas.addEventListener("pointercancel", lacher);
+  canvas.addEventListener("wheel", e => { e.preventDefault(); vers = null; cam.r = clamp(cam.r * Math.pow(1.0015, e.deltaY), 70, 1900); appliquerCamera(); }, { passive: false });
+  canvas.addEventListener("keydown", e => {
+    const t = { ArrowLeft: () => cam.th -= .08, ArrowRight: () => cam.th += .08, ArrowUp: () => cam.ph = clamp(cam.ph - .06, .05, 1.5), ArrowDown: () => cam.ph = clamp(cam.ph + .06, .05, 1.5), "+": () => cam.r = clamp(cam.r * .9, 70, 1900), "-": () => cam.r = clamp(cam.r * 1.1, 70, 1900) }[e.key];
+    if (t) { e.preventDefault(); vers = null; t(); appliquerCamera(); }
+  });
+  function deplacer(dx, dy) {   // la maquette suit le pointeur
+    const k = cam.r * .0016, c = Math.cos(cam.th), s = Math.sin(cam.th);
+    cam.c.x += (-s * dx - c * dy) * k;
+    cam.c.z += (c * dx - s * dy) * k;
+    cam.c.x = clamp(cam.c.x, XMIN, XMAX); cam.c.z = clamp(cam.c.z, ZMIN, ZMAX);
+  }
+
+  /* ---------- Mise à jour de la maquette selon l'état dessiné ---------- */
+  let sale = true, orage = false, etatPrec = {};
+  function maj(v) { Vcourant = v; sale = true; }
+  let dureeMaj = 0;
+  function reconstruire(v) {
+    const tDebut = performance.now();
+    for (let j = 0; j < NZ; j++) COTES[j] = cote(v, ZMIN + j * PAS_Z);
+    for (let j = 0; j < NZ; j++) {
+      const z = ZMIN + j * PAS_Z, c = COTES[j], o = ondulation(z);
+      for (let i = 0; i < NX; i++) {
+        const k = j * NX + i, xl = XMIN + i * PAS_X - o;
+        const h = hauteur(v, c, xl, z, SOL[k]);
+        pos[k * 3 + 1] = h * EXAG;
+        let cc;
+        if (xl < c.R + 1) cc = melange(C3.mouille, C3.fondMer, clamp(-h / 5, 0, 1));
+        else if (xl < c.R + 8) cc = C3.mouille;
+        else if (xl < c.pied) cc = v.recharge && !v.tempete && xl > c.R + 14 ? C3.apport : C3.sable;
+        else if (!c.naturel && xl < c.F + 1.5) cc = C3.falaise;
+        else {
+          const b = bosseDune(v, xl, z, c.F);
+          tmpC.r = SOLC[k * 3]; tmpC.g = SOLC[k * 3 + 1]; tmpC.b = SOLC[k * 3 + 2];
+          cc = b > .2 ? melange(C3.dune, C3.oyatSol, .35) : tmpC;
+        }
+        col[k * 3] = cc.r; col[k * 3 + 1] = cc.g; col[k * 3 + 2] = cc.b;
+      }
+    }
+    geoSol.attributes.position.needsUpdate = true; geoSol.attributes.color.needsUpdate = true;
+    geoSol.computeVertexNormals(); geoSol.computeBoundingSphere();
+    const ligneX = (j, zFixe, i) => [XMIN + i * PAS_X, zFixe, pos[(j * NX + i) * 3 + 1]];
+    majJupe(jupeSud, Array.from({ length: NX }, (_, i) => ligneX(NZ - 1, ZMAX, i)));
+    majJupe(jupeNord, Array.from({ length: NX }, (_, i) => ligneX(0, ZMIN, i)));
+    majJupe(jupeOuest, Array.from({ length: NZ }, (_, j) => [XMIN, ZMIN + j * PAS_Z, pos[(j * NX) * 3 + 1]]));
+    majJupe(jupeEst, Array.from({ length: NZ }, (_, j) => [XMAX, ZMIN + j * PAS_Z, pos[(j * NX + NX - 1) * 3 + 1]]));
+    majFrange(frange, 0, 5, .2);
+
+    // bâtiments : apparition et disparition en douceur
+    const sig = v.front === "signal" && v.frontEtat && v.frontEtat !== "demoli";
+    if (etatPrec.sig && !sig && v.frontEtat === "demoli") souffler(211, signal.position.y, Z_SIGNAL);
+    signal.userData.cible = sig ? 1 : 0;
+    signal.userData.m.material = v.frontEtat === "evacue" ? signal.userData.vide : signal.userData.plein;
+    barrieres.visible = sig && v.frontEtat === "evacue";
+    immTerres.userData.cible = v.signalTerres ? 1 : 0;
+    immNeuf.userData.cible = v.reconstruit ? 1 : 0;
+    const posteOk = v.front === "parking" && v.frontEtat && v.frontEtat !== "demoli" && coteF(v, -30) < 196;
+    if (etatPrec.poste && !posteOk) souffler(213, poste.position.y, -30);
+    poste.userData.cible = posteOk ? 1 : 0;
+    voituresParking.forEach(c => { c.visible = v.frontEtat === "occupe"; });
+    posteNeuf.visible = v.terrain === "reconstruire" && v.front === "parking";
+    parking6.visible = v.terrain === "parking" && coteF(v, -30) < 204;
+    etatPrec = { sig, poste: posteOk };
+
+    // routes et voitures
+    majRoute(boulevard, !v.routeDeplacee);
+    majRoute(routeNeuve, !!v.routeDeplacee);
+
+    // lotissement
+    LOTS.forEach(([x, z], i) => {
+      if (v.lotissement && x - ondulation(z) > COTES[rang(z)].F + 2) {
+        const y = hPoint(x, z) * EXAG - .3;
+        poser(lotMurs, i, x, y, z, 10, 6 * EXAG, 9); poser(lotToits, i, x, y + 6 * EXAG, z, 11, 3.5 * EXAG, 10);
+      } else { cacher(lotMurs, i); cacher(lotToits, i); }
+    });
+    lotMurs.instanceMatrix.needsUpdate = lotToits.instanceMatrix.needsUpdate = true;
+
+    // camping
+    const dxC = v.campingDeplace ? 255 : 0;
+    TENTES.forEach(([x, z, i]) => { const X = x + dxC; if (X - ondulation(z) > COTES[rang(z)].F + 3) poser(tentes, i, X, hPoint(X, z) * EXAG - .2, z, 1, 1, 1, i); else cacher(tentes, i); });
+    for (let i = 24; i < 48; i++) cacher(tentes, i);
+    MOBILS.forEach(([x, z, i]) => { const X = x + dxC; if (X - ondulation(z) > COTES[rang(z)].F + 3) poser(mobils, i, X, hPoint(X, z) * EXAG - .3, z, 4, 3 * EXAG, 9); else cacher(mobils, i); });
+    tentes.instanceMatrix.needsUpdate = mobils.instanceMatrix.needsUpdate = true;
+
+    // pins
+    PINS.forEach((p, i) => {
+      const c = COTES[rang(p.z)], dans = v.campingDeplace && p.x > 512 && p.x < 652 && p.z > -336 && p.z < -224;
+      if (p.x - ondulation(p.z) < c.F + 6 || dans) { cacher(troncs, i); cacher(houppes, i); return; }
+      const y = hPoint(p.x, p.z) * EXAG - .5;
+      poser(troncs, i, p.x, y, p.z, 1, p.h, 1);
+      poser(houppes, i, p.x, y + p.h + p.r * .3, p.z, p.r, p.r * .8, p.r * .9, p.ry);
+    });
+    troncs.count = houppes.count = PINS.length;
+    troncs.instanceMatrix.needsUpdate = houppes.instanceMatrix.needsUpdate = true;
+
+    // oyats et ganivelles
+    OYATS.forEach(([xl, z, refait], i) => {
+      const c = COTES[rang(z)], o = ondulation(z);
+      const ok = refait ? v.terrain === "dune" && xl > c.F + 2 : xl > Math.max(c.F, F0) + 3 && xl < 172;
+      if (!ok) { cacher(oyats, i); return; }
+      poser(oyats, i, xl + o, hPoint(xl + o, z) * EXAG - .3, z, 1, .8 + hash2(i, 3) * .6, 1, i);
+    });
+    oyats.instanceMatrix.needsUpdate = true;
+    GANIV.forEach(([xl, z], i) => {
+      if (v.terrain === "dune" && xl > COTES[rang(z)].F + 2) poser(ganivelles, i, xl, hPoint(xl, z) * EXAG - .2, z, .18, 1.7, .18);
+      else cacher(ganivelles, i);
+    });
+    ganivelles.instanceMatrix.needsUpdate = true;
+
+    // enrochement
+    ROCHES.forEach((r, i) => {
+      if (!v.mur || v.digue != null) { cacher(roches, i); return; }
+      const c = COTES[rang(r.z)], o = ondulation(r.z);
+      let x = c.bord + r.t * (c.pied - c.bord) + o, y = (1.8 + r.couche * 1.6) * EXAG;
+      if (v.mur.etat === "abime" && r.roule) { x -= 8 + r.t * 14; y = .8; }
+      poser(roches, i, x, y, r.z, r.s * 1.3, r.s, r.s * 1.2, r.ry);
+    });
+    roches.instanceMatrix.needsUpdate = true;
+
+    // mur d'urgence, digue, drague
+    murUrg.visible = v.murUrgence != null;
+    if (murUrg.visible) { murUrg.position.set(v.murUrgence, 2 * EXAG, -46); murUrg.rotation.z = v.annee > 2014.4 ? .16 : 0; }
+    if (v.digue != null) { if (digueX !== v.digue) construireDigue(v.digue); digue.visible = true; } else digue.visible = false;
+    drague.visible = !!v.recharge && !v.tempete && v.annee < 2014;
+    if (drague.visible) {
+      const c = COTES[rang(-300)], R = c.R + ondulation(-300);
+      drague.position.set(R - 120, 0, -300);
+      tuyau.scale.set(1, 110, 1); tuyau.position.set(60, 1, 0);
+    }
+
+    // parasols
+    const nPar = v.tempete && v.etape === 4 && v.phase === "situation" ? 0 : Math.round((S.j.recettes || 0) * 5);
+    PARASOLS.forEach((p, i) => {
+      const c = COTES[rang(p.z)], o = ondulation(p.z), largeur = c.bord - c.R;
+      if (i >= nPar || largeur < 18) { cacher(mats, i); cacher(toiles, i); return; }
+      const x = c.R + 8 + p.t * (largeur - 12) + o, y = hPoint(x, p.z) * EXAG;
+      poser(mats, i, x, y, p.z, 1, 1, 1); poser(toiles, i, x, y, p.z, 1, 1, 1);
+    });
+    mats.instanceMatrix.needsUpdate = toiles.instanceMatrix.needsUpdate = true;
+
+    // lignes
+    const P67 = l1967.geometry.attributes.position.array;
+    for (let j = 0; j < NZ; j++) { const z = ZMIN + j * PAS_Z, x = F0 + ondulation(z); P67.set([x, Math.max(hPoint(x, z), 0) * EXAG + .5, z], j * 3); }
+    l1967.geometry.attributes.position.needsUpdate = true; l1967.computeLineDistances();
+    l2064.visible = bande.visible = !!v.projection && v.digue == null;
+    if (l2064.visible) {
+      const lim = limite2064(v), PL = l2064.geometry.attributes.position.array, PB = bande.geometry.attributes.position.array;
+      for (let j = 0; j < NZ; j++) {
+        const z = ZMIN + j * PAS_Z, o = ondulation(z), xc = COTES[j].F + o, x = Math.max(lim + o, xc + 1);
+        PL.set([x, hPoint(x, z) * EXAG + .8, z], j * 3);
+        PB.set([xc, hPoint(xc, z) * EXAG + .5, z, x, hPoint(x, z) * EXAG + .5, z], j * 6);
+      }
+      l2064.geometry.attributes.position.needsUpdate = true; l2064.computeLineDistances();
+      bande.geometry.attributes.position.needsUpdate = true;
+    }
+    const e = premier(v);
+    mesure.visible = !!(e && e.x - v.F < 380 && !v.final);
+    let pMesure = null;
+    if (mesure.visible) {
+      const yh = (Math.max(hPoint(v.F, Z_SIGNAL), hPoint(e.x, Z_SIGNAL)) + 14) * EXAG;
+      mesure.geometry.attributes.position.array.set([v.F, hPoint(v.F, Z_SIGNAL) * EXAG, Z_SIGNAL, v.F, yh, Z_SIGNAL, e.x, yh, Z_SIGNAL, e.x, hPoint(e.x, Z_SIGNAL) * EXAG + 2, Z_SIGNAL]);
+      mesure.geometry.attributes.position.needsUpdate = true;
+      pMesure = [(v.F + e.x) / 2, yh + 3, Z_SIGNAL];
+    }
+
+    // étiquettes
+    const cS = COTES[rang(-380)], oS = ondulation(-380);
+    etq("ocean", "Océan Atlantique", [Math.min(-120, cS.R - 120), 2, -420]);
+    etq("plage", "plage", cS.bord - cS.R > 18 ? [(cS.R + cS.bord) / 2 + oS, 4, -380] : null);
+    etq("dune", "dune", COTES[rang(-470)].F < 150 ? [COTES[rang(-470)].F + 30 + ondulation(-470), (solBrut(COTES[rang(-470)].F + 30, -470) + 3) * EXAG, -470] : null);
+    etq("falaise", "falaise de sable", v.F > 120 && !v.mur && v.digue == null ? [v.F - 4, (solBrut(v.F, -120) + 2) * EXAG, -120] : null);
+    etq("signal", v.frontEtat === "evacue" ? "Le Signal (évacué)" : "Le Signal", sig ? [211, signal.position.y + 15 * EXAG + 6, Z_SIGNAL] : null);
+    etq("poste", "parking, poste de secours", posteOk ? [215, poste.position.y + 10, -32] : (v.terrain === "parking" && parking6.visible ? [220, 12, -30] : null));
+    if (v.terrain === "parking" && parking6.visible && !posteOk) ETIQ.poste.e.textContent = ETIQ.poste.txt = "parking";
+    etq("boulevard", v.routeDeplacee ? "route déplacée" : "bd du Front-de-Mer", v.routeDeplacee ? [425, 12, -250] : (boulevard.userData.visibles[70] ? [245, 14, -490] : null));
+    etq("ville", "centre-ville", [470, 30, -640]);
+    etq("basilique", "basilique", [520, yB + 46 * EXAG, -588]);
+    etq("camping", v.campingDeplace ? "camping déplacé" : "camping", (270 + dxC) - ondulation(-280) > COTES[rang(-280)].F + 3 ? [330 + dxC, 14, -280] : null);
+    etq("lotissement", "lotissement (après 2010)", v.lotissement && 282 > COTES[rang(-120)].F + 2 ? [305, 22, -125] : null);
+    etq("foret", "forêt de pins", [560, 36, -200]);
+    etq("terres", "immeuble", v.signalTerres ? [511, immTerres.position.y + 15 * EXAG + 6, -40] : null);
+    etq("neuf", "nouvel immeuble", v.reconstruit ? [541, immNeuf.position.y + 15 * EXAG + 6, -120] : null);
+    etq("t1967", "trait de côte 1967", [F0 + ondulation(-630), 6, -630]);
+    etq("enroch", "enrochement", v.mur && v.digue == null ? [COTES[rang(-40)].pied - 6, 12, -60] : null);
+    etq("digue", "digue", v.digue != null ? [v.digue, 18, -220] : null);
+    etq("murU", "mur d'urgence", v.murUrgence != null ? [v.murUrgence, 14, -80] : null);
+    etq("t2064", v.interdit ? "inconstructible jusqu'ici" : "2064 ?", l2064.visible ? [limite2064(v) + ondulation(-560), 10, -560] : null);
+    etq("mesure", e ? `dune ↔ ${e.nom.replace(/^l'|^le |^la /, "")} : ≈ ${r0(e.x - v.F)} m` : "", pMesure);
+    dureeMaj = performance.now() - tDebut;
+  }
+
+  /* ---------- Boucle d'animation ---------- */
+  let t0 = performance.now(), tPrec = t0, eclair = 0, prochainEclair = 3, lent = 0, images = 0, qualiteBaissee = false;
+  function taille() {
+    const w = hote.clientWidth, h = hote.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    canvas.style.width = w + "px"; canvas.style.height = h + "px";
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(taille).observe(hote);
+  const vtmp = new THREE.Vector3();
+  const PRIORITE = ["mesure", "signal", "t2064", "enroch", "digue", "murU", "falaise", "poste", "lotissement", "terres", "neuf", "plage", "dune", "boulevard", "t1967", "camping", "ocean", "ville", "basilique", "foret"];
+  function placerEtiquettes() {
+    const w = hote.clientWidth, h = hote.clientHeight, poses = [];
+    for (const id of PRIORITE) {
+      const o = ETIQ[id];
+      if (!o.p) { o.e.style.display = "none"; continue; }
+      vtmp.set(o.p[0], o.p[1], o.p[2]).project(camera);
+      if (vtmp.z > 1 || vtmp.x < -1.05 || vtmp.x > 1.05 || vtmp.y < -1.05 || vtmp.y > 1.05) { o.e.style.display = "none"; continue; }
+      const x = (vtmp.x + 1) / 2 * w, y = (1 - vtmp.y) / 2 * h;
+      if (!o.lw || o.txtMesure !== o.txt) { o.e.style.display = ""; o.lw = o.e.offsetWidth; o.lh = o.e.offsetHeight; o.txtMesure = o.txt; }
+      const r = { g: x - o.lw / 2 - 3, d: x + o.lw / 2 + 3, h: y - o.lh - 2, b: y + 2 };
+      if (poses.some(q => r.g < q.d && r.d > q.g && r.h < q.b && r.b > q.h)) { o.e.style.display = "none"; continue; }
+      poses.push(r);
+      o.e.style.display = "";
+      o.e.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -100%)`;
+    }
+    // boussole : direction du nord à l'écran
+    const a = vtmp.set(cam.c.x, 0, cam.c.z).project(camera), ax = a.x, ay = a.y;
+    const b = vtmp.set(cam.c.x, 0, cam.c.z - 100).project(camera);
+    const ang = Math.atan2(-(b.y - ay) * h, (b.x - ax) * w);
+    if (boussole) boussole.style.transform = `rotate(${(ang * 180 / Math.PI + 90).toFixed(1)}deg)`;
+  }
+  const boussole = document.getElementById("boussole");
+  function boucle(now) {
+    requestAnimationFrame(boucle);
+    const dt = Math.min(.05, (now - tPrec) / 1000); tPrec = now;
+    const t = (now - t0) / 1000;
+    if (!document.hidden && hote.clientWidth === 0) return;
+    // réglage automatique : si l'ordinateur peine, on enlève les ombres
+    if (!qualiteBaissee && images < 120) { images++; if (dt > .045) lent++; if (images === 120 && lent > 50) { qualiteBaissee = true; renderer.shadowMap.enabled = false; soleil.castShadow = false; renderer.setPixelRatio(1); taille(); } }
+    if (vers) {
+      const k = Math.min(1, (now - vers.t0) / 1000), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      cam.c.lerpVectors(vers.de.c, vers.but.c, e); cam.r = lerp(vers.de.r, vers.but.r, e);
+      let dth = vers.but.th - vers.de.th; dth = Math.atan2(Math.sin(dth), Math.cos(dth));
+      cam.th = vers.de.th + dth * e; cam.ph = lerp(vers.de.ph, vers.but.ph, e);
+      if (k >= 1) vers = null;
+      appliquerCamera();
+    }
+    if (sale && Vcourant) { reconstruire(Vcourant); sale = false; }
+    // tempête
+    const cible = orage ? 1 : 0;
+    const f = scene.userData.f = lerp(scene.userData.f || 0, cible, Math.min(1, dt * 2));
+    scene.background.copy(CIEL).lerp(CIEL_ORAGE, f); scene.fog.color.copy(scene.background);
+    scene.fog.near = lerp(1500, 500, f); scene.fog.far = lerp(3400, 2000, f);
+    hemi.intensity = lerp(.78, .42, f); soleil.intensity = lerp(.85, .25, f);
+    matMer.color.setRGB(lerp(.184, .2, f), lerp(.498, .33, f), lerp(.635, .38, f));
+    matDrapeau.color.set(f > .5 ? 0xc0392b : 0x2f9a4f);
+    pluie.visible = f > .05; pluie.material.opacity = .5 * f;
+    if (pluie.visible) { pluie.position.y = -((t * 220) % 260); pluie.position.x = (t * 25) % 30; }
+    if (orage && !reduit) { prochainEclair -= dt; if (prochainEclair <= 0) { eclair = .12; prochainEclair = 4 + Math.random() * 5; } }
+    if (eclair > 0) { eclair -= dt; hemi.intensity = 1.7; }
+    // vagues
+    if (!reduit) {
+      const A = lerp(.35, 1.3, f), P = geoMer.attributes.position.array;
+      for (let i = 0; i < P.length; i += 3) {
+        const x = merBase[i], z = merBase[i + 2];
+        P[i + 1] = A * (.6 * Math.sin(.045 * x + 1.7 * t) + .4 * Math.sin(.03 * (x * .7 + z * .7) + 1.1 * t) + .25 * Math.sin(.11 * z + 2.3 * t));
+      }
+      geoMer.attributes.position.needsUpdate = true;
+      if (COTES[0]) {
+        const cycle = (t * .22) % 1;
+        majFrange(deferlante, 26 * (1 - cycle), 3 + 4 * f, .35 + A * .4);
+        deferlante.material.opacity = .65 * Math.sin(Math.PI * cycle);
+        frange.material.opacity = .6 + .25 * Math.sin(t * 1.4);
+      }
+      goelands.forEach(g => {
+        const u = g.userData, a = u.ph + t * u.v;
+        g.position.set(-20 + Math.cos(a) * u.r, u.y + Math.sin(t * .7 + u.ph) * 4, -320 + Math.sin(a) * u.r * 1.6);
+        g.rotation.y = -a; u.ailes[0].rotation.z = .4 * Math.sin(t * 6 + u.ph); u.ailes[1].rotation.z = -.4 * Math.sin(t * 6 + u.ph);
+        g.visible = f < .5;
+      });
+      // voitures sur la partie de route encore debout
+      const route = Vcourant && Vcourant.routeDeplacee ? routeNeuve : boulevard, vis = route.userData.visibles || [];
+      voitures.forEach((car, i) => {
+        const n = vis.length; if (!n) { car.visible = false; return; }
+        const u = car.userData; u.t = (u.t + dt * .02) % 1;
+        const s = Math.floor((u.sens > 0 ? u.t : 1 - u.t) * (n - 1));
+        car.visible = !!vis[s] && f < .5;
+        const Pr = route.geometry.attributes.position.array;
+        car.position.set(Pr[s * 6] + (u.sens > 0 ? 2.5 : 6.5), Pr[s * 6 + 1], Pr[s * 6 + 2]);
+      });
+    }
+    // bâtiments qui apparaissent ou disparaissent
+    for (const o of [signal, immTerres, immNeuf, poste]) {
+      const u = o.userData; u.k = reduit ? u.cible : lerp(u.k, u.cible, Math.min(1, dt * (u.cible ? 2.2 : 1.6)));
+      o.visible = u.k > .02; o.scale.y = Math.max(.001, u.k);
+    }
+    if (tPoussiere >= 0) {
+      tPoussiere += dt;
+      for (let i = 0; i < np; i++) { pd[i * 3] += vit[i][0] * dt * 12; pd[i * 3 + 1] += vit[i][1] * dt * 8; pd[i * 3 + 2] += vit[i][2] * dt * 12; }
+      geoPoussiere.attributes.position.needsUpdate = true;
+      poussiere.material.opacity = Math.max(0, .8 - tPoussiere / 3);
+      if (tPoussiere > 3) { tPoussiere = -1; poussiere.visible = false; }
+    }
+    renderer.render(scene, camera);
+    placerEtiquettes();
+  }
+  taille();
+  allerVue("ensemble", true);
+  requestAnimationFrame(boucle);
+
+  return {
+    maj,
+    allerVue,
+    vue: () => vueCourante,
+    duree: () => dureeMaj,
+    orage(o) { orage = o; },
+    etiquettes(on) { calques.hidden = !on; },
+    capture(nom) {   // image de la maquette pour le bilan
+      const sauve = { c: cam.c.clone(), r: cam.r, th: cam.th, ph: cam.ph }, vueAvant = vueCourante;
+      allerVue(nom, true);
+      if (sale && Vcourant) { reconstruire(Vcourant); sale = false; }
+      for (const o of [signal, immTerres, immNeuf, poste]) { o.userData.k = o.userData.cible; o.visible = o.userData.k > .02; o.scale.y = Math.max(.001, o.userData.k); }
+      renderer.render(scene, camera);
+      const url = canvas.toDataURL("image/jpeg", .86);
+      cam.c.copy(sauve.c); cam.r = sauve.r; cam.th = sauve.th; cam.ph = sauve.ph; appliquerCamera();
+      vueCourante = vueAvant;
+      document.querySelectorAll("[data-vue]").forEach(b => b.setAttribute("aria-pressed", b.dataset.vue === vueAvant ? "true" : "false"));
+      return url;
+    },
+  };
+}
+
+/* =====================================================================
+   Dessins : documents
+   ===================================================================== */
+function carteFrance() {
+  const s = proj(-1.13, 45.51), b = proj(-0.58, 44.84), p = proj(2.35, 48.86);
+  return `<svg viewBox="40 40 920 880" role="img" aria-label="Carte de France : Soulac-sur-Mer à la pointe du Médoc">
+    <rect x="40" y="40" width="920" height="880" fill="var(--mer)"/>
+    <path d="${TERRE}" fill="var(--sable)" stroke="var(--trait)" stroke-width="1.6"/>
+    <circle cx="${p[0]}" cy="${p[1]}" r="9" fill="var(--sc-ink)"/><text x="${p[0] + 16}" y="${p[1] + 10}" font-size="34" fill="var(--sc-ink)" font-family="var(--font)">Paris</text>
+    <circle cx="${b[0]}" cy="${b[1]}" r="8" fill="var(--sc-ink)"/><text x="${b[0] + 14}" y="${b[1] + 26}" font-size="32" fill="var(--sc-ink)" font-family="var(--font)">Bordeaux</text>
+    <circle cx="${s[0]}" cy="${s[1]}" r="22" fill="none" stroke="var(--zone)" stroke-width="7"/><circle cx="${s[0]}" cy="${s[1]}" r="8" fill="var(--zone)"/>
+    <text x="${s[0] + 30}" y="${s[1] + 4}" font-size="40" font-weight="700" fill="var(--zone)" font-family="var(--font)" paint-order="stroke" stroke="var(--sable)" stroke-width="8">Soulac-sur-Mer</text>
+    <text x="60" y="636" font-size="30" fill="#F4FAFC" font-family="var(--font)" font-weight="700" letter-spacing="2">OCÉAN</text><text x="60" y="672" font-size="30" fill="#F4FAFC" font-family="var(--font)" font-weight="700" letter-spacing="2">ATLANTIQUE</text>
+  </svg>`;
+}
+function carteRegion() {
+  const pt = (lon, lat) => proj(lon, lat);
+  const s = pt(-1.13, 45.51), f = pt(-1.317, 46.333), b = pt(-0.58, 44.84), lr = pt(-1.15, 46.16);
+  return `<svg viewBox="200 448 180 172" role="img" aria-label="Carte : La Faute-sur-Mer, à environ 90 km au nord de Soulac">
+    <rect x="200" y="448" width="180" height="172" fill="var(--mer)"/>
+    <path d="${TERRE}" fill="var(--sable)" stroke="var(--trait)" stroke-width=".5"/>
+    <path d="M${f[0]} ${f[1] + 4} L${s[0] - 1} ${s[1] - 4}" stroke="var(--sc-ink)" stroke-width="1" stroke-dasharray="3 2"/>
+    <text x="${(f[0] + s[0]) / 2 - 4}" y="${(f[1] + s[1]) / 2}" font-size="7.5" font-weight="700" fill="var(--sc-ink)" font-family="var(--font)" text-anchor="end">≈ 90 km</text>
+    <circle cx="${f[0]}" cy="${f[1]}" r="3" fill="var(--zone)"/><text x="${f[0] + 5}" y="${f[1] - 3}" font-size="8" font-weight="700" fill="var(--zone)" font-family="var(--font)">La Faute-sur-Mer</text>
+    <circle cx="${lr[0]}" cy="${lr[1]}" r="1.8" fill="var(--sc-ink)"/><text x="${lr[0] + 4}" y="${lr[1] + 3}" font-size="7" fill="var(--sc-ink)" font-family="var(--font)">La Rochelle</text>
+    <circle cx="${s[0]}" cy="${s[1]}" r="3" fill="var(--sc-titre)"/><text x="${s[0] + 5}" y="${s[1] + 3}" font-size="8" font-weight="700" fill="var(--sc-titre)" font-family="var(--font)">Soulac</text>
+    <circle cx="${b[0]}" cy="${b[1]}" r="1.8" fill="var(--sc-ink)"/><text x="${b[0] + 4}" y="${b[1] + 3}" font-size="7" fill="var(--sc-ink)" font-family="var(--font)">Bordeaux</text>
+    <text x="206" y="545" font-size="7" font-weight="700" fill="#F4FAFC" font-family="var(--font)" letter-spacing="1">OCÉAN</text><text x="206" y="554" font-size="7" font-weight="700" fill="#F4FAFC" font-family="var(--font)" letter-spacing="1">ATLANTIQUE</text>
+    <text x="352" y="482" font-size="7" fill="var(--sc-muted)" font-family="var(--font)" text-anchor="middle">Vendée</text>
+  </svg>`;
+}
+function visuelProjet() {
+  let fen = "";
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 6; c++) fen += `<rect x="${212 + c * 14}" y="${44 + r * 16}" width="8" height="8" fill="var(--vitre)"/>`;
+  return `<svg viewBox="0 0 340 150" role="img" aria-label="Le projet : 78 logements sur 4 étages à 200 m du rivage">
+    <rect width="340" height="150" fill="var(--ciel-bas)"/>
+    <path d="M0 122h70" stroke="var(--mer)" stroke-width="14"/><path d="M0 116c8-4 12-4 20 0s12 4 20 0 12-4 20 0" stroke="var(--ecume)" stroke-width="2" fill="none"/>
+    <path d="M70 129 C110 126 140 112 165 124 L200 124 L340 124 V150 H0 V129Z" fill="var(--sable)"/>
+    <rect x="205" y="36" width="90" height="88" fill="var(--immeuble)" stroke="var(--trait)" stroke-width="1.5"/>${fen}
+    <path d="M70 26H205" stroke="var(--sc-ink)" stroke-width="1.4"/><path d="M76 21L70 26L76 31M199 21L205 26L199 31" stroke="var(--sc-ink)" stroke-width="1.4" fill="none"/>
+    <text x="137" y="20" font-size="13" font-weight="700" text-anchor="middle" fill="var(--sc-ink)" font-family="var(--font)">≈ 200 m du rivage</text>
+    <text x="250" y="142" font-size="13" font-weight="700" text-anchor="middle" fill="var(--sc-ink)" font-family="var(--font)">78 logements · 4 étages</text>
+    <text x="300" y="60" font-size="11" fill="var(--sc-muted)" font-family="var(--font)">vue</text><text x="300" y="73" font-size="11" fill="var(--sc-muted)" font-family="var(--font)">sur</text><text x="300" y="86" font-size="11" fill="var(--sc-muted)" font-family="var(--font)">l'océan</text>
+  </svg>`;
+}
+function graphiqueTaux() {
+  const X = m => 130 + m * 7.6;
+  const lignes = [
+    { lib: "Moyenne aquitaine", a: 1, b: 3, txt: "1 à 3 m" },
+    { lib: "Gironde et Landes", a: 1.7, b: 2.5, txt: "1,7 à 2,5 m" },
+    { lib: "Maximum en un an", a: 0, b: 6, txt: "6 m" },
+    { lib: "Un hiver de tempêtes", a: 0, b: 25, txt: "jusqu'à 25 m", fort: true },
+  ];
+  let g = "";
+  for (const m of [0, 5, 10, 15, 20, 25]) g += `<path d="M${X(m)} 12V128" stroke="var(--line)" stroke-width="1"/><text x="${X(m)}" y="142" font-size="10.5" text-anchor="middle" fill="var(--caption)" font-family="var(--font)">${m}</text>`;
+  lignes.forEach((l, i) => {
+    const y = 26 + i * 30;
+    g += `<text x="124" y="${y + 4}" font-size="11" text-anchor="end" fill="var(--ink)" font-family="var(--font)">${l.lib}</text>`;
+    g += `<rect x="${X(l.a)}" y="${y - 7}" width="${Math.max(3, X(l.b) - X(l.a))}" height="14" rx="3" fill="${l.fort ? "var(--vermilion)" : "var(--teal)"}"/>`;
+    g += `<text x="${X(l.b) + 5}" y="${y + 4}" font-size="11.5" font-weight="700" fill="var(--ink)" font-family="var(--font)" ${X(l.b) > 300 ? `text-anchor="end" dx="-10" dy="-12"` : ""}>${l.txt}</text>`;
+  });
+  return `<svg viewBox="0 0 340 150" role="img" aria-label="Graphique : recul de la côte en mètres par an">${g}<text x="336" y="142" font-size="10.5" text-anchor="end" fill="var(--caption)" font-family="var(--font)">m</text></svg>`;
+}
+function pictosVictimes() {
+  let g = "";
+  for (let i = 0; i < 47; i++) {
+    const c = i % 12, r = Math.floor(i / 12), x = 14 + c * 26, y = 14 + r * 30;
+    const rouge = i < 29;
+    g += `<g fill="${rouge ? "var(--vermilion)" : "var(--teal)"}"><circle cx="${x + 7}" cy="${y + 5}" r="4.5"/><path d="M${x} ${y + 24}c0-8 3-12 7-12s7 4 7 12z"/></g>`;
+  }
+  return `<svg viewBox="0 0 330 160" role="img" aria-label="47 morts en France, dont 29 à La Faute-sur-Mer">${g}
+    <rect x="14" y="134" width="12" height="12" rx="3" fill="var(--vermilion)"/><text x="32" y="145" font-size="12" font-family="var(--font)" fill="var(--ink)"><tspan font-weight="700">29</tspan> à La Faute-sur-Mer</text>
+    <rect x="186" y="134" width="12" height="12" rx="3" fill="var(--teal)"/><text x="204" y="145" font-size="12" font-family="var(--font)" fill="var(--ink)"><tspan font-weight="700">18</tspan> ailleurs en France</text></svg>`;
+}
+function schemaActeurs() {
+  const boite = (x, y, w, titre, sous, ico) => `<g><rect x="${x}" y="${y}" width="${w}" height="44" rx="9" fill="var(--surface)" stroke="var(--teal)" stroke-width="1.6"/><g transform="translate(${x + 8} ${y + 10}) scale(.75)" color="var(--teal)">${ico.replace('<svg viewBox="0 0 32 32" aria-hidden="true">', "").replace("</svg>", "")}</g><text x="${x + 38}" y="${y + 19}" font-size="12.5" font-weight="700" fill="var(--ink)" font-family="var(--font)">${titre}</text><text x="${x + 38}" y="${y + 34}" font-size="10.5" fill="var(--caption)" font-family="var(--font)">${sous}</text></g>`;
+  const fl = (d, txt, tx, ty, anchor = "middle") => `<path d="${d}" stroke="var(--vermilion)" stroke-width="1.6" fill="none" marker-end="url(#fl-a)"/><text x="${tx}" y="${ty}" font-size="10.5" fill="var(--ink)" font-family="var(--font)" text-anchor="${anchor}">${txt}</text>`;
+  return `<svg viewBox="0 0 340 230" role="img" aria-label="Schéma des acteurs : propriétaires, commune, État, justice">
+    <defs><marker id="fl-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--vermilion)"/></marker></defs>
+    ${boite(70, 4, 200, "Commune", "a accordé le permis (1964)", I.mairie)}
+    ${boite(2, 92, 158, "Copropriétaires", "75, souvent retraités", I.personnes)}
+    ${boite(206, 92, 132, "État", "", I.etat)}
+    ${boite(70, 182, 200, "Justice", "tribunaux, Conseil d'État", I.loupe)}
+    ${fl("M160 104 C178 96 188 96 204 104", "demandent le fonds Barnier", 176, 84)}
+    ${fl("M206 128 C188 138 178 138 162 128", "propose 20 000 € par logement", 184, 156)}
+    ${fl("M50 138 C50 165 56 190 68 200", "saisissent", 58, 168, "start")}
+  </svg>`;
+}
+function pictosCerema() {
+  let g = `<text x="0" y="14" font-size="12.5" font-weight="700" fill="var(--ink)" font-family="var(--font)">2050 : 5 200 logements</text>`;
+  g += `<rect x="0" y="22" width="12" height="12" rx="2" fill="var(--teal)"/><rect x="14" y="22" width="1.2" height="12" fill="var(--teal)"/>`;
+  g += `<text x="0" y="60" font-size="12.5" font-weight="700" fill="var(--ink)" font-family="var(--font)">2100 : 450 000 logements</text>`;
+  for (let i = 0; i < 90; i++) { const c = i % 18, r = Math.floor(i / 18); g += `<rect x="${c * 15}" y="${68 + r * 15}" width="12" height="12" rx="2" fill="var(--vermilion)"/>`; }
+  g += `<rect x="0" y="152" width="12" height="12" rx="2" fill="var(--muted)"/><text x="18" y="162" font-size="11.5" fill="var(--caption)" font-family="var(--font)">1 carré = 5 000 logements</text>`;
+  return `<svg viewBox="-4 0 290 168" role="img" aria-label="5 200 logements menacés en 2050, 450 000 en 2100 si rien n'est fait">${g}</svg>`;
+}
+function croquis2015() {
+  let fen = ""; for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) fen += `<rect x="${178 + c * 15}" y="${36 + r * 15}" width="8" height="8" fill="var(--vitre-vide)"/>`;
+  return `<svg viewBox="0 0 320 180" role="img" aria-label="Croquis : l'immeuble au bord d'une falaise de sable, la mer au pied">
+    <rect width="320" height="180" fill="var(--ciel-bas)"/>
+    <path d="M0 132c20-6 30-6 50 0s30 6 50 0 30-6 50 0V180H0z" fill="var(--mer)"/><path d="M0 128c20-6 30-6 50 0s30 6 50 0 30-6 50 0" stroke="var(--ecume)" stroke-width="2.5" fill="none"/>
+    <path d="M120 180 L140 140 L150 112 L162 108 L162 112 H320 V180Z" fill="var(--sable)"/><path d="M140 140 L150 112 L162 108" stroke="var(--sable-mouille)" stroke-width="3" fill="none"/>
+    <rect x="170" y="28" width="86" height="84" fill="var(--immeuble)" stroke="var(--trait)" stroke-width="1.5"/>${fen}
+    <path d="M150 112l6 8M146 124l8 4" stroke="var(--trait)" stroke-width="1.2"/>
+  </svg>`;
+}
+function croquis2021() {
+  let fen = ""; for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) fen += `<rect x="${92 + c * 16}" y="${52 + r * 15}" width="8" height="8" fill="var(--vitre-vide)"/>`;
+  let gan = ""; for (let i = 0; i < 16; i++) gan += `<path d="M${30 + i * 14} ${150 - i * 2}v-9" stroke="var(--tronc)" stroke-width="2"/>`;
+  return `<svg viewBox="0 0 320 180" role="img" aria-label="Croquis : l'immeuble vide et tagué sur la dune, des ganivelles en bas">
+    <rect width="320" height="180" fill="var(--ciel-bas)"/>
+    <path d="M220 118h100v8H220z" fill="var(--mer)"/>
+    <path d="M0 180V124 C40 112 70 108 90 112 L170 112 C200 116 220 122 320 126 V180Z" fill="var(--sable)"/>
+    <rect x="84" y="44" width="76" height="68" fill="var(--immeuble)" stroke="var(--trait)" stroke-width="1.5"/>${fen}
+    <path d="M150 60c4 6-4 10 0 16s-4 10 0 16" stroke="var(--vermilion)" stroke-width="2" fill="none"/>
+    ${gan}<path d="M24 152 L250 120" stroke="var(--tronc)" stroke-width="1.2"/>
+  </svg>`;
+}
+
+/* =====================================================================
+   Rendu
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+let VIS = null;      // état dessiné (interpolé pendant les animations)
+let anim = 0;
+
+function phys(s) {
+  return JSON.parse(JSON.stringify({
+    F: s.F, Fb: s.Fb, plage: s.plage, annee: s.annee, mur: s.mur, murUrgence: s.murUrgence, digue: s.digue,
+    recharge: s.recharge, tempete: s.tempete, front: s.front, frontEtat: s.frontEtat, signalTerres: s.signalTerres,
+    lotissement: s.lotissement, terrain: s.terrain, reconstruit: s.reconstruit, routeDeplacee: s.routeDeplacee,
+    campingDeplace: s.campingDeplace, interdit: s.interdit, etape: s.etape, phase: s.phase,
+    projection: s.projection !== undefined ? s.projection : s.etape === 7 && s.phase === "situation",
+    final: !!s.final,
+  }));
+}
+function interp(a, b, e) {
+  const r = phys(e < .5 ? a : b);
+  for (const k of ["F", "Fb", "plage", "annee"]) r[k] = a[k] + (b[k] - a[k]) * e;
+  if (a.mur && b.mur) r.mur.x = a.mur.x + (b.mur.x - a.mur.x) * e;
+  return r;
+}
+function animer(de, vers, duree = 1500) {
+  cancelAnimationFrame(anim);
+  if (reduit) { VIS = vers; dessinerScenes(); return; }
+  const t0 = performance.now();
+  const pas = now => {
+    const k = Math.min(1, (now - t0) / duree), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    VIS = interp(de, vers, e);
+    dessinerScenes();
+    if (k < 1) anim = requestAnimationFrame(pas);
+  };
+  anim = requestAnimationFrame(pas);
+}
+
+let R3 = null;      // la maquette 3D (null si la 3D est indisponible)
+const VUE_ETAPE = { 1: "ensemble", 2: "signal", 3: "ensemble", 4: "signal", 5: "signal", 6: "signal", 7: "ensemble" };
+function preparerScenes() {
+  try { R3 = creerMoteur3D($("vue3d"), $("etiquettes")); } catch (e) { R3 = null; }
+  $("chargement").hidden = true;
+  if (!R3) montrerSecours();
+}
+function montrerSecours() {
+  $("secours").hidden = false;
+  $("secours").innerHTML = `<div class="secours-carte"><b>La maquette 3D ne peut pas s'afficher ici.</b>
+    <p>Ce navigateur ne gère pas la 3D (WebGL), ou la bibliothèque 3D n'a pas pu se charger. Le jeu reste jouable : étapes, documents, jauges et bilan fonctionnent.</p>
+    <a class="btn" href="${LIEN_2D}">Ouvrir la version 2D</a></div>`;
+}
+function dessinerScenes() {
+  $("annee").textContent = Math.round(VIS.annee);
+  if (R3) { R3.orage(S.etape === 4 && S.phase === "situation"); R3.maj(VIS); }
+  $("leg-2064").hidden = !VIS.projection;
+}
+
+const JAUGES = [
+  { k: "secu", nom: "Sécurité des habitants", ico: "bouclier" },
+  { k: "recettes", nom: "Recettes touristiques", ico: "parasol" },
+  { k: "budget", nom: "Budget de la commune", ico: "euro" },
+  { k: "nature", nom: "Nature : dune et plage", ico: "oyat" },
+];
+function htmlJauges(s, avecDeltas) {
+  let o = `<p class="vtitre">Jauges de la commune</p>`;
+  for (const j of JAUGES) {
+    const v = s.j[j.k], d = avecDeltas && s.deltas ? s.deltas[j.k] : 0;
+    o += `<div class="jauge ${v <= 3 ? "bas" : ""}" role="meter" aria-label="${j.nom}" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${v}">
+      <span class="j-ico">${I[j.ico]}</span><span class="j-nom">${j.nom}</span>
+      <span class="j-delta ${d > 0 ? "plus" : d < 0 ? "moins" : ""}">${d ? (d > 0 ? "+" : "−") + Math.abs(d) : ""}</span>
+      <span class="j-barre">${Array.from({ length: 10 }, (_, i) => `<i class="${i < v ? "on" : ""}"></i>`).join("")}</span></div>`;
+  }
+  const n = logementsExposes(s), d = avecDeltas ? s.dexpo : 0;
+  o += `<div class="jauge expo ${n >= 30 ? "bas" : ""}"><span class="j-ico">${I.expo}</span><span class="j-nom">Logements exposés</span>
+    <span class="j-delta ${d < 0 ? "plus" : d > 0 ? "moins" : ""}">${d ? (d > 0 ? "+" : "−") + Math.abs(d) : ""}</span>
+    <span class="j-chiffre"><b>${n}</b>que la mer peut atteindre d'ici 2064</span></div>`;
+  return o;
+}
+function dessinerJauges() { $("jauges").innerHTML = htmlJauges(S, S.phase === "consequence"); }
+
+/* Frise à l'échelle : les périodes des étapes sont des bandes ; les numéros sont posés
+   au-dessus, écartés quand ils se chevauchent (2010-2023 est serré). */
+function dessinerFrise() {
+  const piste = $("frise"), W = piste.clientWidth || 600;
+  const X = an => (an - 1964) / 100 * W;
+  let o = `<div class="f-axe"></div><div class="f-futur" style="left:${X(2026).toFixed(1)}px"></div>`;
+  for (const a of [1964, 1980, 2000, 2040, 2064]) o += `<span class="f-tick ${a === 1980 || a === 2040 ? "option" : ""}" style="left:${X(a).toFixed(1)}px">${a}</span>`;
+  o += `<span class="f-tick auj" style="left:${X(2026).toFixed(1)}px">aujourd'hui</span>`;
+  const etats = ETAPES.map((e, i) => { const n = i + 1; return n < S.etape || (n === S.etape && S.phase !== "situation") ? "fait" : n === S.etape ? "cours" : ""; });
+  ETAPES.forEach((e, i) => { o += `<span class="f-bande ${etats[i]}" style="left:${X(e.debut).toFixed(1)}px;width:${Math.max(4, X(e.fin) - X(e.debut)).toFixed(1)}px"></span>`; });
+  const c = ETAPES.map(e => X((e.debut + e.fin) / 2));
+  for (let i = 1; i < c.length; i++) c[i] = Math.max(c[i], c[i - 1] + 24);
+  c[c.length - 1] = Math.min(c[c.length - 1], W - 11);
+  for (let i = c.length - 2; i >= 0; i--) c[i] = Math.min(c[i], c[i + 1] - 24);
+  ETAPES.forEach((e, i) => { o += `<span class="f-pt ${etats[i]}" style="left:${c[i].toFixed(1)}px" title="Étape ${i + 1} · ${e.an} · ${e.titre}">${i + 1}</span>`; });
+  piste.innerHTML = o;
+}
+window.addEventListener("resize", () => dessinerFrise());
+
+function htmlDoc(cleDoc, i) {
+  const d = DOCS[cleDoc]();
+  let corps = "";
+  if (d.citation) corps = `<blockquote><p>« ${d.citation} »</p></blockquote>`;
+  if (d.visuel) corps = `<div class="doc-visuel">${d.visuel}</div>`;
+  if (d.photo) {
+    const p = PHOTOS[d.photo];
+    return `<figure class="doc"><p class="doc-type">Document ${i + 1} · ${d.type}</p><h3>${p.titre}</h3>
+      <div class="photo-cadre" data-photo="${d.photo}">${d.croquis}<span class="croquis-tag">croquis</span></div>
+      <figcaption><span>${p.credit}.</span><span><a href="${p.url}" target="_blank" rel="noopener">Voir la photo sur Wikimedia Commons ↗</a></span></figcaption></figure>`;
+  }
+  return `<figure class="doc"><p class="doc-type">Document ${i + 1} · ${d.type}</p>${d.titre ? `<h3>${d.titre}</h3>` : ""}${corps}
+    <figcaption>${d.leg ? `<span class="leg">${d.leg}</span>` : ""}<span>Source : ${d.source}</span></figcaption></figure>`;
+}
+function chargerPhotos(racine) {
+  racine.querySelectorAll(".photo-cadre[data-photo]").forEach(cadre => {
+    const p = PHOTOS[cadre.dataset.photo];
+    if (!p.fichier) return;
+    const img = new Image();
+    img.alt = p.titre;
+    img.onload = () => { cadre.innerHTML = ""; cadre.appendChild(img); };
+    img.src = p.fichier;
+  });
+}
+
+function dessinerPanneau() {
+  const e = ETAPES[S.etape - 1];
+  if (!e) { $("panneau").innerHTML = ""; return; }
+  const choix = e.choix(S);
+  let o = `<div class="p-corps">
+    <p class="p-tag">Étape ${S.etape}/7 · ${e.an}${e.rappel ? `<span class="rappel">rappel</span>` : ""}</p>
+    <h2>${e.titre}</h2>
+    <div class="situation">${S.situationFigee || e.situation(S)}</div>`;
+  const chez = S.chezFige !== undefined ? S.chezFige : (e.chez ? e.chez(S) : "");
+  if (chez) o += `<p class="chez">${I.loupe}<span><b>Chez vous :</b> ${chez}</span></p>`;
+  o += `<div class="docs">${e.docs.map(htmlDoc).join("")}</div>`;
+  o += `<div class="choix" role="group" aria-label="Votre décision"><p class="choix-titre">Votre décision, madame ou monsieur le maire</p>`;
+  for (const c of choix) {
+    const choisi = S.choix[e.cle] === c.id;
+    o += `<button type="button" class="opt ${choisi ? "choisi" : ""}" data-choix="${c.id}" ${S.phase === "consequence" ? "disabled" : ""}>${I[c.icone]}<b>${c.label}</b><small>${c.aide}</small></button>`;
+  }
+  o += `</div>`;
+  if (S.phase === "consequence") {
+    const lis = [];
+    for (const j of JAUGES) { const d = S.deltas && S.deltas[j.k]; if (d) lis.push(`<li class="${d > 0 ? "plus" : "moins"}">${j.nom} ${d > 0 ? "+" : "−"}${Math.abs(d)}</li>`); }
+    if (S.dexpo) lis.push(`<li class="${S.dexpo < 0 ? "plus" : "moins"}">Logements exposés ${S.dexpo > 0 ? "+" : "−"}${Math.abs(S.dexpo)}</li>`);
+    o += `<div class="consequence" id="consequence"><p class="q-tag">Conséquence${S.etape < 7 ? ` · ${S.annee >= 2064 ? 2064 : r0(S.annee)}` : " · 2064"}</p><p>${S.textes[e.cle]}</p>
+      ${lis.length ? `<ul class="bilan-deltas">${lis.join("")}</ul>` : ""}
+      <p class="fiche-note">${I.crayon}<span>Sur votre fiche, ligne ${S.etape} : notez votre choix et sa conséquence.</span></p></div>`;
+    o += S.etape < 7
+      ? `<button type="button" class="btn or grand" id="b-suivant">Étape suivante : ${ETAPES[S.etape].an} →</button>`
+      : `<button type="button" class="btn or grand" id="b-bilan">Voir Soulac en 2064 et ce qui s'est vraiment passé →</button>`;
+  }
+  o += `</div>`;
+  $("panneau").innerHTML = o;
+  chargerPhotos($("panneau"));
+  $("panneau").querySelectorAll("[data-choix]").forEach(b => b.addEventListener("click", () => choisir(b.dataset.choix)));
+  const bs = $("b-suivant"); if (bs) bs.addEventListener("click", suivant);
+  const bb = $("b-bilan"); if (bb) bb.addEventListener("click", ouvrirBilan);
+}
+
+function dessinerCompteur() { $("lex-compte").textContent = `${S.notions.length}/12`; }
+function toutDessiner() { dessinerJauges(); dessinerFrise(); dessinerPanneau(); dessinerCompteur(); }
+
+/* =====================================================================
+   Déroulé
+   ===================================================================== */
+function sauver() { try { localStorage.setItem(CLE, JSON.stringify(S)); } catch (e) { /* stockage indisponible : on continue sans */ } }
+function charger() { try { const t = localStorage.getItem(CLE); return t ? Object.assign(etatInitial(), JSON.parse(t)) : null; } catch (e) { return null; } }
+
+function entrerEtape(n) {
+  const avant = phys(S);
+  S.etape = n; S.phase = "situation"; S.deltas = null; S.dexpo = 0;
+  delete S.situationFigee; delete S.chezFige;
+  const e = ETAPES[n - 1];
+  e.entrer(S);
+  const nouvelles = e.notions.filter(id => !S.notions.includes(id));
+  S.notions.push(...nouvelles);
+  toutDessiner();
+  animer(avant, phys(S), n === 4 ? 2200 : 1500);
+  $("annonce").textContent = `Étape ${n} sur 7, ${e.an} : ${e.titre}`;
+  if (nouvelles.length) toast(`Nouvelle${nouvelles.length > 1 ? "s" : ""} notion${nouvelles.length > 1 ? "s" : ""} dans le lexique : ${nouvelles.map(id => NOTIONS[id].mot).join(", ")}`);
+  $("panneau").scrollTop = 0;
+  if (R3) R3.allerVue(VUE_ETAPE[n]);
+  // sur téléphone, on remonte voir la maquette changer
+  if (window.innerWidth <= 980 && n > 1) document.querySelector(".vue").scrollIntoView({ behavior: reduit ? "auto" : "smooth", block: "start" });
+  sauver();
+}
+function choisir(id) {
+  if (S.phase !== "situation") return;
+  const e = ETAPES[S.etape - 1];
+  const c = e.choix(S).find(x => x.id === id);
+  // on fige le texte de la situation tel qu'il était au moment du choix
+  S.situationFigee = e.situation(S);
+  S.chezFige = e.chez ? e.chez(S) : "";
+  const avant = phys(S), exp0 = logementsExposes(S);
+  S.textes[e.cle] = e.effet(S, id);
+  S.choix[e.cle] = id; S.labels[e.cle] = c.label;
+  S.deltasEtape[e.cle] = Object.assign({}, S.deltas);
+  S.phase = "consequence";
+  S.dexpo = logementsExposes(S) - exp0;
+  toutDessiner();
+  $("annonce").textContent = "Conséquence : " + $("consequence").textContent.replace(/\s+/g, " ").trim();
+  animer(Object.assign(avant, { projection: false }), phys(S), S.etape === 7 ? 2600 : 1500);
+  const q = $("consequence"); if (q) q.scrollIntoView({ behavior: reduit ? "auto" : "smooth", block: "nearest" });
+  sauver();
+}
+function suivant() { if (S.etape < 7) entrerEtape(S.etape + 1); }
+
+function commencer() {
+  S = etatInitial();
+  $("accueil").hidden = true; $("bilan").hidden = true;
+  VIS = phys(S); dessinerScenes();
+  entrerEtape(1);
+}
+function reprendre() {
+  $("accueil").hidden = true;
+  VIS = phys(S); dessinerScenes(); toutDessiner();
+  if (S.phase === "fin") ouvrirBilan();
+}
+
+/* ---------- Écran d'accueil ---------- */
+function ouvrirAccueil() {
+  const sauve = charger();
+  const peutReprendre = sauve && sauve.etape >= 1;
+  $("accueil-contenu").innerHTML = `
+    <div class="carte-accueil">
+      <div class="accueil-texte">
+        <div><p class="niveau">2de · Géographie · Thème 1 · Chapitre 3</p><h1>Soulac 2064</h1></div>
+        <div class="question-depart"><small>Problématique</small><b>Faut-il défendre le littoral ou reculer face à la mer ?</b></div>
+        <p>Vous êtes <b>maire de Soulac-sur-Mer</b>, à la pointe du Médoc (Gironde). De 1964 à 2064, vous prenez <b>7 décisions</b> face à l'océan qui grignote la dune. Le rôle est fictif ; le lieu, les dates, les chiffres et les documents sont réels.</p>
+        <div class="regles">
+          <div class="regle"><b>7 étapes, de 1964 à 2064</b>La frise en bas de l'écran montre où vous en êtes.</div>
+          <div class="regle"><b>De vrais documents</b>Lisez-les avant de décider. Les mots soulignés s'expliquent d'un clic.</div>
+          <div class="regle"><b>Une maquette 3D</b>Elle change selon vos choix. Glissez pour la tourner, zoomez avec la molette ou en pinçant.</div>
+          <div class="regle"><b>À la fin, la réalité</b>Vos choix sont comparés à ce qui s'est vraiment passé.</div>
+        </div>
+        ${peutReprendre ? `<div class="reprise"><span>Une partie est en cours (étape ${sauve.etape}/7).</span><button type="button" class="btn" id="b-reprendre">Reprendre</button><button type="button" class="btn second" id="b-nouvelle">Nouvelle partie</button></div>`
+          : `<button type="button" class="btn or grand" id="b-commencer">Commencer, en binôme</button>`}
+      </div>
+      <div class="accueil-carte">${carteFrance()}<p>Fond de carte : Natural Earth (domaine public).</p><p>La maquette ne s'affiche pas ? <a href="${LIEN_2D}">Version 2D</a>.</p></div>
+    </div>`;
+  $("accueil").hidden = false;
+  if (peutReprendre) {
+    $("b-reprendre").addEventListener("click", () => { S = sauve; reprendre(); });
+    $("b-nouvelle").addEventListener("click", commencer);
+  } else $("b-commencer").addEventListener("click", commencer);
+}
+
+/* ---------- Bilan ---------- */
+function ouvrirBilan() {
+  S.phase = "fin"; sauver();
+  cancelAnimationFrame(anim);
+  const v = phys(S); v.final = true;
+  VIS = v; dessinerScenes();
+  const imgEns = R3 ? R3.capture("ensemble") : "", imgCoupe = R3 ? R3.capture("coupe") : "";
+  const lignes = ETAPES.map((e, i) => {
+    const mien = S.labels[e.cle] || "—";
+    const comp = e.vrai === null ? `<span class="pareil">à vous de juger</span>` : S.choix[e.cle] === e.vrai ? `<span class="pareil">= comme dans la réalité</span>` : `<span class="different">≠ autre choix</span>`;
+    return `<tr><td><b>${i + 1}</b> · ${e.an}</td><td>${mien}<br>${comp}</td><td>${REALITE[i]}</td></tr>`;
+  }).join("");
+  const plageOk = v.plage > 10;
+  const n = logementsExposes(S);
+  $("bilan-contenu").innerHTML = `
+    <div class="bilan-tete"><p class="eyebrow" style="color:var(--vermilion)">Bilan · 1964 → 2064</p><h2>Votre Soulac en 2064</h2><p>Faut-il défendre le littoral ou reculer face à la mer ?</p></div>
+    <div class="carte bloc">
+      ${R3 ? `<div class="bilan-images">
+        <figure><img src="${imgEns}" alt="La maquette de Soulac en 2064, vue d'ensemble"><figcaption>Vue d'ensemble en 2064</figcaption></figure>
+        <figure><img src="${imgCoupe}" alt="Coupe de la plage au droit du Signal en 2064"><figcaption>Coupe au droit du Signal en 2064</figcaption></figure>
+      </div>` : ""}
+        <div class="faits">
+          <div class="bilan-fait"><small>Recul de la dune depuis 1967</small><b>≈ ${r0(S.F - F0)} m</b></div>
+          <div class="bilan-fait"><small>Plage en 2064</small><b>${plageOk ? "encore là" : "disparue"}</b></div>
+          ${JAUGES.map(j => `<div class="bilan-fait"><small>${j.nom}</small><b>${S.j[j.k]}/10</b></div>`).join("")}
+          <div class="bilan-fait"><small>Logements menacés ou atteints par la mer</small><b>${n}</b></div>
+          <div class="bilan-fait"><small>Notions découvertes</small><b>${S.notions.length}/12</b></div>
+        </div>
+    </div>
+    <div class="carte bloc"><h3>Mes choix et ce qui s'est vraiment passé</h3>
+      <div class="tab-wrap"><table class="t"><thead><tr><th>Étape</th><th>Mon choix</th><th>Dans la réalité</th></tr></thead><tbody>${lignes}</tbody></table></div></div>
+    <div class="carte bloc"><h3>Lexique : les 12 notions de l'activité</h3><div class="lexique">${ORDRE_NOTIONS.map(id => `<div class="lex"><b>${NOTIONS[id].mot}</b><p>${NOTIONS[id].def}</p></div>`).join("")}</div></div>
+    <div class="synthese"><small>Question de synthèse · à rédiger sur votre fiche</small><b>Faut-il défendre le littoral ou reculer face à la mer ?</b><p>Répondez en vous appuyant sur l'exemple de Soulac et sur au moins trois notions du lexique.</p></div>
+    <div class="actions"><button type="button" class="btn or" id="b-rejouer">Rejouer avec d'autres choix</button><button type="button" class="btn second" id="b-retour">Revoir la dernière étape</button></div>
+    ${htmlCredits()}`;
+  $("bilan").hidden = false; $("bilan").scrollTop = 0;
+  $("b-rejouer").addEventListener("click", () => demanderRecommencer());
+  $("b-retour").addEventListener("click", () => { $("bilan").hidden = true; S.phase = "consequence"; sauver(); VIS = phys(S); dessinerScenes(); toutDessiner(); });
+}
+function htmlCredits() {
+  return `<details class="credits"><summary>Sources et crédits</summary><ul>
+    <li>${SRC_AFP}</li><li>${SRC_OCA}</li><li>${SRC_CEREMA}</li>
+    <li>Sénat, compte rendu de la séance du 16 mai 2018 (indemnisation des propriétaires du Signal).</li>
+    <li>Photos du Signal sur Wikimedia Commons : ${Object.values(PHOTOS).map(p => `<a href="${p.url}" target="_blank" rel="noopener">${p.credit}</a>`).join(" ; ")}.</li>
+    <li>Fonds de carte : Natural Earth (domaine public). Maquette 3D (bibliothèque three.js, licence MIT) : reconstitution schématique, relief et bâtiments exagérés × 2, distances en ordres de grandeur. Croquis : dessins schématiques.</li>
+  </ul></details>`;
+}
+
+/* ---------- Lexique, notions, fenêtres ---------- */
+function ouvrirModal(html, large) {
+  const b = $("modal-boite");
+  b.className = "boite" + (large ? " large" : "");
+  b.innerHTML = html;
+  $("modal").hidden = false;
+  const x = b.querySelector(".x"); if (x) { x.addEventListener("click", fermerModal); x.focus(); }
+}
+function fermerModal() { $("modal").hidden = true; }
+function ouvrirLexique() {
+  const cartes = ORDRE_NOTIONS.map(id => S.notions.includes(id)
+    ? `<div class="lex"><b>${NOTIONS[id].mot}</b><p>${NOTIONS[id].def}</p></div>`
+    : `<div class="lex cache"><b>?</b><p>Notion à découvrir dans une prochaine étape.</p></div>`).join("");
+  ouvrirModal(`<div class="boite-tete"><h2>Lexique : ${S.notions.length} notions sur 12</h2><button type="button" class="x" aria-label="Fermer">×</button></div>
+    <p>Les notions s'ajoutent au fil des étapes. Recopiez-les sur votre fiche.</p><div class="lexique">${cartes}</div>`, true);
+}
+function ouvrirFicheProf() {
+  ouvrirModal(`<div class="boite-tete"><h2>Fiche prof · Soulac 2064 en 3D</h2><button type="button" class="x" aria-label="Fermer">×</button></div>
+    <h3>Place dans la séquence</h3>
+    <p>2de · Géographie · Thème 1, chapitre 3 « La France : des milieux métropolitains et ultramarins entre valorisation et protection ». Couvre II-A « Des milieux soumis aux risques » et II-B « Une gestion plus durable ». Prolonge ou remplace la p. 2 de l'Act. 2 (Le Signal) et prépare l'Act. 3. Xynthia n'apparaît qu'en rappel : aucune classe n'a besoin de l'avoir étudiée.</p>
+    <h3>Notions</h3>
+    <div class="chips">${ORDRE_NOTIONS.map(id => `<span>${NOTIONS[id].mot}</span>`).join("")}</div>
+    <h3>Déroulé possible (1 h, en binôme)</h3>
+    <div class="tab-wrap"><table class="t"><thead><tr><th>Temps</th><th>Les élèves…</th></tr></thead><tbody>
+      <tr><td>5 min</td><td>lisent l'accueil, localisent Soulac, découvrent la fiche (carnet de bord)</td></tr>
+      <tr><td>20 min</td><td>étapes 1 à 3 : construire, se défendre ou non, prévenir (rappel Xynthia)</td></tr>
+      <tr><td>20 min</td><td>étapes 4 à 6 : la crise de 2014, qui paie, que faire du terrain libéré</td></tr>
+      <tr><td>10 min</td><td>étape 7 et bilan : comparaison avec la réalité, schéma « aléa + enjeux = risque »</td></tr>
+      <tr><td>5 min</td><td>question de synthèse, rédigée sur la fiche</td></tr>
+    </tbody></table></div>
+    <h3>Ce qui est réel, ce qui est simulé</h3>
+    <ul>
+      <li>Réel : le lieu, les dates, les chiffres et les citations (AFP, OCA, Cerema). Aucun maire, préfet ou propriétaire réel n'est nommé ni ne parle.</li>
+      <li>Permis de construire : 1964 (fiche Act. 2) ; construction : 1967 (AFP). Les deux dates sont données.</li>
+      <li>Simulé : les conséquences des choix. Les distances de la maquette sont des ordres de grandeur : ≈ 200 m du rivage en 1967 et ≈ 20 m de la dune début 2014 sont sourcés ; entre les deux, le recul est lissé à ≈ 2 m par an, plus ≈ 18 m pendant l'hiver 2013-2014 (l'OCA indique jusqu'à 25 m en un hiver).</li>
+      <li>Coûts fictifs, signalés comme tels : 3 M€ pour les rochers, 2 M€ pour le parking. Les ≈ 10 M€ pour racheter les 78 logements se déduisent des 7 M€ votés pour 70 % de la valeur.</li>
+      <li>Après 2024, la coupe prolonge le recul à ≈ 2 m par an (≈ 50 m d'ici 2050 selon l'OCA). Les chiffres du Cerema sont nationaux : à présenter comme des ordres de grandeur, pas à l'échelle de Soulac.</li>
+      <li>Pas de note ni de « bonne réponse » : l'outil montre des conséquences plausibles, sans fin heureuse magique. L'érosion continue quels que soient les choix.</li>
+    </ul>
+    <h3>La maquette 3D</h3>
+    <ul>
+      <li>C'est un bloc-diagramme : la face avant est une coupe qui passe au sud du Signal (sable, sable ocre, alios, argile). Relief et bâtiments sont exagérés × 2. Les positions du centre-ville, du camping et du lotissement sont schématiques.</li>
+      <li>Quatre points de vue : vue d'ensemble, le Signal, coupe (la face avant, comme un profil de plage) et vu du ciel (comme un plan). La caméra se place seule à chaque étape ; les élèves peuvent ensuite tourner (glisser), zoomer (molette ou pincer) et se déplacer (clic droit ou deux doigts).</li>
+      <li>Les parasols suivent la jauge « recettes touristiques » ; le drapeau de baignade passe au rouge pendant la tempête de 2014.</li>
+      <li>Sur un ordinateur lent, les ombres se coupent toutes seules. Si la 3D ne s'affiche pas (WebGL absent), le jeu reste jouable sans maquette, et le lien « Version 2D » ouvre la version avec coupe et plan dessinés.</li>
+    </ul>
+    <h3>Photos</h3>
+    <p>Trois photos libres du Signal sont sur Wikimedia Commons (liens dans les documents). Pour les afficher dans la version du Cahier de progression (<code>rituels/soulac-2064-3d.html</code> et <code>soulac-2064.html</code>), déposez-les dans <code>rituels/docs/2de-g1-c3/</code> sous les noms <code>signal-2015.jpg</code>, <code>signal-2017.jpg</code> et <code>signal-2021.jpg</code> : elles remplacent alors les croquis, avec leur crédit. Les photos Sud Ouest de l'Act. 2 restent sur la fiche papier.</p>
+    <h3>Éléments de réponse (synthèse)</h3>
+    <p>Défendre (enrochement, digue) protège à court terme mais coûte cher, fait disparaître la plage et ne supprime pas l'aléa : l'érosion continue à côté, et une digue peut céder. Reculer (recomposition spatiale) coûte cher une fois, réduit les enjeux et garde la plage. La prévention empêche d'ajouter des enjeux. Au Signal, faute d'anticipation, ce sont l'évacuation (2014), des années de procès, puis la solidarité nationale (7 M€) et la démolition (2023) qui ont tranché.</p>
+    ${htmlCredits()}`, true);
+}
+function demanderRecommencer() {
+  ouvrirModal(`<div class="boite-tete"><h2>Recommencer une partie ?</h2><button type="button" class="x" aria-label="Fermer">×</button></div>
+    <p>Vos choix actuels seront effacés. Pensez à les avoir notés sur votre fiche.</p>
+    <div class="actions"><button type="button" class="btn or" id="b-ok-recommencer">Recommencer</button><button type="button" class="btn second" id="b-annuler">Annuler</button></div>`);
+  $("b-ok-recommencer").addEventListener("click", () => { fermerModal(); try { localStorage.removeItem(CLE); } catch (e) { /* rien */ } commencer(); });
+  $("b-annuler").addEventListener("click", fermerModal);
+}
+
+let toastT = 0;
+function toast(t) {
+  const el = $("toast"); el.textContent = t; el.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3800);
+}
+function ouvrirNotion(btn) {
+  const id = btn.dataset.n, n = NOTIONS[id], pop = $("pop");
+  pop.innerHTML = `<p class="pop-mot">${n.mot}</p><p>${n.def}</p><small>${S.notions.includes(id) ? "Dans votre lexique." : ""}</small>`;
+  pop.hidden = false;
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth, hgt = pop.offsetHeight;
+  let x = Math.min(Math.max(16, r.left), window.innerWidth - w - 16);
+  let y = r.bottom + 8; if (y + hgt > window.innerHeight - 16) y = Math.max(16, r.top - hgt - 8);
+  pop.style.left = x + "px"; pop.style.top = y + "px";
+  if (!S.lues.includes(id)) { S.lues.push(id); sauver(); }
+}
+
+document.addEventListener("click", ev => {
+  const mot = ev.target.closest(".mot");
+  if (mot) { ev.stopPropagation(); ouvrirNotion(mot); return; }
+  if (!ev.target.closest("#pop")) $("pop").hidden = true;
+  if (ev.target === $("modal")) fermerModal();
+});
+document.addEventListener("keydown", ev => {
+  if (ev.key === "Escape") { $("pop").hidden = true; fermerModal(); }
+});
+window.addEventListener("scroll", () => { $("pop").hidden = true; }, true);
+$("b-lexique").addEventListener("click", ouvrirLexique);
+document.querySelectorAll("[data-vue]").forEach(b => b.addEventListener("click", () => { if (R3) R3.allerVue(b.dataset.vue); }));
+$("b-etiq").addEventListener("click", ev => {
+  const on = ev.currentTarget.getAttribute("aria-pressed") !== "true";
+  ev.currentTarget.setAttribute("aria-pressed", on ? "true" : "false");
+  if (R3) R3.etiquettes(on);
+});
+$("b-prof").addEventListener("click", ouvrirFicheProf);
+$("b-recommencer").addEventListener("click", demanderRecommencer);
+
+/* ---------- Démarrage ---------- */
+preparerScenes();
+VIS = phys(S);
+dessinerScenes();
+toutDessiner();
+ouvrirAccueil();
+</script>
+</body>
+</html>
