@@ -1106,6 +1106,85 @@
   .ea-calendrier svg { width: 100%; height: 100%; display: block; }
   .lien-defi { display: block; margin: 10px 0 4px; padding: 10px 14px; border-radius: 12px; border: 1px dashed var(--accent); color: var(--ink); text-decoration: none; font-size: 14px; }
   .lien-defi strong { color: var(--accent); }
+  /* carte d'aventurier */
+  .cv-page { max-width: 470px; }
+  .cv-carte {
+    --cv: #D08B54; position: relative; overflow: hidden; padding: 14px 14px 16px; border-radius: 24px; border: 3px solid var(--cv);
+    background: linear-gradient(160deg, #2E3375, #1C1F4D 70%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07), 0 12px 30px rgba(0, 0, 0, .35);
+  }
+  .cv-carte.argent { --cv: #C9D3E0; } .cv-carte.or { --cv: #F2C94C; }
+  .cv-carte::before {
+    content: ""; position: absolute; inset: -50%; pointer-events: none;
+    background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, .09) 50%, transparent 58%); animation: cv-reflet 4.5s linear infinite;
+  }
+  @keyframes cv-reflet { from { transform: translateX(-45%); } to { transform: translateX(45%); } }
+  .cv-carte > * { position: relative; }
+  .cv-tete { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--cv); }
+  .cv-direct { display: inline-flex; align-items: center; gap: 6px; color: #F4F2FF; font-size: 12.5px; font-weight: 700; letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cv-direct i { width: 8px; height: 8px; border-radius: 50%; background: #22C55E; animation: cv-pouls 1s ease-in-out infinite; }
+  @keyframes cv-pouls { 50% { opacity: .25; } }
+  .cv-identite { display: flex; align-items: center; gap: 12px; margin: 8px 0 12px; }
+  .cv-perso { position: relative; width: 124px; height: 106px; flex: none; }
+  .cv-perso .av-ile-svg { top: auto; height: auto; }
+  .cv-perso-dessin { position: absolute; left: 50%; bottom: 28px; width: 60px; transform: translateX(-50%); }
+  .cv-perso-dessin svg { width: 100%; height: auto; display: block; }
+  .cv-qui { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+  .cv-nom { font-size: 25px; font-weight: 900; line-height: 1.1; overflow-wrap: anywhere; }
+  .cv-surnom { color: #FFD34D; font-size: 14px; font-weight: 700; }
+  .cv-rang { padding: 2px 10px; border-radius: 999px; background: var(--cv); color: #2A1E00; font-size: 12px; font-weight: 800; }
+  .cv-xp { color: #B9B7DA; font-size: 13px; font-weight: 700; }
+  .cv-chiffres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .cv-chiffre { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 14px; background: rgba(255, 255, 255, .07); text-align: center; }
+  .cv-chiffre .av-sym, .cv-chiffre .ico { width: 22px; height: 22px; }
+  .cv-chiffre strong { font-size: 17px; font-weight: 900; font-variant-numeric: tabular-nums; }
+  .cv-chiffre span { color: #B9B7DA; font-size: 11px; line-height: 1.2; }
+  .cv-titre { margin: 14px 0 6px; color: #B9B7DA; font: 800 11.5px Inter, system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+  .cv-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+  .cv-badge { width: 34px; height: 34px; }
+  .cv-badge svg { width: 100%; height: 100%; display: block; }
+  .cv-chapitres { display: grid; gap: 7px; }
+  .cv-chap { display: grid; grid-template-columns: minmax(0, 1fr) 64px 58px; align-items: center; gap: 8px; font-size: 13px; }
+  .cv-chap-nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+  .cv-barre { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .13); overflow: hidden; }
+  .cv-barre span { display: block; height: 100%; background: linear-gradient(90deg, #FFD34D, #FFB020); }
+  .cv-chap-et { font-size: 12px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+  .cv-chap.fini .cv-chap-et { color: #4ADE80; }
+  .cv-activite { margin: 12px 0 0; color: #D8D6F0; font-size: 13px; line-height: 1.4; }
+  .cv-verif { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 10px; border-radius: 16px; background: #fff; color: #22282A; }
+  .cv-qr { width: 150px; flex: none; padding: 0; border: 0; background: none; cursor: zoom-in; }
+  .cv-qr-grand {
+    position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    width: 100%; border: 0; background: #fff; color: #22282A; padding: 20px; cursor: zoom-out;
+  }
+  .cv-qr-grand svg { width: min(92vw, 70vh); height: auto; display: block; }
+  .cv-qr-grand strong { font: 700 28px "IBM Plex Mono", monospace; color: #1F4E5F; }
+  .cv-qr-grand span { color: #736D63; font-size: 14px; }
+  .cv-qr svg { width: 100%; height: auto; display: block; }
+  .cv-verif span { display: block; color: #736D63; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  .cv-code { display: block; margin: 2px 0; color: #1F4E5F; font: 700 21px/1.2 "IBM Plex Mono", monospace; letter-spacing: .03em; }
+  .cv-verif small { display: block; color: #55605F; font-size: 12px; line-height: 1.35; }
+  .cv-vide { color: #B9B7DA; font-size: 13px; }
+  .cv-vide-btn { visibility: hidden; }
+  .cv-reglage { margin-top: 16px; }
+  .cv-reglage .av-note { padding: 0; text-align: left; }
+  .cv-lien { display: block; width: fit-content; margin: 2px auto 14px; text-decoration: none; }
+  .cv-v-carte { margin-top: 14px; }
+  .cv-v-tete { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .cv-v-perso { width: 74px; flex: none; }
+  .cv-v-perso svg { width: 100%; height: auto; display: block; }
+  .cv-v-tete span { display: block; color: var(--sub); font-size: 14px; }
+  .cv-v-nom { display: block; font: 600 23px/1.2 Fraunces, serif; color: var(--ink); }
+  .cv-v-tete .cv-v-code { margin-top: 2px; color: var(--accent); font: 600 15px "IBM Plex Mono", monospace; }
+  .cv-v-carte .cv-chiffre { background: var(--accentSoft); }
+  .cv-v-carte .cv-chiffre span, .cv-v-carte .cv-titre, .cv-v-carte .cv-vide { color: var(--sub); }
+  .cv-v-carte .cv-barre { background: var(--line); }
+  .cv-v-carte .cv-chap.fini .cv-chap-et { color: var(--ok); }
+  .alerte.attention strong { color: var(--warn); }
+  .cv-alertes { margin: 8px 0 0; padding-left: 22px; color: var(--ink); font-size: 14px; line-height: 1.45; }
+  .cv-alertes li::marker { color: var(--warn); }
+  .cv-note { margin-top: 14px; line-height: 1.5; }
+  .cv-prof-ligne { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  @media (prefers-reduced-motion: reduce) { .cv-carte::before, .cv-direct i { animation: none; } }
 
   /* ---------- Défi de classe : un écran à projeter (grandes polices, contrastes forts) ---------- */
   .defi-classe .av-page.dc-reglages { max-width: 760px; }
@@ -1611,6 +1690,8 @@
     if (p[0] === "sauvegarde") return { vue: "sauvegarde", code: p[1] };
     if (p[0] === "controle") return { vue: "controle", niveau: p[1], sous: p[2] };
     if (p[0] === "defi") return { vue: "defi", niveau: p[1], sous: p[2] };
+    if (p[0] === "carte") return { vue: "carte", niveau: p[1] };
+    if (p[0] === "verifier") return { vue: "verifier", code: p[1] };
     if (p[0] === "express") return { vue: "express", niveau: p[1] };
     if (p[0] === "niveau") return { vue: "accueil", niveau: p[1] };
     return { vue: "accueil" };
@@ -1642,6 +1723,11 @@
       if (rangNiveau(r.niveau) >= 0 && defiDispo()) vueDefiClasse(r.niveau, r.sous ? r.sous.split(",") : null); else vueAccueil();
       return;
     }
+    if (r.vue === "carte") {
+      if (rangNiveau(r.niveau) >= 0 && aventureDispo(r.niveau)) vueCarteAventurier(r.niveau); else vueAccueil();
+      return;
+    }
+    if (r.vue === "verifier") { vueVerifierCarte(r.code); return; }
     if (r.vue === "aventure") {
       // un chapitre, ou un grand parcours : annee-<classe>, reperes-<classe> (si le mode est ouvert pour la classe)
       var parcours = cheminAventure(r.ch);
@@ -6674,6 +6760,7 @@
     }
     majCompteurs();
     corps.appendChild(compteurs);
+    corps.appendChild(el("a", { class: "av-mini-btn cv-lien", href: "#/carte/" + ch.n, text: "Montrer ma carte d'aventurier" }));
     var ONGLETS = [{ id: "tenue", nom: "Tenues" }, { id: "chapeau", nom: "Chapeaux" }, { id: "objet", nom: "Objets" }, { id: "compagnon", nom: "Compagnons" },
       { id: "apparence", nom: "Apparence" }, { id: "badges", nom: "Badges et surnoms" }, { id: "musee", nom: "Musée" }, { id: "sauvegarde", nom: "Sauvegarde" }, { id: "reglages", nom: "Réglages" }];
     var onglets = el("div", { class: "segments av-onglets", role: "group", "aria-label": "Rubrique" });
@@ -6759,8 +6846,7 @@
       AV_BADGES.forEach(function (b) {
         var a = av.badges.indexOf(b.id) >= 0, v = Math.min(b.cible, valeurBadge(b));
         var med = el("span", { class: "av-medaille", "aria-hidden": "true" });
-        med.innerHTML = '<svg viewBox="0 0 48 48"><path d="M14 2h9l3 13-7 3zM34 2h-9l-3 13 7 3z" fill="' + (a ? "#E0457B" : "#3A3F75") + '"/><circle cx="24" cy="30" r="15" fill="' + (a ? b.c : "#2E3270") + '" stroke="' + (a ? "#FFE08A" : "#444A92") + '" stroke-width="3"/>' +
-          '<path d="M24 21l2.6 5.3 5.8.8-4.2 4.1 1 5.8L24 34.3l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="' + (a ? "#FFF6D5" : "#444A92") + '"/></svg>';
+        med.innerHTML = svgMedaille(b, a);
         g.appendChild(el("div", { class: "av-badge" + (a ? " obtenu" : "") }, [med, el("div", {}, [
           el("strong", { text: b.nom }), el("span", { text: b.txt }),
           a ? el("small", { text: "Surnom : « " + b.titre + " »" }) : el("div", { class: "av-badge-prog" }, [barreProgres(v / b.cible), el("small", { text: v + " / " + b.cible })])
@@ -6831,6 +6917,16 @@
     c.appendChild(el("span", { class: "ea-txt" }, [el("strong", { text: "Je prépare mon contrôle" }),
       el("span", { text: plan && plan.date >= auj ? "Contrôle le " + dateLongue(plan.date) + (plan.date > auj ? " · J-" + joursEntre(auj, plan.date) : " · c'est aujourd'hui") : "Une petite séance par jour jusqu'au jour J" })]));
     g.appendChild(c);
+    if (av.perso) {
+      var bc = bilanClasse(niveau);
+      var ca = el("a", { class: "entree-aventure petite carte-av", href: "#/carte/" + niveau });
+      var figA = el("span", { class: "ea-fig ea-calendrier", "aria-hidden": "true" });
+      figA.innerHTML = '<svg viewBox="0 0 64 56"><rect x="8" y="6" width="48" height="44" rx="7" fill="#F2C94C"/><rect x="12" y="10" width="40" height="36" rx="5" fill="#2B2F6E"/><circle cx="25" cy="23" r="6" fill="#FFD9B5"/><path d="M16 38c2-6 16-6 18 0" fill="#6C4CF1"/><path d="M38 20h9M38 26h9M38 32h6" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
+      ca.appendChild(figA);
+      ca.appendChild(el("span", { class: "ea-txt" }, [el("strong", { text: "Ma carte d'aventurier" }),
+        el("span", { text: bc.max ? pluriel(bc.etoiles, "étoile") + " · " + pluriel(av.badges.length, "badge") + " · à montrer au professeur" : "Ton bilan, à montrer au professeur" })]));
+      g.appendChild(ca);
+    }
     if (defiDispo()) {
       var dfi = el("a", { class: "entree-aventure petite defi", href: "#/defi/" + niveau });
       var figD = el("span", { class: "ea-fig ea-calendrier", "aria-hidden": "true" });
@@ -6841,6 +6937,293 @@
     }
     if (estProf() || DEMO) g.appendChild(el("p", { class: "ea-note", text: estProf() ? "Mode aventure : essai visible seulement par vous." : "Mode aventure : démonstration." }));
     return g;
+  }
+
+  // ---------- La carte d'aventurier : un récapitulatif à montrer au professeur ----------
+  // L'élève l'affiche sur son téléphone. L'heure qui défile montre que ce n'est pas une capture d'écran.
+  // Le QR code contient le résumé de la carte et une signature : le professeur le scanne avec son propre téléphone,
+  // la page de vérification refait la carte à partir du code, dit quand elle a été créée et signale les chiffres
+  // incohérents. Rien n'est envoyé : tout passe par le QR code (la partie après # d'une adresse ne quitte pas l'appareil).
+  // La signature décourage les retouches ; elle ne peut pas arrêter un élève qui lirait le code de la page.
+  var SEL_CARTE = "reviser-carte-aventurier";
+  // cyrb53, une empreinte de 53 bits (domaine public)
+  function empreinte(texte) {
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (var i = 0; i < texte.length; i++) {
+      var c = texte.charCodeAt(i);
+      h1 = Math.imul(h1 ^ c, 2654435761);
+      h2 = Math.imul(h2 ^ c, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+  }
+  function signatureCarte(json) {
+    var s = empreinte(json + "|" + SEL_CARTE).toString(36).toUpperCase();
+    while (s.length < 8) s = "0" + s;
+    return s.slice(-8);
+  }
+  function codeLisible(sig) { return sig.slice(0, 4) + "-" + sig.slice(4); }
+  function svgMedaille(b, obtenu) {
+    return '<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M14 2h9l3 13-7 3zM34 2h-9l-3 13 7 3z" fill="' + (obtenu ? "#E0457B" : "#3A3F75") + '"/><circle cx="24" cy="30" r="15" fill="' + (obtenu ? b.c : "#2E3270") + '" stroke="' + (obtenu ? "#FFE08A" : "#444A92") + '" stroke-width="3"/>' +
+      '<path d="M24 21l2.6 5.3 5.8.8-4.2 4.1 1 5.8L24 34.3l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="' + (obtenu ? "#FFF6D5" : "#444A92") + '"/></svg>';
+  }
+  // la progression d'une classe : chaque chapitre commencé (et les grands parcours), ses étoiles, son défi final
+  function bilanClasse(n) {
+    var res = { chapitres: [], etoiles: 0, max: 0, reussis: 0, finis: 0, jours: [] }, jours = {};
+    var liste = tousChapitresNiveau(n).filter(function (c) { return c.n === n; }).concat([cheminAventure("annee-" + n), cheminAventure("reperes-" + n)]).filter(Boolean);
+    liste.forEach(function (ch) {
+      var joue = Object.keys(av.niveaux).some(function (k) { return k.indexOf(ch.id + "|") === 0; });
+      if (!joue) return;
+      var route = routeAventure(ch), e = 0, m = 0, fini = false, faits = 0, total = 0;
+      route.noeuds.forEach(function (x) {
+        if (x.type === "coffre") return;
+        var v = av.niveaux[x.cle];
+        m += 3;
+        total++;
+        if (!v) return;
+        e += Math.min(3, v.e || 0);
+        if (v.t) jours[isoJour(v.t)] = true;
+        if (noeudFait(x)) { faits++; if (x.type === "defi") fini = true; }
+      });
+      if (!m) return;
+      res.chapitres.push({ id: ch.id, nom: ch.special ? ch.titre : ch.num + " · " + ch.titre, e: e, m: m, faits: faits, total: total, fini: fini });
+      res.etoiles += e; res.max += m; res.reussis += faits; if (fini) res.finis++;
+    });
+    res.jours = Object.keys(jours).sort();
+    return res;
+  }
+  function rangCarte(e, m) {
+    var p = m ? e / m : 0;
+    return p >= .66 ? { id: "or", nom: "Carte d'or" } : p >= .33 ? { id: "argent", nom: "Carte d'argent" } : { id: "bronze", nom: "Carte de bronze" };
+  }
+  function contenuCarte(n) {
+    var b = bilanClasse(n);
+    return { v: 1, n: n, p: String(av.prenom || "").slice(0, 20), t: av.titre || "", a: av.perso, d: Math.floor(Date.now() / 60000),
+      e: b.etoiles, m: b.max, r: b.reussis, f: b.finis, j: b.jours.length, j0: b.jours[0] || "", j1: b.jours[b.jours.length - 1] || "",
+      x: av.xp, sr: av.stats.serieMax || 0, sa: serieActuelle(), q: av.stats.bonnes || 0, c: av.stats.revues || 0,
+      nv: av.stats.niveaux || 0, k: av.stats.coffres || 0, bg: av.badges.slice(),
+      ch: b.chapitres.map(function (c) { return [c.id, c.e, c.m, c.fini ? 1 : 0]; }) };
+  }
+  // « C1 » + signature (8 caractères) + le contenu compressé ; « C0 » sans compression (vieux navigateurs)
+  function creerCodeCarte(contenu) {
+    var json = JSON.stringify(contenu), sig = signatureCarte(json);
+    var octets = new TextEncoder().encode(json), compresse;
+    try { compresse = typeof CompressionStream === "function" ? transformer(octets, new CompressionStream("deflate-raw")) : null; } catch (e) { compresse = null; }
+    if (!compresse) return Promise.resolve({ code: "C0" + sig + enBase64(octets), sig: sig });
+    return compresse.then(function (o) { return { code: "C1" + sig + enBase64(o), sig: sig }; }, function () { return { code: "C0" + sig + enBase64(octets), sig: sig }; });
+  }
+  function lireCodeCarte(code) {
+    var m = /^C([01])([0-9A-Z]{8})([A-Za-z0-9_-]+)$/.exec(String(code || "").replace(/\s+/g, ""));
+    if (!m) return Promise.reject(new Error("code"));
+    var octets;
+    try { octets = deBase64(m[3]); } catch (e) { return Promise.reject(new Error("code")); }
+    var texte = m[1] === "0" ? Promise.resolve(octets)
+      : typeof DecompressionStream === "function" ? transformer(octets, new DecompressionStream("deflate-raw")) : Promise.reject(new Error("navigateur"));
+    return texte.then(function (o) {
+      var json = new TextDecoder().decode(o), c = JSON.parse(json);
+      if (!c || c.v !== 1 || rangNiveau(c.n) < 0) throw new Error("code");
+      return { c: c, sig: m[2], ok: signatureCarte(json) === m[2] };
+    }).catch(function (e) { throw e.message === "navigateur" ? e : new Error("code"); });
+  }
+  function lienVerification(code) { return location.href.split("#")[0].replace(/[?&]demo\b[^&]*/, "") + "#/verifier/" + code; }
+  function dateHeure(t) {
+    var d = new Date(t);
+    return JOURS_SEM[d.getDay()] + " " + d.getDate() + (d.getDate() === 1 ? "er" : "") + " " + MOIS[d.getMonth()] + " à " + d.getHours() + " h " + String(d.getMinutes()).padStart(2, "0");
+  }
+  function ilYa(min) {
+    if (min < 1) return "à l'instant";
+    if (min < 60) return "il y a " + pluriel(min, "minute");
+    if (min < 48 * 60) return "il y a " + pluriel(Math.round(min / 60), "heure");
+    return "il y a " + pluriel(Math.round(min / 1440), "jour");
+  }
+  function periodeJours(c) {
+    if (!c.j) return "Pas encore d'activité dans cette classe.";
+    var de = dateDe(c.j0), a = dateDe(c.j1);
+    var court = function (d) { return d.getDate() + (d.getDate() === 1 ? "er" : "") + " " + MOIS[d.getMonth()]; };
+    return "Actif " + (c.j > 1 ? pluriel(c.j, "jour") + " différents, du " + court(de) + " au " + court(a) : "1 jour, le " + court(de)) + ".";
+  }
+  // les tuiles de chiffres, sur la carte de l'élève comme sur la page de vérification
+  function chiffresCarte(c) {
+    var t = [
+      ["etoile", c.e + " / " + c.m, "étoiles"], ["coche", String(c.r), "niveaux réussis"], ["bouclier", String(c.f), pluriel(c.f, "chapitre terminé", "chapitres terminés").replace(/^\d+ /, "")],
+      ["flamme", String(c.sr), "jours de suite (record)"], ["medaille", c.bg.length + " / " + AV_BADGES.length, "badges"], ["cible", String(c.q), "bonnes réponses"]
+    ];
+    var g = el("div", { class: "cv-chiffres" });
+    t.forEach(function (x) {
+      var tuile = el("div", { class: "cv-chiffre" });
+      tuile.innerHTML = x[0] === "bouclier" ? icone("bouclier") : symbole(x[0]);
+      tuile.appendChild(el("strong", { text: x[1] }));
+      tuile.appendChild(el("span", { text: x[2] }));
+      g.appendChild(tuile);
+    });
+    return g;
+  }
+  function chapitresCarte(c) {
+    var g = el("div", { class: "cv-chapitres" });
+    if (!c.ch.length) { g.appendChild(el("p", { class: "cv-vide", text: "Aucun chapitre commencé pour l'instant." })); return g; }
+    c.ch.forEach(function (x) {
+      var ch = cheminAventure(x[0]);
+      var nom = ch ? (ch.special ? ch.titre : ch.num.replace(/^Chapitre /, "Ch. ") + " · " + ch.titre) : x[0];
+      var barre = el("span", { class: "cv-barre" }, el("span"));
+      barre.firstChild.style.width = Math.round(Math.min(1, x[2] ? x[1] / x[2] : 0) * 100) + "%";
+      g.appendChild(el("div", { class: "cv-chap" + (x[3] ? " fini" : "") }, [
+        el("span", { class: "cv-chap-nom", text: nom }), barre,
+        el("span", { class: "cv-chap-et", text: x[1] + " / " + x[2] + (x[3] ? " ✓" : "") })
+      ]));
+    });
+    return g;
+  }
+  function badgesCarte(c) {
+    var g = el("div", { class: "cv-badges", role: "list", "aria-label": "Badges obtenus" });
+    AV_BADGES.forEach(function (b) {
+      if (c.bg.indexOf(b.id) < 0) return;
+      var m = el("span", { class: "cv-badge", role: "listitem", title: b.nom, "aria-label": b.nom });
+      m.innerHTML = svgMedaille(b, true);
+      g.appendChild(m);
+    });
+    if (!g.childNodes.length) g.appendChild(el("span", { class: "cv-vide", text: "Pas encore de badge." }));
+    return g;
+  }
+
+  // la carte de l'élève, en plein écran
+  function vueCarteAventurier(n) {
+    document.title = "Ma carte d'aventurier — " + nomNiveau(n);
+    if (!av.perso) { location.hash = "#/niveau/" + n; return; }
+    var c = contenuCarte(n), rang = rangCarte(c.e, c.m);
+    var ecran = ecranAventure("av-nuit");
+    var retour = el("a", { class: "av-btn-rond", href: "#/niveau/" + n, "aria-label": "Retour" });
+    retour.innerHTML = icone("retour");
+    ecran.appendChild(el("div", { class: "av-haut" }, [retour, el("strong", { class: "av-haut-titre", text: "Ma carte d'aventurier" }), el("span", { class: "av-btn-rond cv-vide-btn", "aria-hidden": "true" })]));
+    var page = el("div", { class: "av-page cv-page" });
+    var horloge = el("span", { class: "cv-horloge", "aria-live": "off" });
+    function tic() {
+      if (!horloge.isConnected) { clearInterval(minuterieCarte); return; }
+      var d = new Date();
+      horloge.textContent = d.getDate() + " " + MOIS[d.getMonth()] + " · " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") + ":" + String(d.getSeconds()).padStart(2, "0");
+    }
+    clearInterval(minuterieCarte);
+    minuterieCarte = setInterval(tic, 1000);
+    var fig = el("div", { class: "cv-perso", "aria-hidden": "true" });
+    fig.innerHTML = svgIle(1, null) + '<div class="cv-perso-dessin">' + dessinPerso(av.perso) + "</div>";
+    var nomEl = el("strong", { class: "cv-nom", text: c.p || "Aventurier" });
+    var qr = el("button", { class: "cv-qr", type: "button", "aria-label": "Agrandir le QR code de vérification" });
+    var codeEl = el("strong", { class: "cv-code", text: "…" });
+    var carte = el("div", { class: "cv-carte " + rang.id }, [
+      el("div", { class: "cv-tete" }, [el("span", { class: "cv-type", text: "Carte d'aventurier · " + nomNiveau(n) }), el("span", { class: "cv-direct" }, [el("i"), horloge])]),
+      el("div", { class: "cv-identite" }, [fig, el("div", { class: "cv-qui" }, [
+        nomEl, c.t ? el("span", { class: "cv-surnom", text: "« " + c.t + " »" }) : null,
+        el("span", { class: "cv-rang", text: rang.nom }), el("span", { class: "cv-xp", text: c.x + " XP" })
+      ])]),
+      chiffresCarte(c),
+      el("h3", { class: "cv-titre", text: "Badges" }), badgesCarte(c),
+      el("h3", { class: "cv-titre", text: "Chapitres" }), chapitresCarte(c),
+      el("p", { class: "cv-activite", text: periodeJours(c) + (c.c ? " " + pluriel(c.c, "erreur corrigée", "erreurs corrigées") + " sur l'île des erreurs." : "") }),
+      el("div", { class: "cv-verif" }, [qr, el("div", {}, [el("span", { text: "Code de vérification" }), codeEl, el("small", { text: "Ton professeur scanne le QR code avec son téléphone pour vérifier ta carte. Touche-le pour l'agrandir." })])])
+    ]);
+    page.appendChild(carte);
+    // le prénom reste sur l'appareil ; il n'apparaît que sur la carte et dans son QR code
+    var champ = el("input", { class: "jeu-saisie cv-champ", type: "text", maxlength: "20", autocomplete: "off", placeholder: "Ton prénom (facultatif)", "aria-label": "Prénom affiché sur la carte" });
+    champ.value = av.prenom || "";
+    champ.addEventListener("change", function () {
+      av.prenom = champ.value.replace(/[\u0000-\u001f<>]/g, "").trim().slice(0, 20);
+      sauverAventure();
+      rendre();
+    });
+    page.appendChild(el("div", { class: "cv-reglage" }, [champ, el("p", { class: "av-note", text: "Ton prénom reste sur ce téléphone : il s'affiche sur la carte et dans son QR code, pour que ton professeur sache que c'est la tienne." })]));
+    page.appendChild(el("p", { class: "av-note", text: "L'heure défile en direct : une capture d'écran se reconnaît tout de suite." }));
+    ecran.appendChild(page);
+    tic();
+    creerCodeCarte(c).then(function (r) {
+      codeEl.textContent = codeLisible(r.sig);
+      var svgQr;
+      try { var q = qrcode(0, "L"); q.addData(lienVerification(r.code)); q.make(); svgQr = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); qr.innerHTML = svgQr; } catch (e) { qr.remove(); }
+      carte.setAttribute("data-code", r.code);
+      // en grand, sur fond blanc, pour scanner facilement
+      qr.addEventListener("click", function () {
+        var voile = el("button", { class: "cv-qr-grand", type: "button", "aria-label": "Fermer le QR code agrandi" });
+        voile.innerHTML = svgQr;
+        voile.appendChild(el("strong", { text: codeLisible(r.sig) }));
+        voile.appendChild(el("span", { text: "Touche pour fermer" }));
+        voile.addEventListener("click", function () { voile.remove(); qr.focus(); });
+        document.body.appendChild(voile);
+        voile.focus();
+      });
+    });
+  }
+  var minuterieCarte = null;
+
+  // la page de vérification, ouverte par le QR code sur le téléphone du professeur
+  function vueVerifierCarte(code) {
+    document.title = "Vérifier une carte d'aventurier";
+    app.appendChild(lienRetour("#/", "Accueil"));
+    app.appendChild(el("div", { class: "chap-entete" }, [el("h1", { text: "Vérifier une carte d'aventurier" })]));
+    var zone = el("div", { class: "cv-verifier" }, el("p", { class: "petit", text: "Lecture du code…" }));
+    app.appendChild(zone);
+    lireCodeCarte(code).then(function (r) {
+      zone.innerHTML = "";
+      var c = r.c;
+      if (!r.ok) {
+        zone.appendChild(el("div", { class: "alerte", role: "status" }, [el("strong", { text: "Carte modifiée : " }), "le contenu ne correspond pas à sa signature. Ne la prenez pas en compte."]));
+        return;
+      }
+      var maintenant = Math.floor(Date.now() / 60000), age = maintenant - c.d;
+      var alertes = [];
+      if (age < -5) alertes.push("La carte est datée dans le futur : l'heure du téléphone de l'élève est peut-être fausse.");
+      if (age > 24 * 60) alertes.push("La carte a été créée " + ilYa(age) + " : demandez à l'élève de la rouvrir pour voir sa progression du jour.");
+      var etoilesCh = c.ch.reduce(function (s, x) { return s + x[1]; }, 0);
+      if (c.e > c.m || c.ch.some(function (x) { return x[1] > x[2]; }) || etoilesCh !== c.e) alertes.push("Les étoiles ne correspondent pas aux niveaux : la progression a peut-être été modifiée.");
+      if (c.r > 0 && c.q < c.r * 4) alertes.push(pluriel(c.r, "niveau réussi", "niveaux réussis") + " pour seulement " + pluriel(c.q, "bonne réponse enregistrée", "bonnes réponses enregistrées") + " : la progression a peut-être été modifiée.");
+      if (c.x > c.q * 12 + c.nv * 25 + c.k * 20 + 100) alertes.push("Plus de points d'expérience que de réponses justes ne le permettent : la progression a peut-être été modifiée.");
+      if (c.sa > c.sr) alertes.push("La série de jours en cours dépasse le record : chiffre incohérent.");
+      zone.appendChild(el("div", { class: "alerte" + (alertes.length ? " attention" : " ok"), role: "status" }, [
+        el("strong", { text: alertes.length ? "Carte authentique, avec des points à vérifier" : "Carte authentique" }),
+        " — créée le " + dateHeure(c.d * 60000) + " (" + ilYa(Math.max(0, age)) + ")."
+      ]));
+      if (alertes.length) {
+        var ul = el("ul", { class: "cv-alertes" });
+        alertes.forEach(function (a) { ul.appendChild(el("li", { text: a })); });
+        zone.appendChild(ul);
+      }
+      var perso = nettoyerEtat({ p: c.a && typeof c.a === "object" ? c.a : {} }).perso;
+      var fig = el("div", { class: "cv-v-perso", "aria-hidden": "true" });
+      fig.innerHTML = dessinPerso(perso);
+      var titres = AV_TITRES_LIBRES.concat(AV_BADGES.map(function (b) { return b.titre; }));
+      var bg = (Array.isArray(c.bg) ? c.bg : []).filter(function (x) { return AV_BADGES.some(function (b) { return b.id === x; }); });
+      var propre = {
+        e: +c.e || 0, m: +c.m || 0, r: +c.r || 0, f: +c.f || 0, sr: +c.sr || 0, q: +c.q || 0, bg: bg, j: +c.j || 0, j0: c.j0, j1: c.j1, c: +c.c || 0,
+        ch: (Array.isArray(c.ch) ? c.ch : []).filter(function (x) { return Array.isArray(x) && typeof x[0] === "string"; })
+      };
+      var rang = rangCarte(propre.e, propre.m);
+      zone.appendChild(el("div", { class: "carte-panneau cv-v-carte" }, [
+        el("div", { class: "cv-v-tete" }, [fig, el("div", {}, [
+          el("strong", { class: "cv-v-nom", text: String(c.p || "").slice(0, 20) || "Prénom non indiqué" }),
+          el("span", { text: nomNiveau(c.n) + (titres.indexOf(c.t) >= 0 ? " · « " + c.t + " »" : "") + " · " + rang.nom }),
+          el("span", { class: "cv-v-code", text: "Code " + codeLisible(r.sig) })
+        ])]),
+        chiffresCarte(propre),
+        el("h3", { class: "cv-titre", text: "Badges" }), badgesCarte(propre),
+        el("h3", { class: "cv-titre", text: "Chapitres" }), chapitresCarte(propre),
+        el("p", { class: "petit", text: periodeJours(propre) + (propre.c ? " " + pluriel(propre.c, "erreur corrigée", "erreurs corrigées") + " sur l'île des erreurs." : "") })
+      ]));
+      zone.appendChild(el("p", { class: "petit cv-note", text: "Ce que garantit le code : la carte n'a pas été retouchée depuis sa création, à la date indiquée ; le code affiché sous le QR code sur le téléphone de l'élève doit être le même que celui-ci. Il ne peut pas empêcher un élève de jouer sur le téléphone d'un autre, ni de bricoler l'application s'il s'y connaît : les incohérences sont signalées en haut. Rien n'a été envoyé : tout le contenu tenait dans le QR code." }));
+    }, function (e) {
+      zone.innerHTML = "";
+      zone.appendChild(el("div", { class: "alerte", role: "status" }, e.message === "navigateur" ? "Ce navigateur est trop ancien pour lire ce code : mettez-le à jour, ou essayez avec un autre." : "Ce code n'est pas une carte d'aventurier valide : il est peut-être incomplet."));
+    });
+  }
+  // dans l'Espace professeur : vérifier une carte dont on a reçu le code
+  function blocCartesProf() {
+    var champ = el("input", { class: "champ", type: "text", autocomplete: "off", spellcheck: "false", placeholder: "Coller le code d'une carte (C1…)", "aria-label": "Code d'une carte d'aventurier" });
+    var btn = el("button", { class: "btn", type: "button", text: "Vérifier" });
+    function aller() { var v = champ.value.replace(/\s+/g, ""); var m = /#\/verifier\/(C[01][0-9A-Za-z_-]+)/.exec(v); if (m) v = m[1]; if (v) location.hash = "#/verifier/" + v; }
+    btn.addEventListener("click", aller);
+    champ.addEventListener("keydown", function (e) { if (e.key === "Enter") aller(); });
+    return el("div", { class: "lien-defi cv-prof" }, [
+      el("strong", { text: "Cartes d'aventurier" }),
+      " : l'élève ouvre « Ma carte d'aventurier » dans le mode aventure. Scannez son QR code avec l'appareil photo de votre téléphone : la carte est vérifiée, sans que rien ne soit collecté.",
+      el("div", { class: "cv-prof-ligne" }, [champ, btn])
+    ]);
   }
 
   // ---------- Je prépare mon contrôle : une petite séance par jour jusqu'au jour J ----------
@@ -7466,6 +7849,7 @@
     app.appendChild(blocConnexion());
 
     app.appendChild(el("a", { class: "lien-defi", href: "#/defi/" + classeProf }, [el("strong", { text: "Défi de classe à projeter" }), " : questions des chapitres, par équipes, avec minuteur et classement"]));
+    app.appendChild(blocCartesProf());
     app.appendChild(el("div", { class: "etiq", text: "Classe" }));
     var choix = el("div", { class: "choix", role: "group", "aria-label": "Classe" });
     NIVEAUX.forEach(function (n) {
