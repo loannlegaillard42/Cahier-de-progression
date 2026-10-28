@@ -965,6 +965,105 @@
   .av-deja summary { cursor: pointer; font-weight: 700; color: #FFD34D; }
   .av-deja[open] summary { margin-bottom: 10px; }
   .av-page > .jeu-secondaire { margin-top: 10px; }
+  /* ---------- Je prépare mon contrôle ---------- */
+  .av-choix-chapitres { display: grid; gap: 8px; margin-bottom: 6px; }
+  .av-chap-choix { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-radius: 14px; border: 2px solid #3E4384; border-bottom-width: 4px; background: #282C5E; color: #F4F2FF; text-align: left; font-size: 14.5px; font-weight: 700; line-height: 1.3; }
+  .av-chap-choix small { color: #B9B6D9; font-size: 12px; font-weight: 700; }
+  .av-chap-choix[aria-pressed="true"] { border-color: #22C55E; background: #173B33; }
+  .av-chap-choix[aria-pressed="true"] small::before { content: "✓ "; color: #4ADE80; }
+  .av-date { max-width: 260px; margin: 0 0 8px; color-scheme: dark; }
+  .av-resume { margin: 0 0 14px; color: #D9D6F3; font-size: 14px; }
+  .av-controle-carte { display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: 20px; background: linear-gradient(135deg, #EF6C3A, #C93F75); box-shadow: 0 5px 0 #8C2D50; margin-bottom: 16px; }
+  .av-controle-carte.jourj { background: linear-gradient(135deg, #22C55E, #0E9384); box-shadow: 0 5px 0 #08544C; }
+  .av-jj { flex: none; min-width: 84px; padding: 10px 12px; border-radius: 16px; background: rgba(0, 0, 0, .22); font-size: 28px; font-weight: 900; text-align: center; line-height: 1; }
+  .av-controle-txt small { display: block; font-size: 12.5px; font-weight: 700; opacity: .9; }
+  .av-controle-txt strong { display: block; font-size: 19px; margin: 2px 0 6px; }
+  .av-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .av-chips span { padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, .22); font-size: 12px; font-weight: 700; }
+  .av-calendrier { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; }
+  .av-jour { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 4px; border-radius: 14px; background: #282C5E; border: 2px solid #3E4384; color: #B9B6D9; text-align: center; }
+  .av-jour small { font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .av-jour strong { font-size: 20px; color: #F4F2FF; }
+  .av-jour-etat { min-height: 15px; font-size: 11px; font-weight: 800; color: #FFD34D; line-height: 1.3; }
+  .av-jour.fait { background: #173B33; border-color: #22C55E; }
+  .av-jour.aujourdhui { border-color: #FFD34D; box-shadow: 0 0 0 3px rgba(255, 211, 77, .25); }
+  .av-jour.manque { opacity: .6; }
+  .av-jour.manque .av-jour-etat { color: #F87171; }
+  .av-jour.bilan:not(.fait) { border-style: dashed; }
+  .av-jour.jj { background: #C93F75; border-color: #E0457B; color: #fff; }
+  .av-jour.jj .av-jour-etat { color: #fff; }
+  .av-seance { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 14px; padding: 14px 16px 16px; border-radius: 18px; background: #2E3270; border: 2px solid #4A50A0; }
+  .av-seance small { color: #FFD34D; font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  .av-seance strong { font-size: 17px; line-height: 1.3; }
+  .av-seance > span { color: #C9C6EA; font-size: 13.5px; margin-bottom: 8px; }
+  .av-bouton { margin-top: 8px; }
+  .av-liens-essentiel { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px; }
+  .av-liens-bas { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin-top: 14px; }
+  .av .av-lien { padding: 6px 2px; border: 0; background: transparent; color: #B9B6D9; font-size: 13.5px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+  .entree-aventure.controle { background: linear-gradient(135deg, #EF6C3A, #C93F75); box-shadow: 0 5px 0 #8C2D50; }
+  .entree-aventure.defi { background: linear-gradient(135deg, #1F2A44, #2446C0); box-shadow: 0 5px 0 #121A2E; }
+  .ea-calendrier svg { width: 100%; height: 100%; display: block; }
+  .lien-defi { display: block; margin: 10px 0 4px; padding: 10px 14px; border-radius: 12px; border: 1px dashed var(--accent); color: var(--ink); text-decoration: none; font-size: 14px; }
+  .lien-defi strong { color: var(--accent); }
+
+  /* ---------- Défi de classe : un écran à projeter (grandes polices, contrastes forts) ---------- */
+  .defi-classe .av-page.dc-reglages { max-width: 760px; }
+  .dc-raccourcis { font-size: 13px !important; color: #B9B6D9; }
+  .dc-noms { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+  .dc-nom-champ { flex: 1 1 140px; min-width: 0; padding: 10px 12px; border-radius: 12px; border: 3px solid var(--c); background: #1C1F48; color: #fff; font: 700 16px Inter, system-ui, sans-serif; }
+  .dc-jeu { display: flex; flex-direction: column; overflow: hidden; }
+  .dc-haut { gap: 14px; }
+  .dc-scores { flex: 1; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+  .dc-equipe { display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 16px; border-radius: 999px; background: #1C1F48; border: 3px solid var(--c); font-size: clamp(15px, 1.6vw, 24px); font-weight: 800; transition: transform .2s; }
+  .dc-equipe strong { min-width: 1.8em; padding: 2px 10px; border-radius: 999px; background: var(--c); color: #10132E; text-align: center; font-variant-numeric: tabular-nums; }
+  .dc-equipe.gagne { transform: scale(1.08); box-shadow: 0 0 0 4px rgba(255, 255, 255, .25); }
+  .dc-scene { flex: 1; overflow-y: auto; width: 100%; max-width: 1400px; margin: 0 auto; padding: 1.2vh 3vw 2vh; }
+  .dc-num { color: #B9B6D9; font-weight: 800; font-size: clamp(13px, 1.3vw, 20px); text-transform: uppercase; letter-spacing: .06em; }
+  .dc-consigne { margin: .4em 0 .5em; font-size: clamp(22px, 2.6vw, 40px); font-weight: 900; line-height: 1.2; }
+  .dc-enonce { margin-bottom: 2.4vh; padding: 2vh 2vw; border-radius: 22px; background: #2E3270; border: 3px solid #4A50A0; font-size: clamp(20px, 2.5vw, 40px); font-weight: 700; line-height: 1.35; }
+  .dc-enonce.grand { font-size: clamp(34px, 5vw, 80px); font-weight: 900; text-align: center; }
+  .dc-indices { margin-bottom: 2vh; }
+  .dc-indices p { margin: 0 0 .5em; padding: 1.2vh 1.6vw; border-radius: 16px; background: #2E3270; border-left: 6px solid #FFD34D; font-size: clamp(18px, 2.1vw, 32px); font-weight: 600; line-height: 1.35; }
+  .dc-liste p { margin: 0 0 .6em; padding: 1.2vh 1.6vw; border-radius: 16px; background: #2E3270; font-size: clamp(18px, 2.1vw, 32px); font-weight: 600; }
+  .dc-corps.avec-media { display: grid; gap: 2vw; align-items: start; }
+  @media (min-width: 900px) { .dc-corps.avec-media { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); } }
+  .dc-media { margin: 0; }
+  .dc-media .doc-cadre img { max-height: 58vh; width: auto; max-width: 100%; margin: 0 auto; }
+  .dc-media.jeu-geo { background: var(--mer); }
+  .dc-media figcaption { margin-top: 6px; color: #B9B6D9; font-size: clamp(12px, 1.1vw, 16px); text-align: center; }
+  .dc-media .pastille-detail { width: clamp(26px, 2.4vw, 40px); height: clamp(26px, 2.4vw, 40px); font-size: clamp(12px, 1.2vw, 18px); }
+  .dc-options { display: grid; gap: 1.6vh 1.4vw; }
+  .dc-options.courtes { grid-template-columns: 1fr 1fr; }
+  .dc-option { display: flex; align-items: center; gap: 1vw; padding: 1.6vh 1.4vw; border-radius: 20px; background: #282C5E; border: 3px solid #3E4384; font-size: clamp(18px, 2.2vw, 36px); font-weight: 700; line-height: 1.25; transition: opacity .3s, border-color .3s, background-color .3s; }
+  .dc-lettre { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 1.7em; height: 1.7em; border-radius: 12px; background: #6C4CF1; color: #fff; font-weight: 900; }
+  .dc-option.bien { border-color: #22C55E; background: #16402F; color: #BBF7D0; }
+  .dc-option.bien .dc-lettre { background: #22C55E; }
+  .dc-option.pale { opacity: .35; }
+  .dc-reponse { margin: 2vh 0 1vh; padding: 2vh 2vw; border-radius: 22px; background: #16402F; border: 3px solid #22C55E; text-align: center; }
+  .dc-reponse small { display: block; color: #86EFAC; font-weight: 800; font-size: clamp(13px, 1.3vw, 20px); text-transform: uppercase; letter-spacing: .06em; }
+  .dc-reponse strong { font-size: clamp(26px, 3.4vw, 56px); }
+  .dc-expl { margin: 1.6vh 0 0; color: #D9D6F3; font-size: clamp(15px, 1.6vw, 24px); line-height: 1.4; }
+  .dc-pied { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; padding: 12px 3vw calc(14px + env(safe-area-inset-bottom, 0px)); background: rgba(20, 22, 50, .92); border-top: 2px solid #33376E; }
+  .dc-pied .jeu-valider, .dc-pied .jeu-secondaire { width: auto; min-width: 200px; padding: 14px 26px; font-size: clamp(16px, 1.5vw, 22px); }
+  .dc-boutons { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+  .dc-boutons.fin { margin-top: 4vh; }
+  .dc-boutons.fin .jeu-valider, .dc-boutons.fin .jeu-secondaire { width: auto; min-width: 240px; padding: 14px 26px; }
+  .dc-minuteur { position: relative; overflow: hidden; min-width: 200px; padding: 14px 22px; border-radius: 16px; border: 2px solid #4A50A0; background: #1C1F48; color: #fff; font: 800 clamp(16px, 1.5vw, 22px) Inter, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  .dc-minuteur::after { content: ""; position: absolute; left: 0; bottom: 0; height: 5px; width: calc(var(--part, 1) * 100%); background: #22C55E; transition: width 1s linear; }
+  .dc-minuteur.urgent { border-color: #EF4444; color: #FCA5A5; }
+  .dc-minuteur.urgent::after { background: #EF4444; }
+  .dc-qui-titre { color: #FFD34D; font-weight: 800; font-size: clamp(15px, 1.4vw, 20px); }
+  .dc-qui { display: flex; flex-wrap: wrap; gap: 10px; }
+  .dc-equipe-btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: 999px; border: 3px solid var(--c); background: transparent; color: #fff; font: 800 clamp(15px, 1.5vw, 22px) Inter, system-ui, sans-serif; }
+  .dc-equipe-btn[aria-pressed="true"] { background: var(--c); color: #10132E; }
+  .dc-raccourci { display: inline-flex; align-items: center; justify-content: center; width: 1.5em; height: 1.5em; border-radius: 6px; background: rgba(255, 255, 255, .18); font-size: .8em; }
+  .dc-fin { flex: 1; overflow-y: auto; padding: 3vh 3vw; text-align: center; }
+  .dc-podium { display: flex; justify-content: center; align-items: flex-end; flex-wrap: wrap; gap: 2vw; margin-top: 4vh; }
+  .dc-marche { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: .4em; width: clamp(140px, 18vw, 260px); padding: 2vh 1vw; border-radius: 22px 22px 8px 8px; background: var(--c); color: #10132E; font-size: clamp(16px, 1.8vw, 28px); box-shadow: 0 8px 0 rgba(0, 0, 0, .25); animation: av-pop .5s cubic-bezier(.3, 1.6, .5, 1) both; }
+  .dc-marche.r1 { min-height: 34vh; } .dc-marche.r2 { min-height: 26vh; } .dc-marche.r3 { min-height: 20vh; } .dc-marche.r4 { min-height: 15vh; }
+  .dc-marche strong { font-size: 1.2em; }
+  .dc-rang { font-size: 1.8em; font-weight: 900; }
+  .dc-points { font-weight: 800; }
   @media (prefers-reduced-motion: reduce) {
     .av *, .av-modal *, .av-toast { animation: none !important; transition: none !important; }
     .av-confettis { display: none; }
@@ -1049,7 +1148,8 @@
     coche: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
     son: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',
     sonCoupe: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/>',
-    revoir: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/>'
+    revoir: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/>',
+    plein: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>'
   };
   function icone(nom) {
     return '<span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24">' + (ICONES[nom] || "") + "</svg></span>";
@@ -1319,6 +1419,8 @@
   // #/aventure/<chapitre>  le mode aventure du chapitre (/perso : le personnage ; /jeu/<n> : un niveau ; /erreurs : l'île des erreurs)
   // #/aventure/annee-<classe>, #/aventure/reperes-<classe>  le parcours de l'année, les repères fondamentaux
   // #/sauvegarde/<code>    récupérer sa progression du mode aventure (le QR code du code de sauvegarde)
+  // #/controle/<classe>    je prépare mon contrôle (/nouveau : le plan ; /seance : la séance du jour)
+  // #/defi/<classe>[/<chapitres>]  le défi de classe à projeter (professeur)
   function routeActuelle() {
     var p = location.hash.replace(/^#\/?/, "").split("/").map(function (s) {
       try { return decodeURIComponent(s); } catch (e) { return s; }
@@ -1327,6 +1429,8 @@
     if (p[0] === "prof") return { vue: "prof" };
     if (p[0] === "aventure") return { vue: "aventure", ch: p[1], sous: p[2], x: p[3] };
     if (p[0] === "sauvegarde") return { vue: "sauvegarde", code: p[1] };
+    if (p[0] === "controle") return { vue: "controle", niveau: p[1], sous: p[2] };
+    if (p[0] === "defi") return { vue: "defi", niveau: p[1], sous: p[2] };
     if (p[0] === "express") return { vue: "express", niveau: p[1] };
     if (p[0] === "niveau") return { vue: "accueil", niveau: p[1] };
     return { vue: "accueil" };
@@ -1347,8 +1451,16 @@
     app.innerHTML = "";
     var r = routeActuelle();
     var ch = r.ch ? chapitre(r.ch) : null;
-    document.documentElement.classList.toggle("av-ouvert", r.vue === "aventure" || r.vue === "sauvegarde");
+    document.documentElement.classList.remove("av-ouvert"); // remis par les écrans du mode aventure
     if (r.vue === "sauvegarde") { vueSauvegarde(r.code); return; }
+    if (r.vue === "controle") {
+      if (rangNiveau(r.niveau) >= 0 && aventureDispo(r.niveau)) vueControle(r.niveau, r.sous); else vueAccueil();
+      return;
+    }
+    if (r.vue === "defi") {
+      if (rangNiveau(r.niveau) >= 0 && defiDispo()) vueDefiClasse(r.niveau, r.sous ? r.sous.split(",") : null); else vueAccueil();
+      return;
+    }
     if (r.vue === "aventure") {
       // un chapitre, ou un grand parcours : annee-<classe>, reperes-<classe> (si le mode est ouvert pour la classe)
       var parcours = cheminAventure(r.ch);
@@ -1529,6 +1641,7 @@
 
     var entree = aventureDispo(ch.n) ? entreeAventure(ch) : null;
     if (entree) app.appendChild(entree);
+    if (defiDispo()) app.appendChild(el("a", { class: "lien-defi", href: "#/defi/" + ch.n + "/" + ch.id }, [el("strong", { text: "Défi de classe" }), " : ce chapitre à projeter, par équipes"]));
 
     app.appendChild(el("div", { class: "etiq", text: "Mes outils" }));
     var grille = el("div", { class: "outils" });
@@ -3769,7 +3882,7 @@
     if (!av.possede || typeof av.possede !== "object") av.possede = {};
     ["tenue", "chapeau", "objet", "compagnon"].forEach(function (k) { if (!Array.isArray(av.possede[k])) av.possede[k] = []; });
     ["musee", "badges", "erreurs"].forEach(function (k) { if (!Array.isArray(av[k])) av[k] = []; });
-    ["niveaux", "coffres", "stats"].forEach(function (k) { if (!av[k] || typeof av[k] !== "object") av[k] = {}; });
+    ["niveaux", "coffres", "stats", "controles"].forEach(function (k) { if (!av[k] || typeof av[k] !== "object") av[k] = {}; });
     if (typeof av.xp !== "number") av.xp = 0;
     if (typeof av.ducats !== "number") av.ducats = 0;
     if (typeof av.titre !== "string") av.titre = "";
@@ -3875,7 +3988,8 @@
     { id: "legende", nom: "Légende", txt: "Gagner un défi final", stat: "defis", cible: 1, titre: "Légende", c: "#D9437A" },
     { id: "stratege", nom: "Stratège", txt: "Gagner 3 défis finaux", stat: "defis", cible: 3, titre: "Stratège", c: "#6C4CF1" },
     { id: "mecene", nom: "Mécène", txt: "Réunir 12 pièces dans sa collection", stat: "objets", cible: 12, titre: "Mécène", c: "#B8862F" },
-    { id: "puits", nom: "Puits de science", txt: "Gagner 1000 points d'expérience", stat: "xp", cible: 1000, titre: "Puits de science", c: "#3B82F6" }
+    { id: "puits", nom: "Puits de science", txt: "Gagner 1000 points d'expérience", stat: "xp", cible: 1000, titre: "Puits de science", c: "#3B82F6" },
+    { id: "jourj", nom: "Prêt pour le jour J", txt: "Faire toutes les séances d'un plan de révision", stat: "plansFinis", cible: 1, titre: "Jamais pris de court", c: "#0E9384" }
   ];
   var AV_TITRES_LIBRES = ["Esprit libre", "Tête bien faite"];
   var GUIDES = {
@@ -4655,6 +4769,7 @@
   }
 
   function ecranAventure(cls) {
+    document.documentElement.classList.add("av-ouvert");
     var e = el("div", { class: "av " + (cls || "") });
     app.appendChild(e);
     return e;
@@ -4903,8 +5018,10 @@
   // ----- Un niveau (ou une révision, le défi, l'île des erreurs) -----
   function vueNiveau(ch, route, n) {
     var diff = difficulte(ch);
-    var defi = n.type === "defi", ileErreurs = n.type === "erreurs";
-    var qs = ileErreurs ? melanger(erreursDues()).slice(0, 8).map(restaurerErreur).filter(Boolean)
+    var defi = n.type === "defi", ileErreurs = n.type === "erreurs", seance = n.type === "controle";
+    // une séance de contrôle arrive avec ses questions toutes prêtes ; retour : où revenir à la fin
+    var retour = n.retour || lienAventure(ch);
+    var qs = n.questions ? n.questions : ileErreurs ? melanger(erreursDues()).slice(0, 8).map(restaurerErreur).filter(Boolean)
       : composer(poolNoeud(ch, route, n), defi ? diff.defi : n.type === "revision" ? diff.nb + 2 : diff.nb, diff);
     // le guide : Ératosthène pour une unité de géographie, Hérodote sinon
     var guide = { d: (n.unite && n.unite.bloc.data.d) || ch.d };
@@ -4912,7 +5029,7 @@
     annonces = [];
     var ecran = ecranAventure("av-nuit jeu");
     var barre = barreProgres(0);
-    var quitter = el("a", { class: "av-btn-rond", href: lienAventure(ch), "aria-label": "Quitter le niveau" });
+    var quitter = el("a", { class: "av-btn-rond", href: retour, "aria-label": "Quitter le niveau" });
     quitter.innerHTML = icone("fermer");
     var compteurXp = avecSymbole("eclair", "0");
     var coeurs = el("span", { class: "av-coeurs", "aria-label": vies + " vies" });
@@ -4957,12 +5074,12 @@
         if (q.type === "saisie") compter("saisie");
         if (combo === 5) compter("combo5");
         if (combo > (av.stats.comboMax || 0)) { av.stats.comboMax = combo; verifierRecompenses(); }
-        if (ileErreurs && q.erreur && !q.revue) { noterErreur(q.erreur, true); corrigees++; compter("revues"); }
+        if (q.erreur && !q.revue) { noterErreur(q.erreur, true); corrigees++; compter("revues"); }
       } else {
         combo = 0;
         if (!q.revue) erreurs++;
         if (defi) vies--;
-        if (ileErreurs && q.erreur && !q.revue) noterErreur(q.erreur, false);
+        if (q.erreur && !q.revue) noterErreur(q.erreur, false);
         else if (!q.revue && !q.erreur) ajouterErreur(q);
         // on revoit l'erreur à la fin du niveau (une fois), sauf pour les paires, déjà corrigées sur place
         if (!defi && !q.revue && q.type !== "paires") {
@@ -5019,28 +5136,34 @@
         return;
       }
       var etoiles = defi ? Math.max(1, vies) : erreurs === 0 ? 3 : erreurs <= 2 ? 2 : 1;
-      var reussi = defi || etoiles >= ETOILES_POUR_PASSER;
+      var reussi = defi || seance || etoiles >= ETOILES_POUR_PASSER;
       if (erreurs === 0) xp += 15;
-      var ancien = av.niveaux[n.cle];
-      av.niveaux[n.cle] = { e: Math.max(etoiles, ancien ? ancien.e : 0), t: Date.now() };
-      var gain = defi ? 25 + vies * 5 : etoiles * (n.type === "revision" ? 5 : 4) + (erreurs === 0 ? 6 : 0);
+      if (seance) n.enregistrer(etoiles, Math.round(premiersEssais / qs.length * 100));
+      else {
+        var ancien = av.niveaux[n.cle];
+        av.niveaux[n.cle] = { e: Math.max(etoiles, ancien ? ancien.e : 0), t: Date.now() };
+      }
+      var gain = defi ? 25 + vies * 5 : seance ? etoiles * 3 + 5 : etoiles * (n.type === "revision" ? 5 : 4) + (erreurs === 0 ? 6 : 0);
       av.ducats += gain;
       av.xp += xp;
       majSerie();
-      if (reussi && !defi) compter("niveaux");
+      if (reussi && !defi && !seance) compter("niveaux");
+      if (seance) compter("seances");
       if (defi) compter("defis");
       compter("etoiles", etoiles);
       if (erreurs === 0) compter("sansFaute");
       verifierRecompenses();
       sauverAventure();
       son("fin");
-      var titre = etoiles === 3 ? (defi ? "Défi relevé haut la main !" : "Parfait !") : etoiles === 2 ? "Bien joué !" : defi ? "Défi relevé !" : "Encore un effort !";
+      var titre = etoiles === 3 ? (defi ? "Défi relevé haut la main !" : "Parfait !") : etoiles === 2 ? "Bien joué !" : defi ? "Défi relevé !" : seance ? "Séance faite !" : "Encore un effort !";
+      var message = seance ? (n.derniere ? "Dernière séance faite : le jour du contrôle, relis simplement l'essentiel de chaque chapitre." : "Rendez-vous demain pour la séance suivante.")
+        : reussi ? null : "Il faut au moins " + ETOILES_POUR_PASSER + " étoiles, soit 2 erreurs au plus, pour débloquer l'étape suivante. Rejoue le niveau\u00a0: les questions changent à chaque fois.";
       finEcran(titre, etoiles, [
         avecSymbole("ducat", "+" + gain, "jeu-stat"),
         avecSymbole("eclair", "+" + xp, "jeu-stat"),
         avecSymbole("cible", Math.round(premiersEssais / qs.length * 100) + " %", "jeu-stat"),
         avecSymbole("flamme", pluriel(serieActuelle(), "jour"), "jeu-stat")
-      ], true, reussi ? null : "Il faut au moins " + ETOILES_POUR_PASSER + " étoiles, soit 2 erreurs au plus, pour débloquer l'étape suivante. Rejoue le niveau : les questions changent à chaque fois.", reussi);
+      ], true, message, reussi);
     }
     function perdu() {
       av.xp += xp;
@@ -5077,15 +5200,15 @@
       ]);
       corps.appendChild(bloc);
       // réussi : on continue le chemin ; sinon, on rejoue d'abord
-      var chemin = el("a", { class: reussi ? "jeu-continuer" : "jeu-secondaire", href: lienAventure(ch), text: reussi ? "Continuer" : "Revenir au chemin" });
-      var encore = ileErreurs ? null : el("button", { class: reussi ? "jeu-secondaire" : "jeu-continuer", type: "button", text: defi ? "Retenter le défi" : "Rejouer ce niveau", onclick: function () { rendre(); } });
+      var chemin = el("a", { class: reussi ? "jeu-continuer" : "jeu-secondaire", href: retour, text: reussi ? "Continuer" : "Revenir au chemin" });
+      var encore = ileErreurs ? null : el("button", { class: reussi ? "jeu-secondaire" : "jeu-continuer", type: "button", text: defi ? "Retenter le défi" : seance ? "Refaire une séance" : "Rejouer ce niveau", onclick: function () { rendre(); } });
       var boutons = reussi ? [chemin, encore] : [encore, chemin];
       pied.appendChild(el("div", { class: "jeu-fin-btns" }, boutons));
       if (reussi && !ileErreurs) confettis(ecran);
       annoncer(titre + (message ? " " + message : ""));
       boutons.filter(Boolean)[0].focus({ preventScroll: true });
     }
-    if (!qs.length) { location.hash = lienAventure(ch); return; }
+    if (!qs.length) { location.hash = retour; return; }
     majHaut();
     poser();
   }
@@ -5229,7 +5352,7 @@
     glisser: function (ch, q, zone, pied, fin) {
       zone.appendChild(consigne(q.consigne));
       var trou = el("button", { class: "jeu-trou", type: "button", "aria-label": "Case à remplir" });
-      zone.appendChild(el("div", { class: "jeu-carte texte" }, el("p", {}, [q.avant, q.avant ? " " : null, trou, q.apres])));
+      zone.appendChild(el("div", { class: "jeu-carte texte" }, el("p", {}, [q.avant, trou, q.apres])));
       var puces = el("div", { class: "jeu-puces" });
       var choisi = null, fait = false;
       var valider = boutonValider(pied, function () {
@@ -5888,8 +6011,540 @@
       g.appendChild(a);
     });
     if (!g.childNodes.length) return null;
+    var plan = av.controles[niveau], auj = isoJour(Date.now());
+    var c = el("a", { class: "entree-aventure petite controle", href: "#/controle/" + niveau });
+    var figC = el("span", { class: "ea-fig ea-calendrier", "aria-hidden": "true" });
+    figC.innerHTML = '<svg viewBox="0 0 64 56"><rect x="8" y="10" width="48" height="40" rx="8" fill="#fff"/><rect x="8" y="10" width="48" height="13" rx="6" fill="#EF6C3A"/><path d="M20 6v10M44 6v10" stroke="#3A2A00" stroke-width="4" stroke-linecap="round"/><path d="M22 36l7 7 14-14" stroke="#22C55E" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    c.appendChild(figC);
+    c.appendChild(el("span", { class: "ea-txt" }, [el("strong", { text: "Je prépare mon contrôle" }),
+      el("span", { text: plan && plan.date >= auj ? "Contrôle le " + dateLongue(plan.date) + (plan.date > auj ? " · J-" + joursEntre(auj, plan.date) : " · c'est aujourd'hui") : "Une petite séance par jour jusqu'au jour J" })]));
+    g.appendChild(c);
+    if (defiDispo()) {
+      var dfi = el("a", { class: "entree-aventure petite defi", href: "#/defi/" + niveau });
+      var figD = el("span", { class: "ea-fig ea-calendrier", "aria-hidden": "true" });
+      figD.innerHTML = '<svg viewBox="0 0 64 56"><rect x="6" y="8" width="52" height="34" rx="5" fill="#fff"/><rect x="10" y="12" width="44" height="26" rx="3" fill="#2446C0"/><path d="M26 42l-6 10M38 42l6 10" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="22" cy="25" r="5" fill="#3B82F6" stroke="#fff" stroke-width="2"/><circle cx="32" cy="25" r="5" fill="#EF4444" stroke="#fff" stroke-width="2"/><circle cx="42" cy="25" r="5" fill="#22C55E" stroke="#fff" stroke-width="2"/></svg>';
+      dfi.appendChild(figD);
+      dfi.appendChild(el("span", { class: "ea-txt" }, [el("strong", { text: "Défi de classe" }), el("span", { text: "À projeter, par équipes (professeur)" })]));
+      g.appendChild(dfi);
+    }
     if (estProf() || DEMO) g.appendChild(el("p", { class: "ea-note", text: estProf() ? "Mode aventure : essai visible seulement par vous." : "Mode aventure : démonstration." }));
     return g;
+  }
+
+  // ---------- Je prépare mon contrôle : une petite séance par jour jusqu'au jour J ----------
+  // L'élève choisit les chapitres et la date. Chaque jour, une séance de 6 questions : un chapitre à l'honneur,
+  // un peu des autres, et ses erreurs à revoir ; la veille, une séance bilan sur tout ; le jour J, l'essentiel à relire.
+  var JOURS_SEM = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+  var MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+  function isoJour(t) { var d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function dateDe(iso) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+  function dateLongue(iso) { var d = dateDe(iso); return JOURS_SEM[d.getDay()] + " " + d.getDate() + (d.getDate() === 1 ? "er" : "") + " " + MOIS[d.getMonth()]; }
+  function joursEntre(a, b) { return Math.round((dateDe(b) - dateDe(a)) / JOUR); }
+  // les jours de séance : de la création du plan à la veille du contrôle
+  function joursDuPlan(plan) {
+    var res = [], d = dateDe(plan.cree), fin = dateDe(plan.date);
+    while (d < fin && res.length < 62) { res.push(isoJour(d)); d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1); }
+    return res;
+  }
+  function pseudoControle(n) { return { id: "controle-" + n, n: n, d: "histoire", special: "controle", titre: "Je prépare mon contrôle", num: nomNiveau(n) }; }
+  function poolChapitre(c) {
+    var t = [];
+    blocs(c).forEach(function (b) { MODELES_NIVEAUX.forEach(function (m) { t = t.concat(m.pool(c, b)); }); });
+    return t;
+  }
+  function questionsSeance(n, plan, k, total) {
+    var diff = DIFFICULTES[n] || DIFFICULTES["2nde"];
+    var chaps = plan.chapitres.map(chapitre).filter(Boolean);
+    if (!chaps.length) return [];
+    var revoir = melanger(erreursDues()).slice(0, 2).map(restaurerErreur).filter(Boolean);
+    var qs;
+    if (k === total - 1) qs = composer(chaps.reduce(function (t, c) { return t.concat(poolChapitre(c)); }, []), diff.nb + 2 - revoir.length, diff);
+    else {
+      var focus = chaps[k % chaps.length], autres = chaps.filter(function (c) { return c !== focus; });
+      qs = composer(poolChapitre(focus), (autres.length ? 4 : 6) - revoir.length, diff);
+      if (autres.length) qs = qs.concat(composer(autres.reduce(function (t, c) { return t.concat(poolChapitre(c)); }, []), 2, diff));
+    }
+    return revoir.concat(melanger(qs));
+  }
+  function vueControle(n, sous) {
+    var ch = pseudoControle(n);
+    document.title = "Je prépare mon contrôle — " + nomNiveau(n);
+    journee();
+    if (!av.perso) { vueCreation(ch); return; }
+    var plan = av.controles[n] || null;
+    if (sous === "seance" && plan) {
+      var jours = joursDuPlan(plan), k = jours.indexOf(isoJour(Date.now()));
+      if (k >= 0) { lancerSeance(ch, plan, jours, k); return; }
+    }
+    if (!plan || sous === "nouveau") { vueNouveauPlan(ch, plan); return; }
+    vuePlan(ch, plan);
+  }
+  function lancerSeance(ch, plan, jours, k) {
+    var auj = jours[k];
+    vueNiveau(ch, null, {
+      type: "controle", cle: "controle|" + ch.n + "|" + auj, nom: "Séance du jour", derniere: k === jours.length - 1,
+      questions: questionsSeance(ch.n, plan, k, jours.length), retour: "#/controle/" + ch.n,
+      enregistrer: function (e, pct) {
+        var avant = plan.faits[auj];
+        plan.faits[auj] = { e: Math.max(e, avant ? avant.e : 0), p: Math.max(pct, avant ? avant.p : 0) };
+        if (!plan.fini && jours.every(function (j) { return plan.faits[j]; })) { plan.fini = true; compter("plansFinis"); }
+      }
+    });
+  }
+  function barreHautControle(retourHref) {
+    var lien = el("a", { class: "av-btn-rond", href: retourHref, "aria-label": "Retour" });
+    lien.innerHTML = icone("retour");
+    return el("div", { class: "av-haut" }, [lien, el("strong", { class: "av-haut-titre", text: "Mon contrôle" }), boutonSon()]);
+  }
+  function vueNouveauPlan(ch, ancien) {
+    var n = ch.n, auj = isoJour(Date.now());
+    var enCours = ancien && ancien.date > auj;
+    var ecran = ecranAventure("av-nuit");
+    ecran.appendChild(barreHautControle(enCours ? "#/controle/" + n : "#/niveau/" + n));
+    var corps = el("div", { class: "av-page" });
+    ecran.appendChild(corps);
+    corps.appendChild(guideBulle(ch, [
+      el("p", { text: "Ton contrôle approche ? Dis-moi quand il a lieu et sur quels chapitres." }),
+      el("p", { text: "Je te prépare une petite séance par jour (5 minutes), une séance bilan la veille, et le jour J tu n'auras plus qu'à relire l'essentiel." })
+    ]));
+    var chaps = chapitresDansLOrdre(n);
+    var choisis = enCours ? ancien.chapitres.filter(function (id) { return chaps.some(function (c) { return c.id === id; }); }) : [];
+    var liste_ = el("div", { class: "av-choix-chapitres", role: "group", "aria-label": "Chapitres du contrôle" });
+    chaps.forEach(function (c) {
+      var b = el("button", { class: "av-chap-choix", type: "button", "aria-pressed": String(choisis.indexOf(c.id) >= 0) }, [el("small", { text: c.num + " · " + DISC[c.d] }), el("span", { text: c.titre })]);
+      b.addEventListener("click", function () {
+        var i = choisis.indexOf(c.id);
+        if (i >= 0) choisis.splice(i, 1); else choisis.push(c.id);
+        b.setAttribute("aria-pressed", String(i < 0));
+        son("clic");
+        maj();
+      });
+      liste_.appendChild(b);
+    });
+    var champDate = el("input", { class: "jeu-saisie av-date", type: "date", min: isoJour(Date.now() + JOUR), max: isoJour(Date.now() + 60 * JOUR),
+      value: enCours ? ancien.date : isoJour(Date.now() + 7 * JOUR), "aria-label": "Date du contrôle" });
+    var resume = el("p", { class: "av-resume", "aria-live": "polite" });
+    var creer = el("button", { class: "jeu-valider", type: "button", text: enCours ? "Mettre à jour mon plan" : "Créer mon plan" });
+    function maj() {
+      var d = champDate.value, nb = dateDe(d) ? joursEntre(auj, d) : 0;
+      creer.disabled = !(choisis.length && nb >= 1 && nb <= 60);
+      resume.textContent = !choisis.length ? "Choisis au moins un chapitre." : !(nb >= 1) ? "Choisis une date à partir de demain." : nb > 60 ? "Choisis une date dans les deux mois qui viennent." :
+        pluriel(nb, "séance") + " de 5 minutes, une par jour" + (nb > 1 ? ", dont une séance bilan la veille" : " : la séance bilan") + ". Contrôle le " + dateLongue(d) + ".";
+    }
+    champDate.addEventListener("input", maj);
+    champDate.addEventListener("change", maj);
+    creer.addEventListener("click", function () {
+      if (creer.disabled) return;
+      var ids = chaps.map(function (c) { return c.id; }).filter(function (id) { return choisis.indexOf(id) >= 0; });
+      av.controles[n] = enCours ? { chapitres: ids, date: champDate.value, cree: ancien.cree, faits: ancien.faits } : { chapitres: ids, date: champDate.value, cree: auj, faits: {} };
+      sauverAventure();
+      son("fin");
+      if (location.hash === "#/controle/" + n) rendre(); else location.hash = "#/controle/" + n;
+    });
+    ajouter(corps, [
+      el("h3", { class: "av-sous-titre", text: "Les chapitres du contrôle" }),
+      chaps.length ? liste_ : el("p", { class: "av-note", text: "Aucun chapitre n'est encore ouvert pour ta classe." }),
+      el("h3", { class: "av-sous-titre", text: "La date du contrôle" }),
+      champDate, resume, creer
+    ]);
+    maj();
+  }
+  // un fichier d'agenda : un rappel par jour de séance, à 18 h
+  function telechargerAgenda(plan, n) {
+    var jours = joursDuPlan(plan), lien = location.href.split("#")[0] + "#/controle/" + n;
+    var maintenant = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+    var l = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Cahier de progression//Reviser//FR", "CALSCALE:GREGORIAN"];
+    jours.forEach(function (j, k) {
+      var d = j.replace(/-/g, "");
+      if (j < isoJour(Date.now())) return;
+      l.push("BEGIN:VEVENT", "UID:reviser-" + n + "-" + d + "@cahier-de-progression", "DTSTAMP:" + maintenant,
+        "DTSTART:" + d + "T180000", "DTEND:" + d + "T181000",
+        "SUMMARY:Révision histoire-géo (" + (k === jours.length - 1 ? "séance bilan" : "séance " + (k + 1) + " sur " + jours.length) + ")",
+        "DESCRIPTION:5 minutes avant le contrôle du " + dateLongue(plan.date) + " : " + lien,
+        "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:Révision histoire-géo", "TRIGGER:-PT0M", "END:VALARM", "END:VEVENT");
+    });
+    l.push("END:VCALENDAR");
+    var url = URL.createObjectURL(new Blob([l.join("\r\n") + "\r\n"], { type: "text/calendar" }));
+    var a = el("a", { href: url, download: "revisions-histoire-geo.ics" });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+  }
+  function vuePlan(ch, plan) {
+    var n = ch.n, auj = isoJour(Date.now());
+    var jours = joursDuPlan(plan), k = jours.indexOf(auj), reste = joursEntre(auj, plan.date);
+    var chaps = plan.chapitres.map(chapitre).filter(Boolean);
+    var faites = jours.filter(function (j) { return plan.faits[j]; }).length;
+    var ecran = ecranAventure("av-nuit");
+    ecran.appendChild(barreHautControle("#/niveau/" + n));
+    var corps = el("div", { class: "av-page" });
+    ecran.appendChild(corps);
+    var puces = el("div", { class: "av-chips" });
+    chaps.forEach(function (c) { puces.appendChild(el("span", { text: c.num + " · " + DISC[c.d] })); });
+    corps.appendChild(el("div", { class: "av-controle-carte" + (reste <= 0 ? " jourj" : "") }, [
+      el("div", { class: "av-jj", text: reste > 0 ? "J-" + reste : reste === 0 ? "Jour J" : "Fini" }),
+      el("div", { class: "av-controle-txt" }, [el("small", { text: "Contrôle de " + nomNiveau(n) }), el("strong", { text: dateLongue(plan.date) }), puces])
+    ]));
+    // le calendrier des séances, puis le jour J
+    var cal = el("div", { class: "av-calendrier", role: "list", "aria-label": "Mes séances" });
+    jours.forEach(function (j, i) {
+      var f = plan.faits[j], etat = f ? "fait" : j === auj ? "aujourdhui" : j < auj ? "manque" : "avenir";
+      var d = dateDe(j);
+      var marque = f ? "★".repeat(f.e) : etat === "aujourdhui" ? "à faire" : etat === "manque" ? "manquée" : i === jours.length - 1 ? "bilan" : "";
+      cal.appendChild(el("div", { class: "av-jour " + etat + (i === jours.length - 1 ? " bilan" : ""), role: "listitem",
+        "aria-label": dateLongue(j) + " : " + (f ? "séance faite, " + f.e + " étoile" + (f.e > 1 ? "s" : "") : etat === "manque" ? "séance manquée" : etat === "aujourdhui" ? "séance du jour" : "séance à venir") },
+        [el("small", { text: JOURS_SEM[d.getDay()].slice(0, 3) }), el("strong", { text: String(d.getDate()) }), el("span", { class: "av-jour-etat", text: marque })]));
+    });
+    var dj = dateDe(plan.date);
+    cal.appendChild(el("div", { class: "av-jour jj" + (reste === 0 ? " aujourdhui" : ""), role: "listitem", "aria-label": "Jour du contrôle : " + dateLongue(plan.date) },
+      [el("small", { text: JOURS_SEM[dj.getDay()].slice(0, 3) }), el("strong", { text: String(dj.getDate()) }), el("span", { class: "av-jour-etat", text: "contrôle" })]));
+    corps.appendChild(cal);
+    corps.appendChild(el("p", { class: "av-note", text: faites + " séance" + (faites > 1 ? "s" : "") + " faite" + (faites > 1 ? "s" : "") + " sur " + jours.length + "." }));
+    // l'action du jour
+    if (reste < 0) {
+      corps.appendChild(guideBulle(ch, [el("p", { text: "Ton contrôle est passé. " + (faites === jours.length ? "Tu as fait toutes tes séances : bravo !" : "Tu as fait " + faites + " séance" + (faites > 1 ? "s" : "") + " sur " + jours.length + ".") }),
+        el("p", { text: "Le prochain arrive ? Prépare-le de la même façon." })]));
+      corps.appendChild(el("a", { class: "jeu-valider av-bouton", href: "#/controle/" + n + "/nouveau", text: "Préparer un nouveau contrôle" }));
+    } else if (reste === 0) {
+      var liens = el("div", { class: "av-liens-essentiel" });
+      chaps.forEach(function (c) { liens.appendChild(el("a", { class: "jeu-secondaire", href: lienChapitre(c, "essentiel"), text: "L'essentiel : " + c.titre })); });
+      corps.appendChild(guideBulle(ch, [el("p", {}, el("strong", { text: "C'est le jour J !" })), el("p", { text: "Pas de nouvelle séance aujourd'hui : relis tranquillement l'essentiel de chaque chapitre. Bonne chance !" })]));
+      corps.appendChild(liens);
+    } else if (k >= 0) {
+      var fait = plan.faits[auj], derniere = k === jours.length - 1;
+      var focus = chaps.length ? chaps[k % chaps.length] : null;
+      corps.appendChild(el("div", { class: "av-seance" }, [
+        el("small", { text: derniere ? "Séance bilan · la veille du contrôle" : "Séance du jour · " + (k + 1) + " sur " + jours.length }),
+        el("strong", { text: derniere ? "Tout le programme du contrôle" : focus ? (chaps.length > 1 ? "À l'honneur : " : "") + focus.titre : "" }),
+        el("span", { text: (derniere ? "10" : "6") + " questions · 5 minutes" + (fait ? " · faite (" + fait.e + " étoile" + (fait.e > 1 ? "s" : "") + ")" : "") }),
+        el("a", { class: fait ? "jeu-secondaire" : "jeu-valider", href: "#/controle/" + n + "/seance", text: fait ? "Refaire la séance" : "Commencer la séance" })
+      ]));
+    }
+    if (reste > 0) {
+      var agenda = el("button", { class: "jeu-secondaire av-bouton", type: "button", text: "Ajouter les rappels à mon agenda" });
+      agenda.addEventListener("click", function () { telechargerAgenda(plan, n); son("clic"); });
+      corps.appendChild(agenda);
+      corps.appendChild(el("p", { class: "av-note", text: "Un rappel par jour à 18 h, avec le lien vers ta séance." }));
+    }
+    var supprimer = el("button", { class: "av-lien", type: "button", text: "Supprimer ce plan" });
+    supprimer.addEventListener("click", function () {
+      confirmer("Supprimer ce plan ?", "Les séances déjà faites resteront comptées dans tes étoiles et tes ducats.", "Supprimer", function () { delete av.controles[n]; sauverAventure(); rendre(); });
+    });
+    corps.appendChild(el("div", { class: "av-liens-bas" }, [reste > 0 ? el("a", { class: "av-lien", href: "#/controle/" + n + "/nouveau", text: "Modifier les chapitres ou la date" }) : null, supprimer]));
+  }
+
+  // ---------- Défi de classe : un jeu à projeter, par équipes (réservé au professeur) ----------
+  // Les équipes répondent à l'oral ou sur ardoise ; le professeur affiche la réponse, puis donne le point aux équipes
+  // qui ont trouvé. Raccourcis : Espace (réponse, puis question suivante), 1 à 4 (points), M (minuteur), I (indice), F (plein écran).
+  var CLE_DEFI = "reviser-defi-classe-v1";
+  var COULEURS_EQUIPES = ["#3B82F6", "#EF4444", "#22C55E", "#F5B82E"];
+  var NOMS_EQUIPES = ["Athènes", "Rome", "Venise", "Byzance"];
+  var defiClasse = null; // la partie en cours, en mémoire
+  function defiDispo() { return estProf() || DEMO; }
+  function pleinEcran() {
+    try {
+      var e = document.documentElement;
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) (e.requestFullscreen || e.webkitRequestFullscreen).call(e);
+      else (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    } catch (x) {}
+  }
+  function boutonPleinEcran() {
+    var b = el("button", { class: "av-btn-rond", type: "button", "aria-label": "Plein écran (F)" });
+    b.innerHTML = icone("plein");
+    b.addEventListener("click", pleinEcran);
+    return b;
+  }
+  // une question du jeu → une question à projeter : options A, B, C, D, ou question ouverte (ardoise)
+  function versProjection(q) {
+    var lettres = ["A", "B", "C", "D", "E", "F", "G", "H"];
+    switch (q.type) {
+      case "choix": return { consigne: q.consigne, enonce: q.bulle || "", grand: q.grand, image: q.image, options: q.options, bonne: q.bonne, expl: q.expl };
+      case "vf": return { consigne: "Vrai ou faux ?", enonce: (q.titre ? q.titre + " : " : "") + q.texte, options: ["Vrai", "Faux"], bonne: q.vrai ? "Vrai" : "Faux", expl: q.expl };
+      case "glisser": return { consigne: "Quel mot manque ?", enonce: q.avant + "……" + q.apres, options: q.options, bonne: q.bonne, expl: q.expl };
+      case "curseur": return { consigne: "À quelle date ?", enonce: q.enonce, options: q.dates, bonne: q.dates[q.bonne], expl: q.expl };
+      case "saisie": return { consigne: q.nombre ? "En quelle année ? Écrivez-la sur l'ardoise" : "Écrivez le mot sur l'ardoise", enonce: q.bulle, ouverte: true, bonne: q.bonne, expl: q.expl };
+      case "quisuisje": return { consigne: "Qui suis-je ?", indices: q.indices, options: q.options, bonne: q.bonne, expl: q.expl };
+      case "carte": case "experte":
+        var cible = q.lieux[q.cible];
+        var noms = melanger(q.lieux.filter(function (p) { return p !== cible; }).map(nomDe)).slice(0, 3);
+        return { consigne: "Quel est ce lieu ?", carte: { fond: q.fond, lieu: cible }, options: melanger([cible.nom].concat(noms)), bonne: cible.nom, expl: q.expl };
+      case "detail":
+        var nb = liste(q.d, "details").length, nums = [];
+        for (var i = 1; i <= nb; i++) nums.push(String(i));
+        return { consigne: "Observez le document", enonce: "Quel numéro montre : " + q.d.details[q.k].nom + " ?", doc: q.d, k: q.k, options: nums, bonne: String(q.k + 1), expl: q.expl };
+      case "ordre":
+        var items = q.items.slice(), tri = items.slice().sort(function (a, b) { return valeurDate(a.a) - valeurDate(b.a); });
+        return { consigne: "Remettez dans l'ordre chronologique", liste: items.map(function (it, j) { return lettres[j] + ". " + it.txt; }), ouverte: true,
+          bonne: tri.map(function (it) { return lettres[items.indexOf(it)]; }).join(" → "), expl: tri.map(function (it) { return it.date + " : " + it.txt; }).join(" · ") };
+    }
+    return null;
+  }
+  function questionsDefi(n, ids, nb) {
+    var diff = DIFFICULTES[n] || DIFFICULTES["2nde"];
+    var pool = [];
+    ids.map(chapitre).filter(Boolean).forEach(function (c) { pool = pool.concat(poolChapitre(c)); });
+    pool = pool.filter(function (q) { return q.type !== "paires"; });
+    return composer(pool, nb, diff).map(versProjection).filter(Boolean);
+  }
+  function vueDefiClasse(n, demandes) {
+    document.title = "Défi de classe — " + nomNiveau(n);
+    if (defiClasse && defiClasse.niveau === n && defiClasse.enCours && !demandes) { vueDefiJeu(); return; }
+    vueDefiReglages(n, demandes);
+  }
+  function segmentsDefi(titre, items, actuel, choisir) {
+    var g = el("div", { class: "segments", role: "group", "aria-label": titre });
+    items.forEach(function (it) { g.appendChild(el("button", { class: "opt", type: "button", text: it.nom, "aria-pressed": String(it.id === actuel), onclick: function () { choisir(it.id); } })); });
+    return g;
+  }
+  function vueDefiReglages(n, demandes) {
+    defiClasse = null;
+    var r = lire(CLE_DEFI, {}) || {};
+    var noms = Array.isArray(r.noms) && r.noms.length === 4 ? r.noms : NOMS_EQUIPES.slice();
+    var nbEquipes = [2, 3, 4].indexOf(r.equipes) >= 0 ? r.equipes : 2;
+    var nbQuestions = [10, 15, 20].indexOf(r.questions) >= 0 ? r.questions : 10;
+    var minuteur = [0, 20, 30, 45].indexOf(r.minuteur) >= 0 ? r.minuteur : 30;
+    var chaps = estProf() ? tousChapitresNiveau(n) : chapitresDansLOrdre(n);
+    var choisis = (demandes || (r.niveau === n && Array.isArray(r.chapitres) ? r.chapitres : chapitresDansLOrdre(n).map(function (c) { return c.id; })))
+      .filter(function (id) { return chaps.some(function (c) { return c.id === id; }); });
+    var ecran = ecranAventure("av-nuit defi-classe");
+    var lien = el("a", { class: "av-btn-rond", href: estProf() ? "#/prof" : "#/niveau/" + n, "aria-label": "Retour" });
+    lien.innerHTML = icone("retour");
+    ecran.appendChild(el("div", { class: "av-haut" }, [lien, el("strong", { class: "av-haut-titre", text: "Défi de classe" }), boutonPleinEcran()]));
+    var corps = el("div", { class: "av-page dc-reglages" });
+    ecran.appendChild(corps);
+    var zone = el("div");
+    function dessiner() {
+      zone.innerHTML = "";
+      var lc = el("div", { class: "av-choix-chapitres", role: "group", "aria-label": "Chapitres" });
+      chaps.forEach(function (c) {
+        var b = el("button", { class: "av-chap-choix", type: "button", "aria-pressed": String(choisis.indexOf(c.id) >= 0) }, [el("small", { text: c.num + " · " + DISC[c.d] + (estVisible(c) ? "" : " · masqué aux élèves") }), el("span", { text: c.titre })]);
+        b.addEventListener("click", function () { var i = choisis.indexOf(c.id); if (i >= 0) choisis.splice(i, 1); else choisis.push(c.id); dessiner(); });
+        lc.appendChild(b);
+      });
+      var champsNoms = el("div", { class: "dc-noms" });
+      for (var i = 0; i < nbEquipes; i++) (function (i) {
+        var champ = el("input", { class: "dc-nom-champ", type: "text", maxlength: "18", value: noms[i], "aria-label": "Nom de l'équipe " + (i + 1) });
+        champ.style.setProperty("--c", COULEURS_EQUIPES[i]);
+        champ.addEventListener("input", function () { noms[i] = champ.value.trim() || NOMS_EQUIPES[i]; });
+        champsNoms.appendChild(champ);
+      })(i);
+      var lancer = el("button", { class: "jeu-valider", type: "button", text: "Lancer le défi", disabled: !choisis.length });
+      lancer.addEventListener("click", function () {
+        var ids = chaps.map(function (c) { return c.id; }).filter(function (id) { return choisis.indexOf(id) >= 0; });
+        ecrire(CLE_DEFI, { niveau: n, chapitres: ids, noms: noms, equipes: nbEquipes, questions: nbQuestions, minuteur: minuteur });
+        var qs = questionsDefi(n, ids, nbQuestions);
+        if (!qs.length) { notifier("Ces chapitres n'ont pas encore assez de contenu pour un défi.", "parchemin"); return; }
+        defiClasse = { niveau: n, ids: ids, questions: qs, pos: 0, minuteur: minuteur, enCours: true,
+          equipes: noms.slice(0, nbEquipes).map(function (nom, j) { return { nom: nom, c: COULEURS_EQUIPES[j], score: 0 }; }) };
+        son("fin");
+        vueDefiJeu();
+      });
+      ajouter(zone, [
+        el("h3", { class: "av-sous-titre", text: "Classe" }),
+        segmentsDefi("Classe", NIVEAUX.map(function (x) { return { id: x.id, nom: x.nom }; }), n, function (id) { location.hash = "#/defi/" + id; }),
+        el("h3", { class: "av-sous-titre", text: "Chapitres" }),
+        chaps.length ? lc : el("p", { class: "av-note", text: "Aucun chapitre prêt pour cette classe." }),
+        el("h3", { class: "av-sous-titre", text: "Équipes" }),
+        segmentsDefi("Nombre d'équipes", [{ id: 2, nom: "2 équipes" }, { id: 3, nom: "3 équipes" }, { id: 4, nom: "4 équipes" }], nbEquipes, function (v) { nbEquipes = v; dessiner(); }),
+        champsNoms,
+        el("h3", { class: "av-sous-titre", text: "Questions" }),
+        segmentsDefi("Nombre de questions", [{ id: 10, nom: "10" }, { id: 15, nom: "15" }, { id: 20, nom: "20" }], nbQuestions, function (v) { nbQuestions = v; dessiner(); }),
+        el("h3", { class: "av-sous-titre", text: "Minuteur" }),
+        segmentsDefi("Minuteur", [{ id: 0, nom: "Sans" }, { id: 20, nom: "20 s" }, { id: 30, nom: "30 s" }, { id: 45, nom: "45 s" }], minuteur, function (v) { minuteur = v; dessiner(); }),
+        lancer
+      ]);
+    }
+    corps.appendChild(guideBulle({ d: "histoire" }, [el("p", { text: "Projetez cet écran. Chaque équipe répond à l'oral ou sur une ardoise ; vous affichez la réponse, puis vous donnez le point aux équipes qui ont trouvé." }),
+      el("p", { class: "dc-raccourcis", text: "Raccourcis : Espace = réponse puis question suivante · 1 à 4 = points · M = minuteur · I = indice · F = plein écran." })]));
+    corps.appendChild(zone);
+    dessiner();
+  }
+  function vueDefiJeu() {
+    var d = defiClasse;
+    app.innerHTML = "";
+    var ecran = ecranAventure("av-nuit defi-classe dc-jeu");
+    var scores = el("div", { class: "dc-scores", "aria-live": "polite" });
+    var terminer = el("button", { class: "av-btn-rond", type: "button", "aria-label": "Terminer le défi" });
+    terminer.innerHTML = icone("fermer");
+    terminer.addEventListener("click", function () { confirmer("Terminer le défi ?", "Le classement s'affichera avec les points déjà marqués.", "Terminer", function () { d.enCours = false; vueDefiFin(); }); });
+    ecran.appendChild(el("div", { class: "av-haut dc-haut" }, [terminer, scores, boutonPleinEcran()]));
+    var scene = el("div", { class: "dc-scene" });
+    var pied = el("div", { class: "dc-pied" });
+    ajouter(ecran, [scene, pied]);
+    var revele = false, gagnants = {}, indices = 1, minuterie = null, temps = 0, carte = null, cadre = null;
+    function majScores() {
+      scores.innerHTML = "";
+      d.equipes.forEach(function (e, i) {
+        var s = el("div", { class: "dc-equipe" + (gagnants[i] ? " gagne" : "") }, [el("span", { class: "dc-nom", text: e.nom }), el("strong", { text: String(e.score + (gagnants[i] ? 1 : 0)) })]);
+        s.style.setProperty("--c", e.c);
+        scores.appendChild(s);
+      });
+    }
+    function arreterMinuteur() { if (minuterie) { clearInterval(minuterie); minuterie = null; } }
+    function lancerMinuteur() {
+      if (!d.minuteur || revele) return;
+      arreterMinuteur();
+      temps = d.minuteur;
+      var aff = pied.querySelector(".dc-minuteur");
+      function tic() {
+        if (!ecran.isConnected) { arreterMinuteur(); return; }
+        if (aff) { aff.textContent = temps > 0 ? temps + " s" : "Temps écoulé !"; aff.classList.toggle("urgent", temps <= 5); aff.style.setProperty("--part", temps / d.minuteur); }
+        if (temps <= 0) { arreterMinuteur(); son("ko"); return; }
+        if (temps <= 5) son("clic");
+        temps--;
+      }
+      tic();
+      minuterie = setInterval(tic, 1000);
+    }
+    function afficher() {
+      arreterMinuteur();
+      var P = d.questions[d.pos];
+      revele = false; gagnants = {}; indices = 1; carte = null; cadre = null;
+      majScores();
+      scene.innerHTML = "";
+      scene.appendChild(el("div", { class: "dc-num", text: "Question " + (d.pos + 1) + " sur " + d.questions.length }));
+      scene.appendChild(el("h2", { class: "dc-consigne", text: P.consigne }));
+      if (P.indices) {
+        var ind = el("div", { class: "dc-indices" });
+        P.indices.forEach(function (t, i) { ind.appendChild(el("p", { text: t, hidden: i >= indices })); });
+        scene.appendChild(ind);
+      }
+      if (P.enonce) scene.appendChild(el("div", { class: "dc-enonce" + (P.grand ? " grand" : "") , text: P.enonce }));
+      if (P.liste) { var ul = el("div", { class: "dc-liste" }); P.liste.forEach(function (t) { ul.appendChild(el("p", { text: t })); }); scene.appendChild(ul); }
+      var media = null;
+      if (P.carte) {
+        carte = creerCarte(P.carte.fond, [P.carte.lieu], { titre: "Carte", nomAccessible: function () { return "Le lieu à reconnaître"; }, surLieu: function () {}, surTouche: function () {} });
+        carte.etat(0, "vise"); carte.nom(0, 0);
+        media = el("div", { class: "dc-media jeu-geo" }, carte.boite);
+      } else if (P.doc) {
+        cadre = cadreImage(P.doc, {});
+        media = el("figure", { class: "dc-media jeu-doc" }, [cadre.cadre, el("figcaption", { text: P.doc.titre })]);
+      } else if (P.image) {
+        var img = el("img", { src: P.image.image, alt: P.image.titre });
+        media = el("figure", { class: "dc-media jeu-doc" }, [el("div", { class: "doc-cadre" }, img), el("figcaption", { text: P.image.titre })]);
+      }
+      var corpsQ = el("div", { class: "dc-corps" + (media ? " avec-media" : "") });
+      if (media) corpsQ.appendChild(media);
+      if (P.options) {
+        var opts = el("div", { class: "dc-options" + (P.options.every(function (o) { return String(o).length <= 24; }) ? " courtes" : "") });
+        P.options.forEach(function (o, i) {
+          opts.appendChild(el("div", { class: "dc-option", "data-bonne": String(normaliser(o) === normaliser(P.bonne)) }, [el("span", { class: "dc-lettre", text: "ABCDEFGH".charAt(i) }), el("span", { text: o })]));
+        });
+        corpsQ.appendChild(opts);
+      }
+      scene.appendChild(corpsQ);
+      if (carte) carte.echelle();
+      var boutons = [];
+      if (d.minuteur) {
+        var m = el("button", { class: "dc-minuteur", type: "button", text: "Lancer le minuteur (" + d.minuteur + " s)" });
+        m.addEventListener("click", lancerMinuteur);
+        boutons.push(m);
+      }
+      if (P.indices && P.indices.length > 1) {
+        var bi = el("button", { class: "jeu-secondaire dc-indice", type: "button", text: "Indice suivant" });
+        bi.addEventListener("click", indiceSuivant);
+        boutons.push(bi);
+      }
+      var rev = el("button", { class: "jeu-valider", type: "button", text: "Afficher la réponse" });
+      rev.addEventListener("click", reveler);
+      boutons.push(rev);
+      pied.innerHTML = "";
+      pied.appendChild(el("div", { class: "dc-boutons" }, boutons));
+      rev.focus({ preventScroll: true });
+    }
+    function indiceSuivant() {
+      var P = d.questions[d.pos];
+      if (!P.indices || revele || indices >= P.indices.length) return;
+      indices++;
+      var ps = scene.querySelectorAll(".dc-indices p");
+      for (var i = 0; i < ps.length; i++) ps[i].hidden = i >= indices;
+      if (indices >= P.indices.length) { var b = pied.querySelector(".dc-indice"); if (b) b.disabled = true; }
+    }
+    function reveler() {
+      if (revele) return;
+      revele = true;
+      arreterMinuteur();
+      var P = d.questions[d.pos];
+      son("ok");
+      var ps = scene.querySelectorAll(".dc-indices p");
+      for (var i = 0; i < ps.length; i++) ps[i].hidden = false;
+      scene.querySelectorAll(".dc-option").forEach(function (o) { o.classList.add(o.getAttribute("data-bonne") === "true" ? "bien" : "pale"); });
+      if (P.ouverte) scene.appendChild(el("div", { class: "dc-reponse" }, [el("small", { text: "Réponse" }), el("strong", { text: P.bonne })]));
+      if (carte) { carte.etat(0, "trouve"); carte.nom(0, 3); carte.echelle(); }
+      if (cadre) cadre.pastilles[P.k].classList.add("trouve");
+      if (P.expl) scene.appendChild(el("p", { class: "dc-expl", text: P.expl }));
+      var equipes = el("div", { class: "dc-qui", role: "group", "aria-label": "Qui a trouvé ?" });
+      d.equipes.forEach(function (e, i) {
+        var b = el("button", { class: "dc-equipe-btn", type: "button", "aria-pressed": "false" }, [el("span", { class: "dc-raccourci", text: String(i + 1) }), e.nom]);
+        b.style.setProperty("--c", e.c);
+        b.addEventListener("click", function () { basculer(i); });
+        equipes.appendChild(b);
+      });
+      var suite = el("button", { class: "jeu-valider", type: "button", text: d.pos === d.questions.length - 1 ? "Voir le classement" : "Question suivante" });
+      suite.addEventListener("click", suivante);
+      pied.innerHTML = "";
+      ajouter(pied, [el("div", { class: "dc-qui-titre", text: "Qui a trouvé ?" }), equipes, suite]);
+      suite.focus({ preventScroll: true });
+    }
+    function basculer(i) {
+      if (!revele || !d.equipes[i]) return;
+      gagnants[i] = !gagnants[i];
+      var b = pied.querySelectorAll(".dc-equipe-btn")[i];
+      if (b) b.setAttribute("aria-pressed", String(!!gagnants[i]));
+      son("clic");
+      majScores();
+    }
+    function suivante() {
+      d.equipes.forEach(function (e, i) { if (gagnants[i]) e.score++; });
+      gagnants = {};
+      d.pos++;
+      if (d.pos >= d.questions.length) { d.enCours = false; vueDefiFin(); return; }
+      afficher();
+    }
+    surToucheVue = function (e) {
+      var k = e.key.toLowerCase();
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); if (revele) suivante(); else reveler(); }
+      else if (/^[1-4]$/.test(e.key)) basculer(Number(e.key) - 1);
+      else if (e.key === "ArrowRight" && revele) suivante();
+      else if (k === "m") lancerMinuteur();
+      else if (k === "i") indiceSuivant();
+      else if (k === "f") pleinEcran();
+    };
+    afficher();
+  }
+  function vueDefiFin() {
+    var d = defiClasse;
+    app.innerHTML = "";
+    surToucheVue = null;
+    var ecran = ecranAventure("av-nuit defi-classe dc-jeu");
+    var lien = el("a", { class: "av-btn-rond", href: estProf() ? "#/prof" : "#/niveau/" + d.niveau, "aria-label": "Retour" });
+    lien.innerHTML = icone("retour");
+    ecran.appendChild(el("div", { class: "av-haut" }, [lien, el("strong", { class: "av-haut-titre", text: "Classement" }), boutonPleinEcran()]));
+    var tri = d.equipes.slice().sort(function (a, b) { return b.score - a.score; });
+    var podium = el("div", { class: "dc-podium" });
+    var rang = 0;
+    tri.forEach(function (e, i) {
+      if (i === 0 || e.score < tri[i - 1].score) rang = i + 1;
+      var marche = el("div", { class: "dc-marche r" + rang }, [el("span", { class: "dc-rang", text: rang === 1 ? "1er" : rang + "e" }), el("strong", { text: e.nom }), el("span", { class: "dc-points", text: pluriel(e.score, "point") })]);
+      marche.style.setProperty("--c", e.c);
+      podium.appendChild(marche);
+    });
+    var premiers = tri.filter(function (e) { return e.score === tri[0].score; });
+    var rejouer = el("button", { class: "jeu-valider", type: "button", text: "Rejouer avec d'autres questions" });
+    rejouer.addEventListener("click", function () {
+      d.questions = questionsDefi(d.niveau, d.ids, d.questions.length);
+      d.pos = 0; d.enCours = true;
+      d.equipes.forEach(function (e) { e.score = 0; });
+      vueDefiJeu();
+    });
+    var regler = el("a", { class: "jeu-secondaire", href: "#/defi/" + d.niveau + "/" + d.ids.join(","), text: "Changer les réglages" });
+    ajouter(ecran, [el("div", { class: "dc-fin" }, [
+      el("h2", { class: "dc-consigne", text: premiers.length > 1 ? "Égalité : " + premiers.map(function (e) { return e.nom; }).join(" et ") + " !" : "Victoire de " + premiers[0].nom + " !" }),
+      podium, el("div", { class: "dc-boutons fin" }, [rejouer, regler])
+    ])]);
+    son("fin");
+    confettis(ecran);
   }
 
   // ---------- Espace professeur : choisir les chapitres que voient les élèves ----------
@@ -5977,6 +6632,7 @@
     if (messageProf) app.appendChild(el("div", { class: "alerte" + (messageProf.ok ? " ok" : ""), role: "status" }, messageProf.texte));
     app.appendChild(blocConnexion());
 
+    app.appendChild(el("a", { class: "lien-defi", href: "#/defi/" + classeProf }, [el("strong", { text: "Défi de classe à projeter" }), " : questions des chapitres, par équipes, avec minuteur et classement"]));
     app.appendChild(el("div", { class: "etiq", text: "Classe" }));
     var choix = el("div", { class: "choix", role: "group", "aria-label": "Classe" });
     NIVEAUX.forEach(function (n) {
@@ -6183,7 +6839,7 @@
   // la liste a changé depuis le dernier passage : on rafraîchit, sans interrompre un exercice en cours
   function rafraichirApresChargement() {
     var r = routeActuelle();
-    if (r.vue === "prof" || r.vue === "express" || r.vue === "aventure" || r.vue === "sauvegarde") return;
+    if (["prof", "express", "aventure", "sauvegarde", "controle", "defi"].indexOf(r.vue) >= 0) return;
     if (r.vue === "outil") {
       var ch = chapitre(r.ch);
       if (!ch || estVisible(ch) || estProf()) return;
