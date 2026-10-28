@@ -3642,7 +3642,8 @@
   // les dates et les acteurs ; les lieux et les documents —, puis un coffre ; le chapitre se termine par un défi.
   // Les questions sont tirées des champs du chapitre (notions, repères, personnages, lieux, documents, textes à trous) :
   // rien à écrire en plus. Le personnage, les trouvailles et la progression restent sur l'appareil : aucun nom, rien n'est envoyé.
-  // Pour l'essai, le mode n'apparaît qu'en mode professeur.
+  // Pour l'essai, le mode n'apparaît qu'en mode professeur, ou avec ?demo dans l'adresse (lien de démonstration
+  // pour des collègues : toutes les étapes ouvertes, sans aucun accès à l'espace professeur).
   var CLE_AV = "reviser-aventure-v1";
   var NB_Q = 7;      // questions par niveau
   var NB_DEFI = 10;  // questions du défi final
@@ -3663,7 +3664,9 @@
   chargerAventure();
   function sauverAventure() { ecrire(CLE_AV, av); }
   window.addEventListener("storage", function (e) { if (e.key === CLE_AV) chargerAventure(); });
-  function aventureDispo() { return estProf(); }
+  var DEMO = /[?&]demo(=|&|$)/.test(location.search);
+  function aventureDispo() { return estProf() || DEMO; }
+  function toutOuvert() { return estProf() || DEMO; }
   function lienAventure(ch, suite) { return "#/aventure/" + encodeURIComponent(ch.id) + (suite ? "/" + suite : ""); }
 
   // ----- Le personnage : un dessin en couches (cheveux, tenue, objet, visage, chapeau) -----
@@ -4132,7 +4135,7 @@
     for (var i = 0; i < route.noeuds.length; i++) if (!noeudFait(route.noeuds[i])) return i;
     return -1;
   }
-  function noeudOuvert(route, n) { var p = premierAFaire(route); return estProf() || p < 0 || n.i <= p; }
+  function noeudOuvert(route, n) { var p = premierAFaire(route); return toutOuvert() || p < 0 || n.i <= p; }
   function etoilesDe(n) { var x = av.niveaux[n.cle]; return x ? x.e : 0; }
   function etoilesRoute(route) { return route.noeuds.reduce(function (s, n) { return s + etoilesDe(n); }, 0); }
   function poolNoeud(ch, n) {
@@ -4177,7 +4180,7 @@
 
   var DECALAGES = [0, .7, 1, .7, 0, -.7, -1, -.7];
   function vueChemin(ch, route) {
-    var noeuds = route.noeuds, prof = estProf();
+    var noeuds = route.noeuds;
     var premier = premierAFaire(route);
     var ecran = ecranAventure("av-mer");
     var lien = el("a", { class: "av-btn-rond", href: lienChapitre(ch), "aria-label": "Retour au chapitre" });
@@ -4200,7 +4203,8 @@
       barreProgres(noeuds.length ? faits / noeuds.length : 0),
       el("span", { class: "av-route-info", text: faits + " étape" + (faits > 1 ? "s" : "") + " sur " + noeuds.length })
     ]));
-    if (prof) ecran.appendChild(el("p", { class: "av-note", text: "Essai professeur : ce mode n'est visible que par vous, et toutes les étapes sont ouvertes. Un élève les débloque dans l'ordre." }));
+    if (estProf()) ecran.appendChild(el("p", { class: "av-note", text: "Essai professeur : ce mode n'est visible que par vous, et toutes les étapes sont ouvertes. Un élève les débloque dans l'ordre." }));
+    else if (DEMO) ecran.appendChild(el("p", { class: "av-note", text: "Démonstration : toutes les étapes sont ouvertes. Un élève les débloque dans l'ordre, en réussissant chaque niveau." }));
     if (!noeuds.length) {
       ecran.appendChild(el("p", { class: "av-note", text: "Ce chapitre n'a pas encore assez de contenu pour une aventure." }));
       return;
@@ -5012,7 +5016,7 @@
     a.appendChild(el("span", { class: "ea-txt" }, [
       el("strong", { text: "Mode aventure" }),
       el("span", { text: faits ? faits + " étape" + (faits > 1 ? "s" : "") + " sur " + route.noeuds.length + " · " + etoilesRoute(route) + " étoiles" : route.noeuds.length + " étapes : îles, coffres, défi final" }),
-      estProf() ? el("small", { text: "Essai : visible seulement par vous" }) : null
+      estProf() ? el("small", { text: "Essai : visible seulement par vous" }) : DEMO ? el("small", { text: "Démonstration" }) : null
     ]));
     return a;
   }
