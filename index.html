@@ -6149,7 +6149,8 @@ function ClassMode({ data, onClose, onObserve, onSaveEntry }) {
     const d = kd.toggle ? ((today[sid] || {})[k] ? -1 : 1) : delta;
     onObserve(todayISO, classId, sid, k, d);
     clearTimeout(toastTimer.current);
-    setToast({ text: `${kd.toggle && d < 0 ? "Présent" : kd.label} · ${s ? s.name : ""}`, undo: () => onObserve(todayISO, classId, sid, k, -d) });
+    const what = kd.toggle ? (d < 0 ? "Présent" : kd.label) : d < 0 ? `Retiré : ${kd.label}` : kd.label;
+    setToast({ text: `${what} · ${s ? s.name : ""}`, undo: () => onObserve(todayISO, classId, sid, k, -d) });
     toastTimer.current = setTimeout(() => setToast(null), 5000);
     try {
       navigator.vibrate && navigator.vibrate(12);
@@ -6203,14 +6204,19 @@ function ClassMode({ data, onClose, onObserve, onSaveEntry }) {
           const o = today[s.id] || {};
           const isAbs = !!o.absent;
           const kd = OBS_KINDS.find(k => k.id === kind);
-          return h("button", { key: s.id, onClick: () => observe(s.id, kind, 1), "aria-label": `${s.name} : ${kd.toggle ? (isAbs ? "marquer présent" : "marquer absent") : kd.label}`,
-            style: { textAlign: "left", minHeight: 64, padding: "10px 11px", borderRadius: 10, cursor: "pointer", background: isAbs ? COLORS.encadre : COLORS.panel, border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${isAbs ? COLORS.line : color}`, boxShadow: isAbs ? "none" : CARD_SHADOW, display: "flex", flexDirection: "column", gap: 5, opacity: isAbs ? 0.75 : 1 } },
+          // « − » : retire une observation du type choisi (clic de travers), à tout moment de la journée
+          const n = kd.toggle ? 0 : o[kind] || 0;
+          return h("div", { key: s.id, style: { position: "relative" } },
+            h("button", { onClick: () => observe(s.id, kind, 1), "aria-label": `${s.name} : ${kd.toggle ? (isAbs ? "marquer présent" : "marquer absent") : kd.label}`,
+            style: { width: "100%", height: "100%", textAlign: "left", minHeight: 64, padding: n ? "10px 50px 10px 11px" : "10px 11px", borderRadius: 10, cursor: "pointer", background: isAbs ? COLORS.encadre : COLORS.panel, border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${isAbs ? COLORS.line : color}`, boxShadow: isAbs ? "none" : CARD_SHADOW, display: "flex", flexDirection: "column", gap: 5, opacity: isAbs ? 0.75 : 1 } },
             h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 600, color: isAbs ? COLORS.sub : COLORS.ink, lineHeight: 1.25, textDecoration: isAbs ? "line-through" : "none" } }, s.name),
             h("span", { style: { display: "flex", gap: 4, flexWrap: "wrap" } },
               isAbs && h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: COLORS.sub } }, "Absent"),
-              OBS_KINDS.filter(k => !k.toggle && o[k.id]).map(k => h("span", { key: k.id, style: { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, borderRadius: 999, padding: "1px 7px", color: k.plus ? COLORS.doneInk : "var(--danger)", background: k.plus ? COLORS.doneSoft : "var(--histoireSoft)" } }, `${k.plus ? "+" : "−"}${o[k.id]} ${(k.short || k.label).toLowerCase()}`))));
+              OBS_KINDS.filter(k => !k.toggle && o[k.id]).map(k => h("span", { key: k.id, style: { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, borderRadius: 999, padding: "1px 7px", color: k.plus ? COLORS.doneInk : "var(--danger)", background: k.plus ? COLORS.doneSoft : "var(--histoireSoft)" } }, `${k.plus ? "+" : "−"}${o[k.id]} ${(k.short || k.label).toLowerCase()}`)))),
+            n > 0 && h("button", { onClick: () => observe(s.id, kind, -1), "aria-label": `Retirer une observation « ${kd.label} » à ${s.name}`, title: "Retirer",
+              style: { position: "absolute", top: 8, right: 8, width: 36, height: 36, borderRadius: 18, border: `1px solid ${COLORS.line}`, background: COLORS.bg, color: COLORS.sub, fontFamily: "Inter, sans-serif", fontSize: 20, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 } }, "−"));
         })),
-      h("p", { style: { ...txt, fontSize: 12, color: COLORS.faint, margin: "14px 0 0" } }, "Choisis l'observation, puis touche les élèves concernés. Elles sont reprises dans les appréciations du trimestre."));
+      h("p", { style: { ...txt, fontSize: 12, color: COLORS.faint, margin: "14px 0 0" } }, "Choisis l'observation, puis touche les élèves concernés. Un clic de travers ? Le bouton « − » sur la carte de l'élève retire une observation du type choisi. Elles sont reprises dans les appréciations du trimestre."));
 
   const finPanel = !slot ? h("p", { style: txt }, "Choisis un cours de ton emploi du temps (en haut) pour remplir le cahier de textes et faire avancer le chapitre.")
     : h("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
