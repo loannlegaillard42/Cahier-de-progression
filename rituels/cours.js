@@ -17,15 +17,21 @@
      reperes     dates : { a, b?, date, txt } — a / b : année (négative avant J.-C.) ou "AAAA-MM-JJ"
      notions     { mot, def }
      personnages { nom, dates, txt: [indices, du plus vague au plus précis — sans le nom] }
-     lieux       { nom, txt, lon?, lat? } — avec ses coordonnées (degrés, est et nord positifs), le lieu se place sur la carte
+     lieux       { nom, txt, lon?, lat?, fond? } — avec ses coordonnées (degrés, est et nord positifs), le lieu se place sur la carte ;
+                 fond : le fond où le placer s'il en contient plusieurs (un pays sur le planisphère plutôt que sur la carte de sa région)
      documents   documents des fiches d'activités (au niveau du chapitre ou d'un point de passage) :
                  texte  { id?, titre, extrait, source, montre }
                  image  { id, titre, image (chemin dans rituels/), vignette? (cadrage de la vignette, ex. "12% 50%"),
                           nature, auteur, date, annee?, source, credit,
                           contexte?, montre, details: [{ nom, x, y (en % de la largeur et de la hauteur), r?, txt }] }
                  — un document image ajoute l'outil « Les documents » (présenter le document, repérer ses détails)
-     carte       fond de carte du chapitre (identifiant dans cartes.js : mediterranee, europe, france, atlantique-nord,
-                 monde), ou liste de fonds du plus détaillé au plus large : chaque lieu va sur le premier qui le contient
+     carte       fond de carte du chapitre (identifiant dans cartes.js : mediterranee, europe, france, atlantique-nord, inde,
+                 amazonie, monde), ou liste de fonds du plus détaillé au plus large : chaque lieu va sur le premier qui le contient
+     graphiques  graphiques des fiches, à lire ou à toucher dans le mode aventure (voir reviser.html, « Graphiques, croquis et intrus ») :
+                 { id, type: "courbes" | "barres" | "barres-h" | "pyramide", titre, source, unite, …, questions?: [{ q, r, faux, expl }] }
+     croquis     { id, titre, fond, txt, elements: [{ nom, zone | ellipse | ligne | points | fleches | fleuves, couleur, motif?, forme? }] }
+                 — l'élève complète la légende ; les aplats et les hachures sont découpés sur les terres
+     intrus      { items (quatre), intrus, expl } — « Trouve l'intrus »
      trous       textes à compléter : { titre, texte } — les mots entre [crochets] sont à retrouver
      capable     « Je suis capable de… »
      ppo         points de passage et d'ouverture, chacun avec ses propres champs :
@@ -1085,7 +1091,7 @@ const COURS = [
      5e — GÉOGRAPHIE — Thème 1, chapitre 1
      ===================================================================== */
   {
-    id: "5e-g1-c1", n: "5e", d: "geo",
+    id: "5e-g1-c1", carte: ["inde", "monde"], n: "5e", d: "geo",
     theme: "La question démographique et l'inégal développement",
     rituel: "Question démographique et inégal développement",
     num: "Chapitre 1",
@@ -1133,16 +1139,89 @@ const COURS = [
     ],
     personnages: [],
     lieux: [
-      { nom: "Inde", txt: "Pays d'Asie du Sud, le plus peuplé du monde depuis 2023 (plus de 1,4 milliard d'habitants). C'est un pays émergent, à la population très jeune." },
+      { nom: "Inde", lon: 79, lat: 22.5, fond: "monde", txt: "Pays d'Asie du Sud, le plus peuplé du monde depuis 2023 (plus de 1,4 milliard d'habitants). C'est un pays émergent, à la population très jeune." },
       { nom: "New Delhi", lon: 77.21, lat: 28.61, txt: "Capitale de l'Inde. Sa région urbaine compte 32 millions d'habitants ; beaucoup de migrants venus des campagnes y vivent dans des bidonvilles, sans eau ni électricité." },
-      { nom: "Kerala", txt: "État du sud de l'Inde : 92 % des femmes y savent lire et écrire (2011), bien plus que la moyenne du pays (65 %)." },
-      { nom: "Bihar et Rajasthan", txt: "États de l'Inde où à peine plus d'une femme sur deux sait lire et écrire (2011) : ils sont en retard sur le reste du pays." },
-      { nom: "Chine", txt: "Pays d'Asie de l'Est, longtemps le plus peuplé du monde : l'Inde l'a dépassé en 2023." },
-      { nom: "Nigeria", txt: "Pays d'Afrique de l'Ouest, le plus peuplé d'Afrique : 45 millions d'habitants en 1960, 219 millions en 2022, peut-être 375 millions en 2050." },
+      { nom: "Kerala", lon: 76.4, lat: 10.3, txt: "État du sud de l'Inde : 92 % des femmes y savent lire et écrire (2011), bien plus que la moyenne du pays (65 %)." },
+      { nom: "Bihar", lon: 85.6, lat: 25.8, txt: "État du nord-est de l'Inde où à peine plus d'une femme sur deux sait lire et écrire (53 % en 2011) : il est en retard sur le reste du pays." },
+      { nom: "Rajasthan", lon: 73.8, lat: 26.9, txt: "État du nord-ouest de l'Inde où à peine plus d'une femme sur deux sait lire et écrire (53 % en 2011)." },
+      { nom: "Chine", lon: 104, lat: 34.5, txt: "Pays d'Asie de l'Est, longtemps le plus peuplé du monde : l'Inde l'a dépassé en 2023." },
+      { nom: "Nigeria", lon: 8.1, lat: 9.5, txt: "Pays d'Afrique de l'Ouest, le plus peuplé d'Afrique : 45 millions d'habitants en 1960, 219 millions en 2022, peut-être 375 millions en 2050." },
       { nom: "Sun City", lon: -112.27, lat: 33.60, txt: "Ville des États-Unis, en Arizona, construite pour les retraités : elle montre le vieillissement de la population." },
       { nom: "Afrique", txt: "Continent où la population augmentera le plus d'ici 2050 : la population y est très jeune." },
       { nom: "Asie du Sud", txt: "Région du monde, autour de l'Inde, où la population va encore augmenter d'ici 2050." },
       { nom: "Europe et Japon", txt: "Pays favorisés où la population stagne ou diminue, et vieillit." }
+    ],
+    graphiques: [
+      { id: "inde-natalite", type: "courbes", titre: "Les taux de natalité et de mortalité en Inde (1950-2023)", unite: "‰",
+        source: "d'après ONU, World Population Prospects 2024, valeurs arrondies (fiche 1, doc. 1)",
+        x: [1950, 1960, 1970, 1980, 1990, 2000, 2010, 2023],
+        series: [{ nom: "Taux de natalité", valeurs: [44, 42, 40, 36, 31, 26, 21, 16] }, { nom: "Taux de mortalité", valeurs: [22, 19, 16, 13, 11, 9, 8, 7] }],
+        ecart: "Accroissement naturel",
+        questions: [
+          { q: "Pourquoi la population de l'Inde a-t-elle autant augmenté depuis 1950 ?", r: "Les naissances restent bien plus nombreuses que les décès",
+            faux: ["Les décès augmentent plus vite que les naissances", "Il y a autant de naissances que de décès", "Beaucoup d'étrangers viennent vivre en Inde"],
+            expl: "Le taux de natalité reste au-dessus du taux de mortalité, qui baisse beaucoup : l'accroissement naturel est fort." },
+          { q: "Comment appelle-t-on l'écart entre le taux de natalité et le taux de mortalité ?", r: "L'accroissement naturel",
+            faux: ["Le taux de fécondité", "L'espérance de vie", "L'exode rural"], expl: "Accroissement naturel : différence entre la natalité et la mortalité." }
+        ] },
+      { id: "inde-alphabetisation", type: "barres-h", titre: "Taux d'alphabétisation des femmes dans quelques États de l'Inde (2011)", unite: "%", max: 100,
+        source: "Census of India 2011, femmes de 7 ans et plus sachant lire et écrire (fiche 2, doc. 1)",
+        x: ["Kerala", "Maharashtra", "Tamil Nadu", "INDE (moyenne)", "Uttar Pradesh", "Jharkhand", "Bihar", "Rajasthan"],
+        valeurs: [92, 75, 74, 65, 59, 56, 53, 53], moyenne: 3, quoi: "le taux d'alphabétisation des femmes", ou: "l'État", ouPluriel: "États",
+        questions: [
+          { q: "Que montre ce graphique sur le développement de l'Inde ?", r: "Il est très inégal d'un État à l'autre",
+            faux: ["Il est le même dans tout le pays", "Toutes les Indiennes savent lire et écrire", "Les femmes savent mieux lire au Bihar qu'au Kerala"],
+            expl: "92 % des femmes savent lire et écrire au Kerala, seulement 53 % au Bihar et au Rajasthan : de fortes inégalités." }
+        ] },
+      { id: "nigeria-population", type: "barres", titre: "La population du Nigeria de 1960 à 2050 (en millions d'habitants)", unite: "millions d'habitants",
+        source: "d'après ONU, World Population Prospects 2022, valeurs arrondies ; 2050 : projection moyenne (fiche 3, doc. 1)",
+        x: ["1960", "1980", "2000", "2022", "2050"], valeurs: [45, 73, 123, 219, 375], projection: [4], quoi: "la population du Nigeria", feminin: true,
+        questions: [
+          { q: "Que montre la barre de 2050 ?", r: "Une projection : ce qui pourrait arriver si les tendances actuelles continuent",
+            faux: ["Le nombre d'habitants compté en 2050", "La population de toute l'Afrique", "Le nombre de naissances en 2050"],
+            expl: "2050 est dans le futur : c'est une projection de l'ONU, une estimation." }
+        ] },
+      { id: "pyramide-nigeria", type: "pyramide", pays: "Nigeria", annee: 2023, profil: "jeune", titre: "Pyramide des âges du Nigeria en 2023",
+        source: "ONU, World Population Prospects 2024, via PopulationPyramid.net (en % de la population totale)",
+        ages: ["0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "80-84", "85+"],
+        hommes: [7.4, 7.1, 6.5, 5.7, 4.7, 3.9, 3.2, 2.8, 2.4, 2.0, 1.5, 1.1, 0.9, 0.6, 0.4, 0.2, 0.1, 0],
+        femmes: [7.3, 6.9, 6.3, 5.4, 4.5, 3.7, 3.1, 2.7, 2.4, 1.9, 1.5, 1.2, 0.9, 0.7, 0.5, 0.3, 0.1, 0] },
+      { id: "pyramide-inde", type: "pyramide", pays: "Inde", annee: 2023, profil: "transition", titre: "Pyramide des âges de l'Inde en 2023",
+        source: "ONU, World Population Prospects 2024, via PopulationPyramid.net (en % de la population totale)",
+        ages: ["0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "80-84", "85+"],
+        hommes: [4.1, 4.3, 4.6, 4.7, 4.7, 4.5, 4.3, 4.0, 3.5, 3.0, 2.6, 2.2, 1.8, 1.4, 0.9, 0.5, 0.3, 0.1],
+        femmes: [3.8, 4.0, 4.2, 4.2, 4.3, 4.1, 3.9, 3.7, 3.3, 2.9, 2.5, 2.1, 1.8, 1.4, 1.0, 0.6, 0.3, 0.3] },
+      { id: "pyramide-japon", type: "pyramide", pays: "Japon", annee: 2023, profil: "vieillissante", titre: "Pyramide des âges du Japon en 2023",
+        source: "ONU, World Population Prospects 2024, via PopulationPyramid.net (en % de la population totale)",
+        ages: ["0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "80-84", "85+"],
+        hommes: [1.7, 2.0, 2.2, 2.3, 2.5, 2.5, 2.5, 2.8, 3.1, 3.8, 3.9, 3.3, 3.0, 2.9, 3.4, 2.9, 2.1, 1.8],
+        femmes: [1.6, 1.9, 2.1, 2.2, 2.4, 2.4, 2.4, 2.7, 3.0, 3.7, 3.8, 3.2, 3.0, 3.0, 3.7, 3.4, 2.8, 3.6] }
+    ],
+    croquis: [
+      { id: "monde-2050", titre: "Où la population va-t-elle augmenter d'ici 2050 ?", fond: "monde",
+        txt: "La population augmente surtout en Afrique et en Asie du Sud, où elle est jeune ; elle stagne ou diminue en Europe, au Japon et en Chine, où elle vieillit.",
+        elements: [
+          { nom: "La population va beaucoup augmenter", couleur: "#C0392B", opacite: ".65",
+            zone: [[-18, 16], [-5, 18], [10, 18], [25, 17], [38, 16], [52, 12], [52, 2], [42, -12], [40, -27], [33, -35], [18, -36], [10, -18], [8, -2], [-10, 5], [-18, 12]] },
+          { nom: "La population va encore augmenter", couleur: "#F0A04B", opacite: ".7",
+            zone: [[61, 35], [75, 37], [80, 31], [89, 28.5], [97, 28], [93, 20], [88, 21], [80, 6], [72, 8], [66, 23], [61, 25]] },
+          { nom: "La population stagne ou diminue", couleur: "#3B78B5", opacite: ".6",
+            zone: [[[-10, 36], [-10, 44], [-5, 58], [5, 62], [10, 71], [30, 71], [40, 66], [45, 55], [40, 46], [28, 40], [20, 36], [5, 36]],
+              [[129, 31], [132, 34.5], [140, 41.5], [146, 45.5], [146, 42], [141, 35], [135, 33]],
+              [[75, 39], [80, 45], [87, 49], [97, 43], [111, 45], [120, 53], [134, 48], [131, 42], [125, 40], [122, 31], [120, 23], [108, 21], [98, 24], [92, 28], [80, 31]]] },
+          { nom: "Pays le plus peuplé du monde", forme: "etoile", couleur: "#1B1B1B", points: [[79, 22.5]] },
+          { nom: "Pays le plus peuplé d'Afrique", forme: "rond", couleur: "#1B1B1B", points: [[8.1, 9.5]] }
+        ] }
+    ],
+    intrus: [
+      { items: ["Taux de natalité", "Taux de mortalité", "Accroissement naturel", "Bidonville"], intrus: "Bidonville",
+        expl: "Les trois autres servent à mesurer l'évolution d'une population ; un bidonville est un quartier d'habitations précaires." },
+      { items: ["Kerala", "Bihar", "Rajasthan", "New Delhi"], intrus: "New Delhi", expl: "New Delhi est une ville, la capitale de l'Inde ; les trois autres sont des États de l'Inde." },
+      { items: ["Bidonville", "Exode rural", "Chômage", "Vieillissement"], intrus: "Vieillissement",
+        expl: "Les trois autres sont liés à l'arrivée de nombreux habitants dans les villes ; le vieillissement, c'est l'augmentation de la part des personnes âgées." },
+      { items: ["Nigeria", "Inde", "Asie du Sud", "Japon"], intrus: "Japon", expl: "Au Japon, la population vieillit et diminue ; ailleurs, elle augmente encore." },
+      { items: ["Pays favorisés", "Pays émergents", "Pays précaires", "Planning familial"], intrus: "Planning familial",
+        expl: "Les trois autres sont des catégories de pays selon leur développement ; le planning familial aide les couples à choisir le nombre d'enfants." }
     ],
     trous: [
       { titre: "L'Inde, un géant démographique", texte: "L'Inde est le [pays le plus peuplé] du monde depuis 2023. Sa population a presque quadruplé depuis 1950, car la [mortalité] a baissé plus vite que la [natalité] : l'[accroissement naturel] est donc élevé. C'est une [population jeune] : 40 % des Indiens ont moins de 25 ans. Nourrir, loger et employer autant d'habitants est un grand [défi]." },
@@ -1167,7 +1246,7 @@ const COURS = [
      5e — GÉOGRAPHIE — Thème 1, chapitre 2
      ===================================================================== */
   {
-    id: "5e-g1-c2", n: "5e", d: "geo",
+    id: "5e-g1-c2", carte: "monde", n: "5e", d: "geo",
     theme: "La question démographique et l'inégal développement",
     rituel: "Question démographique et inégal développement",
     num: "Chapitre 2",
@@ -1216,7 +1295,7 @@ const COURS = [
     lieux: [
       { nom: "Paris (18ᵉ arrondissement)", lon: 2.35, lat: 48.89, txt: "Quartier de Paris où l'on voit des abris de fortune : la pauvreté existe aussi dans un pays riche." },
       { nom: "Mumbai", lon: 72.88, lat: 19.08, txt: "Grande ville de l'Inde, pays émergent. Une rue arborée, bordée d'immeubles et de voitures, montre que la richesse existe aussi dans les Suds." },
-      { nom: "Madagascar", txt: "Pays très pauvre d'Afrique : son PIB par habitant n'est que de 530 $ par an, soit moins de 1,50 $ par jour." },
+      { nom: "Madagascar", lon: 46.9, lat: -19.4, txt: "Pays très pauvre d'Afrique : son PIB par habitant n'est que de 530 $ par an, soit moins de 1,50 $ par jour." },
       { nom: "Afrique subsaharienne", txt: "Région où l'espérance de vie est la plus courte et où vivent la plupart des personnes en extrême pauvreté." },
       { nom: "Méditerranée", txt: "Mer qui sépare une rive nord plus développée (Espagne, France, Italie) et une rive sud moins développée (Égypte, Libye)." },
       { nom: "Nord de l'Italie", txt: "Régions riches et industrialisées, tournées vers les Alpes et la Dorsale européenne (Lombardie, Trentin, Émilie-Romagne)." },
@@ -1224,6 +1303,54 @@ const COURS = [
       { nom: "Le Caire", lon: 31.24, lat: 30.04, txt: "Capitale de l'Égypte, grande métropole au bord du Nil : une ville de contrastes entre richesse et très grande pauvreté." },
       { nom: "Corniche du Nil", txt: "Quartier d'affaires du Caire, au bord du Nil : tours de bureaux, ministère des Affaires étrangères, hôtels de luxe." },
       { nom: "Cité des Morts", txt: "Quartier très pauvre au sud-est du Caire : un ancien cimetière où vivent des familles venues avec l'exode rural au XXᵉ siècle." }
+    ],
+    croquis: [
+      { id: "nords-suds", titre: "Des pays inégalement développés : les Nords et les Suds", fond: "monde",
+        txt: "Les Nords sont riches ; dans les Suds, les pays émergents et les pays pétroliers s'enrichissent, alors que les pays les plus pauvres sont surtout en Afrique.",
+        elements: [
+          { nom: "Nords : pays riches et développés", couleur: "#3B78B5", opacite: ".6",
+            zone: [[[-168, 66], [-140, 70], [-100, 75], [-60, 75], [-55, 52], [-66, 44], [-76, 35], [-80, 25], [-97, 26], [-106, 31.5], [-117, 32.5], [-125, 40], [-130, 55], [-150, 60]],
+              [[-10, 36], [-10, 44], [-5, 58], [5, 62], [10, 71], [30, 71], [40, 66], [45, 55], [40, 46], [28, 40], [20, 36], [5, 36]],
+              [[129, 31], [132, 34.5], [140, 41.5], [146, 45.5], [146, 42], [141, 35], [135, 33]],
+              [[112, -22], [122, -14], [131, -11], [137, -12], [143, -10], [154, -26], [151, -39], [140, -39], [131, -32], [115, -35]],
+              [[166, -46], [172, -34], [179, -37], [175, -42], [168, -47]]] },
+          { nom: "Pays émergents", couleur: "#1F8A5B", motif: "hachures",
+            zone: [[[75, 39], [80, 45], [87, 49], [97, 43], [111, 45], [120, 53], [134, 48], [131, 42], [125, 40], [122, 31], [120, 23], [108, 21], [98, 24], [92, 28], [80, 31]],
+              [[68, 24], [72, 33], [78, 35], [81, 30], [88, 27.5], [97, 28], [92, 22], [87, 21.5], [80, 8], [76, 8], [72, 20]],
+              [[-74, -8], [-70, 2], [-60, 5], [-51, 4], [-35, -6], [-39, -15], [-48, -27], [-53, -34], [-58, -30], [-55, -25], [-58, -20], [-60, -14], [-66, -10]]] },
+          { nom: "Pays pétroliers", couleur: "#7B3FA0", opacite: ".7",
+            zone: [[35, 29], [38, 32], [44, 30], [48, 29.5], [51, 25], [56, 26], [59.5, 22.5], [55.5, 17.5], [52, 18.5], [47, 17], [43, 17], [39, 21], [36, 26]] },
+          { nom: "Pays les plus pauvres (surtout en Afrique)", couleur: "#C0392B", opacite: ".6",
+            zone: [[[-18, 16], [-5, 18], [10, 18], [25, 17], [38, 16], [52, 12], [52, 2], [42, -12], [40, -18], [33, -23], [22, -17], [12, -17], [8, -2], [-10, 5], [-18, 12]],
+              [[43, -12], [51, -12], [51, -26], [43, -26]]] }
+        ] },
+      { id: "mediterranee-italie", titre: "Des inégalités autour de la Méditerranée et en Italie", fond: "mediterranee",
+        txt: "Les pays de la rive nord sont plus développés que ceux de la rive sud ; en Italie, le Nord riche s'oppose au Sud, une périphérie.",
+        elements: [
+          { nom: "Pays très développés (rive nord)", couleur: "#3B8E4F", opacite: ".45",
+            zone: [[-10, 36], [-10, 44], [-2, 48.5], [8, 49], [16, 47.5], [19.5, 42], [20, 40], [24, 41.2], [26.5, 41.5], [26.5, 35], [22, 36.2], [18.8, 39.8], [16, 37.5], [12, 37.5], [5, 42.5], [0, 38.5], [-6, 36]] },
+          { nom: "Pays moins développés (rive sud et est)", couleur: "#E8913A", opacite: ".55",
+            zone: [[-10, 35.8], [-1, 35.8], [10, 37.4], [11.5, 33], [20, 30.5], [25, 31.6], [32, 31.4], [35, 33], [36.2, 36.4], [44, 37.2], [47, 30], [47, 28], [-12, 28]] },
+          { nom: "Régions riches du nord de l'Italie (centre)", couleur: "#1E5B2E", motif: "hachures",
+            zone: [[6.6, 45.9], [7, 47.2], [12.5, 47.2], [13.9, 46.5], [13.7, 45.5], [12.4, 44.2], [11, 43.8], [10, 44.1], [8.5, 44.2], [7.5, 43.7], [6.6, 44.3]] },
+          { nom: "Régions moins riches du sud de l'Italie (périphérie)", couleur: "#B3261E", motif: "hachures",
+            zone: [[[13.8, 41.3], [15, 42], [16.3, 41.95], [18.7, 40.5], [18.6, 39.6], [17.3, 38.8], [16.2, 37.8], [15.5, 37.9], [15.5, 39.5], [14, 40.6]],
+              [[12.2, 38.4], [15.8, 38.4], [15.4, 36.5], [12.2, 37.4]], [[8, 41.4], [10, 41.4], [10, 38.8], [8, 38.8]]] },
+          { nom: "Dorsale européenne", couleur: "#6D3FA0", epaisseur: 5, ligne: [[-0.1, 51.5], [4.4, 51], [7, 50.2], [8.6, 47.4], [9.2, 45.5]] },
+          { nom: "Métropole de contrastes", forme: "rond", couleur: "#1B1B1B", points: [[31.24, 30.04]] }
+        ] }
+    ],
+    intrus: [
+      { items: ["PIB par habitant", "IDH", "Espérance de vie", "Métropole"], intrus: "Métropole",
+        expl: "Les trois autres sont des indicateurs qui mesurent la richesse ou le développement ; une métropole est une très grande ville." },
+      { items: ["Lombardie", "Trentin", "Émilie-Romagne", "Calabre"], intrus: "Calabre",
+        expl: "La Calabre est une région moins riche du sud de l'Italie ; les trois autres sont des régions riches du nord." },
+      { items: ["Chine", "Inde", "Brésil", "Madagascar"], intrus: "Madagascar",
+        expl: "Madagascar est un des pays les moins avancés ; les trois autres sont des pays émergents." },
+      { items: ["Tours de bureaux", "Hôtels de luxe", "Terrains de golf", "Cité des Morts"], intrus: "Cité des Morts",
+        expl: "La Cité des Morts est un quartier très pauvre du Caire ; les trois autres sont des signes de richesse, au bord du Nil." },
+      { items: ["Espagne", "France", "Italie", "Égypte"], intrus: "Égypte",
+        expl: "L'Égypte est sur la rive sud de la Méditerranée, moins développée ; les trois autres sont des pays de la rive nord." }
     ],
     trous: [
       { titre: "Les Nords et les Suds", texte: "Dans le monde, la [richesse] est très mal répartie : 20 % des habitants possèdent 94,5 % de la richesse. Les [Nords], riches et développés, s'opposent aux [Suds], plus pauvres, où vit la majorité de la population mondiale. On mesure la richesse produite par un pays avec son [PIB]. Dans les pays pauvres, surtout en Afrique, l'[espérance de vie] est plus courte. Ces [inégalités] sont ressenties comme injustes." },
@@ -3675,7 +3802,7 @@ const COURS = [
      2nde — GÉOGRAPHIE — Thème 1, chapitres 1 et 2 (Amazonie)
      ===================================================================== */
   {
-    id: "2de-g1-c12", n: "2nde", d: "geo",
+    id: "2de-g1-c12", carte: ["amazonie", "monde"], n: "2nde", d: "geo",
     theme: "Sociétés et environnements : des équilibres fragiles",
     rituel: "Sociétés et environnements : équilibres fragiles",
     num: "Chapitres 1 et 2",
@@ -3712,15 +3839,76 @@ const COURS = [
     personnages: [],
     lieux: [
       { nom: "Amazone", txt: "Grand fleuve d'Amérique du Sud qui traverse la forêt amazonienne ; il sert de voie de circulation." },
-      { nom: "Manaus", txt: "Grande ville au cœur de l'Amazonie brésilienne, sur le fleuve." },
-      { nom: "Belém", txt: "Grande ville située à l'embouchure de l'Amazone." },
+      { nom: "Manaus", lon: -60.02, lat: -3.12, txt: "Grande ville au cœur de l'Amazonie brésilienne, sur le fleuve." },
+      { nom: "Belém", lon: -48.49, lat: -1.46, txt: "Grande ville située à l'embouchure de l'Amazone." },
       { nom: "Arc de déforestation", txt: "Sud et sud-est du bassin (Rondônia, nord du Mato Grosso, sud du Pará), là où la forêt recule le plus vite." },
-      { nom: "Belo Monte", txt: "Grand barrage hydroélectrique sur le Xingu, affluent de l'Amazone." },
-      { nom: "Carajás", txt: "Grande région minière (fer) de l'État du Pará, au Brésil." },
+      { nom: "Belo Monte", lon: -51.78, lat: -3.12, txt: "Grand barrage hydroélectrique sur le Xingu, affluent de l'Amazone." },
+      { nom: "Carajás", lon: -50.17, lat: -6.06, txt: "Grande région minière (fer) de l'État du Pará, au Brésil." },
       { nom: "Transamazonienne", txt: "Route ouverte à travers la forêt, le long de laquelle avancent les fronts pionniers." },
-      { nom: "Leticia", txt: "Ville de Colombie où sept pays amazoniens ont signé en 2019 un pacte pour protéger la forêt." },
+      { nom: "Leticia", lon: -69.94, lat: -4.21, txt: "Ville de Colombie où sept pays amazoniens ont signé en 2019 un pacte pour protéger la forêt." },
       { nom: "Ceinture de feu du Pacifique", txt: "Zone de séismes et de volcans autour du Pacifique : Japon, Philippines, Indonésie, Andes, ouest des États-Unis." },
-      { nom: "Dhaka", txt: "Capitale du Bangladesh, dans un delta bas et très peuplé, exposé aux inondations et aux cyclones." }
+      { nom: "Dhaka", lon: 90.41, lat: 23.81, txt: "Capitale du Bangladesh, dans un delta bas et très peuplé, exposé aux inondations et aux cyclones." },
+      { nom: "Tokyo", lon: 139.69, lat: 35.69, txt: "Mégapole du Japon exposée aux séismes, aux tsunamis et aux cyclones, mais peu vulnérable : le pays est riche et bien préparé." },
+      { nom: "Manille", lon: 120.98, lat: 14.6, txt: "Capitale des Philippines, exposée aux cyclones, aux séismes et aux volcans." },
+      { nom: "Mexico", lon: -99.13, lat: 19.43, txt: "Capitale du Mexique, exposée aux séismes et aux volcans." }
+    ],
+    croquis: [
+      { id: "risques-monde", titre: "Des sociétés inégalement exposées aux risques", fond: "monde",
+        txt: "Les aléas touchent surtout la ceinture de feu du Pacifique, l'axe Méditerranée-Himalaya et les deltas ; le changement climatique amplifie sécheresses et canicules.",
+        elements: [
+          { nom: "Ceinture de feu du Pacifique (séismes, volcans)", couleur: "#D62828", epaisseur: 3.6, tirets: true,
+            ligne: [[[-73, -46], [-71, -30], [-76, -14], [-80, -2], [-78, 7], [-88, 13], [-97, 16], [-106, 21], [-115, 30], [-123, 40], [-125, 49], [-136, 58], [-152, 59], [-165, 55]],
+              [[160, 55], [156, 50], [145, 44], [141, 36], [130, 31], [124, 24], [122, 15], [126, 7], [128, 0], [134, -4], [147, -6], [155, -6], [168, -16], [177, -22], [178, -38], [174, -42]],
+              [[95, 5], [100, -2], [106, -7], [115, -9], [124, -9], [131, -7]]] },
+          { nom: "Axe Méditerranée-Himalaya (séismes)", couleur: "#E67E22", epaisseur: 3.6,
+            ligne: [[-9, 37], [0, 37], [12, 40], [22, 38.5], [30, 40], [40, 39], [48, 36], [58, 33], [70, 35], [78, 33], [88, 28], [96, 27]] },
+          { nom: "Sécheresses et canicules plus fréquentes", couleur: "#E9A23B", motif: "hachures",
+            ellipse: [[5, 34, 18, 6, 0], [24, -25, 9, 7, 0], [-115, 37, 9, 6, -20], [-60, -6, 11, 7, 0], [135, -30, 13, 6, 0]] },
+          { nom: "Réchauffement le plus fort (Arctique)", couleur: "#9B1C31", opacite: ".5", zone: [[-170, 64], [180, 64], [180, 76], [-170, 76]] },
+          { nom: "Grand delta très peuplé et exposé", forme: "triangle", couleur: "#1E88E5", points: [[89.6, 22.6], [106, 10], [31, 31]] },
+          { nom: "Mégapole très exposée", forme: "rond", couleur: "#1B1B1B", points: [[139.69, 35.69], [120.98, 14.6], [-99.13, 19.43]] }
+        ] },
+      { id: "amazonie", titre: "L'Amazonie, un espace riche en ressources, convoité et menacé", fond: "amazonie",
+        txt: "I. Un environnement exceptionnel ; II. Des ressources convoitées et exploitées ; III. Des risques qui fragilisent la région.",
+        elements: [
+          { nom: "Forêt tropicale", couleur: "#2E8B57", opacite: ".45",
+            zone: [[-79, 1], [-75, 4], [-70, 6.5], [-64, 8], [-60, 8.3], [-57, 6], [-52, 5.5], [-50, 2], [-48, -1], [-44.5, -2.5], [-46, -5], [-48.5, -7.5], [-50.5, -10], [-56, -12], [-61, -13.5], [-65, -14], [-69, -13], [-72, -11], [-76, -7], [-79, -3]] },
+          { nom: "L'Amazone et ses affluents", fleuves: true },
+          { nom: "Grande ville (Manaus, Belém)", forme: "rond", couleur: "#1B1B1B", points: [[-60.02, -3.12], [-48.49, -1.46]] },
+          { nom: "Agriculture d'exportation (soja, élevage)", couleur: "#E9A23B", opacite: ".6",
+            zone: [[-62, -13.5], [-56, -12], [-50.5, -10], [-48, -7.5], [-46, -9], [-44, -13], [-46, -19], [-53, -20], [-58, -17], [-62, -16]] },
+          { nom: "Mine (Carajás, Trombetas, orpaillage du Tapajós)", forme: "triangle", couleur: "#8B5A2B", points: [[-50.17, -6.06], [-56.4, -1.5], [-56.5, -6.2]] },
+          { nom: "Grand barrage (Belo Monte, Tucuruí, Jirau)", forme: "carre", couleur: "#7B3FA0", points: [[-51.78, -3.12], [-49.65, -3.83], [-64.3, -9]] },
+          { nom: "Grande route (Transamazonienne, BR-163)", couleur: "#262626", epaisseur: 2.2,
+            ligne: [[[-49.1, -5.37], [-52.2, -3.2], [-55, -4.2], [-57.6, -5.8], [-60, -7.4], [-63, -7.5], [-64.8, -7.26]], [[-56.1, -15.6], [-55.5, -11.8], [-55.2, -8.5], [-55, -6], [-54.7, -2.44]]] },
+          { nom: "Front pionnier", couleur: "#D62828", fleches: [[[-62, -12.6], [-63.4, -9.6]], [[-55.6, -13], [-55.9, -9.7]], [[-48.4, -9.4], [-50.2, -6.8]]] },
+          { nom: "Arc de déforestation", couleur: "#D62828", motif: "hachures",
+            zone: [[-66, -10.5], [-63, -8], [-57, -8.2], [-52, -5.5], [-48, -3], [-45.5, -3.5], [-47.5, -7.5], [-51, -10.5], [-56, -12.5], [-62, -13.3], [-66, -12.5]] }
+        ] }
+    ],
+    intrus: [
+      { items: ["Sécheresse", "Crue", "Séisme", "Déforestation"], intrus: "Déforestation",
+        expl: "La déforestation est due aux activités humaines ; la sécheresse, la crue et le séisme sont des aléas naturels." },
+      { items: ["Bois", "Or", "Soja", "Manaus"], intrus: "Manaus", expl: "Manaus est une ville ; le bois, l'or et le soja sont des ressources de l'Amazonie." },
+      { items: ["Belo Monte", "Tucuruí", "Jirau", "Carajás"], intrus: "Carajás", expl: "Carajás est une grande mine de fer ; les trois autres sont des barrages hydroélectriques." },
+      { items: ["Tokyo", "Manille", "Mexico", "Manaus"], intrus: "Manaus",
+        expl: "Tokyo, Manille et Mexico sont exposées aux séismes et aux volcans ; Manaus est au cœur de la forêt amazonienne." },
+      { items: ["Aléa", "Enjeux", "Vulnérabilité", "Orpaillage"], intrus: "Orpaillage",
+        expl: "Aléa, enjeux et vulnérabilité permettent de définir un risque ; l'orpaillage est la recherche de l'or." }
+    ],
+    documents: [
+      { id: "rondonia-2016", titre: "Le front pionnier en Rondônia, vu par satellite", image: "docs/2de-g1-c12/rondonia-2016.jpg",
+        nature: "Image satellite", auteur: "Planet Labs", date: "5 août 2016",
+        source: "Fishbone Deforestation, Rondônia, Brazil, Wikimedia Commons", credit: "Planet Labs, Inc., CC BY-SA 4.0, via Wikimedia Commons",
+        contexte: "La Rondônia, au sud de l'Amazonie brésilienne, à l'est de Porto Velho, est au cœur de l'arc de déforestation.",
+        montre: "Le front pionnier : une piste est ouverte, la forêt est défrichée par le feu de part et d'autre, puis remplacée par des pâturages ou des champs ; les parcelles s'enfoncent dans la forêt en « arêtes de poisson ».",
+        details: [
+          { nom: "La forêt tropicale", x: 40, y: 42, txt: "La forêt encore intacte, un puits de carbone et une immense réserve de biodiversité." },
+          { nom: "Une piste", x: 52, y: 20.3, txt: "Tout commence par une piste ouverte dans la forêt : elle donne accès aux terres." },
+          { nom: "Des parcelles défrichées", x: 38, y: 57.8, txt: "La forêt a été coupée et brûlée pour faire place à des pâturages ou à des champs de soja." },
+          { nom: "La fumée d'un incendie", x: 31, y: 77, txt: "On défriche par le feu : les incendies libèrent du CO₂ et aggravent le réchauffement." },
+          { nom: "Une parcelle qui avance dans la forêt", x: 92.8, y: 74, txt: "Le front pionnier progresse : de nouvelles bandes défrichées s'enfoncent dans la forêt." }
+        ] }
     ],
     trous: [
       { titre: "Aléa, vulnérabilité, risque", texte: "Un [aléa] est un phénomène qui peut se produire, comme une sécheresse ou une crue. Il devient un [risque] quand il touche une société [vulnérable]. Le Japon est très [exposé] aux séismes, mais peu vulnérable car il est riche et préparé." },
@@ -3742,7 +3930,7 @@ const COURS = [
      2nde — GÉOGRAPHIE — Thème 1, chapitre 3 (la France)
      ===================================================================== */
   {
-    id: "2de-g1-c3", n: "2nde", d: "geo",
+    id: "2de-g1-c3", carte: "france", n: "2nde", d: "geo",
     theme: "Sociétés et environnements : des équilibres fragiles",
     rituel: "Sociétés et environnements : équilibres fragiles",
     num: "Chapitre 3",
@@ -3777,13 +3965,62 @@ const COURS = [
     ],
     personnages: [],
     lieux: [
-      { nom: "Le Signal (Soulac-sur-Mer)", txt: "Immeuble de Gironde menacé par l'érosion côtière : évacué en 2014, démoli en 2023." },
+      { nom: "Le Signal (Soulac-sur-Mer)", lon: -1.14, lat: 45.5, txt: "Immeuble de Gironde menacé par l'érosion côtière : évacué en 2014, démoli en 2023." },
       { nom: "Antilles", txt: "Territoires d'outre-mer où l'aléa sismique est le plus fort de France." },
-      { nom: "Fossé rhénan", txt: "Zone sismique de l'est de la France, au sud de l'Alsace." },
+      { nom: "Fossé rhénan", lon: 7.55, lat: 48.1, txt: "Zone sismique de l'est de la France, au sud de l'Alsace." },
       { nom: "Parc amazonien de Guyane", txt: "Le plus grand parc national de France, en outre-mer." },
-      { nom: "Vanoise", txt: "Premier parc national français (1963), dans les Alpes." },
-      { nom: "Calanques", txt: "Parc national aux portes de Marseille, à la fois terrestre et marin." },
-      { nom: "Bassin parisien", txt: "Grande plaine de grandes cultures et d'agriculture intensive." }
+      { nom: "Vanoise", lon: 6.85, lat: 45.38, txt: "Premier parc national français (1963), dans les Alpes." },
+      { nom: "Calanques", lon: 5.45, lat: 43.21, txt: "Parc national aux portes de Marseille, à la fois terrestre et marin." },
+      { nom: "Bassin parisien", lon: 2.4, lat: 48.6, txt: "Grande plaine de grandes cultures et d'agriculture intensive." }
+    ],
+    croquis: [
+      { id: "france-milieux", titre: "La France : des milieux variés, valorisés et à protéger", fond: "france",
+        txt: "I. Une grande variété de milieux ; II. Des milieux valorisés ; III. Des milieux à protéger et à gérer (d'après la tâche finale du chapitre).",
+        elements: [
+          { nom: "Plaines et plateaux", couleur: "#9CCB6B", opacite: ".55",
+            zone: [[-5.5, 48.8], [-1.5, 49.8], [2.5, 51.2], [4.5, 50], [5.5, 48.5], [4.5, 47], [3, 46.5], [1.5, 45], [1, 44], [-1, 43.4], [-1.8, 43.4], [-1.3, 45.5], [-2.5, 47.3], [-4.8, 47.8]] },
+          { nom: "Montagnes", couleur: "#9B6B43", opacite: ".6",
+            ellipse: [[6.6, 45.3, 1, 1.6, 15], [0.5, 42.8, 2.5, 0.45, -5], [3, 45.3, 1.1, 1.1, 0], [6, 46.6, 0.45, 0.8, 35], [7, 48.2, 0.35, 0.7, 15], [9.1, 42.2, 0.35, 0.6, 0]] },
+          { nom: "Domaine méditerranéen", couleur: "#F2D04B", opacite: ".65",
+            zone: [[2.8, 42.3], [3.2, 43.6], [4.6, 44.4], [5.5, 44.3], [7.6, 44.1], [7.6, 43.6], [6.5, 43], [4.5, 43.3], [3.1, 42.4]] },
+          { nom: "Grande vallée, couloir de circulation", couleur: "#8E5BB5", epaisseur: 4,
+            ligne: [[[0.1, 49.45], [1.5, 49.1], [2.35, 48.85], [4, 48.3]], [[4.8, 43.4], [4.8, 44.9], [4.85, 45.76], [4.9, 46.8], [5.6, 47.8]],
+              [[-2.2, 47.25], [-0.5, 47.4], [1.9, 47.9], [2.9, 47], [4, 46]], [[-0.6, 44.85], [0.6, 44.2], [1.44, 43.6]], [[7.6, 47.6], [7.8, 48.6], [8.2, 49]]] },
+          { nom: "Agriculture intensive", couleur: "#3B7A2A", motif: "hachures",
+            zone: [[[0.5, 49.7], [3, 49.9], [4.2, 49], [3.6, 47.8], [1.5, 47.6], [0.2, 48.4]], [[-1.2, 45.3], [0.8, 45.2], [1.5, 44.1], [0.5, 43.6], [-0.8, 43.8]],
+              [[-4.7, 48.6], [-1.8, 48.6], [-1.5, 47.7], [-4.3, 47.9]]] },
+          { nom: "Littoral touristique", couleur: "#1E88E5", epaisseur: 3.4,
+            ligne: [[[3.1, 42.5], [3.1, 43.2], [4.3, 43.5], [5.4, 43.2], [6.6, 43.2], [7.5, 43.75]], [[-1.75, 43.4], [-1.25, 44.6], [-1.15, 45.6]], [[-3.5, 47.7], [-2.5, 47.4]]] },
+          { nom: "Station de sports d'hiver", forme: "triangle", couleur: "#1E88E5", points: [[6.63, 45.41], [6.95, 45.92], [0.18, 42.91], [2.0, 42.55]] },
+          { nom: "Parc national", forme: "rond", couleur: "#2E7D32",
+            points: [[6.85, 45.38], [5.45, 43.21], [6.38, 43], [-0.2, 42.85], [3.6, 44.25], [6.3, 44.9], [7.1, 44.15], [4.9, 47.85]] },
+          { nom: "Zone sismique", couleur: "#D62828", motif: "hachures", ellipse: [[6.5, 45, 0.9, 1.3, 15], [0.5, 42.9, 2, 0.35, -5], [7.55, 48, 0.35, 0.8, 10]] },
+          { nom: "Tempêtes venues de l'Atlantique", couleur: "#1E88E5", fleches: [[[-5.4, 46.6], [-2.7, 47.5]], [[-5.4, 44.6], [-1.9, 45.5]]] }
+        ] }
+    ],
+    intrus: [
+      { items: ["Parc national", "Parc naturel régional", "Natura 2000", "Érosion côtière"], intrus: "Érosion côtière",
+        expl: "L'érosion côtière est un aléa ; les trois autres sont des outils pour protéger les milieux." },
+      { items: ["Vanoise", "Calanques", "Cévennes", "Bassin parisien"], intrus: "Bassin parisien",
+        expl: "Le Bassin parisien est une plaine de grandes cultures ; les trois autres sont des parcs nationaux." },
+      { items: ["Antilles", "Alpes", "Pyrénées", "Bassin parisien"], intrus: "Bassin parisien",
+        expl: "Dans le Bassin parisien, l'aléa sismique est faible ; il est fort aux Antilles et moyen dans les Alpes et les Pyrénées." },
+      { items: ["Guyane", "La Réunion", "Polynésie française", "Bretagne"], intrus: "Bretagne",
+        expl: "La Bretagne est en France métropolitaine ; les trois autres sont des territoires d'outre-mer." }
+    ],
+    documents: [
+      { id: "signal-2021", titre: "L'immeuble Le Signal face à l'océan", image: "docs/2de-g1-c3/signal-2021.jpg",
+        nature: "Photographie", auteur: "Anthony Baratier", date: "2021",
+        source: "Le Signal, Soulac (2021), Wikimedia Commons", credit: "Anthony Baratier, CC BY-SA 4.0, via Wikimedia Commons",
+        contexte: "En 1964, l'immeuble est construit loin de l'eau, derrière la dune ; en 2014, l'océan arrive à son pied : il est évacué, puis démoli en 2023.",
+        montre: "L'érosion côtière a fait reculer la dune : l'immeuble se retrouve au bord de la plage, exposé aux tempêtes. Aléa (érosion, tempêtes) + enjeux (l'immeuble, ses habitants) = risque.",
+        details: [
+          { nom: "L'immeuble Le Signal", x: 19.5, y: 41, txt: "L'enjeu menacé : un immeuble d'habitation évacué en 2014, démoli en 2023." },
+          { nom: "La dune", x: 17, y: 55, txt: "Elle protégeait l'immeuble de l'océan ; l'érosion l'a fait reculer." },
+          { nom: "Les ganivelles", x: 25, y: 64.5, txt: "Des clôtures de bois qui retiennent le sable pour protéger la dune de l'érosion." },
+          { nom: "La plage", x: 55, y: 80, txt: "Le sable gagné par l'océan à chaque tempête : le trait de côte recule." },
+          { nom: "L'océan Atlantique", x: 82, y: 59.5, txt: "L'aléa : les vagues et les tempêtes rongent la côte sableuse de Gironde." }
+        ] }
     ],
     trous: [
       { titre: "Des milieux variés", texte: "La France possède des milieux très variés, en métropole et en [outre-mer]. Grâce à ces territoires, elle dispose de la deuxième [ZEE] du monde. Les sociétés transforment les milieux : c'est l'[anthropisation]." },

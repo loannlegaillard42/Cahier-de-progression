@@ -65,6 +65,10 @@
     display: inline-flex; align-items: center; justify-content: center;
   }
   .btn-icone:hover { background: var(--accentSoft); color: var(--accent); }
+  .btn-texte { font: 800 16px/1 Inter, system-ui, sans-serif; letter-spacing: -.02em; }
+  .btn-texte[aria-pressed="true"] { background: var(--accentSoft); color: var(--accent); }
+  /* texte plus grand : toute la page grossit, comme un zoom qui garde la mise en page du téléphone */
+  html.grand-texte #app { zoom: 1.2; }
   .ico { width: 22px; height: 22px; display: inline-block; flex-shrink: 0; }
   .ico svg { width: 100%; height: 100%; display: block; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -646,6 +650,26 @@
   .jeu-corps { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .jeu-question { max-width: 560px; margin: 0 auto; padding: 8px 18px 24px; animation: av-apparait .2s ease-out; }
   .jeu-consigne { font-size: 22px; font-weight: 800; line-height: 1.25; margin: 6px 0 16px; }
+  .jeu-lire {
+    float: right; width: 44px; height: 44px; margin: 2px 0 6px 10px; border-radius: 50%; border: 2px solid #444A92; background: #2E3270; color: #F4F2FF;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .jeu-lire .ico { width: 22px; height: 22px; }
+  .jeu-lire.en-lecture { background: #FFD34D; border-color: #FFD34D; color: #3A2A00; animation: jeu-lit 1.1s ease-in-out infinite; }
+  @keyframes jeu-lit { 50% { box-shadow: 0 0 0 7px rgba(255, 211, 77, .25); } }
+  .jeu-retour .jeu-lire { width: 40px; height: 40px; margin-top: -4px; }
+  .carte-panneau .jeu-lire { margin: -6px -6px 6px 10px; border-color: var(--line); background: var(--panel); color: var(--accent); }
+  .carte-panneau .jeu-lire.en-lecture { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+  .av-reglages { display: grid; gap: 10px; }
+  .av-reglage { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: #262A5C; }
+  .av-reglage-txt { flex: 1; min-width: 0; }
+  .av-reglage-txt strong { display: block; font-size: 15.5px; }
+  .av-reglage-txt span { display: block; margin-top: 2px; font-size: 13px; color: #B9B7DA; line-height: 1.4; }
+  .av .interrupteur { color: #4ADE80; }
+  .av .interrupteur .piste { background: #22C55E; }
+  .av .interrupteur .curseur { background: #fff; }
+  .av .interrupteur[aria-checked="false"] { color: #8A8DB5; }
+  .av .interrupteur[aria-checked="false"] .piste { background: #444A92; }
   .jeu-guide { display: flex; align-items: flex-start; gap: 6px; margin: 0 0 20px; }
   .jeu-guide-fig { width: 84px; flex: none; margin-top: -4px; }
   .jeu-guide-fig svg { width: 100%; height: auto; display: block; }
@@ -747,6 +771,83 @@
   .jeu-cible.petit { font-size: 15px; font-weight: 600; }
   .jeu-cible strong { font-weight: 800; }
   .jeu-geo { border-radius: 16px; overflow: hidden; border: 2px solid #4A50A0; background: var(--mer); color: var(--ink); }
+  /* graphiques et croquis : présentés comme un document papier, même sur l'écran sombre du jeu */
+  .jeu-graphique, .jeu-croquis { margin: 4px 0 16px; padding: 10px 10px 8px; border-radius: 16px; background: #FFFDF8; color: #22282A; box-shadow: 0 4px 0 rgba(0, 0, 0, .25); }
+  .jeu-graphique figcaption, .jeu-croquis figcaption { margin: 0 4px 6px; font: 700 14px/1.3 Inter, system-ui, sans-serif; color: #1F4E5F; }
+  .gr-svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .gr-txt { font: 500 10.5px Inter, system-ui, sans-serif; fill: #55605F; }
+  .gr-petit { font-size: 9.5px; }
+  .gr-gras { font-weight: 700; fill: #22282A; }
+  .gr-unite { font-size: 9.5px; font-weight: 600; }
+  .gr-val { font-weight: 700; fill: #22282A; }
+  .gr-age { font-size: 8.5px; fill: #22282A; }
+  .gr-axe { stroke: #8A8478; stroke-width: 1.2; }
+  .gr-grille { stroke: #E4DFD4; stroke-width: 1; }
+  .gr-ligne { fill: none; stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
+  .gr-ligne.gr-s0 { stroke: #D2452F; } .gr-pt.gr-s0 { fill: #D2452F; }
+  .gr-ligne.gr-s1 { stroke: #1F5F9E; } .gr-pt.gr-s1 { fill: #1F5F9E; }
+  .gr-ligne.gr-s2 { stroke: #3B8E4F; } .gr-pt.gr-s2 { fill: #3B8E4F; }
+  .gr-ecart { fill: #F5C44E; fill-opacity: .5; }
+  .gr-barre { fill: #2E7D9A; }
+  .gr-barre.gr-proj { fill: #F6C5BE; stroke: #C0392B; stroke-width: 1.4; stroke-dasharray: 4 3; }
+  .gr-barre.gr-plus { fill: #3B8E4F; } .gr-barre.gr-moins { fill: #C94A3A; } .gr-barre.gr-ref { fill: #6B7579; }
+  .gr-barre.gr-h { fill: #2E6FB7; } .gr-barre.gr-f { fill: #D9534F; }
+  .gr-zone { fill: transparent; }
+  .gr-repere { stroke: transparent; stroke-width: 2; }
+  .gr-svg:not(.touche) .gr-cible { pointer-events: none; }
+  .gr-svg.touche .gr-cible { cursor: pointer; outline: none; }
+  .gr-svg.touche .gr-cible:hover .gr-zone, .gr-svg.touche .gr-cible:focus-visible .gr-zone { fill: rgba(108, 76, 241, .12); }
+  .gr-svg.touche .gr-cible:focus-visible .gr-repere, .gr-svg.touche .gr-cible:hover .gr-repere { stroke: #6C4CF1; }
+  .gr-cible.bien .gr-zone { fill: rgba(34, 197, 94, .2); } .gr-cible.bien .gr-repere { stroke: #22C55E; }
+  .gr-cible.vise .gr-zone { fill: rgba(255, 196, 0, .28); } .gr-cible.vise .gr-repere { stroke: #E0A800; }
+  .gr-cible.mal .gr-zone { fill: rgba(239, 68, 68, .2); } .gr-cible.mal .gr-repere { stroke: #EF4444; }
+  .gr-cible.bien .gr-barre, .gr-cible.vise .gr-barre { stroke: #15803D; stroke-width: 2; }
+  .gr-cible.mal .gr-barre { stroke: #B91C1C; stroke-width: 2; }
+  .gr-legende { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 4px 0; font-size: 12.5px; font-weight: 600; color: #3C4446; }
+  .gr-legende span { display: inline-flex; align-items: center; gap: 6px; }
+  .gr-pastille { display: inline-block; width: 18px; height: 4px; border-radius: 2px; background: currentColor; }
+  .gr-pastille.gr-s0 { color: #D2452F; } .gr-pastille.gr-s1 { color: #1F5F9E; } .gr-pastille.gr-s2 { color: #3B8E4F; }
+  .gr-pastille.aire { width: 14px; height: 12px; border-radius: 3px; }
+  .gr-pastille.gr-ecart { background: #F5C44E; opacity: .75; } .gr-pastille.gr-proj { background: #F6C5BE; border: 1.4px dashed #C0392B; }
+  .gr-pastille.gr-plus { background: #3B8E4F; } .gr-pastille.gr-moins { background: #C94A3A; }
+  .gr-source { display: block; margin: 6px 4px 0; font-size: 11px; color: #736D63; line-height: 1.35; }
+  .jeu-croquis { --mer: #D3E6EF; --terre: #FBF6EA; --cote: #7E8E94; }
+  .jeu-croquis .k-svg { display: block; width: 100%; height: auto; border-radius: 10px; }
+  .cq-fleuve { stroke: #3B82F6; stroke-width: 1.8px; opacity: 1; }
+  .cq-legende { display: grid; gap: 8px; margin: 2px 0 14px; }
+  .cq-ligne { display: flex; align-items: center; gap: 10px; }
+  .cq-figure { flex: none; display: flex; align-items: center; justify-content: center; width: 56px; height: 38px; border-radius: 10px; background: #FBF6EA; }
+  .cq-figure svg { width: 44px; height: 26px; display: block; }
+  .cq-case {
+    flex: 1; min-width: 0; min-height: 46px; padding: 8px 12px; border: 2px dashed #5A5FB0; border-radius: 12px; background: #23275A;
+    color: #F4F2FF; font: 700 15px/1.3 Inter, system-ui, sans-serif; text-align: left;
+  }
+  .cq-case.rempli { border-style: solid; border-color: #8B6CFF; background: #3B3192; }
+  .cq-case.choisie, .jeu-puce.choisie { border-color: #FFD34D; box-shadow: 0 0 0 3px rgba(255, 211, 77, .3); }
+  .cq-case.bien { border-style: solid; border-color: #22C55E; background: #16402F; color: #9AF5BC; }
+  .cq-case.mal { border-style: solid; border-color: #EF4444; background: #45192A; color: #FFB4B4; }
+  .cq-attendu { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 600; color: #9AF5BC; }
+  .cq-attendu::before { content: "→ "; }
+  .cq-puces { grid-template-columns: 1fr; margin-top: 0; }
+  .jeu-sous { margin: -8px 0 16px; color: #B9B7DA; font-size: 15px; line-height: 1.4; }
+  .jeu-intrus { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .jeu-intrus-item {
+    min-height: 88px; padding: 12px; border: 2px solid #444A92; border-radius: 18px; background: #2E3270; box-shadow: 0 5px 0 #1D2052;
+    color: #F4F2FF; font: 800 16.5px/1.25 Inter, system-ui, sans-serif;
+  }
+  .jeu-intrus-item:hover:not(:disabled) { border-color: #6C70C8; }
+  .jeu-intrus-item.bien { border-color: #22C55E; background: #16402F; color: #9AF5BC; }
+  .jeu-intrus-item.mal { border-color: #EF4444; background: #45192A; color: #FFB4B4; animation: secousse .3s; }
+  .jeu-intrus-item.ensemble { opacity: .7; }
+  .dc-media .jeu-graphique, .dc-media.jeu-croquis { max-width: min(92vw, 1100px); margin: 0 auto; }
+  .dc-corps.avec-media > .dc-media.jeu-croquis { grid-column: 1 / -1; width: 100%; }
+  .dc-media .gr-svg { max-height: 58vh; }
+  .dc-croquis { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 2vw; align-items: center; }
+  .dc-media.jeu-croquis .k-svg { max-height: 56vh; width: auto; max-width: 100%; margin: 0 auto; }
+  .dc-media.jeu-croquis .cq-legende { margin: 0; }
+  .dc-media .jeu-graphique figcaption, .dc-media.jeu-croquis figcaption { margin: 0 4px 8px; color: #1F4E5F; font-size: clamp(14px, 1.4vw, 22px); text-align: left; }
+  .dc-media .cq-case { font-size: clamp(14px, 1.3vw, 20px); }
+  .dc-media .cq-case { border-style: solid; background: #F3EFE4; border-color: #D8D2C2; color: #3C4446; }
   .jeu-doc { margin: 0; }
   .jeu-doc .doc-cadre { border-radius: 16px; border: 2px solid #4A50A0; }
   .jeu-doc figcaption { margin-top: 6px; font-size: 12.5px; color: #B9B6D9; text-align: center; }
@@ -1076,6 +1177,7 @@
   <div class="wrap entete-in">
     <a class="marque" href="#/">Réviser <small>Histoire-Géo</small></a>
     <span class="entete-actions">
+      <button class="btn-icone btn-texte" id="btn-texte" type="button" aria-pressed="false" aria-label="Agrandir le texte">Aa</button>
       <button class="btn-icone" id="btn-qr" type="button" aria-label="Afficher le QR code de cette page"></button>
       <button class="btn-icone" id="btn-theme" type="button"></button>
     </span>
@@ -1097,6 +1199,7 @@
 
   var CLE = "reviser-v1";              // progrès de l'élève, sur cet appareil seulement
   var CLE_THEME = "rituels-theme-v1";  // même réglage que l'écran des rituels
+  var CLE_ACCES = "reviser-acces-v1";  // texte plus grand, lecture automatique des questions
   var CLE_VISIBLES = "reviser-visibles-v1"; // dernière liste connue des chapitres ouverts aux élèves
   var CLE_AV_CLASSES = "reviser-aventure-classes-v1"; // dernière liste connue des classes où le mode aventure est ouvert
   var CLE_PROF = "reviser-prof-v1";         // jeton GitHub du professeur, sur son appareil seulement
@@ -1140,6 +1243,8 @@
     fermer: '<path d="M6 6l12 12M18 6L6 18"/>',
     drapeau: '<path d="M5 21V4"/><path d="M5 4h12l-2.5 4L17 12H5"/>',
     carte: '<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+    croquis: '<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M7 11.5c1.5-1.2 3-1.2 4.5 0s3 1.2 4.5 0"/><circle cx="16" cy="15.5" r="1.3"/>',
+    graphique: '<path d="M3 3v18h18"/><path d="M7 16v-4M11.5 16V8M16 16v-6"/><path d="M6 9l5-4 4 3 5-4"/>',
     document: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/>',
     classer: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17.5h7M17.5 14v7"/>',
     coffre: '<rect x="3" y="10" width="18" height="10" rx="2"/><path d="M3 10a9 5 0 0 1 18 0"/><path d="M10 13h4v3h-4z"/>',
@@ -1366,6 +1471,81 @@
     appliquerTheme();
   });
 
+  // ---------- Lire à voix haute, texte plus grand (réglages de cet appareil) ----------
+  // grand : le texte de toute la page grossit ; auto : dans le mode aventure, chaque question est lue dès qu'elle s'affiche
+  var acces = lire(CLE_ACCES, null) || {};
+  if (typeof acces !== "object") acces = {};
+  function sauverAcces() { ecrire(CLE_ACCES, { grand: !!acces.grand, auto: !!acces.auto }); }
+  function appliquerTaille() {
+    document.documentElement.classList.toggle("grand-texte", !!acces.grand);
+    var b = document.getElementById("btn-texte");
+    b.setAttribute("aria-pressed", String(!!acces.grand));
+    b.setAttribute("aria-label", acces.grand ? "Revenir au texte normal" : "Agrandir le texte");
+  }
+  appliquerTaille();
+  document.getElementById("btn-texte").addEventListener("click", function () {
+    acces.grand = !acces.grand;
+    sauverAcces();
+    appliquerTaille();
+  });
+  var voixFr = null;
+  function lectureDispo() { return typeof window.speechSynthesis !== "undefined" && typeof window.SpeechSynthesisUtterance !== "undefined"; }
+  // une voix française installée sur l'appareil, de France de préférence
+  function choisirVoix() {
+    var v = window.speechSynthesis.getVoices().filter(function (x) { return /^fr/i.test(x.lang); });
+    var france = v.filter(function (x) { return /^fr[-_]FR/i.test(x.lang); });
+    voixFr = france.filter(function (x) { return x.localService; })[0] || france[0] || v[0] || null;
+  }
+  if (lectureDispo()) {
+    choisirVoix();
+    if (window.speechSynthesis.addEventListener) window.speechSynthesis.addEventListener("voiceschanged", choisirVoix);
+  }
+  // ce qu'une voix lit mal : les abréviations des dates, les flèches, les points de suspension des cases vides
+  function pourLaVoix(t) {
+    return String(t).replace(/⠿/g, "").replace(/\bav\. J\.-C\./g, "avant Jésus-Christ").replace(/\bapr\. J\.-C\./g, "après Jésus-Christ")
+      .replace(/\bJ\.-C\./g, "Jésus-Christ").replace(/\bhab\.\/km²/g, "habitants par kilomètre carré").replace(/\bkm²/g, "kilomètres carrés")
+      .replace(/[→⟶]/g, ", ").replace(/\s+([.,;:!?])/g, "$1").replace(/([.,;:!?…])(\s*[.,;:])+/g, "$1")
+      .replace(/\s+/g, " ").trim();
+  }
+  var lectureEnCours = null;
+  function arreterLecture() {
+    if (lectureEnCours) { lectureEnCours.classList.remove("en-lecture"); lectureEnCours = null; }
+    if (lectureDispo()) window.speechSynthesis.cancel();
+  }
+  // bouton : celui qui a lancé la lecture (il s'anime pendant qu'elle dure, et l'arrête si on le touche à nouveau)
+  function lireAVoixHaute(texte, bouton) {
+    if (!lectureDispo()) return;
+    var deja = bouton && lectureEnCours === bouton;
+    arreterLecture();
+    if (deja || !texte) return;
+    var u = new window.SpeechSynthesisUtterance(pourLaVoix(texte));
+    u.lang = "fr-FR";
+    if (voixFr) u.voice = voixFr;
+    u.rate = .95;
+    if (bouton) {
+      lectureEnCours = bouton;
+      bouton.classList.add("en-lecture");
+      u.onend = u.onerror = function () { if (lectureEnCours === bouton) { bouton.classList.remove("en-lecture"); lectureEnCours = null; } };
+    }
+    window.speechSynthesis.speak(u);
+  }
+  // le texte visible d'un bloc, sans les cartes ni les décors ; une case vide marque une pause, chaque bouton est une phrase
+  function texteALire(noeud) {
+    var c = noeud.cloneNode(true);
+    c.querySelectorAll("svg, [aria-hidden=true], .jeu-lire, .jeu-aide, .jeu-continuer, .jeu-valider, .noprint, .lettre, .btns, .gr-source, .cq-figure").forEach(function (x) { x.remove(); });
+    c.querySelectorAll(".jeu-trou").forEach(function (x) { if (!x.textContent.trim()) x.textContent = " … "; });
+    c.querySelectorAll(".jeu-options, .jeu-puces, .options, .jeu-intrus").forEach(function (x) { x.insertBefore(document.createTextNode(" Réponses possibles : "), x.firstChild); });
+    c.querySelectorAll("h2, h3, p, small, strong, button, figcaption, li, .jeu-cible, .jeu-carte, .jeu-bulle, .q-consigne, .q-enonce, .gr-legende span").forEach(function (x) { x.appendChild(document.createTextNode(". ")); });
+    return c.textContent;
+  }
+  function boutonLire(cible, nom) {
+    var b = el("button", { class: "jeu-lire", type: "button", "aria-label": nom || "Écouter" });
+    b.innerHTML = icone("son");
+    if (!lectureDispo()) b.hidden = true;
+    b.addEventListener("click", function () { lireAVoixHaute(texteALire(typeof cible === "function" ? cible() : cible), b); });
+    return b;
+  }
+
   // ---------- QR code de la page courante, à projeter en classe ----------
   var btnQr = document.getElementById("btn-qr");
   btnQr.innerHTML = icone("qr");
@@ -1448,6 +1628,7 @@
 
   function rendre() {
     surToucheVue = null;
+    arreterLecture();
     app.innerHTML = "";
     var r = routeActuelle();
     var ch = r.ch ? chapitre(r.ch) : null;
@@ -2192,6 +2373,7 @@
       barre.firstChild.style.width = Math.round(pos / qs.length * 100) + "%";
       zone.appendChild(el("div", { class: "compteur" }, [el("span", { text: "Question " + (pos + 1) + " sur " + qs.length + " · " + score + " juste" + (score > 1 ? "s" : "") }), barre]));
       var panneau = el("div", { class: "carte-panneau" });
+      panneau.appendChild(boutonLire(panneau, "Écouter la question"));
       panneau.appendChild(el("div", { class: "q-consigne", text: q.consigne }));
       panneau.appendChild(el("div", { class: "q-enonce" + (q.grand ? " grand" : ""), text: q.enonce }));
       var opts = el("div", { class: "options", role: "group", "aria-label": "Propositions" });
@@ -3026,12 +3208,19 @@
     var x = (p.lon - f.lon0) * f.kx, y = (f.lat0 - p.lat) * f.ky;
     return x >= 0 && x <= f.l && y >= 0 && y <= f.h;
   }
-  // chaque lieu va sur le premier fond qui le contient ; on ne garde que les fonds qui ont au moins « min » lieux
+  // chaque lieu va sur le premier fond qui le contient (ou sur celui qu'il demande : un pays sur le planisphère
+  // plutôt que sur la carte de sa région) ; on ne garde que les fonds qui ont au moins « min » lieux
+  function rangFond(fonds, p) {
+    for (var j = 0; j < fonds.length; j++) if (p.fond && fonds[j].id === p.fond && dansFond(fonds[j], p)) return j;
+    for (var k = 0; k < fonds.length; k++) if (dansFond(fonds[k], p)) return k;
+    return -1;
+  }
   function cartesDuChapitre(ch, filtre, min) {
     var fonds = fondsChapitre(ch);
     var res = fonds.map(function (f) { return { fond: f, lieux: [] }; });
     lieuxCarte(ch, filtre).forEach(function (p) {
-      for (var k = 0; k < fonds.length; k++) if (dansFond(fonds[k], p)) { res[k].lieux.push(p); return; }
+      var k = rangFond(fonds, p);
+      if (k >= 0) res[k].lieux.push(p);
     });
     return res.filter(function (r) { return r.lieux.length >= (min || 1); });
   }
@@ -3048,7 +3237,7 @@
         var k = normaliser(x.nom);
         if (vus[k] || res.some(function (r) { return Math.abs(r.lon - x.lon) < .05 && Math.abs(r.lat - x.lat) < .05; })) return;
         vus[k] = true;
-        res.push({ nom: x.nom, txt: x.txt, lon: x.lon, lat: x.lat, src: b.id === "cours" ? "" : b.nom, carte: b.prefixe + "|l|" + x.nom });
+        res.push({ nom: x.nom, txt: x.txt, lon: x.lon, lat: x.lat, fond: x.fond, src: b.id === "cours" ? "" : b.nom, carte: b.prefixe + "|l|" + x.nom });
       });
     });
     return res;
@@ -3848,13 +4037,475 @@
       var oa = quatre(d.auteur, autres.map(function (a) { return a.auteur; }));
       if (oa) qs.push({ enonce: "Qui en est l'auteur ?", options: oa, bonne: d.auteur, expl: d.auteur + (d.date ? ", " + d.date : "") + "." });
     }
-    var s = siecleDocument(d);
+    // le siècle a du sens pour un document d'histoire, pas pour une photographie récente de géographie
+    var s = (x.bloc.data.d || ch.d) === "geo" ? null : siecleDocument(d);
     if (s) {
       var bonneS = nomSiecle(s);
       var os = quatre(bonneS, [s - 2, s - 1, s + 1, s + 2].filter(function (n) { return n > 0 && n <= 21; }).map(nomSiecle));
       if (os) qs.push({ enonce: "De quel siècle date ce document ?", options: os, bonne: bonneS, expl: "Il date de " + d.date + " : " + bonneS + "." });
     }
     return qs;
+  }
+
+  // ---------- Graphiques, croquis et intrus (questions de géographie) ----------
+  // Champs d'un chapitre ou d'un point de passage, dans cours.js :
+  //   graphiques : [{ id, type, titre, source, unite, questions: [{ q, r, faux, expl }] }], selon le type :
+  //     "courbes"  : x (années), series [{ nom, valeurs }], ecart (nom de l'écart entre les deux premières courbes)
+  //     "barres"   : x (étiquettes), valeurs, projection (rangs des barres qui sont des projections)
+  //     "barres-h" : x, valeurs, moyenne (rang de la barre de référence), quoi (« le taux… »), ou (« l'État »), ouPluriel
+  //     "pyramide" : pays, ages, hommes, femmes (en % de la population), max, profil ("jeune" | "transition" | "vieillissante")
+  //   croquis : [{ id, titre, fond, elements }] ; un élément a un nom et un figuré : zone (polygone en lon, lat, ou liste de
+  //     polygones), ellipse ([lon, lat, demi-largeur, demi-hauteur, rotation], ou liste), ligne, points, fleches, fleuves
+  //     (les fleuves du fond) ; couleur, motif ("hachures"), forme des points ("rond" | "carre" | "triangle" | "etoile")
+  //   intrus : [{ items (quatre), intrus, expl }]
+  // Les questions sont calculées à partir de ces données : lire une valeur, toucher la bonne barre ou la bonne année,
+  // décrire une évolution, compléter la légende d'un croquis, trouver l'intrus.
+  var numeroGraphique = 0;
+  function nombreFr(v) { return String(Math.round(v * 10) / 10).replace(".", ","); }
+  function lesGraphiques(ch, b, champ) {
+    return liste(b.data, champ).map(function (x) { return { x: x, ref: { c: b.data.chId || ch.id, id: x.id } }; });
+  }
+  function chercherParId(c, champ, id) {
+    var ch = chapitre(c), r = null;
+    if (ch) blocs(ch).forEach(function (b) { liste(b.data, champ).forEach(function (x) { if (x.id === id) r = x; }); });
+    return r;
+  }
+  function graduations(max) {
+    var pas = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000];
+    for (var i = 0; i < pas.length; i++) if (max / pas[i] <= 6) return { pas: pas[i], haut: Math.ceil(max / pas[i]) * pas[i] };
+    return { pas: max / 5, haut: max };
+  }
+  // ce que montre chaque partie touchable du graphique (une année, une barre, une tranche d'âge)
+  function etiquettesGraphique(g) {
+    if (g.type === "pyramide") return g.ages.map(function (a) { return /\+$/.test(a) ? a.replace("+", " ans et plus") : a + " ans"; });
+    return g.x.map(String);
+  }
+  function dessinGraphique(g) {
+    var W = 340, H, m, svg, cibles = [], legende = [];
+    var noms = etiquettesGraphique(g);
+    function trait(x1, y1, x2, y2, cls) { svg.appendChild(svgEl("line", { x1: x1, y1: y1, x2: x2, y2: y2, class: cls })); }
+    function texte(parent, x, y, t, cls, ancre) { parent.appendChild(svgEl("text", { x: x, y: y, class: "gr-txt" + (cls ? " " + cls : ""), "text-anchor": ancre || "middle" }, t)); }
+    function cible(i, x, y, w, h) {
+      var c = svgEl("g", { class: "gr-cible", role: "button", "aria-label": noms[i] });
+      c.appendChild(svgEl("rect", { class: "gr-zone", x: x, y: y, width: w, height: h }));
+      cibles[i] = c;
+      return c;
+    }
+    function nouveau(h) {
+      H = h;
+      svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, class: "gr-svg gr-" + g.type, role: "img", "aria-label": g.titre });
+    }
+    if (g.type === "courbes" || g.type === "barres") {
+      m = { g: 36, d: 10, h: 20, b: 24 };
+      nouveau(226);
+      var max = 0;
+      (g.type === "courbes" ? g.series : [{ valeurs: g.valeurs }]).forEach(function (s) { s.valeurs.forEach(function (v) { max = Math.max(max, v); }); });
+      var e = graduations(max * (g.type === "barres" ? 1.12 : 1));
+      var Y = function (v) { return H - m.b - v / e.haut * (H - m.h - m.b); };
+      for (var v = 0; v <= e.haut + 1e-9; v += e.pas) {
+        trait(m.g, Y(v), W - m.d, Y(v), v === 0 ? "gr-axe" : "gr-grille");
+        texte(svg, m.g - 5, Y(v) + 3.5, nombreFr(v), "", "end");
+      }
+      if (g.unite) texte(svg, 2, 9, g.unite, "gr-unite", "start");
+      if (g.type === "courbes") {
+        var x0 = g.x[0], x1 = g.x[g.x.length - 1];
+        var X = function (a) { return m.g + 8 + (a - x0) / (x1 - x0) * (W - m.g - m.d - 16); };
+        if (g.ecart && g.series.length >= 2) {
+          var haut = g.series[0].valeurs.map(function (v, i) { return X(g.x[i]) + "," + Y(v); });
+          var bas = g.series[1].valeurs.map(function (v, i) { return X(g.x[i]) + "," + Y(v); }).reverse();
+          svg.appendChild(svgEl("polygon", { points: haut.concat(bas).join(" "), class: "gr-ecart" }));
+          legende.push({ cls: "gr-ecart", nom: g.ecart, aire: true });
+        }
+        g.series.forEach(function (s, k) {
+          svg.appendChild(svgEl("polyline", { points: s.valeurs.map(function (v, i) { return X(g.x[i]) + "," + Y(v); }).join(" "), class: "gr-ligne gr-s" + k }));
+          s.valeurs.forEach(function (v, i) { svg.appendChild(svgEl("circle", { cx: X(g.x[i]), cy: Y(v), r: 3.2, class: "gr-pt gr-s" + k })); });
+          legende.push({ cls: "gr-s" + k, nom: s.nom });
+        });
+        legende.sort(function (a, b) { return (a.aire ? 1 : 0) - (b.aire ? 1 : 0); });
+        g.x.forEach(function (a, i) {
+          var gauche = i ? (X(g.x[i - 1]) + X(a)) / 2 : m.g, droite = i < g.x.length - 1 ? (X(a) + X(g.x[i + 1])) / 2 : W - m.d;
+          var c = cible(i, gauche, m.h, droite - gauche, H - m.h);
+          c.appendChild(svgEl("line", { class: "gr-repere", x1: X(a), y1: m.h, x2: X(a), y2: H - m.b }));
+          texte(c, X(a), H - m.b + 15, String(a));
+          svg.appendChild(c);
+        });
+      } else {
+        var n = g.x.length, larg = (W - m.g - m.d) / n, proj = liste(g, "projection");
+        g.x.forEach(function (lab, i) {
+          var x = m.g + i * larg, bw = Math.min(46, larg * .62), bx = x + (larg - bw) / 2, val = g.valeurs[i], p = proj.indexOf(i) >= 0;
+          var c = cible(i, x, m.h, larg, H - m.h);
+          c.setAttribute("aria-label", lab + " : " + nombreFr(val) + (g.unite ? " " + g.unite : "") + (p ? " (projection)" : ""));
+          c.appendChild(svgEl("rect", { class: "gr-barre" + (p ? " gr-proj" : ""), x: bx, y: Y(val), width: bw, height: Math.max(1, Y(0) - Y(val)), rx: 3 }));
+          texte(c, bx + bw / 2, Y(val) - 5, nombreFr(val) + (p ? " ?" : ""), "gr-val");
+          texte(c, x + larg / 2, H - m.b + 15, String(lab));
+          svg.appendChild(c);
+        });
+        if (proj.length) legende.push({ cls: "gr-proj", nom: "Projection (estimation pour le futur)", aire: true });
+      }
+    } else if (g.type === "barres-h") {
+      var nb = g.x.length, ligne = 23;
+      m = { g: 114, d: 44, h: 6, b: 22 };
+      nouveau(m.h + nb * ligne + m.b);
+      var eh = graduations(g.max || Math.max.apply(null, g.valeurs));
+      var XH = function (v) { return m.g + v / eh.haut * (W - m.g - m.d); };
+      for (var t = 0; t <= eh.haut + 1e-9; t += eh.pas) {
+        trait(XH(t), m.h, XH(t), H - m.b, t === 0 ? "gr-axe" : "gr-grille");
+        texte(svg, XH(t), H - m.b + 14, nombreFr(t) + (g.unite === "%" ? " %" : ""), "gr-petit");
+      }
+      var ref = typeof g.moyenne === "number" ? g.valeurs[g.moyenne] : null;
+      g.x.forEach(function (lab, i) {
+        var y = m.h + i * ligne, val = g.valeurs[i];
+        var cls = i === g.moyenne ? "gr-ref" : ref === null ? "" : val >= ref ? "gr-plus" : "gr-moins";
+        var c = cible(i, 0, y, W, ligne);
+        c.setAttribute("aria-label", lab + " : " + nombreFr(val) + (g.unite ? " " + g.unite : ""));
+        c.appendChild(svgEl("rect", { class: "gr-barre " + cls, x: XH(0), y: y + 4, width: Math.max(1, XH(val) - XH(0)), height: ligne - 8, rx: 3 }));
+        texte(c, m.g - 6, y + ligne / 2 + 4, String(lab), i === g.moyenne ? "gr-gras" : "", "end");
+        texte(c, XH(val) + 4, y + ligne / 2 + 4, nombreFr(val) + (g.unite === "%" ? " %" : ""), "gr-val", "start");
+        svg.appendChild(c);
+      });
+      if (ref !== null) legende.push({ cls: "gr-plus", nom: "Au-dessus de la moyenne", aire: true }, { cls: "gr-moins", nom: "En dessous de la moyenne", aire: true });
+    } else if (g.type === "pyramide") {
+      var na = g.ages.length, haut = 11, centre = W / 2, demi = 25, mx = g.max || 8;
+      m = { h: 22, b: 24 };
+      nouveau(m.h + na * haut + m.b);
+      var k = (W / 2 - demi - 10) / mx;
+      texte(svg, centre - demi - 4, 12, "Hommes", "gr-gras", "end");
+      texte(svg, centre + demi + 4, 12, "Femmes", "gr-gras", "start");
+      for (var p = 0; p <= mx; p += 2) {
+        [-1, 1].forEach(function (cote) {
+          if (!p && cote < 0) return;
+          var xg = centre + cote * (demi + p * k);
+          trait(xg, m.h, xg, H - m.b, "gr-grille");
+          texte(svg, xg, H - m.b + 14, p + " %", "gr-petit");
+        });
+        if (!p) {
+          texte(svg, centre - demi, H - m.b + 14, "0", "gr-petit");
+        }
+      }
+      g.ages.forEach(function (a, i) {
+        var y = m.h + (na - 1 - i) * haut;
+        var c = cible(i, 0, y, W, haut);
+        c.setAttribute("aria-label", noms[i] + " : " + nombreFr(g.hommes[i]) + " % d'hommes, " + nombreFr(g.femmes[i]) + " % de femmes");
+        c.appendChild(svgEl("rect", { class: "gr-barre gr-h", x: centre - demi - g.hommes[i] * k, y: y + 1, width: Math.max(.5, g.hommes[i] * k), height: haut - 2 }));
+        c.appendChild(svgEl("rect", { class: "gr-barre gr-f", x: centre + demi, y: y + 1, width: Math.max(.5, g.femmes[i] * k), height: haut - 2 }));
+        texte(c, centre, y + haut - 2.5, a, "gr-age");
+        svg.appendChild(c);
+      });
+    }
+    return {
+      svg: svg, cibles: cibles, legende: legende,
+      marquer: function (i, cls) { if (cibles[i]) cibles[i].classList.add(cls); }
+    };
+  }
+  // le graphique avec son titre, sa légende et sa source ; anonyme : sans le nom du pays (pour le reconnaître)
+  function figureGraphique(g, gr, anonyme) {
+    var titre = anonyme ? "Pyramide des âges d'un pays" + (g.annee ? " en " + g.annee : "") : g.titre;
+    var fig = el("figure", { class: "jeu-graphique" }, [el("figcaption", { text: titre }), gr.svg]);
+    if (gr.legende.length) {
+      var lg = el("div", { class: "gr-legende" });
+      gr.legende.forEach(function (l) { lg.appendChild(el("span", {}, [el("i", { class: "gr-pastille " + l.cls + (l.aire ? " aire" : "") }), l.nom])); });
+      fig.appendChild(lg);
+    }
+    if (g.source && !anonyme) fig.appendChild(el("small", { class: "gr-source", text: "Source : " + g.source }));
+    return fig;
+  }
+  function plusGrands(vals, tolerance) {
+    var mx = Math.max.apply(null, vals);
+    return vals.map(function (v, i) { return v >= mx - (tolerance || 0) ? i : -1; }).filter(function (i) { return i >= 0; });
+  }
+  function plusPetits(vals, tolerance) {
+    var mn = Math.min.apply(null, vals);
+    return vals.map(function (v, i) { return v <= mn + (tolerance || 0) ? i : -1; }).filter(function (i) { return i >= 0; });
+  }
+  // un extrême net : à part, ou presque à égalité avec ses voisins seulement (on accepte alors les deux)
+  function extremeNet(vals, haut) {
+    var tri = vals.slice().sort(function (a, b) { return haut ? b - a : a - b; });
+    var ecart = Math.abs(tri[0] - tri[tri.length - 1]);
+    return tri.length > 2 && Math.abs(tri[0] - tri[1]) >= ecart * .08;
+  }
+  var PROFILS_PYRAMIDE = {
+    jeune: "Jeune : beaucoup d'enfants, peu de personnes âgées",
+    transition: "Encore jeune, mais les naissances diminuent",
+    vieillissante: "Vieillissante : peu d'enfants, beaucoup de personnes âgées"
+  };
+  function questionsGraphique(x, diff, pyramides) {
+    var g = x.x, qs = [], noms = etiquettesGraphique(g);
+    function q(o) {
+      o.type = "graphique"; o.g = g; o.gref = x.ref;
+      if (o.mode === "touche") o.bonneTexte = o.cibles.map(function (i) { return noms[i]; }).join(" ou ");
+      qs.push(o);
+    }
+    function avecUnite(v) { return nombreFr(v) + (g.unite ? " " + g.unite : ""); }
+    // des valeurs proches mais différentes de la bonne, pour les choix
+    function choixNombres(bonne, autres) {
+      var vus = {}, o = [];
+      vus[bonne] = true;
+      autres.forEach(function (v) { if (!vus[v]) { vus[v] = true; o.push(v); } });
+      return o.length >= 2 ? choisirOptions(melanger(o).map(avecUnite), avecUnite(bonne), diff.options) : null;
+    }
+    if (g.type === "courbes") {
+      g.series.forEach(function (s) {
+        var i = Math.floor(Math.random() * s.valeurs.length);
+        var loin = s.valeurs.filter(function (v, j) { return Math.abs(j - i) >= 2 && Math.abs(v - s.valeurs[i]) >= 3; });
+        var o = choixNombres(s.valeurs[i], loin);
+        if (o) q({ mode: "choix", enonce: s.nom + " en " + g.x[i] + " : quelle valeur lis-tu ?", options: o, bonne: avecUnite(s.valeurs[i]),
+          expl: "En " + g.x[i] + ", la courbe « " + s.nom + " » est à environ " + avecUnite(s.valeurs[i]) + "." });
+        var premier = s.valeurs[0], dernier = s.valeurs[s.valeurs.length - 1], variation = (dernier - premier) / Math.max(1, Math.abs(premier));
+        var sens = variation <= -.15 ? "a baissé" : variation >= .15 ? "a augmenté" : "est restée à peu près stable";
+        q({ mode: "choix", enonce: "Entre " + g.x[0] + " et " + g.x[g.x.length - 1] + ", comment évolue la courbe « " + s.nom + " » ?",
+          options: melanger(["a baissé", "a augmenté", "est restée à peu près stable"]), bonne: sens,
+          expl: s.nom + " : de " + avecUnite(premier) + " en " + g.x[0] + " à " + avecUnite(dernier) + " en " + g.x[g.x.length - 1] + "." });
+        [true, false].forEach(function (haut) {
+          if (!extremeNet(s.valeurs, haut)) return;
+          var c = haut ? plusGrands(s.valeurs) : plusPetits(s.valeurs);
+          q({ mode: "touche", enonce: "Touche l'année où la courbe « " + s.nom + " » est au plus " + (haut ? "haut" : "bas") + ".",
+            choix: "En quelle année la courbe « " + s.nom + " » est-elle au plus " + (haut ? "haut" : "bas") + " ?", cibles: c,
+            expl: "En " + g.x[c[0]] + " : " + avecUnite(s.valeurs[c[0]]) + "." });
+        });
+      });
+      if (g.ecart && g.series.length >= 2) {
+        var ecarts = g.series[0].valeurs.map(function (v, i) { return Math.abs(v - g.series[1].valeurs[i]); });
+        if (extremeNet(ecarts, false)) {
+          var c = plusPetits(ecarts);
+          q({ mode: "touche", enonce: "Touche l'année où l'écart entre les deux courbes (" + g.ecart.toLowerCase() + ") est le plus petit.",
+            choix: "En quelle année l'écart entre les deux courbes (" + g.ecart.toLowerCase() + ") est-il le plus petit ?", cibles: c,
+            expl: "En " + g.x[c[0]] + ", l'écart n'est plus que de " + avecUnite(ecarts[c[0]]) + " : " + g.ecart.toLowerCase() + " a beaucoup diminué." });
+        }
+      }
+    } else if (g.type === "barres") {
+      var proj = liste(g, "projection");
+      if (proj.length) q({ mode: "touche", enonce: "Touche la barre qui est une projection, c'est-à-dire une estimation pour le futur.",
+        choix: "Quelle barre est une projection (une estimation pour le futur) ?", cibles: proj,
+        expl: g.x[proj[0]] + " : ce chiffre est une projection, ce qui pourrait arriver si les tendances actuelles continuent." });
+      var reels = g.valeurs.map(function (v, i) { return i; }).filter(function (i) { return proj.indexOf(i) < 0; });
+      if (reels.length >= 2) {
+        var a = reels[0], b = reels[reels.length - 1], va = g.valeurs[a], vb = g.valeurs[b], d = Math.round((vb - va) * 10) / 10;
+        var oD = choixNombres(Math.abs(d), [vb, va + vb, Math.round(Math.abs(d) / 2)]);
+        if (oD) q({ mode: "choix", enonce: "Entre " + g.x[a] + " et " + g.x[b] + ", de combien a " + (d >= 0 ? "augmenté " : "baissé ") + (g.quoi || "la valeur") + " ?", options: oD, bonne: avecUnite(Math.abs(d)),
+          expl: nombreFr(vb) + " − " + nombreFr(va) + " = " + nombreFr(Math.abs(d)) + (d < 0 ? " (attention au signe)" : "") + "." });
+        var r = vb / va;
+        if (r >= 1.8) {
+          var fois = Math.round(r), oF = [2, 3, 4, 5, 6, 8, 10].filter(function (f) { return f !== fois; });
+          q({ mode: "choix", enonce: "Entre " + g.x[a] + " et " + g.x[b] + ", " + (g.quoi || "la valeur") + " a été multiplié" + (g.quoi && !g.feminin ? "" : "e") + " par environ…",
+            options: choisirOptions(melanger(oF).map(function (f) { return "× " + f; }), "× " + fois, diff.options), bonne: "× " + fois,
+            expl: nombreFr(vb) + " ÷ " + nombreFr(va) + " ≈ " + nombreFr(r) + " : environ " + fois + " fois plus." });
+        }
+      }
+    } else if (g.type === "barres-h") {
+      var ou = g.ou || "la barre", quoi = g.quoi ? " où " + g.quoi + " est" : "";
+      var vals = g.valeurs.filter(function (v, i) { return i !== g.moyenne; });
+      var sans = function (liste) { return liste.filter(function (i) { return i !== g.moyenne; }); };
+      [true, false].forEach(function (haut) {
+        var c = sans(haut ? plusGrands(g.valeurs) : plusPetits(g.valeurs));
+        if (!c.length || !extremeNet(vals, haut) && c.length < 2) return;
+        q({ mode: "touche", enonce: "Touche " + ou + quoi + " le plus " + (haut ? "élevé" : "faible") + ".",
+          choix: (g.ou ? g.ou.charAt(0).toUpperCase() + g.ou.slice(1) : "La barre") + quoi + " le plus " + (haut ? "élevé" : "faible") + " ?", cibles: c,
+          expl: c.map(function (i) { return g.x[i] + " : " + avecUnite(g.valeurs[i]); }).join(" ; ") + "." });
+      });
+      if (typeof g.moyenne === "number") {
+        var ref = g.valeurs[g.moyenne];
+        var dessus = g.valeurs.filter(function (v, i) { return i !== g.moyenne && v > ref; }).length;
+        var pl = g.ouPluriel || "barres";
+        q({ mode: "choix", enonce: "Combien " + (/^[aeiouyéèêh]/i.test(pl) ? "d'" : "de ") + pl + " sont au-dessus de la moyenne (" + avecUnite(ref) + ") ?",
+          options: choisirOptions(melanger([1, 2, 3, 4, 5, 6].filter(function (n) { return n !== dessus; })).map(String), String(dessus), diff.options), bonne: String(dessus),
+          expl: g.x.filter(function (l, i) { return i !== g.moyenne && g.valeurs[i] > ref; }).join(", ") + " : au-dessus de " + avecUnite(ref) + "." });
+      }
+    } else if (g.type === "pyramide") {
+      var total = g.ages.map(function (a, i) { return g.hommes[i] + g.femmes[i]; });
+      q({ mode: "touche", enonce: "Touche la tranche d'âge la plus nombreuse (hommes et femmes réunis).",
+        choix: "Quelle est la tranche d'âge la plus nombreuse ?", cibles: plusGrands(total, .25),
+        expl: noms[plusGrands(total)[0]] + " : " + nombreFr(total[plusGrands(total)[0]]) + " % de la population." });
+      var part = function (de, a) { var s = 0; g.ages.forEach(function (x, i) { if (i >= de && i <= a) s += total[i]; }); return Math.round(s); };
+      var jeunes = part(0, 2), vieux = part(13, g.ages.length - 1);
+      var autresParts = function (v) {
+        return [Math.round(v / 2), v * 2, v * 3, v + 10, v + 20, v - 10].filter(function (x) { return x >= 2 && x <= 90 && Math.abs(x - v) >= Math.max(3, v * .3); });
+      };
+      var oj = choisirOptions(melanger(autresParts(jeunes)).map(function (v) { return v + " %"; }), jeunes + " %", diff.options);
+      q({ mode: "choix", enonce: "Environ quelle part de la population a moins de 15 ans ?", options: oj, bonne: jeunes + " %",
+        expl: "Les trois barres du bas (0 à 14 ans) réunissent environ " + jeunes + " % de la population." });
+      var ov = choisirOptions(melanger(autresParts(vieux)).map(function (v) { return v + " %"; }), vieux + " %", diff.options);
+      q({ mode: "choix", enonce: "Environ quelle part de la population a 65 ans et plus ?", options: ov, bonne: vieux + " %",
+        expl: "Les barres du haut, à partir de 65 ans, réunissent environ " + vieux + " % de la population." });
+      if (g.profil && PROFILS_PYRAMIDE[g.profil]) {
+        var tous = Object.keys(PROFILS_PYRAMIDE).map(function (k) { return PROFILS_PYRAMIDE[k]; });
+        q({ mode: "choix", enonce: "Que montre la forme de cette pyramide ? La population est…", options: melanger(tous), bonne: PROFILS_PYRAMIDE[g.profil],
+          expl: g.pays + " : " + PROFILS_PYRAMIDE[g.profil].charAt(0).toLowerCase() + PROFILS_PYRAMIDE[g.profil].slice(1) + " (" + jeunes + " % de moins de 15 ans, " + vieux + " % de 65 ans et plus)." });
+      }
+      var pays = uniquesPar((pyramides || []).filter(function (p) { return p.pays; }), function (p) { return p.pays; });
+      if (g.pays && pays.length >= 3) q({ mode: "choix", anonyme: true, enonce: "À quel pays correspond cette pyramide ?",
+        options: choisirOptions(melanger(pays.filter(function (p) { return p.pays !== g.pays; })).map(function (p) { return p.pays; }), g.pays, diff.options), bonne: g.pays,
+        expl: g.pays + " : " + jeunes + " % de moins de 15 ans, " + vieux + " % de 65 ans et plus." });
+    }
+    liste(g, "questions").forEach(function (y) {
+      q({ mode: "choix", enonce: y.q, options: choisirOptions([y.r].concat(melanger(y.faux)), y.r, diff.options), bonne: y.r, expl: y.expl });
+    });
+    return qs;
+  }
+
+  // ----- Le croquis : le fond de carte, puis les figurés (aplats et hachures découpés sur les terres, traits, points, flèches) -----
+  var numeroCroquis = 0;
+  function dessinCroquis(cq) {
+    var f = typeof FONDS !== "undefined" ? FONDS[cq.fond] : null;
+    if (!f) return null;
+    var id = "cq" + (++numeroCroquis), u = f.l / 340, motifs = {};
+    var P = function (p) { return [(p[0] - f.lon0) * f.kx, (f.lat0 - p[1]) * f.ky]; };
+    var svg = svgEl("svg", { viewBox: "0 0 " + f.l + " " + f.h, class: "k-svg cq-svg", role: "img", "aria-label": cq.titre });
+    var defs = svgEl("defs", {});
+    var clip = svgEl("clipPath", { id: id + "-terre" });
+    clip.appendChild(svgEl("path", { d: f.terre, "clip-rule": "evenodd" }));
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+    svg.appendChild(svgEl("rect", { class: "k-mer", x: -20, y: -20, width: f.l + 40, height: f.h + 40 }));
+    svg.appendChild(svgEl("path", { class: "k-terre", d: f.terre, "fill-rule": "evenodd" }));
+    var gTerre = svgEl("g", { "clip-path": "url(#" + id + "-terre)" }), gMer = svgEl("g", {});
+    svg.appendChild(gMer);
+    svg.appendChild(gTerre);
+    var avecFleuves = cq.elements.some(function (e) { return e.fleuves; });
+    if (f.frontieres) svg.appendChild(svgEl("path", { class: "k-frontiere", d: f.frontieres }));
+    if (f.fleuves) svg.appendChild(svgEl("path", { class: "k-fleuve" + (avecFleuves ? " cq-fleuve" : ""), d: f.fleuves }));
+    var gHaut = svgEl("g", {});
+    svg.appendChild(gHaut);
+    function motif(couleur, racine, echelle) {
+      var cle = couleur + echelle;
+      if (racine === defs && motifs[cle]) return motifs[cle];
+      var mid = id + "-m" + (++numeroCroquis), t = 7 * echelle;
+      var pat = svgEl("pattern", { id: mid, patternUnits: "userSpaceOnUse", width: t, height: t, patternTransform: "rotate(45)" });
+      pat.appendChild(svgEl("rect", { width: t, height: t, fill: couleur, "fill-opacity": ".14" }));
+      pat.appendChild(svgEl("line", { x1: t / 2, y1: 0, x2: t / 2, y2: t, stroke: couleur, "stroke-width": 2.6 * echelle }));
+      racine.appendChild(pat);
+      if (racine === defs) motifs[cle] = mid;
+      return mid;
+    }
+    function formes(e) {
+      var res = [];
+      if (e.zone) (Array.isArray(e.zone[0][0]) ? e.zone : [e.zone]).forEach(function (pts) {
+        res.push(svgEl("polygon", { points: pts.map(function (p) { return P(p).join(","); }).join(" ") }));
+      });
+      if (e.ellipse) (Array.isArray(e.ellipse[0]) ? e.ellipse : [e.ellipse]).forEach(function (el2) {
+        var c = P(el2);
+        res.push(svgEl("ellipse", { cx: c[0], cy: c[1], rx: el2[2] * f.kx, ry: el2[3] * f.ky, transform: el2[4] ? "rotate(" + (-el2[4]) + " " + c[0] + " " + c[1] + ")" : "" }));
+      });
+      return res;
+    }
+    function symbole(forme, x, y, r, couleur, parent, contour) {
+      var attrs = { fill: couleur, stroke: contour, "stroke-width": r * .22 };
+      var s;
+      if (forme === "carre") s = svgEl("rect", { x: x - r * .85, y: y - r * .85, width: r * 1.7, height: r * 1.7 });
+      else if (forme === "triangle") s = svgEl("polygon", { points: [x, y - r * 1.15, x + r * 1.05, y + r * .75, x - r * 1.05, y + r * .75].join(" ") });
+      else if (forme === "etoile") {
+        var pts = [];
+        for (var k = 0; k < 10; k++) { var a = Math.PI / 5 * k - Math.PI / 2, rr = k % 2 ? r * .5 : r * 1.25; pts.push(x + rr * Math.cos(a), y + rr * Math.sin(a)); }
+        s = svgEl("polygon", { points: pts.join(" ") });
+      } else s = svgEl("circle", { cx: x, cy: y, r: r });
+      Object.keys(attrs).forEach(function (k) { s.setAttribute(k, attrs[k]); });
+      parent.appendChild(s);
+    }
+    function fleche(x1, y1, x2, y2, couleur, ep, parent) {
+      var a = Math.atan2(y2 - y1, x2 - x1), t = ep * 3.2;
+      var bx = x2 - t * Math.cos(a), by = y2 - t * Math.sin(a);
+      parent.appendChild(svgEl("line", { x1: x1, y1: y1, x2: bx, y2: by, stroke: couleur, "stroke-width": ep, "stroke-linecap": "round" }));
+      parent.appendChild(svgEl("polygon", { fill: couleur, points: [x2, y2, bx + t * .6 * Math.sin(a), by - t * .6 * Math.cos(a), bx - t * .6 * Math.sin(a), by + t * .6 * Math.cos(a)].join(" ") }));
+    }
+    cq.elements.forEach(function (e) {
+      var c = e.couleur || "#C0392B";
+      if (e.zone || e.ellipse) formes(e).forEach(function (s) {
+        s.setAttribute("fill", e.motif === "hachures" ? "url(#" + motif(c, defs, u) + ")" : c);
+        if (!e.motif) s.setAttribute("fill-opacity", e.opacite || ".5");
+        s.setAttribute("class", "cq-zone");
+        (e.mer ? gMer : gTerre).appendChild(s);
+      });
+      if (e.ligne) (Array.isArray(e.ligne[0][0]) ? e.ligne : [e.ligne]).forEach(function (pts) {
+        gHaut.appendChild(svgEl("polyline", { points: pts.map(function (p) { return P(p).join(","); }).join(" "), fill: "none", stroke: c,
+          "stroke-width": (e.epaisseur || 2.6) * u, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-dasharray": e.tirets ? 5 * u + " " + 3.5 * u : "" }));
+      });
+      if (e.fleches) e.fleches.forEach(function (fl) { var a = P(fl[0]), b = P(fl[1]); fleche(a[0], a[1], b[0], b[1], c, 3.2 * u, gHaut); });
+      if (e.points) e.points.forEach(function (p) { var q = P(p); symbole(e.forme, q[0], q[1], 5.2 * u, c, gHaut, "#fff"); });
+    });
+    // le figuré d'un élément, en petit, pour la légende
+    function figure(i) {
+      var e = cq.elements[i], c = e.couleur || "#C0392B";
+      var s = svgEl("svg", { viewBox: "0 0 44 26", class: "cq-figure-svg", "aria-hidden": "true", focusable: "false" });
+      if (e.zone || e.ellipse) {
+        var fill = c;
+        if (e.motif === "hachures") { var d2 = svgEl("defs", {}); s.appendChild(d2); fill = "url(#" + motif(c, d2, .9) + ")"; }
+        s.appendChild(svgEl("rect", { x: 3, y: 3, width: 38, height: 20, rx: 3, fill: fill, "fill-opacity": e.motif ? 1 : e.opacite || ".55", stroke: c, "stroke-width": 1.2 }));
+      } else if (e.ligne) s.appendChild(svgEl("line", { x1: 4, y1: 13, x2: 40, y2: 13, stroke: c, "stroke-width": Math.min(5, (e.epaisseur || 2.6) * 1.2), "stroke-linecap": "round", "stroke-dasharray": e.tirets ? "6 4" : "" }));
+      else if (e.fleches) fleche(5, 13, 39, 13, c, 3.4, s);
+      else if (e.points) symbole(e.forme, 22, 13, 6.5, c, s, "#fff");
+      else if (e.fleuves) s.appendChild(svgEl("path", { d: "M4 15 C 12 6, 18 20, 26 12 S 36 9, 40 13", fill: "none", stroke: "#3B82F6", "stroke-width": 2.6, "stroke-linecap": "round" }));
+      return s;
+    }
+    return { svg: svg, figure: figure };
+  }
+  function questionsCroquis(x, diff) {
+    var cq = x.x, n = cq.elements.length, k = Math.min(n, diff.legende || 3), qs = [];
+    if (n < 3 || !dessinCroquis(cq)) return qs;
+    for (var t = 0; t < 2; t++) {
+      var lignes = melanger(cq.elements.map(function (e, i) { return i; })).slice(0, k).sort(function (a, b) { return a - b; });
+      qs.push({ type: "legende", cq: cq, cref: x.ref, lignes: lignes, bonneTexte: lignes.map(function (i) { return cq.elements[i].nom; }).join(" ; "),
+        expl: cq.titre + (cq.txt ? " — " + cq.txt : "") });
+    }
+    return qs;
+  }
+  // l'intrus des repères : trois années d'un même siècle et une autre, souvent au bord (« 1500 » est encore au XVᵉ siècle)
+  function intrusSiecle() {
+    var s = 12 + Math.floor(Math.random() * 9), debut = (s - 1) * 100;
+    var dedans = melanger([debut + 1 + Math.floor(Math.random() * 30), debut + 31 + Math.floor(Math.random() * 35), debut + 66 + Math.floor(Math.random() * 33), s * 100]).slice(0, 3);
+    var dehors = melanger([debut, s * 100 + 1 + Math.floor(Math.random() * 40)])[0];
+    var siecleDe = function (a) { return Math.floor((a - 1) / 100) + 1; };
+    return { type: "intrus", consigne: "Trouve l'intrus", aide: "Trois de ces années sont au " + nomSiecle(s) + ". Laquelle n'y est pas ?",
+      items: melanger(dedans.concat([dehors])).map(String), bonne: String(dehors),
+      expl: "Le " + nomSiecle(s) + " va de " + (debut + 1) + " à " + s * 100 + " : " + dehors + " appartient au " + nomSiecle(siecleDe(dehors)) + "." };
+  }
+  // l'intrus des mots : trois notions de l'unité et un mot de l'autre discipline (même classe)
+  function intrusMots(ch, b, notions) {
+    var disc = b.data.d || ch.d, vus = {};
+    notions.forEach(function (x) { vus[normaliser(x.mot)] = true; });
+    var ailleurs = [];
+    COURS.forEach(function (c) {
+      if (c.n !== ch.n || c.d === disc) return;
+      blocs(c).forEach(function (x) { liste(x.data, "notions").forEach(function (y) { if (!vus[normaliser(y.mot)] && y.mot.length <= 26) ailleurs.push({ mot: y.mot, c: c }); }); });
+    });
+    var courtes = uniquesPar(notions.filter(function (x) { return x.mot.length <= 26; }), function (x) { return x.mot; });
+    if (courtes.length < 3 || !ailleurs.length) return null;
+    var trois = melanger(courtes).slice(0, 3), autre = ailleurs[Math.floor(Math.random() * ailleurs.length)];
+    return { type: "intrus", consigne: "Trouve l'intrus", aide: "Trois mots appartiennent à ce chapitre. Lequel vient d'ailleurs ?",
+      items: melanger(trois.map(function (x) { return x.mot; }).concat([autre.mot])), bonne: autre.mot,
+      expl: "« " + autre.mot + " » est un mot " + (autre.c.d === "geo" ? "de géographie" : "d'histoire") + " (" + autre.c.titre + ") ; " + trois.map(function (x) { return x.mot; }).join(", ") + " sont des mots de ce chapitre." };
+  }
+  function poolGraphiques(ch, b) {
+    var diff = difficulte(ch), qs = [];
+    var gs = lesGraphiques(ch, b, "graphiques");
+    var pyramides = gs.filter(function (y) { return y.x.type === "pyramide"; }).map(function (y) { return y.x; });
+    gs.forEach(function (y) { qs = qs.concat(questionsGraphique(y, diff, pyramides)); });
+    return qs;
+  }
+  function poolCroquis(ch, b) {
+    var diff = difficulte(ch), qs = [];
+    lesGraphiques(ch, b, "croquis").forEach(function (y) { qs = qs.concat(questionsCroquis(y, diff)); });
+    liste(b.data, "intrus").forEach(function (it) {
+      if (liste(it, "items").length >= 3) qs.push({ type: "intrus", consigne: "Trouve l'intrus", items: melanger(it.items.slice()), bonne: it.intrus, expl: it.expl });
+    });
+    return qs;
+  }
+  // des réponses à choisir (comme les questions « choix »)
+  function boutonsReponses(zone, options, bonne, fin) {
+    var court = options.every(function (o) { return String(o).length <= 14; });
+    var g = el("div", { class: "jeu-options" + (court ? " court" : "") }), boutons = [], fait = false;
+    options.forEach(function (o) {
+      var b = el("button", { class: "jeu-option" + (court ? "" : " long"), type: "button", text: o });
+      b.addEventListener("click", function () {
+        if (fait) return;
+        fait = true;
+        var juste = normaliser(o) === normaliser(bonne);
+        b.classList.add(juste ? "bien" : "mal");
+        boutons.forEach(function (x) { if (!juste && normaliser(x.textContent) === normaliser(bonne)) x.classList.add("bien"); x.disabled = true; });
+        fin(juste);
+      });
+      boutons.push(b);
+      g.appendChild(b);
+    });
+    zone.appendChild(g);
   }
 
   // ---------- Mode aventure ----------
@@ -3870,9 +4521,9 @@
   // La difficulté suit la classe : nombre de propositions, dates plus ou moins proches, points sur la carte,
   // réponses à écrire, carte « experte » sans points.
   var DIFFICULTES = {
-    "5e":   { nom: "Collège", nb: 7, defi: 8, options: 3, dates: 4, ordre: 3, points: 3, carte: 3, experte: 0, saisie: 0, indices: 2, proches: false, aide: 0 },
-    "2nde": { nom: "Lycée", nb: 8, defi: 10, options: 4, dates: 5, ordre: 4, points: 5, carte: 3, experte: 0, saisie: 1, indices: 1, proches: true, aide: 2 },
-    "1ere": { nom: "Lycée +", nb: 8, defi: 12, options: 4, dates: 5, ordre: 5, points: 6, carte: 2, experte: 1, saisie: 2, indices: 1, proches: true, aide: 1 }
+    "5e":   { nom: "Collège", nb: 7, defi: 8, options: 3, dates: 4, ordre: 3, points: 3, carte: 3, experte: 0, saisie: 0, indices: 2, proches: false, aide: 0, legende: 3 },
+    "2nde": { nom: "Lycée", nb: 8, defi: 10, options: 4, dates: 5, ordre: 4, points: 5, carte: 3, experte: 0, saisie: 1, indices: 1, proches: true, aide: 2, legende: 4 },
+    "1ere": { nom: "Lycée +", nb: 8, defi: 12, options: 4, dates: 5, ordre: 5, points: 6, carte: 2, experte: 1, saisie: 2, indices: 1, proches: true, aide: 1, legende: 4 }
   };
   function difficulte(ch) { return DIFFICULTES[ch.n] || DIFFICULTES["2nde"]; }
   var av;
@@ -4386,6 +5037,8 @@
       if (diff.saisie && n.mot.length <= 28) qs.push({ type: "saisie", consigne: "Écris le mot qui correspond", bulle: n.def, bonne: n.mot, aide: aideSaisie(n.mot, diff), expl: expl });
     });
     qs = qs.concat(phrasesATrous(d, diff));
+    var intrus = intrusMots(ch, b, notions);
+    if (intrus) qs.push(intrus);
     // un même mot peut être défini deux fois (cours et point de passage) : une seule fois dans les paires
     var courtes = uniquesPar(notions.filter(function (n) { return n.def.length <= 130; }), function (n) { return n.mot; });
     if (courtes.length >= 4) qs.push({ type: "paires", paires: courtes.slice(0, 4).map(function (n) { return { g: n.mot, d: n.def }; }) });
@@ -4443,7 +5096,8 @@
       var fonds = (Array.isArray(b.data.carte) ? b.data.carte : [b.data.carte]).map(function (id) { return FONDS[id]; }).filter(Boolean);
       var groupes = fonds.map(function (f) { return { fond: f, lieux: [] }; });
       lieuxCarte(ch, b.id).forEach(function (p) {
-        for (var k = 0; k < fonds.length; k++) if (dansFond(fonds[k], p)) { groupes[k].lieux.push(p); return; }
+        var k = rangFond(fonds, p);
+        if (k >= 0) groupes[k].lieux.push(p);
       });
       return groupes.map(function (g) { return { fond: g.fond, lieux: g.lieux, contexte: g.lieux }; });
     }
@@ -4502,20 +5156,24 @@
   function poolQuiz(ch, b) {
     var diff = difficulte(ch);
     var source = b.data.siecles ? questionsSiecles() : liste(b.data, "questions");
-    return source.map(function (x) {
+    var qs = source.map(function (x) {
       return { type: "choix", consigne: "Choisis la bonne réponse", bulle: x.q, options: choisirOptions([x.r].concat(melanger(x.faux)), x.r, diff.options), bonne: x.r, expl: x.expl };
     });
+    if (b.data.siecles) for (var k = 0; k < 3; k++) qs.push(intrusSiecle());
+    return qs;
   }
   var MODELES_NIVEAUX = [
     { id: "mots", icone: "essentiel", titre: function () { return "Les mots"; }, pool: poolMots },
     { id: "dates", icone: "frise", titre: function (b) { return liste(b.data, "personnages").length ? "Dates et acteurs" : "Les dates"; }, pool: poolDates },
     { id: "lieux", icone: "carte", titre: function (b) { return liste(b.data, "documents").some(function (x) { return x.image; }) ? "Lieux et documents" : "Les lieux"; }, pool: poolLieux },
+    { id: "graphiques", icone: "graphique", titre: function (b) { return liste(b.data, "graphiques").some(function (g) { return g.type === "pyramide"; }) ? "Graphiques et pyramides" : "Les graphiques"; }, pool: poolGraphiques },
+    { id: "croquis", icone: "croquis", titre: function (b) { return liste(b.data, "croquis").length ? "Croquis et intrus" : "Trouve l'intrus"; }, pool: poolCroquis },
     { id: "quiz", icone: "quiz", titre: function (b) { return b.data.siecles ? "Les siècles" : "Le quiz"; }, pool: poolQuiz }
   ];
   // un niveau : des types variés, à tour de rôle, sans trop de questions longues ; le nombre de réponses
   // écrites et de cartes « expertes » dépend de la classe
   function composer(pool, nb, diff) {
-    var max = { paires: 1, ordre: 1, curseur: 2, carte: diff.carte, experte: diff.experte, detail: 2, quisuisje: 2, saisie: diff.saisie };
+    var max = { paires: 1, ordre: 1, curseur: 2, carte: diff.carte, experte: diff.experte, detail: 2, quisuisje: 2, saisie: diff.saisie, graphique: 4, legende: 2, intrus: 3 };
     var parType = {};
     melanger(pool).forEach(function (q) { (parType[q.type] = parType[q.type] || []).push(q); });
     Object.keys(parType).forEach(function (t) { if (t in max) parType[t] = parType[t].slice(0, max[t]); });
@@ -4546,7 +5204,7 @@
     return { id: "annee-" + n, n: n, d: "histoire", special: "annee", num: nomNiveau(n), titre: "Parcours de l'année",
       ppo: chapitresDansLOrdre(n).map(function (c) {
         var b = { id: c.id, court: c.num + " · " + DISC[c.d], titre: c.titre, d: c.d, carte: c.carte, chId: c.id };
-        ["notions", "reperes", "personnages", "lieux", "documents", "trous"].forEach(function (k) {
+        ["notions", "reperes", "personnages", "lieux", "documents", "trous", "graphiques", "croquis", "intrus"].forEach(function (k) {
           b[k] = [];
           blocs(c).forEach(function (x) { b[k] = b[k].concat(liste(x.data, k)); });
         });
@@ -4624,7 +5282,7 @@
   function ajouterErreur(q) {
     if (q.type === "paires") return;
     var e = {};
-    Object.keys(q).forEach(function (k) { if (["fond", "d", "image", "revue", "erreur"].indexOf(k) < 0) e[k] = q[k]; });
+    Object.keys(q).forEach(function (k) { if (["fond", "d", "image", "g", "cq", "revue", "erreur"].indexOf(k) < 0) e[k] = q[k]; });
     if (q.fond) e.fondId = q.fond.id;
     var sig = signature(q);
     av.erreurs = av.erreurs.filter(function (x) { return x.sig !== sig; });
@@ -4636,6 +5294,9 @@
     var q = {};
     Object.keys(e.q).forEach(function (k) { q[k] = e.q[k]; });
     if (q.fondId) { q.fond = typeof FONDS !== "undefined" ? FONDS[q.fondId] : null; if (!q.fond) return null; }
+    if (q.gref) { q.g = chercherParId(q.gref.c, "graphiques", q.gref.id); if (!q.g) return null; }
+    if (q.cref) { q.cq = chercherParId(q.cref.c, "croquis", q.cref.id); if (!q.cq || !dessinCroquis(q.cq)) return null; }
+    if (q.items) q.items = melanger(q.items);
     if (q.ref) {
       var c = chapitre(q.ref.c), x = c ? documentParId(c, q.ref.id) : null;
       if (!x) return null;
@@ -5057,8 +5718,13 @@
       corps.scrollTop = 0;
       var zone = el("div", { class: "jeu-question" });
       corps.appendChild(zone);
+      arreterLecture();
       RENDUS[q.type](guide, q, zone, pied, function (juste, extra) { repondre(q, juste, extra || {}); });
-      var focus = zone.querySelector("input:not([type=range]), button, input, [tabindex]");
+      zone.__question = q; // pour les tests automatiques
+      var ecoute = boutonLire(zone, "Écouter la question");
+      zone.insertBefore(ecoute, zone.firstChild);
+      if (acces.auto) setTimeout(function () { if (ecoute.isConnected && !zone.querySelector(".bien, .mal")) ecoute.click(); }, 300);
+      var focus = zone.querySelector("input:not([type=range]), button:not(.jeu-lire), input, [tabindex]");
       if (focus) focus.focus({ preventScroll: true });
     }
     function repondre(q, juste, extra) {
@@ -5070,7 +5736,7 @@
         compter("bonnes");
         if (q.type === "carte" || q.type === "experte") compter("carte");
         if (q.type === "curseur" || q.type === "ordre") compter("dates");
-        if (q.type === "detail") compter("docs");
+        if (q.type === "detail" || q.type === "graphique" || q.type === "legende") compter("docs");
         if (q.type === "saisie") compter("saisie");
         if (combo === 5) compter("combo5");
         if (combo > (av.stats.comboMax || 0)) { av.stats.comboMax = combo; verifierRecompenses(); }
@@ -5100,7 +5766,7 @@
       h.innerHTML = icone(juste ? "coche" : "fermer");
       h.appendChild(document.createTextNode(extra.titre || (juste ? (combo >= 3 ? combo + " bonnes réponses d'affilée !" : bravo[Math.floor(Math.random() * bravo.length)]) : "Pas tout à fait…")));
       feuille.appendChild(h);
-      if (!juste && q.bonneTexte !== undefined && q.bonneTexte !== null) feuille.appendChild(el("p", { class: "jeu-bonne" }, ["Réponse : ", el("strong", { text: q.bonneTexte })]));
+      if (!juste && q.bonneTexte !== undefined && q.bonneTexte !== null && q.type !== "legende") feuille.appendChild(el("p", { class: "jeu-bonne" }, ["Réponse : ", el("strong", { text: q.bonneTexte })]));
       else if (!juste && q.bonne && q.type !== "paires") feuille.appendChild(el("p", { class: "jeu-bonne" }, ["Réponse : ", el("strong", { text: q.bonne })]));
       var expl = extra.expl || q.expl;
       if (expl) feuille.appendChild(el("p", { class: "jeu-expl", text: expl }));
@@ -5115,8 +5781,11 @@
       };
       btn.addEventListener("click", continuer);
       feuille.appendChild(btn);
+      var ecoute = boutonLire(feuille, "Écouter la correction");
+      feuille.insertBefore(ecoute, feuille.firstChild);
       pied.innerHTML = "";
       pied.appendChild(feuille);
+      if (acces.auto) ecoute.click(); else arreterLecture();
       annoncer(h.textContent + " " + (expl || ""));
       btn.focus({ preventScroll: true });
     }
@@ -5589,6 +6258,130 @@
       champ.addEventListener("keydown", function (e) { if (e.key === "Enter" && !valider.disabled) { e.preventDefault(); valider.click(); } });
     },
 
+    graphique: function (ch, q, zone, pied, fin) {
+      zone.appendChild(consigne(q.mode === "touche" ? "Touche le graphique" : "Lis le graphique"));
+      zone.appendChild(el("div", { class: "jeu-cible petit", text: q.enonce }));
+      var gr = dessinGraphique(q.g), fait = false;
+      zone.appendChild(figureGraphique(q.g, gr, q.anonyme));
+      if (q.mode !== "touche") { boutonsReponses(zone, q.options, q.bonne, fin); return; }
+      gr.svg.classList.add("touche");
+      zone.appendChild(el("p", { class: "jeu-aide", text: "Touche directement le graphique." }));
+      gr.cibles.forEach(function (c, i) {
+        c.setAttribute("tabindex", "0");
+        function choisir() {
+          if (fait) return;
+          fait = true;
+          var juste = q.cibles.indexOf(i) >= 0;
+          q.cibles.forEach(function (k) { gr.marquer(k, juste ? "bien" : "vise"); });
+          if (!juste) gr.marquer(i, "mal");
+          gr.svg.classList.remove("touche");
+          gr.cibles.forEach(function (x) { x.removeAttribute("tabindex"); });
+          fin(juste, { titre: juste ? null : "Non : là, c'est " + etiquettesGraphique(q.g)[i] + "." });
+        }
+        c.addEventListener("click", choisir);
+        c.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choisir(); } });
+      });
+    },
+
+    // la légende d'un croquis : chaque étiquette va dans la case de son figuré (toucher l'étiquette, puis la case, ou l'inverse)
+    legende: function (ch, q, zone, pied, fin) {
+      zone.appendChild(consigne("Complète la légende du croquis"));
+      var d = dessinCroquis(q.cq);
+      zone.appendChild(el("figure", { class: "jeu-croquis" }, [el("figcaption", { text: q.cq.titre }), d.svg]));
+      var attendu = q.lignes.map(function (i) { return q.cq.elements[i].nom; });
+      var place = attendu.map(function () { return null; }), choixPuce = null, choixCase = -1, fait = false;
+      var tableau = el("div", { class: "cq-legende" });
+      var cases = q.lignes.map(function (i, k) {
+        var fig = el("span", { class: "cq-figure" });
+        fig.appendChild(d.figure(i));
+        var b = el("button", { class: "cq-case", type: "button" });
+        b.addEventListener("click", function () {
+          if (fait) return;
+          if (place[k] !== null) { place[k] = null; choixCase = -1; maj(); son("clic"); return; }
+          if (choixPuce !== null) { poser(k, choixPuce); return; }
+          choixCase = choixCase === k ? -1 : k;
+          maj();
+        });
+        tableau.appendChild(el("div", { class: "cq-ligne" }, [fig, b]));
+        return b;
+      });
+      zone.appendChild(tableau);
+      var puces = el("div", { class: "jeu-puces cq-puces" });
+      var boutons = melanger(attendu.slice()).map(function (nom) {
+        var p = el("button", { class: "jeu-puce", type: "button", text: nom });
+        p.addEventListener("click", function () {
+          if (fait || place.indexOf(nom) >= 0) return;
+          if (choixCase >= 0) { poser(choixCase, nom); return; }
+          var libre = place.indexOf(null);
+          if (place.filter(function (x) { return x === null; }).length === 1) { poser(libre, nom); return; }
+          choixPuce = choixPuce === nom ? null : nom;
+          maj();
+        });
+        puces.appendChild(p);
+        return p;
+      });
+      zone.appendChild(puces);
+      var aide = el("p", { class: "jeu-aide", text: "Touche une étiquette, puis la case du bon figuré. Touche une case remplie pour la vider." });
+      zone.appendChild(aide);
+      var valider = boutonValider(pied, function () {
+        fait = true;
+        var justes = 0;
+        cases.forEach(function (b, k) {
+          var ok = place[k] === attendu[k];
+          if (ok) justes++;
+          b.classList.add(ok ? "bien" : "mal");
+          b.disabled = true;
+          if (!ok) b.appendChild(el("span", { class: "cq-attendu", text: attendu[k] }));
+        });
+        boutons.forEach(function (p) { p.disabled = true; });
+        puces.hidden = true;
+        aide.hidden = true;
+        fin(justes === cases.length, { titre: justes === cases.length ? null : justes + " étiquette" + (justes > 1 ? "s" : "") + " sur " + cases.length + " à la bonne place." });
+      });
+      function poser(k, nom) {
+        var ancien = place.indexOf(nom);
+        if (ancien >= 0) place[ancien] = null;
+        place[k] = nom;
+        choixPuce = null; choixCase = -1;
+        son("clic");
+        maj();
+      }
+      function maj() {
+        cases.forEach(function (b, k) {
+          b.textContent = place[k] || "…";
+          b.classList.toggle("rempli", place[k] !== null);
+          b.classList.toggle("choisie", choixCase === k);
+          b.setAttribute("aria-label", "Figuré " + (k + 1) + " : " + (place[k] ? place[k] + ". Touche pour vider la case." : "case vide"));
+        });
+        boutons.forEach(function (p) {
+          p.classList.toggle("place", place.indexOf(p.textContent) >= 0);
+          p.classList.toggle("choisie", choixPuce === p.textContent);
+        });
+        valider.disabled = place.indexOf(null) >= 0;
+      }
+      maj();
+    },
+
+    intrus: function (ch, q, zone, pied, fin) {
+      zone.appendChild(consigne(q.consigne || "Trouve l'intrus"));
+      zone.appendChild(el("p", { class: "jeu-sous", text: q.aide || "Trois éléments vont ensemble. Lequel n'a rien à faire avec les autres ?" }));
+      var g = el("div", { class: "jeu-intrus" }), fait = false, boutons = [];
+      q.items.forEach(function (it) {
+        var b = el("button", { class: "jeu-intrus-item", type: "button", text: it });
+        b.addEventListener("click", function () {
+          if (fait) return;
+          fait = true;
+          var juste = normaliser(it) === normaliser(q.bonne);
+          b.classList.add(juste ? "bien" : "mal");
+          boutons.forEach(function (x) { if (normaliser(x.textContent) === normaliser(q.bonne)) x.classList.add("bien"); else if (x !== b) x.classList.add("ensemble"); x.disabled = true; });
+          fin(juste);
+        });
+        boutons.push(b);
+        g.appendChild(b);
+      });
+      zone.appendChild(g);
+    },
+
     detail: function (ch, q, zone, pied, fin) {
       zone.appendChild(consigne("Observe le document"));
       var dt = q.d.details[q.k];
@@ -5882,7 +6675,7 @@
     majCompteurs();
     corps.appendChild(compteurs);
     var ONGLETS = [{ id: "tenue", nom: "Tenues" }, { id: "chapeau", nom: "Chapeaux" }, { id: "objet", nom: "Objets" }, { id: "compagnon", nom: "Compagnons" },
-      { id: "apparence", nom: "Apparence" }, { id: "badges", nom: "Badges et surnoms" }, { id: "musee", nom: "Musée" }, { id: "sauvegarde", nom: "Sauvegarde" }];
+      { id: "apparence", nom: "Apparence" }, { id: "badges", nom: "Badges et surnoms" }, { id: "musee", nom: "Musée" }, { id: "sauvegarde", nom: "Sauvegarde" }, { id: "reglages", nom: "Réglages" }];
     var onglets = el("div", { class: "segments av-onglets", role: "group", "aria-label": "Rubrique" });
     var zone = el("div", { class: "av-zone" });
     function montrer(id) {
@@ -5895,6 +6688,7 @@
       if (id === "musee") { zone.appendChild(musee()); return; }
       if (id === "badges") { zone.appendChild(badges()); return; }
       if (id === "sauvegarde") { zone.appendChild(blocSauvegarde(function () { rendre(); })); return; }
+      if (id === "reglages") { zone.appendChild(reglages()); return; }
       var cat = AV_CATS.filter(function (c) { return c[0] === id; })[0];
       var g = el("div", { class: "av-pieces" });
       cat[1].forEach(function (it) {
@@ -5931,6 +6725,24 @@
       });
       zone.appendChild(g);
       zone.appendChild(el("p", { class: "av-note", text: "Les pièces grisées s'achètent avec des ducats, ou se trouvent dans les coffres, au bout de chaque unité." }));
+    }
+    // son, lecture à voix haute, texte plus grand : des réglages de cet appareil
+    function reglages() {
+      function ligne(titre, aide, actif, basculer) {
+        var inter = el("button", { class: "interrupteur", type: "button", role: "switch", "aria-checked": String(actif), "aria-label": titre },
+          [el("span", { class: "piste" }, el("span", { class: "curseur" })), el("span", { class: "etat", text: actif ? "Oui" : "Non" })]);
+        inter.addEventListener("click", function () { basculer(); son("clic"); montrer("reglages"); var m = zone.querySelector('[aria-label="' + titre + '"]'); if (m) m.focus(); });
+        return el("div", { class: "av-reglage" }, [el("div", { class: "av-reglage-txt" }, [el("strong", { text: titre }), el("span", { text: aide })]), inter]);
+      }
+      var boite = el("div", { class: "av-reglages" }, [
+        ligne("Sons du jeu", "Les bruits des bonnes et des mauvaises réponses.", av.son, function () { av.son = !av.son; sauverAventure(); }),
+        ligne("Lire les questions à voix haute", "Dès qu'elles s'affichent, avec leur correction. Le bouton haut-parleur marche toujours.", !!acces.auto,
+          function () { acces.auto = !acces.auto; sauverAcces(); if (acces.auto) lireAVoixHaute("La lecture à voix haute est activée."); else arreterLecture(); }),
+        ligne("Texte plus grand", "Partout dans l'application. Aussi avec le bouton Aa, en haut des pages.", !!acces.grand,
+          function () { acces.grand = !acces.grand; sauverAcces(); appliquerTaille(); })
+      ]);
+      if (!lectureDispo()) boite.appendChild(el("p", { class: "av-note", text: "Ce navigateur ne sait pas lire à voix haute : essaie avec Chrome, Safari ou Edge." }));
+      return boite;
     }
     function badges() {
       var boite = el("div");
@@ -6273,6 +7085,16 @@
         var nb = liste(q.d, "details").length, nums = [];
         for (var i = 1; i <= nb; i++) nums.push(String(i));
         return { consigne: "Observez le document", enonce: "Quel numéro montre : " + q.d.details[q.k].nom + " ?", doc: q.d, k: q.k, options: nums, bonne: String(q.k + 1), expl: q.expl };
+      case "graphique":
+        if (q.mode !== "touche") return { consigne: "Lisez le graphique", enonce: q.enonce, graphique: q.g, anonyme: q.anonyme, options: q.options, bonne: q.bonne, expl: q.expl };
+        var etiq = etiquettesGraphique(q.g), bonneG = etiq[q.cibles[0]];
+        var autresG = melanger(etiq.filter(function (t, j) { return q.cibles.indexOf(j) < 0; })).slice(0, 3);
+        return { consigne: "Lisez le graphique", enonce: q.choix || q.enonce, graphique: q.g, options: melanger([bonneG].concat(autresG)), bonne: bonneG, expl: q.expl };
+      case "legende":
+        return { consigne: "Complétez la légende du croquis", croquis: q.cq, lignes: q.lignes, ouverte: true,
+          bonne: q.lignes.map(function (i, j) { return (j + 1) + " : " + q.cq.elements[i].nom; }).join(" · "), expl: q.expl };
+      case "intrus":
+        return { consigne: "Trouvez l'intrus", enonce: q.aide || "", options: q.items, bonne: q.bonne, expl: q.expl };
       case "ordre":
         var items = q.items.slice(), tri = items.slice().sort(function (a, b) { return valeurDate(a.a) - valeurDate(b.a); });
         return { consigne: "Remettez dans l'ordre chronologique", liste: items.map(function (it, j) { return lettres[j] + ". " + it.txt; }), ouverte: true,
@@ -6420,6 +7242,17 @@
       } else if (P.doc) {
         cadre = cadreImage(P.doc, {});
         media = el("figure", { class: "dc-media jeu-doc" }, [cadre.cadre, el("figcaption", { text: P.doc.titre })]);
+      } else if (P.graphique) {
+        media = el("div", { class: "dc-media" }, figureGraphique(P.graphique, dessinGraphique(P.graphique), P.anonyme));
+      } else if (P.croquis) {
+        var dq = dessinCroquis(P.croquis);
+        var lg = el("div", { class: "cq-legende" });
+        P.lignes.forEach(function (i, j) {
+          var fig = el("span", { class: "cq-figure" });
+          fig.appendChild(dq.figure(i));
+          lg.appendChild(el("div", { class: "cq-ligne" }, [fig, el("span", { class: "cq-case", text: (j + 1) + ". ……" })]));
+        });
+        media = el("figure", { class: "dc-media jeu-croquis" }, [el("figcaption", { text: P.croquis.titre }), el("div", { class: "dc-croquis" }, [dq.svg, lg])]);
       } else if (P.image) {
         var img = el("img", { src: P.image.image, alt: P.image.titre });
         media = el("figure", { class: "dc-media jeu-doc" }, [el("div", { class: "doc-cadre" }, img), el("figcaption", { text: P.image.titre })]);

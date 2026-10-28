@@ -71,6 +71,24 @@ var FONDS = [
     nomsFleuves: [
       { nom: "Saint-Laurent", lon: -70.5, lat: 48.2 }, { nom: "Mississippi", lon: -89.2, lat: 36.5 }, { nom: "Tamise", lon: -1.2, lat: 51.75 }
     ] },
+  { id: "inde", nom: "L'Inde et l'Asie du Sud", ouest: 66, est: 98, nord: 36, sud: 6, rangFleuves: 3, frontieres: true,
+    mers: [
+      { nom: "Mer\nd'Oman", lon: 67.5, lat: 16 },
+      { nom: "Golfe du\nBengale", lon: 88.5, lat: 15.5 },
+      { nom: "Océan Indien", lon: 82, lat: 7.2 }
+    ],
+    nomsFleuves: [
+      { nom: "Gange", lon: 83.5, lat: 26.2 }, { nom: "Indus", lon: 70.4, lat: 28.6 }, { nom: "Brahmapoutre", lon: 92.4, lat: 26.9 }
+    ] },
+  { id: "amazonie", nom: "L'Amazonie", ouest: -82, est: -34, nord: 9, sud: -21, frontieres: true,
+    mers: [
+      { nom: "Océan Atlantique", lon: -43, lat: 4.5 },
+      { nom: "Océan\nPacifique", lon: -79.5, lat: -13 }
+    ],
+    nomsFleuves: [
+      { nom: "Amazone", lon: -57.5, lat: -2.75 }, { nom: "Rio Negro", lon: -64.5, lat: -0.6 }, { nom: "Madeira", lon: -61.8, lat: -6.4 },
+      { nom: "Xingu", lon: -52.6, lat: -6.5 }, { nom: "Tapajós", lon: -56.6, lat: -5.4 }
+    ] },
   { id: "monde", nom: "Le monde", ouest: -170, est: 180, nord: 75, sud: -56, echelle: "110m", rangFleuves: 0, frontieres: true,
     mers: [
       { nom: "Océan\nAtlantique", lon: -38, lat: 28 },
@@ -98,9 +116,25 @@ var sortie = FONDS.map(function (f) {
   var cadre = [[-marge, -marge], [LARGEUR + marge, hauteur + marge]];
   var spherique = f.est - f.ouest > 180;
   function aPlat(c) { return [(c[0] - f.ouest) * kx, (f.nord - c[1]) * ky]; }
+  // à plat, une terre qui chevauche l'antiméridien (îles Fidji, Tchoukotka) traverserait toute la carte : on déroule
+  // ses longitudes (179, 181… plutôt que 179, -179…), en gardant la plupart des points entre -180 et 180
+  function derouler(a) {
+    var l = a.map(function (c) { return c[0]; });
+    if (Math.max.apply(null, l) - Math.min.apply(null, l) <= 180) return a;
+    var d = 0, res = a.map(function (c, i) {
+      if (i) { var saut = c[0] - a[i - 1][0]; if (saut > 180) d -= 360; else if (saut < -180) d += 360; }
+      return [c[0] + d, c[1]];
+    });
+    var meilleur = 0, garde = -1;
+    [-360, 0, 360].forEach(function (k) {
+      var n = res.filter(function (c) { return c[0] + k >= -180 && c[0] + k <= 180; }).length;
+      if (n > garde) { garde = n; meilleur = k; }
+    });
+    return res.map(function (c) { return [c[0] + meilleur, c[1]]; });
+  }
   function enPlan(g) {
     if (spherique) return g;
-    function anneaux(a) { return a.map(aPlat); }
+    function anneaux(a) { return derouler(a).map(aPlat); }
     if (g.type === "FeatureCollection") return { type: "FeatureCollection", features: g.features.map(function (ft) { return { type: "Feature", properties: {}, geometry: enPlan(ft.geometry) }; }) };
     if (g.type === "Polygon") return { type: "Polygon", coordinates: g.coordinates.map(anneaux) };
     if (g.type === "MultiPolygon") return { type: "MultiPolygon", coordinates: g.coordinates.map(function (p) { return p.map(anneaux); }) };
