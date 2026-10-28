@@ -789,7 +789,7 @@
   .jeu-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 92px; padding: 12px 10px; border-radius: 16px; background: #2A2E64; border: 2px solid #3E4384; font-weight: 800; font-size: 18px; }
   .jeu-stat .av-sym { width: 26px; height: 26px; }
   .jeu-fin-btns { display: flex; flex-direction: column; gap: 10px; }
-  .jeu-secondaire { display: block; width: 100%; padding: 13px; border-radius: 16px; border: 2px solid #4A50A0; background: transparent; color: #F4F2FF; font-weight: 700; font-size: 15.5px; }
+  .jeu-secondaire { display: block; width: 100%; padding: 13px; border-radius: 16px; border: 2px solid #4A50A0; background: transparent; color: #F4F2FF; font-weight: 700; font-size: 15.5px; text-align: center; text-decoration: none; }
 
   /* confettis, coffre */
   .av-confettis { position: absolute; inset: 0; z-index: 50; overflow: hidden; pointer-events: none; }
@@ -3648,6 +3648,7 @@
   var NB_Q = 7;      // questions par niveau
   var NB_DEFI = 10;  // questions du défi final
   var VIES_DEFI = 3;
+  var ETOILES_POUR_PASSER = 2; // un niveau débloque l'étape suivante à partir de 2 étoiles (2 erreurs au plus)
   var av;
   function chargerAventure() {
     av = lire(CLE_AV, null);
@@ -4130,7 +4131,12 @@
     noeuds.forEach(function (n, i) { n.i = i; });
     return { noeuds: noeuds, unites: unites };
   }
-  function noeudFait(n) { return n.type === "coffre" ? !!av.coffres[n.cle] : !!av.niveaux[n.cle]; }
+  // un niveau est réussi à partir de 2 étoiles ; le défi, dès qu'on le finit avec au moins une vie
+  function noeudFait(n) {
+    if (n.type === "coffre") return !!av.coffres[n.cle];
+    var x = av.niveaux[n.cle];
+    return !!x && (n.type === "defi" || x.e >= ETOILES_POUR_PASSER);
+  }
   function premierAFaire(route) {
     for (var i = 0; i < route.noeuds.length; i++) if (!noeudFait(route.noeuds[i])) return i;
     return -1;
@@ -4236,7 +4242,7 @@
         "aria-label": n.nom + (n.unite ? ", unité " + n.unite.num : "") + (fait ? ", terminé" : ouvert ? "" : ", verrouillé") });
       b.innerHTML = icone(ouvert ? n.icone : "cadenas");
       wrap.appendChild(b);
-      if (n.type !== "coffre" && fait) {
+      if (n.type !== "coffre" && etoilesDe(n) > 0) {
         var et = el("div", { class: "av-etoiles", "aria-hidden": "true" });
         for (var k = 0; k < 3; k++) et.innerHTML += symbole(k < etoilesDe(n) ? "etoile" : "vide");
         wrap.appendChild(et);
@@ -4273,9 +4279,11 @@
       } else {
         var nb = n.type === "defi" ? NB_DEFI : NB_Q;
         info = n.type === "defi" ? nb + " questions sur tout le chapitre, et " + VIES_DEFI + " vies." : nb + " questions variées.";
-        if (fait) info += " Ton record : " + etoilesDe(n) + " étoile" + (etoilesDe(n) > 1 ? "s" : "") + " sur 3.";
+        var rec = etoilesDe(n), aPasser = n.type === "niveau" && !fait;
+        if (rec) info += " Ton record : " + rec + " étoile" + (rec > 1 ? "s" : "") + " sur 3.";
+        if (aPasser) info += rec ? " Il en faut " + ETOILES_POUR_PASSER + " pour débloquer la suite." : " Il faut " + ETOILES_POUR_PASSER + " étoiles pour débloquer la suite.";
         if (!ouvert) info = "Termine d'abord l'étape précédente.";
-        if (ouvert) action = el("a", { class: "av-bulle-btn", href: lienAventure(ch, "jeu/" + n.i), text: fait ? "Rejouer" : n.type === "defi" ? "Relever le défi" : "Commencer" });
+        if (ouvert) action = el("a", { class: "av-bulle-btn", href: lienAventure(ch, "jeu/" + n.i), text: fait ? "Rejouer" : rec ? "Retenter" : n.type === "defi" ? "Relever le défi" : "Commencer" });
       }
       bulle.appendChild(el("p", { text: info }));
       if (action) bulle.appendChild(action);
@@ -4464,26 +4472,28 @@
       majSerie();
       sauverAventure();
       son("fin");
-      var titre = etoiles === 3 ? (defi ? "Défi relevé haut la main !" : "Parfait !") : etoiles === 2 ? "Bien joué !" : defi ? "Défi relevé !" : "Niveau terminé !";
+      var reussi = defi || etoiles >= ETOILES_POUR_PASSER;
+      var titre = etoiles === 3 ? (defi ? "Défi relevé haut la main !" : "Parfait !") : etoiles === 2 ? "Bien joué !" : defi ? "Défi relevé !" : "Encore un effort !";
       finEcran(titre, etoiles, [
         avecSymbole("eclair", "+" + xp, "jeu-stat"),
         avecSymbole("cible", Math.round(premiersEssais / qs.length * 100) + " %", "jeu-stat"),
         avecSymbole("flamme", pluriel(serieActuelle(), "jour"), "jeu-stat")
-      ], true);
+      ], true, reussi ? null : "Il faut au moins " + ETOILES_POUR_PASSER + " étoiles, soit 2 erreurs au plus, pour débloquer l'étape suivante. Rejoue le niveau\u00a0: les questions changent à chaque fois.", reussi);
     }
     function perdu() {
       av.xp += xp;
       majSerie();
       sauverAventure();
       finEcran("Le défi t'a eu… cette fois !", 0, [avecSymbole("eclair", "+" + xp, "jeu-stat")], false,
-        "Revois les niveaux du chapitre, puis retente ta chance : il faut garder au moins une vie jusqu'au bout.");
+        "Revois les niveaux du chapitre, puis retente ta chance : il faut garder au moins une vie jusqu'au bout.", false);
     }
-    function finEcran(titre, etoiles, stats, gagne, message) {
+    // gagne : le niveau est allé au bout (on montre les étoiles) ; reussi : il débloque la suite
+    function finEcran(titre, etoiles, stats, gagne, message, reussi) {
       continuer = null;
       haut.style.visibility = "hidden";
       corps.innerHTML = "";
       pied.innerHTML = "";
-      var perso = el("div", { class: "jeu-fin-perso" + (gagne ? " saute" : "") });
+      var perso = el("div", { class: "jeu-fin-perso" + (reussi ? " saute" : "") });
       perso.innerHTML = dessinPerso(av.perso);
       var et = el("div", { class: "jeu-fin-etoiles", "aria-label": etoiles + " étoile" + (etoiles > 1 ? "s" : "") + " sur 3" });
       if (gagne) for (var k = 0; k < 3; k++) { var s = el("span"); s.innerHTML = symbole(k < etoiles ? "etoile" : "vide"); s.style.animationDelay = (.25 + k * .2) + "s"; et.appendChild(s); }
@@ -4493,12 +4503,14 @@
         el("div", { class: "jeu-stats" }, stats)
       ]);
       corps.appendChild(bloc);
-      var suite = el("a", { class: "jeu-continuer", href: lienAventure(ch), text: "Continuer" });
-      var encore = el("button", { class: "jeu-secondaire", type: "button", text: gagne ? "Rejouer ce niveau" : "Retenter le défi", onclick: function () { rendre(); } });
-      pied.appendChild(el("div", { class: "jeu-fin-btns" }, [suite, encore]));
-      if (gagne) confettis(ecran);
-      annoncer(titre);
-      suite.focus({ preventScroll: true });
+      // réussi : on continue le chemin ; sinon, on rejoue d'abord
+      var chemin = el("a", { class: reussi ? "jeu-continuer" : "jeu-secondaire", href: lienAventure(ch), text: reussi ? "Continuer" : "Revenir au chemin" });
+      var encore = el("button", { class: reussi ? "jeu-secondaire" : "jeu-continuer", type: "button", text: defi ? "Retenter le défi" : "Rejouer ce niveau", onclick: function () { rendre(); } });
+      var boutons = reussi ? [chemin, encore] : [encore, chemin];
+      pied.appendChild(el("div", { class: "jeu-fin-btns" }, boutons));
+      if (reussi) confettis(ecran);
+      annoncer(titre + (message ? " " + message : ""));
+      boutons[0].focus({ preventScroll: true });
     }
     if (!qs.length) { location.hash = lienAventure(ch); return; }
     majHaut();
