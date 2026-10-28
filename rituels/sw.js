@@ -5,7 +5,7 @@
 // - Les fiches (cours.js, cartes.js…), les images et les polices : le cache d'abord, mis à jour en arrière-plan
 //   pour la visite suivante.
 // Le service worker de l'application principale (../sw.js) laisse ce dossier de côté.
-const CACHE = "reviser-v1";
+const CACHE = "reviser-v2";
 const BASE = [
   "./reviser.html", "./cours.js", "./cartes.js", "./questions.js", "./reperes.js", "./activation.json",
   "../vendor/qrcode-generator-1.4.4.js", "../icon-192.png"
