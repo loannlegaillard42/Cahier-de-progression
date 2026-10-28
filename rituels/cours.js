@@ -1352,6 +1352,20 @@ const COURS = [
       { items: ["Espagne", "France", "Italie", "Égypte"], intrus: "Égypte",
         expl: "L'Égypte est sur la rive sud de la Méditerranée, moins développée ; les trois autres sont des pays de la rive nord." }
     ],
+    documents: [
+      { id: "corniche-nil", titre: "Le Caire : les tours de la Corniche du Nil", image: "docs/5e-g1-c2/corniche-nil.jpg",
+        nature: "Photographie", auteur: "Phevos87", date: "2013",
+        source: "Nile Corniche, Wikimedia Commons", credit: "Phevos87, CC BY-SA 3.0, via Wikimedia Commons",
+        contexte: "Le Caire, capitale de l'Égypte, est une très grande métropole au bord du Nil, une ville de contrastes entre richesse et grande pauvreté.",
+        montre: "Le front d'eau du centre-ville : les tours d'un quartier d'affaires (bureaux, ministères, hôtels de luxe) au bord du Nil. C'est un quartier riche, qui contraste avec la Cité des Morts.",
+        details: [
+          { nom: "Le Nil", x: 50, y: 72, txt: "Le grand fleuve qui traverse Le Caire : ses rives sont aménagées en front d'eau." },
+          { nom: "Une tour d'un quartier d'affaires", x: 61.5, y: 38, txt: "Bureaux, ministères, hôtels de luxe : les tours montrent la richesse du centre de la métropole." },
+          { nom: "Un pont sur le Nil", x: 12, y: 50, txt: "Les ponts relient les deux rives de la métropole." },
+          { nom: "Une felouque", x: 34.4, y: 54.5, txt: "Un bateau à voile traditionnel, aujourd'hui surtout utilisé pour les promenades des touristes." },
+          { nom: "Des espaces verts au bord de l'eau", x: 88.5, y: 51.4, txt: "Des arbres et une promenade aménagée le long du fleuve, signe d'un quartier aisé." }
+        ] }
+    ],
     trous: [
       { titre: "Les Nords et les Suds", texte: "Dans le monde, la [richesse] est très mal répartie : 20 % des habitants possèdent 94,5 % de la richesse. Les [Nords], riches et développés, s'opposent aux [Suds], plus pauvres, où vit la majorité de la population mondiale. On mesure la richesse produite par un pays avec son [PIB]. Dans les pays pauvres, surtout en Afrique, l'[espérance de vie] est plus courte. Ces [inégalités] sont ressenties comme injustes." },
       { titre: "Des Nords et des Suds très divers", texte: "On parle DES Suds car ces pays sont très différents : la Chine ou le Brésil sont des [pays émergents], l'Arabie saoudite et le Qatar sont des [pays pétroliers], alors que le Niger ou Madagascar font partie des [PMA], les pays les plus pauvres du monde. Pour réduire la [pauvreté], l'ONU a fixé en 2015 les 17 [ODD], à atteindre en [2030]." },
