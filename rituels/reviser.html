@@ -785,8 +785,8 @@
   @keyframes av-saute { 0%, 100% { transform: translateY(0); } 45%, 55% { transform: translateY(-22px); } }
   .jeu-fin h2 { margin: 6px 0 8px; font-size: 26px; font-weight: 800; }
   .jeu-fin p { max-width: 360px; margin: 0 auto 12px; color: #C9C6EA; }
-  .jeu-stats { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-  .jeu-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 92px; padding: 12px 10px; border-radius: 16px; background: #2A2E64; border: 2px solid #3E4384; font-weight: 800; font-size: 18px; }
+  .jeu-stats { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .jeu-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1 1 0; min-width: 70px; max-width: 110px; padding: 11px 6px; border-radius: 16px; background: #2A2E64; border: 2px solid #3E4384; font-weight: 800; font-size: 16px; text-align: center; }
   .jeu-stat .av-sym { width: 26px; height: 26px; }
   .jeu-fin-btns { display: flex; flex-direction: column; gap: 10px; }
   .jeu-secondaire { display: block; width: 100%; padding: 13px; border-radius: 16px; border: 2px solid #4A50A0; background: transparent; color: #F4F2FF; font-weight: 700; font-size: 15.5px; text-align: center; text-decoration: none; }
@@ -870,8 +870,86 @@
   .ea-txt strong { font-size: 18px; font-weight: 800; }
   .ea-txt span { font-size: 13.5px; opacity: .92; }
   .ea-txt small { font-size: 12px; font-weight: 700; color: #FFD34D; }
+
+  /* ---------- Mode aventure, v2 : quêtes, ducats, badges, île des erreurs, grands parcours ---------- */
+  .av-btn-quetes { position: relative; background: #3A2F6E; }
+  .av-btn-quetes .av-sym { width: 24px; height: 24px; }
+  .av-pastille-num { position: absolute; top: -5px; right: -5px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: #EF4444; color: #fff; font-size: 11.5px; font-weight: 800; line-height: 19px; text-align: center; box-shadow: 0 0 0 2px #1E2050; }
+  .av-haut .av-compteurs { gap: 5px; }
+  .av-haut .av-compteur { padding: 4px 9px 4px 6px; font-size: 14px; }
+  .av-route.annee { background: linear-gradient(135deg, #0E9384, #0B6F64); box-shadow: 0 5px 0 #08544C; }
+  .av-route.reperes { background: linear-gradient(135deg, #D9702A, #B5561C); box-shadow: 0 5px 0 #8C4214; }
+  .av-noeud.revision { background: #0E9384; box-shadow: 0 7px 0 #08544C, 0 12px 20px rgba(0, 0, 0, .28); }
+  .av-noeud.erreurs { background: #EF6C3A; box-shadow: 0 7px 0 #B5481F, 0 12px 20px rgba(0, 0, 0, .28); }
+  .av-noeud.revision.fait, .av-noeud.erreurs.fait { background: #F5B82E; color: #5A3B00; box-shadow: 0 7px 0 #C98A0B, 0 12px 20px rgba(0, 0, 0, .28); }
+  .av-noeud.revision.verrou { background: #4A4F7A; color: #A9ACCB; box-shadow: 0 7px 0 #33375C, 0 12px 20px rgba(0, 0, 0, .2); }
+  .av-ile.erreurs { margin-top: 10px; }
+  .av-ile-etiquette { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); z-index: 2; padding: 3px 10px; border-radius: 999px; background: #EF6C3A; color: #fff; font-size: 12.5px; font-weight: 800; white-space: nowrap; box-shadow: 0 3px 0 #B5481F; }
+  .jeu-combo { display: inline-flex; align-items: center; gap: 2px; color: #FFB86B; font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .jeu-combo:empty { display: none; }
+  .jeu-combo.pop { animation: av-pop .35s cubic-bezier(.3, 1.6, .5, 1); }
+  .jeu-saisie {
+    display: block; width: 100%; padding: 14px 16px; border-radius: 16px; border: 2px solid #4A50A0; background: #1C1F48; color: #fff;
+    font: 700 19px/1.2 Inter, system-ui, sans-serif; text-align: center;
+  }
+  .jeu-saisie:focus { outline: none; border-color: #8B6CFF; }
+  .jeu-saisie.bien { border-color: #22C55E; background: #16402F; color: #9AF5BC; }
+  .jeu-saisie.mal { border-color: #EF4444; background: #45192A; color: #FFB4B4; animation: secousse .3s; }
+  .av-toasts { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); z-index: 46; display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 24px)); pointer-events: none; font-family: Inter, system-ui, sans-serif; }
+  .av-toast { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: #2E3270; border: 2px solid #8B6CFF; color: #F4F2FF; font-size: 14px; font-weight: 700; line-height: 1.3; box-shadow: 0 10px 24px rgba(0, 0, 0, .35); animation: av-descend .3s cubic-bezier(.3, 1.4, .5, 1); transition: opacity .4s, transform .4s; }
+  .av-toast > span:not(.av-toast-gain) { flex: 1; }
+  .av-toast .av-sym { width: 26px; height: 26px; }
+  .av-toast.part { opacity: 0; transform: translateY(-10px); }
+  .av-toast-gain { display: inline-flex; align-items: center; gap: 3px; color: #FFD34D; font-weight: 800; white-space: nowrap; }
+  .av-toast-gain .av-sym { width: 18px; height: 18px; }
+  @keyframes av-descend { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: none; } }
+  .jeu-gains { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; text-align: left; }
+  .jeu-gain { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 14px; background: #2A2E64; border: 2px solid #3E4384; font-size: 14px; font-weight: 700; }
+  .jeu-gain > span:not(.av-toast-gain) { flex: 1; }
+  .jeu-gain .av-sym { width: 24px; height: 24px; }
+  .av-surnom { margin: 4px auto 0; width: max-content; max-width: 100%; padding: 3px 12px; border-radius: 999px; background: #FFD34D; color: #3A2A00; font-weight: 800; font-size: 13.5px; }
+  .av-apercu .av-surnom { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 2; margin: 0; white-space: nowrap; }
+  .av-quetes { display: flex; flex-direction: column; gap: 10px; margin: 10px 0 14px; text-align: left; }
+  .av-quete { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 16px; background: #2A2E64; border: 2px solid #3E4384; }
+  .av-quete.faite { border-color: #22C55E; }
+  .av-quete-ico { width: 34px; height: 34px; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #3A3F86; }
+  .av-quete.faite .av-quete-ico { background: #22C55E; color: #fff; }
+  .av-quete-ico .av-sym { width: 24px; height: 24px; }
+  .av-quete-ico .ico { width: 20px; height: 20px; }
+  .av-quete-ico .ico svg { stroke-width: 3; }
+  .av-quete-txt { flex: 1; min-width: 0; }
+  .av-quete-txt strong { display: block; font-size: 14.5px; line-height: 1.3; margin-bottom: 6px; }
+  .av-quete-txt .av-barre { height: 9px; margin-bottom: 3px; }
+  .av-quete-txt small { color: #B9B6D9; font-size: 12px; font-weight: 600; }
+  .av-compteur.grand { margin: 0 auto 14px; font-size: 17px; padding: 7px 14px 7px 9px; }
+  .av-prix { position: absolute; top: 6px; right: 6px; display: inline-flex; align-items: center; gap: 2px; padding: 2px 7px 2px 3px; border-radius: 999px; background: #1C1F48; color: #C9C6EA; font-size: 12px; font-weight: 800; }
+  .av-prix .av-sym { width: 15px; height: 15px; }
+  .av-prix.abordable { background: #4A3A0A; color: #FFD34D; }
+  .av-piece.verrou .av-prix ~ .av-cadenas { display: none; }
+  .av-sous-titre { margin: 6px 0 10px; font-size: 13px; font-weight: 800; color: #C9C6EA; text-transform: uppercase; letter-spacing: .06em; }
+  .av .av-titres { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .av .av-titres .opt { border-color: #3E4384; background: #282C5E; color: #C9C6EA; min-height: 38px; padding: 6px 13px; font-size: 14px; }
+  .av .av-titres .opt[aria-pressed="true"] { border-color: #FFD34D; background: #4A3A0A; color: #FFD34D; }
+  .av-badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .av-badge { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 16px; background: #23265A; border: 2px solid #33376E; color: #8A8DB5; }
+  .av-badge.obtenu { background: #2A2E64; border-color: #4A50A0; color: #F4F2FF; }
+  .av-medaille { width: 46px; height: 46px; flex: none; }
+  .av-medaille svg { width: 100%; height: 100%; display: block; }
+  .av-badge strong { display: block; font-size: 14.5px; }
+  .av-badge span { display: block; font-size: 12.5px; line-height: 1.35; }
+  .av-badge small { display: block; margin-top: 3px; font-size: 12px; font-weight: 700; color: #FFD34D; }
+  .av-badge-prog { margin-top: 5px; }
+  .av-badge-prog .av-barre { height: 7px; margin-bottom: 2px; }
+  .av-badge-prog small { color: #8A8DB5; margin: 0; }
+  .entrees-parcours { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 14px 0 4px; }
+  .entree-aventure.petite { margin: 0; padding: 8px 14px 8px 6px; }
+  .entree-aventure.petite .ea-fig { width: 84px; height: 58px; }
+  .entree-aventure.petite .ea-txt strong { font-size: 16px; }
+  .entree-aventure.annee { background: linear-gradient(135deg, #0E9384, #2446C0); box-shadow: 0 5px 0 #0A4F6E; }
+  .entree-aventure.reperes { background: linear-gradient(135deg, #D9702A, #C93F75); box-shadow: 0 5px 0 #7A2A44; }
+  .ea-note { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--sub); }
   @media (prefers-reduced-motion: reduce) {
-    .av *, .av-modal * { animation: none !important; transition: none !important; }
+    .av *, .av-modal *, .av-toast { animation: none !important; transition: none !important; }
     .av-confettis { display: none; }
   }
 </style>
@@ -894,6 +972,7 @@
 
 <script src="questions.js"></script>
 <script src="cours.js"></script>
+<script src="reperes.js"></script>
 <script src="cartes.js"></script>
 <script src="../vendor/qrcode-generator-1.4.4.js"></script>
 <script>
@@ -951,7 +1030,8 @@
     cadenas: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
     coche: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
     son: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',
-    sonCoupe: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/>'
+    sonCoupe: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/>',
+    revoir: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/>'
   };
   function icone(nom) {
     return '<span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24">' + (ICONES[nom] || "") + "</svg></span>";
@@ -1217,7 +1297,8 @@
   // #/express/2nde         révision express du niveau
   // #/c/<chapitre>         page du chapitre
   // #/c/<chapitre>/<outil> un outil du chapitre
-  // #/aventure/<chapitre>  le mode aventure du chapitre (/perso : le personnage ; /jeu/<n> : un niveau)
+  // #/aventure/<chapitre>  le mode aventure du chapitre (/perso : le personnage ; /jeu/<n> : un niveau ; /erreurs : l'île des erreurs)
+  // #/aventure/annee-<classe>, #/aventure/reperes-<classe>  le parcours de l'année, les repères fondamentaux
   function routeActuelle() {
     var p = location.hash.replace(/^#\/?/, "").split("/").map(function (s) {
       try { return decodeURIComponent(s); } catch (e) { return s; }
@@ -1247,7 +1328,9 @@
     var ch = r.ch ? chapitre(r.ch) : null;
     document.documentElement.classList.toggle("av-ouvert", r.vue === "aventure");
     if (r.vue === "aventure") {
-      if (ch && aventureDispo() && (estVisible(ch) || estProf())) vueAventure(ch, r.sous, r.x);
+      // un chapitre, ou un grand parcours : annee-<classe>, reperes-<classe>
+      var parcours = cheminAventure(r.ch);
+      if (parcours && aventureDispo() && (parcours.special || estVisible(parcours) || estProf())) vueAventure(parcours, r.sous, r.x);
       else if (ch) vueChapitre(ch); else vueAccueil();
       return;
     }
@@ -1343,6 +1426,8 @@
       ]));
       app.appendChild(ex);
     }
+    var parcours = aventureDispo() ? entreesParcours(niveau) : null;
+    if (parcours) app.appendChild(parcours);
 
     ["histoire", "geo"].forEach(function (d) {
       var themes = annee.filter(function (t) { return t.d === d; });
@@ -3645,20 +3730,29 @@
   // Pour l'essai, le mode n'apparaît qu'en mode professeur, ou avec ?demo dans l'adresse (lien de démonstration
   // pour des collègues : toutes les étapes ouvertes, sans aucun accès à l'espace professeur).
   var CLE_AV = "reviser-aventure-v1";
-  var NB_Q = 7;      // questions par niveau
-  var NB_DEFI = 10;  // questions du défi final
   var VIES_DEFI = 3;
   var ETOILES_POUR_PASSER = 2; // un niveau débloque l'étape suivante à partir de 2 étoiles (2 erreurs au plus)
+  // La difficulté suit la classe : nombre de propositions, dates plus ou moins proches, points sur la carte,
+  // réponses à écrire, carte « experte » sans points.
+  var DIFFICULTES = {
+    "5e":   { nom: "Collège", nb: 7, defi: 8, options: 3, dates: 4, ordre: 3, points: 3, carte: 3, experte: 0, saisie: 0, indices: 2, proches: false, aide: 0 },
+    "2nde": { nom: "Lycée", nb: 8, defi: 10, options: 4, dates: 5, ordre: 4, points: 5, carte: 3, experte: 0, saisie: 1, indices: 1, proches: true, aide: 2 },
+    "1ere": { nom: "Lycée +", nb: 8, defi: 12, options: 4, dates: 5, ordre: 5, points: 6, carte: 2, experte: 1, saisie: 2, indices: 1, proches: true, aide: 1 }
+  };
+  function difficulte(ch) { return DIFFICULTES[ch.n] || DIFFICULTES["2nde"]; }
   var av;
   function chargerAventure() {
     av = lire(CLE_AV, null);
     if (!av || typeof av !== "object") av = {};
     if (!av.possede || typeof av.possede !== "object") av.possede = {};
-    ["tenue", "chapeau", "objet"].forEach(function (k) { if (!Array.isArray(av.possede[k])) av.possede[k] = []; });
-    ["musee"].forEach(function (k) { if (!Array.isArray(av[k])) av[k] = []; });
-    ["niveaux", "coffres"].forEach(function (k) { if (!av[k] || typeof av[k] !== "object") av[k] = {}; });
+    ["tenue", "chapeau", "objet", "compagnon"].forEach(function (k) { if (!Array.isArray(av.possede[k])) av.possede[k] = []; });
+    ["musee", "badges", "erreurs"].forEach(function (k) { if (!Array.isArray(av[k])) av[k] = []; });
+    ["niveaux", "coffres", "stats"].forEach(function (k) { if (!av[k] || typeof av[k] !== "object") av[k] = {}; });
     if (typeof av.xp !== "number") av.xp = 0;
+    if (typeof av.ducats !== "number") av.ducats = 0;
+    if (typeof av.titre !== "string") av.titre = "";
     if (!av.serie || typeof av.serie !== "object") av.serie = { n: 0, jour: "" };
+    if (!av.jour || typeof av.jour !== "object") av.jour = { date: "" };
     if (typeof av.son !== "boolean") av.son = true;
     if (!av.perso || typeof av.perso !== "object") av.perso = null;
   }
@@ -3676,44 +3770,91 @@
   var AV_COIFFURES = [{ id: "court", nom: "Court" }, { id: "long", nom: "Long" }, { id: "boucles", nom: "Bouclé" },
     { id: "chignon", nom: "Chignon" }, { id: "tresses", nom: "Tresses" }, { id: "rase", nom: "Ras" }];
   var AV_BARBES = [{ id: "", nom: "Sans barbe" }, { id: "courte", nom: "Barbe courte" }, { id: "longue", nom: "Barbe longue" }];
-  // mots : les tenues, chapeaux et objets « du chapitre » sortent en premier des coffres
+  // couleurs de la tunique de départ (et leur teinte foncée)
+  var AV_TEINTES = [["#3E7CB1", "#24527A"], ["#B03A2E", "#78281F"], ["#2E7D5B", "#1D5240"], ["#7D3C98", "#512E5F"], ["#D68910", "#9C640C"], ["#34495E", "#1F2D3A"]];
+  // mots : les pièces « du chapitre » sortent en premier des coffres ; prix en ducats à la boutique
   var AV_TENUES = [
     { id: "tunique", nom: "Tunique de voyage", c: "#3E7CB1", c2: "#24527A" },
-    { id: "marchand", nom: "Manteau de marchand vénitien", c: "#B3262E", c2: "#F1E3C6", mots: /venise|marchand|commerce|bourgeois|urbain/i },
+    { id: "toge", nom: "Toge romaine", c: "#F3EEE2", c2: "#7B2D5B", mots: /romain|\brome\b|antique|\bgrec|athènes|périclès/i },
+    { id: "byzantin", nom: "Manteau byzantin", c: "#6A2C8C", c2: "#E8C547", mots: /byzan|constantinople/i },
     { id: "moine", nom: "Bure de moine", c: "#7A5534", c2: "#5B3E25", mots: /\bmoine|abbaye|bernard|cluny|cîteaux|monast|clergé/i },
+    { id: "paysan", nom: "Tunique de paysan", c: "#8C7A5B", c2: "#5B4A2C", mots: /seigneur|campagne|paysan|féodal/i },
     { id: "chevalier", nom: "Cotte de chevalier", c: "#9AA3AD", c2: "#E8C547", surcot: "#2F5DA8", bras: "#9AA3AD", mots: /croisade|seigneur|féodal|chevalier|château/i },
     { id: "savant", nom: "Robe de savant", c: "#2E7D5B", c2: "#F4F1E8", mots: /islam|bagdad|cordoue|calife|savant|al-andalus/i },
-    { id: "byzantin", nom: "Manteau byzantin", c: "#6A2C8C", c2: "#E8C547", mots: /byzan|constantinople/i },
-    { id: "toge", nom: "Toge romaine", c: "#F3EEE2", c2: "#7B2D5B", mots: /romain|\brome\b|antique|\bgrec|athènes|périclès/i },
     { id: "pelerin", nom: "Cape de pèlerin", c: "#8C6A45", c2: "#E3D3B4", mots: /pèlerin|jérusalem|compostelle/i },
-    { id: "explorateur", nom: "Tenue d'explorateur", c: "#A88B5A", c2: "#5B4A2C", mots: /atlantique|découverte|nouveau monde|explora|métropol|risque|démograph|richesse|ville/i },
+    { id: "marchand", nom: "Manteau de marchand vénitien", c: "#B3262E", c2: "#F1E3C6", mots: /venise|marchand|commerce|bourgeois|urbain/i },
+    { id: "humaniste", nom: "Robe d'humaniste", c: "#2B2B33", c2: "#F4F1E8", mots: /humanis|renaissance|réforme/i },
+    { id: "explorateur", nom: "Tenue d'explorateur", c: "#A88B5A", c2: "#5B4A2C", mots: /atlantique|découverte|nouveau monde|explora|métropol|risque|démograph|richesse|ville|continent/i },
+    { id: "sansculotte", nom: "Carmagnole de sans-culotte", c: "#2F5DA8", c2: "#F4F1E8", mots: /révolution|1789|république/i },
+    { id: "redingote", nom: "Redingote", c: "#1F2A44", c2: "#F4F1E8", mots: /nation|industri|bourgeois|xixe|république/i },
+    { id: "poilu", nom: "Uniforme de poilu", c: "#7C93B5", c2: "#4A5A73", mots: /guerre|1914|poilu/i },
     { id: "guide", cache: true, c: "#6E4BB5", c2: "#F3EEE2" },
     { id: "guide-geo", cache: true, c: "#2B8C8C", c2: "#F3EEE2" }
   ];
   var AV_CHAPEAUX = [
     { id: "", nom: "Tête nue" },
-    { id: "toque", nom: "Toque vénitienne", mots: /venise|marchand|commerce/i },
+    { id: "laurier", nom: "Couronne de laurier", mots: /romain|\brome\b|antique|\bgrec|athènes/i },
     { id: "capuche", nom: "Capuche", mots: /\bmoine|abbaye|bernard|cluny|clergé/i },
+    { id: "paille", nom: "Chapeau de paille", mots: /seigneur|campagne|paysan/i },
     { id: "casque", nom: "Casque à nasal", mots: /croisade|seigneur|chevalier|féodal/i },
     { id: "turban", nom: "Turban", mots: /islam|bagdad|cordoue|calife/i },
-    { id: "laurier", nom: "Couronne de laurier", mots: /romain|\brome\b|antique|\bgrec|athènes/i },
-    { id: "couronne", nom: "Couronne", mots: /\brois?\b|royaume|monarch|empereur|prince/i },
     { id: "pelerin", nom: "Chapeau de pèlerin", mots: /pèlerin|jérusalem|compostelle/i },
-    { id: "explorateur", nom: "Chapeau d'explorateur", mots: /atlantique|découverte|explora|métropol|risque|ville/i },
-    { id: "bonnet", nom: "Bonnet phrygien", mots: /révolution|république|1789/i }
+    { id: "toque", nom: "Toque vénitienne", mots: /venise|marchand|commerce/i },
+    { id: "couronne", nom: "Couronne", mots: /\brois?\b|royaume|monarch|empereur|prince/i },
+    { id: "beret", nom: "Béret d'humaniste", mots: /humanis|renaissance/i },
+    { id: "explorateur", nom: "Chapeau d'explorateur", mots: /atlantique|découverte|explora|métropol|risque|ville|continent/i },
+    { id: "bonnet", nom: "Bonnet phrygien", mots: /révolution|république|1789/i },
+    { id: "bicorne", nom: "Bicorne", mots: /napoléon|empire|révolution/i },
+    { id: "hautforme", nom: "Haut-de-forme", mots: /nation|industri|bourgeois|xixe/i },
+    { id: "adrian", nom: "Casque Adrian", mots: /guerre|1914|poilu/i }
   ];
   var AV_OBJETS = [
     { id: "", nom: "Mains libres" },
     { id: "parchemin", nom: "Parchemin" },
     { id: "plume", nom: "Plume" },
     { id: "lanterne", nom: "Lanterne" },
-    { id: "ducat", nom: "Ducat d'or", mots: /venise|commerce|marchand/i },
+    { id: "sablier", nom: "Sablier", mots: /période|siècle|chronolog/i },
     { id: "livre", nom: "Livre", mots: /humanis|renaissance|savant|\bmoine|bernard/i },
+    { id: "ducat", nom: "Ducat d'or", mots: /venise|commerce|marchand/i },
+    { id: "bourse", nom: "Bourse", mots: /commerce|marchand|banque|richesse/i },
+    { id: "portulan", nom: "Portulan", mots: /méditerranée|navig|commerce/i },
+    { id: "astrolabe", nom: "Astrolabe", mots: /découverte|navig|islam|savant/i },
     { id: "boussole", nom: "Boussole", mots: /atlantique|découverte|explora|navig/i },
+    { id: "longuevue", nom: "Longue-vue", mots: /atlantique|\bmers?\b|navig|océan/i },
+    { id: "globe", nom: "Globe", mots: /monde|mondialis|continent|métropol/i },
     { id: "baton", nom: "Bâton de pèlerin", mots: /pèlerin|croisade|jérusalem/i },
-    { id: "longuevue", nom: "Longue-vue", mots: /atlantique|\bmers?\b|navig|océan/i }
+    { id: "drapeau", nom: "Drapeau tricolore", mots: /révolution|nation|république/i }
   ];
-  var AV_CATS = [["tenue", AV_TENUES], ["chapeau", AV_CHAPEAUX], ["objet", AV_OBJETS]];
+  var AV_COMPAGNONS = [
+    { id: "", nom: "Aucun compagnon" },
+    { id: "chat", nom: "Chat" },
+    { id: "chien", nom: "Chien" },
+    { id: "chouette", nom: "Chouette d'Athéna", mots: /athènes|\bgrec|antique|savant/i },
+    { id: "lion", nom: "Lion de Venise", mots: /venise|marchand|commerce/i },
+    { id: "perroquet", nom: "Perroquet", mots: /atlantique|amérique|découverte|nouveau monde/i },
+    { id: "tortue", nom: "Tortue", mots: /période|siècle|chronolog|environnement|risque/i }
+  ];
+  var AV_CATS = [["tenue", AV_TENUES], ["chapeau", AV_CHAPEAUX], ["objet", AV_OBJETS], ["compagnon", AV_COMPAGNONS]];
+  var AV_PRIX = { tenue: 60, chapeau: 40, objet: 30, compagnon: 80 };
+  var AV_NOMS_CATS = { tenue: "Nouvelle tenue", chapeau: "Nouveau chapeau", objet: "Nouvel objet", compagnon: "Nouveau compagnon" };
+  // badges : chacun débloque un surnom (stat : compteur de av.stats, ou « xp », « objets », « serieMax »)
+  var AV_BADGES = [
+    { id: "novice", nom: "Premiers pas", txt: "Réussir un premier niveau", stat: "niveaux", cible: 1, titre: "Novice", c: "#8B6CFF" },
+    { id: "cartographe", nom: "Cartographe", txt: "Trouver 15 lieux sur une carte", stat: "carte", cible: 15, titre: "Cartographe", c: "#22A3C9" },
+    { id: "chronologiste", nom: "Chronologiste", txt: "Placer 15 dates sur une frise", stat: "dates", cible: 15, titre: "Chronologiste", c: "#E0A82E" },
+    { id: "lynx", nom: "Œil de lynx", txt: "Repérer 10 détails sur des documents", stat: "docs", cible: 10, titre: "Œil de lynx", c: "#2E9E5B" },
+    { id: "plume", nom: "Plume d'or", txt: "Écrire 10 bonnes réponses", stat: "saisie", cible: 10, titre: "Plume d'or", c: "#C9971B" },
+    { id: "lion", nom: "Cœur de lion", txt: "Enchaîner 10 bonnes réponses d'affilée", stat: "comboMax", cible: 10, titre: "Cœur de lion", c: "#E0457B" },
+    { id: "sansfaute", nom: "Sans-faute", txt: "Réussir 5 niveaux sans faute", stat: "sansFaute", cible: 5, titre: "Sans-faute", c: "#4ADE80" },
+    { id: "flamme", nom: "Flamme éternelle", txt: "Réviser 5 jours de suite", stat: "serieMax", cible: 5, titre: "Flamme éternelle", c: "#FF8A3D" },
+    { id: "elephant", nom: "Mémoire d'éléphant", txt: "Corriger 20 erreurs sur l'île des erreurs", stat: "revues", cible: 20, titre: "Mémoire d'éléphant", c: "#7D8CA3" },
+    { id: "sesame", nom: "Sésame", txt: "Ouvrir 5 coffres", stat: "coffres", cible: 5, titre: "Sésame", c: "#C27A2C" },
+    { id: "legende", nom: "Légende", txt: "Gagner un défi final", stat: "defis", cible: 1, titre: "Légende", c: "#D9437A" },
+    { id: "stratege", nom: "Stratège", txt: "Gagner 3 défis finaux", stat: "defis", cible: 3, titre: "Stratège", c: "#6C4CF1" },
+    { id: "mecene", nom: "Mécène", txt: "Réunir 12 pièces dans sa collection", stat: "objets", cible: 12, titre: "Mécène", c: "#B8862F" },
+    { id: "puits", nom: "Puits de science", txt: "Gagner 1000 points d'expérience", stat: "xp", cible: 1000, titre: "Puits de science", c: "#3B82F6" }
+  ];
+  var AV_TITRES_LIBRES = ["Esprit libre", "Tête bien faite"];
   var GUIDES = {
     histoire: { nom: "Hérodote", qui: "le « père de l'histoire »",
       perso: { peau: "#EDB98A", coiffure: "rase", cheveux: "#D5D5D5", barbe: "longue", tenue: "guide", chapeau: "", objet: "parchemin" } },
@@ -3723,13 +3864,18 @@
   function guideDe(ch) { return GUIDES[ch.d] || GUIDES.histoire; }
   function trouverDans(cat, id) { return (AV_CATS.filter(function (c) { return c[0] === cat; })[0][1]).filter(function (x) { return x.id === id; })[0] || null; }
   function possede(cat, id) { return !id || (cat === "tenue" && id === "tunique") || av.possede[cat].indexOf(id) >= 0; }
+  function nbPossessions() { return av.possede.tenue.length + av.possede.chapeau.length + av.possede.objet.length + av.possede.compagnon.length; }
 
   function svgCheveuxDerriere(p) {
     if (p.coiffure === "long") return '<path d="M37 50Q33 90 42 98H78Q87 90 83 50Z" fill="' + p.cheveux + '"/>';
     return "";
   }
-  function svgTenue(t) {
+  function svgTenue(t, p) {
     var c = t.c, c2 = t.c2, bras = t.bras || c;
+    if (t.id === "tunique" && p && p.couleur) {
+      var teinte = AV_TEINTES.filter(function (x) { return x[0] === p.couleur; })[0];
+      if (teinte) { c = bras = teinte[0]; c2 = teinte[1]; }
+    }
     var s = '<path d="M38 88Q26 104 30 120" stroke="' + bras + '" stroke-width="11" stroke-linecap="round" fill="none"/>' +
       '<path d="M82 88Q94 102 92 116" stroke="' + bras + '" stroke-width="11" stroke-linecap="round" fill="none"/>' +
       '<path d="M36 86Q60 76 84 86L94 140Q60 147 26 140Z" fill="' + c + '"/>';
@@ -3760,6 +3906,24 @@
       case "pelerin":
         s += '<path d="M34 87Q60 74 86 87L90 108Q60 116 30 108Z" fill="' + c2 + '"/><path d="M53 103Q60 92 67 103Z" fill="#FBF6EC" stroke="#C9A96B" stroke-width="1.2"/><path d="M60 94V103M56.5 96.5L58 103M63.5 96.5L62 103" stroke="#C9A96B" stroke-width=".9"/>';
         break;
+      case "paysan":
+        s += '<path d="M50 84L60 96L70 84" stroke="' + c2 + '" stroke-width="2.5" fill="none"/><path d="M31 112H89" stroke="#C9A96B" stroke-width="3"/>' +
+          '<rect x="40" y="120" width="10" height="9" fill="#A08B66" transform="rotate(-8 45 124)"/><rect x="68" y="98" width="9" height="8" fill="#6E5F45" transform="rotate(6 72 102)"/>';
+        break;
+      case "humaniste":
+        s += '<path d="M60 96V140" stroke="#15151A" stroke-width="1.5"/><path d="M38 87Q60 99 82 87" stroke="#7A5534" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M52 86Q60 92 68 86" stroke="' + c2 + '" stroke-width="4" fill="none"/>';
+        break;
+      case "sansculotte":
+        s += '<path d="M60 92V141" stroke="' + c2 + '" stroke-width="10"/><path d="M31 113H89" stroke="#C0392B" stroke-width="5"/><path d="M48 86L56 96M72 86L64 96" stroke="' + c2 + '" stroke-width="3"/>';
+        break;
+      case "redingote":
+        s += '<path d="M52 85L60 104L68 85Z" fill="' + c2 + '"/><path d="M60 104V140" stroke="#121A2E" stroke-width="1.5"/><path d="M57 87L60 91L63 87" stroke="#C0392B" stroke-width="2.5" fill="none"/>' +
+          '<circle cx="56" cy="112" r="1.8" fill="#C9A96B"/><circle cx="56" cy="122" r="1.8" fill="#C9A96B"/><circle cx="64" cy="112" r="1.8" fill="#C9A96B"/><circle cx="64" cy="122" r="1.8" fill="#C9A96B"/>';
+        break;
+      case "poilu":
+        s += '<path d="M60 88V140" stroke="' + c2 + '" stroke-width="1.5"/><rect x="44" y="94" width="10" height="9" rx="1.5" fill="none" stroke="' + c2 + '" stroke-width="1.8"/>' +
+          '<rect x="66" y="94" width="10" height="9" rx="1.5" fill="none" stroke="' + c2 + '" stroke-width="1.8"/><rect x="31.5" y="111" width="57" height="6" fill="' + c2 + '"/>';
+        break;
       case "explorateur":
         s += '<path d="M50 84L56 92L60 86L64 92L70 84" fill="none" stroke="' + c2 + '" stroke-width="2"/><rect x="44" y="94" width="10" height="9" rx="2" fill="none" stroke="' + c2 + '" stroke-width="1.8"/>' +
           '<rect x="66" y="94" width="10" height="9" rx="2" fill="none" stroke="' + c2 + '" stroke-width="1.8"/><rect x="31.5" y="111" width="57" height="6" fill="' + c2 + '"/>';
@@ -3777,6 +3941,12 @@
       case "boussole": return '<circle cx="99" cy="106" r="10" fill="#C9A96B"/><circle cx="99" cy="106" r="7.5" fill="#FBF8F2"/><path d="M99 99L101.5 106L99 113L96.5 106Z" fill="#C0392B"/>';
       case "baton": return '<path d="M93 78V144" stroke="#8C6A45" stroke-width="4" stroke-linecap="round"/><circle cx="97" cy="90" r="4" fill="#C9A96B"/>';
       case "longuevue": return '<path d="M90 120L108 92" stroke="#8C6A45" stroke-width="6" stroke-linecap="round"/><path d="M104 98L110 89" stroke="#E8C547" stroke-width="8" stroke-linecap="round"/>';
+      case "sablier": return '<rect x="88" y="98" width="20" height="3" rx="1.5" fill="#7A5534"/><rect x="88" y="123" width="20" height="3" rx="1.5" fill="#7A5534"/><path d="M91 101H105L99 112L105 123H91L97 112Z" fill="#E8F1F8" stroke="#9AA3AD" stroke-width="1.2"/><path d="M94 120H102L98 114Z" fill="#E3C27D"/>';
+      case "bourse": return '<path d="M90 112Q86 126 99 127Q112 126 108 112Z" fill="#8C6A45"/><path d="M92 112Q99 108 106 112" stroke="#5B4A2C" stroke-width="2.5" fill="none"/><circle cx="99" cy="120" r="2.5" fill="#E8C547"/>';
+      case "portulan": return '<rect x="84" y="103" width="26" height="15" rx="2" fill="#F3E6C4" stroke="#C9A96B" stroke-width="1.2"/><path d="M88 115L95 107L102 113L107 106" stroke="#C0392B" stroke-width="1.2" fill="none"/><circle cx="84" cy="110.5" r="3.5" fill="#D9C08A"/><circle cx="110" cy="110.5" r="3.5" fill="#D9C08A"/>';
+      case "astrolabe": return '<circle cx="99" cy="95" r="2.5" fill="none" stroke="#C9A96B" stroke-width="1.5"/><circle cx="99" cy="107" r="10" fill="none" stroke="#C9A96B" stroke-width="3"/><circle cx="99" cy="107" r="5" fill="none" stroke="#C9A96B" stroke-width="1.5"/><path d="M90 104L108 110" stroke="#B8941F" stroke-width="2"/>';
+      case "globe": return '<path d="M99 118V127M93 127H105" stroke="#7A5534" stroke-width="2.5"/><circle cx="99" cy="107" r="10" fill="#4A90C8"/><path d="M93 102Q97 100 100 103Q103 107 99 110Q95 111 94 107Z" fill="#6CBF4A"/><path d="M103 110Q106 111 106 114Q103 116 101 114Z" fill="#6CBF4A"/><path d="M89 107A10 10 0 0 0 109 107" stroke="#C9A96B" stroke-width="1.5" fill="none"/>';
+      case "drapeau": return '<path d="M93 72V144" stroke="#7A5534" stroke-width="3" stroke-linecap="round"/><rect x="94" y="74" width="8" height="16" fill="#2F5DA8"/><rect x="102" y="74" width="8" height="16" fill="#fff"/><rect x="110" y="74" width="8" height="16" fill="#C0392B"/>';
     }
     return "";
   }
@@ -3821,6 +3991,28 @@
       case "couronne": return '<path d="M41 34L43 17L51 26L60 13L69 26L77 17L79 34Z" fill="#E8C547" stroke="#B8941F" stroke-width="1.5" stroke-linejoin="round"/><circle cx="60" cy="28" r="2.6" fill="#B3262E"/><circle cx="49" cy="30" r="2" fill="#2F5DA8"/><circle cx="71" cy="30" r="2" fill="#2F5DA8"/>';
       case "explorateur": return '<ellipse cx="60" cy="34" rx="33" ry="6" fill="#8C744A"/><path d="M44 34Q45 17 60 17Q75 17 76 34Z" fill="#A88B5A"/><path d="M45 29H75" stroke="#5B4A2C" stroke-width="3.5"/>';
       case "bonnet": return '<path d="M37 44Q35 20 58 18Q78 17 86 30Q90 38 82 37Q80 40 83 44Z" fill="#C0392B"/><circle cx="44" cy="38" r="4.5" fill="#2F5DA8"/><circle cx="44" cy="38" r="3" fill="#fff"/><circle cx="44" cy="38" r="1.5" fill="#C0392B"/>';
+      case "paille": return '<ellipse cx="60" cy="33" rx="36" ry="7" fill="#E3C27D"/><path d="M45 33Q46 17 60 17Q74 17 75 33Z" fill="#EBCF8E"/><path d="M45.5 28H74.5" stroke="#C0392B" stroke-width="3"/>';
+      case "beret": return '<ellipse cx="57" cy="29" rx="25" ry="10" fill="#2B2B33"/><path d="M38 33Q60 38 80 32" stroke="#1A1A20" stroke-width="3" fill="none"/>';
+      case "bicorne": return '<path d="M26 36Q60 6 94 36Q60 28 26 36Z" fill="#1E1E24"/><circle cx="60" cy="24" r="4" fill="#2F5DA8"/><circle cx="60" cy="24" r="2.6" fill="#fff"/><circle cx="60" cy="24" r="1.3" fill="#C0392B"/>';
+      case "hautforme": return '<ellipse cx="60" cy="33" rx="27" ry="5" fill="#1E1E24"/><rect x="45" y="6" width="30" height="27" rx="2" fill="#26262E"/><rect x="45" y="26" width="30" height="5" fill="#6A2C3C"/>';
+      case "adrian": return '<path d="M60 14V24" stroke="#5D7396" stroke-width="4" stroke-linecap="round"/><path d="M34 44Q34 20 60 20Q86 20 86 44Z" fill="#6F86A8"/><ellipse cx="60" cy="44" rx="29" ry="4.5" fill="#5D7396"/><circle cx="60" cy="32" r="3" fill="#C9A96B"/>';
+    }
+    return "";
+  }
+  // le compagnon, assis aux pieds du personnage, à gauche
+  function svgCompagnon(id) {
+    switch (id) {
+      case "chouette": return '<ellipse cx="16" cy="134" rx="11" ry="13" fill="#8C6A45"/><ellipse cx="16" cy="138" rx="7" ry="8" fill="#C9A96B"/><path d="M7 122L9 126L12 124Z M25 122L23 126L20 124Z" fill="#8C6A45"/>' +
+        '<circle cx="11.5" cy="129" r="4.2" fill="#fff"/><circle cx="20.5" cy="129" r="4.2" fill="#fff"/><circle cx="11.5" cy="129" r="2" fill="#2A1C14"/><circle cx="20.5" cy="129" r="2" fill="#2A1C14"/><path d="M14.5 132L16 135L17.5 132Z" fill="#E8A33D"/><path d="M12 147h3M17 147h3" stroke="#E8A33D" stroke-width="2"/>';
+      case "chat": return '<path d="M28 146Q36 140 32 130" stroke="#7D7D85" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="17" cy="139" rx="10" ry="9" fill="#9A9AA2"/><circle cx="17" cy="127" r="7.5" fill="#9A9AA2"/>' +
+        '<path d="M10.5 124L11 116L15.5 121Z M23.5 124L23 116L18.5 121Z" fill="#9A9AA2"/><circle cx="14.5" cy="127" r="1.4" fill="#2A1C14"/><circle cx="19.5" cy="127" r="1.4" fill="#2A1C14"/><path d="M16 130L17 131L18 130" stroke="#F08A7E" stroke-width="1.2" fill="none"/>';
+      case "lion": return '<path d="M26 128Q36 118 38 126Q34 128 31 133Z" fill="#E8C547" stroke="#B8941F" stroke-width="1"/><ellipse cx="18" cy="139" rx="11" ry="8" fill="#D9A441"/><circle cx="14" cy="128" r="9" fill="#B5762A"/><circle cx="14" cy="128" r="6" fill="#E3B65C"/>' +
+        '<circle cx="12" cy="127" r="1.2" fill="#2A1C14"/><circle cx="16" cy="127" r="1.2" fill="#2A1C14"/><path d="M13 130.5Q14 131.5 15 130.5" stroke="#7A3B2E" stroke-width="1" fill="none"/>';
+      case "chien": return '<path d="M28 136Q33 130 31 126" stroke="#B07A45" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="18" cy="139" rx="11" ry="8" fill="#B07A45"/><circle cx="14" cy="128" r="7.5" fill="#C48A52"/>' +
+        '<ellipse cx="8.5" cy="129" rx="2.8" ry="5" fill="#7A5534"/><ellipse cx="19.5" cy="129" rx="2.8" ry="5" fill="#7A5534"/><circle cx="12" cy="127" r="1.3" fill="#2A1C14"/><circle cx="16" cy="127" r="1.3" fill="#2A1C14"/><ellipse cx="14" cy="131" rx="2" ry="1.4" fill="#2A1C14"/>';
+      case "perroquet": return '<path d="M14 144L10 149" stroke="#C0392B" stroke-width="3" stroke-linecap="round"/><ellipse cx="16" cy="135" rx="8" ry="11" fill="#2E9E5B"/><path d="M19 132Q27 140 20 146Z" fill="#2F5DA8"/><circle cx="15" cy="125" r="6" fill="#C0392B"/>' +
+        '<circle cx="16.5" cy="124" r="1.5" fill="#fff"/><circle cx="16.8" cy="124" r=".8" fill="#2A1C14"/><path d="M9.5 125Q8 128 11 129" stroke="#F4D03F" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+      case "tortue": return '<ellipse cx="17" cy="142" rx="13" ry="6.5" fill="#3F8F3A"/><path d="M6 141Q17 126 28 141Z" fill="#57A84A"/><path d="M11 139L17 133L23 139" stroke="#2E6B2A" stroke-width="1.2" fill="none"/><circle cx="31" cy="140" r="3.6" fill="#7FB069"/><circle cx="32" cy="139" r=".8" fill="#2A1C14"/>';
     }
     return "";
   }
@@ -3829,7 +4021,7 @@
     var t = trouverDans("tenue", p.tenue) || AV_TENUES[0];
     var s = '<svg viewBox="' + (buste ? "22 8 76 76" : "0 0 120 150") + '" class="av-perso-svg" aria-hidden="true" focusable="false">';
     if (!buste) s += '<ellipse cx="60" cy="143" rx="30" ry="5" fill="rgba(0,0,0,.22)"/>';
-    s += svgCheveuxDerriere(p) + '<rect x="54" y="68" width="12" height="12" rx="4" fill="' + p.peau + '"/>' + svgTenue(t);
+    s += svgCheveuxDerriere(p) + '<rect x="54" y="68" width="12" height="12" rx="4" fill="' + p.peau + '"/>' + svgTenue(t, p);
     if (!buste) s += svgObjet(p.objet);
     s += '<circle cx="30" cy="121" r="5.5" fill="' + p.peau + '"/><circle cx="92" cy="117" r="5.5" fill="' + p.peau + '"/>' +
       '<circle cx="38.5" cy="52" r="4.5" fill="' + p.peau + '"/><circle cx="81.5" cy="52" r="4.5" fill="' + p.peau + '"/>' +
@@ -3838,7 +4030,7 @@
       '<circle cx="52.9" cy="51.1" r=".9" fill="#fff"/><circle cx="68.9" cy="51.1" r=".9" fill="#fff"/>' +
       '<circle cx="46.5" cy="59" r="3.6" fill="#F08A7E" opacity=".35"/><circle cx="73.5" cy="59" r="3.6" fill="#F08A7E" opacity=".35"/>' +
       svgBarbe(p) + '<path d="M55 63Q60 67 65 63" stroke="#7A3B2E" stroke-width="2" fill="none" stroke-linecap="round"/>' +
-      svgCheveuxDevant(p) + svgChapeau(p.chapeau) + "</svg>";
+      svgCheveuxDevant(p) + svgChapeau(p.chapeau) + (buste || !p.compagnon ? "" : '<g transform="translate(-4 150) scale(1.4) translate(0 -150)">' + svgCompagnon(p.compagnon) + "</g>") + "</svg>";
     return s;
   }
   function avecPiece(p, cat, id) {
@@ -3907,7 +4099,11 @@
     vide: '<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z" fill="#3A3F75"/>',
     coeur: '<path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z" fill="#FF5A6E"/>',
     coeurVide: '<path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z" fill="#3A3F75"/>',
-    cible: '<circle cx="12" cy="12" r="9" fill="#FF5A6E"/><circle cx="12" cy="12" r="6" fill="#fff"/><circle cx="12" cy="12" r="3" fill="#FF5A6E"/>'
+    medaille: '<path d="M7 2h4l1.5 6-3.5 1.5zM17 2h-4l-1.5 6 3.5 1.5z" fill="#E0457B"/><circle cx="12" cy="15" r="7" fill="#F5C842" stroke="#C9971B" stroke-width="1.5"/><path d="M12 11l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.4 1.3.5-2.6-1.9-1.8 2.6-.4z" fill="#C9971B"/>',
+    coche: '<circle cx="12" cy="12" r="10" fill="#22C55E"/><path d="M7 12.5l3.5 3.5L17 9" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    cible: '<circle cx="12" cy="12" r="9" fill="#FF5A6E"/><circle cx="12" cy="12" r="6" fill="#fff"/><circle cx="12" cy="12" r="3" fill="#FF5A6E"/>',
+    ducat: '<circle cx="12" cy="12" r="9.5" fill="#F5C842" stroke="#C9971B" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#C9971B" stroke-width="1.5"/><path d="M12 8.5V15.5" stroke="#C9971B" stroke-width="1.5"/>',
+    parchemin: '<path d="M6 4h11a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H8" fill="#F3E6C4" stroke="#C9A96B" stroke-width="1.5"/><path d="M8 21a2 2 0 0 1-2-2V4a2 2 0 0 0-2 2v2h2" fill="#D9C08A" stroke="#C9A96B" stroke-width="1.5"/><path d="M10 9h6M10 12.5h6M10 16h4" stroke="#8C6A45" stroke-width="1.5" stroke-linecap="round"/>'
   };
   function symbole(nom) { return '<svg class="av-sym" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + AV_SYMBOLES[nom] + "</svg>"; }
   function avecSymbole(nom, texte, cls) {
@@ -3961,6 +4157,7 @@
     if (av.serie.jour === auj) return;
     av.serie.n = av.serie.jour === hier ? av.serie.n + 1 : 1;
     av.serie.jour = auj;
+    if (av.serie.n > (av.stats.serieMax || 0)) { av.stats.serieMax = av.serie.n; verifierRecompenses(); }
   }
   function serieActuelle() {
     var auj = jourLocal(Date.now()), hier = jourLocal(Date.now() - JOUR);
@@ -3969,17 +4166,43 @@
 
   // ----- Les questions, tirées des champs du chapitre -----
   function nomDe(x) { return x.nom; }
-  function troisOptions(opts, bonne) {
+  // la bonne réponse et autant de leurres que la difficulté le demande (propositions en donne 3)
+  function choisirOptions(opts, bonne, nb) {
     if (!opts) return null;
-    return melanger([bonne].concat(opts.filter(function (o) { return o !== bonne; }).slice(0, 2)));
+    return melanger([bonne].concat(opts.filter(function (o) { return o !== bonne; }).slice(0, nb - 1)));
   }
   function ailleursQue(ch, b, champ) {
     var out = [];
     blocs(ch).forEach(function (x) { if (x.id !== b.id) out = out.concat(liste(x.data, champ)); });
     return out.concat(autresDuNiveau(ch, champ));
   }
+  // une réponse écrite : sans tenir compte des majuscules, des accents ni de l'article ; une faute de frappe passe dans un mot long
+  function distance(a, b) {
+    var d = [], i, j;
+    for (i = 0; i <= a.length; i++) { d[i] = [i]; }
+    for (j = 0; j <= b.length; j++) d[0][j] = j;
+    for (i = 1; i <= a.length; i++) for (j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
+  }
+  function nettoyer(s) {
+    return normaliser(s).replace(/['’]/g, " ").replace(/[^a-z0-9 ]/g, " ").replace(/^(le|la|les|l|un|une|des) /, "").replace(/\s+/g, " ").trim();
+  }
+  function comparerSaisie(saisie, bonne, nombre) {
+    var a = nettoyer(saisie), b = nettoyer(bonne);
+    if (!a) return { ok: false };
+    if (a === b) return { ok: true };
+    if (nombre) return { ok: false };
+    var d = distance(a, b);
+    if ((b.length >= 6 && d <= 1) || (b.length >= 11 && d <= 2)) return { ok: true, presque: true };
+    return { ok: false };
+  }
+  function aideSaisie(mot, diff) {
+    var lettres = mot.replace(/[^A-Za-zÀ-ÿ]/g, "").length, mots = mot.trim().split(/\s+/).length;
+    var taille = mots > 1 ? mots + " mots, " + lettres + " lettres" : lettres + " lettres";
+    return diff.aide >= 2 ? "Indice : « " + mot.charAt(0).toUpperCase() + "… », " + taille + "." : "Indice : " + taille + ".";
+  }
   // les phrases d'un texte à trous : un mot entre [crochets] à glisser, les autres mots du texte en leurres
-  function phrasesATrous(d) {
+  function phrasesATrous(d, diff) {
     var res = [];
     liste(d, "trous").forEach(function (t) {
       var tous = [];
@@ -3991,8 +4214,8 @@
         if (!ici.length) return;
         var w = ici[Math.floor(Math.random() * ici.length)];
         var k = ph.indexOf("[" + w + "]");
-        var faux = melanger(tous.filter(function (x) { return normaliser(x) !== normaliser(w); })).slice(0, 3);
-        if (faux.length < 3) return;
+        var faux = melanger(tous.filter(function (x) { return normaliser(x) !== normaliser(w); })).slice(0, diff.options - 1);
+        if (faux.length < 2) return;
         function propre(s) { return s.replace(/\[([^\]]+)\]/g, "$1"); }
         res.push({ type: "glisser", consigne: "Complète la phrase", avant: propre(ph.slice(0, k)).replace(/^\s+/, ""),
           apres: propre(ph.slice(k + w.length + 2)).replace(/\s+$/, ""), options: melanger([w].concat(faux)), bonne: w,
@@ -4002,111 +4225,162 @@
     return res;
   }
   function poolMots(ch, b) {
-    var d = b.data, qs = [];
+    var d = b.data, qs = [], diff = difficulte(ch);
     var notions = melanger(liste(d, "notions")), autres = ailleursQue(ch, b, "notions");
     var mot = function (n) { return n.mot; }, def = function (n) { return n.def; };
     var types = ["choix", "glisser", "vf", "sens"];
     notions.forEach(function (n, i) {
       var expl = n.mot + " : " + n.def, t = types[i % types.length], o;
       if (t === "choix") {
-        o = troisOptions(propositions(n, notions, autres, mot, mot), n.mot);
+        o = choisirOptions(propositions(n, notions, autres, mot, mot), n.mot, diff.options);
         if (o) qs.push({ type: "choix", consigne: "Quel mot correspond ?", bulle: n.def, options: o, bonne: n.mot, expl: expl });
       } else if (t === "sens") {
-        o = troisOptions(propositions(n, notions, autres, def, mot), n.def);
+        o = choisirOptions(propositions(n, notions, autres, def, mot), n.def, diff.options);
         if (o) qs.push({ type: "choix", consigne: "Que signifie « " + n.mot + " » ?", options: o, bonne: n.def, expl: expl });
       } else if (t === "glisser") {
-        o = propositions(n, notions, autres, mot, mot);
+        o = choisirOptions(propositions(n, notions, autres, mot, mot), n.mot, diff.options);
         if (o) qs.push({ type: "glisser", consigne: "Glisse le bon mot", avant: "", apres: " : " + n.def, options: o, bonne: n.mot, expl: expl });
       } else {
         var autre = melanger(notions.concat(autres).filter(function (x) { return normaliser(x.mot) !== normaliser(n.mot) && normaliser(x.def) !== normaliser(n.def); }))[0];
         var vrai = !autre || Math.random() < .5;
         qs.push({ type: "vf", titre: n.mot, texte: vrai ? n.def : autre.def, vrai: vrai, expl: expl });
       }
+      // au lycée : le mot à écrire soi-même
+      if (diff.saisie && n.mot.length <= 28) qs.push({ type: "saisie", consigne: "Écris le mot qui correspond", bulle: n.def, bonne: n.mot, aide: aideSaisie(n.mot, diff), expl: expl });
     });
-    qs = qs.concat(phrasesATrous(d));
+    qs = qs.concat(phrasesATrous(d, diff));
     var courtes = notions.filter(function (n) { return n.def.length <= 130; });
     if (courtes.length >= 4) qs.push({ type: "paires", paires: courtes.slice(0, 4).map(function (n) { return { g: n.mot, d: n.def }; }) });
     return qs;
   }
   function poolDates(ch, b) {
-    var d = b.data, qs = [];
+    var d = b.data, qs = [], diff = difficulte(ch);
     var reps = melanger(evenementsFrise(d)), autresR = ailleursQue(ch, b, "reperes");
     var date = function (r) { return r.date; }, txt = function (r) { return r.txt; };
-    // d'autres dates plausibles : d'abord celles du même bloc, puis celles du chapitre et du niveau
+    // d'autres dates plausibles : au collège, prises au hasard dans le bloc puis le chapitre ;
+    // au lycée, les plus proches dans le temps (plus difficile)
     function autresDates(r) {
       var vus = {};
       vus[r.date] = true; vus["v" + valeurDate(r.a)] = true;
-      return melanger(reps).concat(melanger(autresR)).filter(function (x) {
+      var c = melanger(reps).concat(melanger(autresR)).filter(function (x) {
         if (vus[x.date] || vus["v" + valeurDate(x.a)]) return false;
         vus[x.date] = true; vus["v" + valeurDate(x.a)] = true;
         return true;
       });
+      if (diff.proches) c.sort(function (x, y) { return Math.abs(valeurDate(x.a) - valeurDate(r.a)) - Math.abs(valeurDate(y.a) - valeurDate(r.a)); });
+      return c;
     }
     reps.forEach(function (r, i) {
       var expl = r.date + " : " + r.txt, t = i % 3, o;
       if (t === 0) {
-        var lot = [r].concat(autresDates(r).slice(0, r.date.length > 6 ? 3 : 4));
+        var lot = [r].concat(autresDates(r).slice(0, (r.date.length > 6 ? diff.dates - 1 : diff.dates) - 1));
         if (lot.length < 3) return;
-        lot.sort(function (a, c) { return valeurDate(a.a) - valeurDate(c.a); });
+        lot.sort(function (x, y) { return valeurDate(x.a) - valeurDate(y.a); });
         qs.push({ type: "curseur", enonce: r.txt, dates: lot.map(date), bonne: lot.indexOf(r), bonneTexte: r.date, expl: expl });
       } else if (t === 1) {
-        o = troisOptions(propositions(r, reps, autresR, txt, date), r.txt);
+        o = choisirOptions(propositions(r, reps, autresR, txt, date), r.txt, diff.options);
         if (o) qs.push({ type: "choix", consigne: "Que s'est-il passé ?", bulle: r.date, grand: true, options: o, bonne: r.txt, expl: expl });
       } else {
         var leurre = autresDates(r)[0];
         var vrai = !leurre || Math.random() < .5;
         qs.push({ type: "vf", titre: vrai ? r.date : leurre.date, texte: r.txt, vrai: vrai, expl: expl });
       }
+      // au lycée : l'année à écrire, quand c'est une année simple
+      if (diff.saisie && /^\d{3,4}$/.test(r.date)) qs.push({ type: "saisie", consigne: "En quelle année ?", bulle: r.txt, bonne: r.date, nombre: true, expl: expl });
     });
     var pourOrdre = reps.length >= 3 ? reps : evenementsFrise(ch);
-    if (pourOrdre.length >= 3) qs.push({ type: "ordre", items: melanger(pourOrdre).slice(0, pourOrdre.length >= 4 ? 4 : 3) });
+    if (pourOrdre.length >= 3) qs.push({ type: "ordre", items: melanger(pourOrdre).slice(0, Math.min(diff.ordre, pourOrdre.length)) });
     var courts = uniquesPar(reps, function (r) { return r.date; }).filter(function (r) { return r.txt.length <= 110; });
     if (courts.length >= 4) qs.push({ type: "paires", paires: courts.slice(0, 4).map(function (r) { return { g: r.date, d: r.txt }; }) });
     var pers = liste(d, "personnages"), autresP = ailleursQue(ch, b, "personnages");
     pers.forEach(function (p) {
-      var op = troisOptions(propositions(p, pers, autresP, nomDe, nomDe), p.nom);
-      if (op && p.txt && p.txt.length) qs.push({ type: "quisuisje", indices: p.txt, options: op, bonne: p.nom, expl: p.nom + (p.dates ? " (" + p.dates + ")" : "") + " : " + p.txt[p.txt.length - 1] });
+      var op = choisirOptions(propositions(p, pers, autresP, nomDe, nomDe), p.nom, diff.options);
+      if (op && p.txt && p.txt.length) qs.push({ type: "quisuisje", indices: p.txt, vus: Math.min(diff.indices, p.txt.length), options: op, bonne: p.nom, expl: p.nom + (p.dates ? " (" + p.dates + ")" : "") + " : " + p.txt[p.txt.length - 1] });
     });
     return qs;
   }
-  function poolLieux(ch, b) {
-    var d = b.data, qs = [];
+  // les lieux d'un bloc, rangés par fond de carte ; un bloc peut choisir son propre fond (champ carte)
+  function cartesDuBloc(ch, b) {
+    if (b.data.carte && typeof FONDS !== "undefined") {
+      var fonds = (Array.isArray(b.data.carte) ? b.data.carte : [b.data.carte]).map(function (id) { return FONDS[id]; }).filter(Boolean);
+      var groupes = fonds.map(function (f) { return { fond: f, lieux: [] }; });
+      lieuxCarte(ch, b.id).forEach(function (p) {
+        for (var k = 0; k < fonds.length; k++) if (dansFond(fonds[k], p)) { groupes[k].lieux.push(p); return; }
+      });
+      return groupes.map(function (g) { return { fond: g.fond, lieux: g.lieux, contexte: g.lieux }; });
+    }
     var tout = cartesDuChapitre(ch, null, 1);
-    cartesDuChapitre(ch, b.id, 1).forEach(function (r) {
-      var contexte = (tout.filter(function (t) { return t.fond.id === r.fond.id; })[0] || r).lieux;
-      if (contexte.length < 3) return;
+    return cartesDuChapitre(ch, b.id, 1).map(function (r) {
+      return { fond: r.fond, lieux: r.lieux, contexte: (tout.filter(function (t) { return t.fond.id === r.fond.id; })[0] || r).lieux };
+    });
+  }
+  function poolLieux(ch, b) {
+    var d = b.data, qs = [], diff = difficulte(ch), chap = d.chId || ch.id;
+    cartesDuBloc(ch, b).forEach(function (r) {
+      if (r.contexte.length < 3) return;
       r.lieux.forEach(function (p) {
-        var lieux = melanger([p].concat(melanger(contexte.filter(function (x) { return normaliser(x.nom) !== normaliser(p.nom); })).slice(0, 4)));
-        qs.push({ type: "carte", fond: r.fond, lieux: lieux, cible: lieux.indexOf(p), bonneTexte: p.nom, expl: p.nom + " : " + p.txt });
+        var lieux = melanger([p].concat(melanger(r.contexte.filter(function (x) { return normaliser(x.nom) !== normaliser(p.nom); })).slice(0, diff.points - 1)));
+        var q = { type: "carte", fond: r.fond, lieux: lieux, cible: lieux.indexOf(p), bonneTexte: p.nom, expl: p.nom + " : " + p.txt };
+        qs.push(q);
+        // en Première : la carte sans les points, il faut situer le lieu soi-même
+        if (diff.experte) qs.push({ type: "experte", expert: true, fond: r.fond, lieux: lieux, cible: q.cible, bonneTexte: p.nom, expl: q.expl });
       });
     });
     var lieux = liste(d, "lieux"), autresL = ailleursQue(ch, b, "lieux");
     lieux.forEach(function (l) {
-      var o = troisOptions(propositions(l, lieux, autresL, nomDe, nomDe), l.nom);
+      var o = choisirOptions(propositions(l, lieux, autresL, nomDe, nomDe), l.nom, diff.options);
       if (o) qs.push({ type: "choix", consigne: "De quel lieu s'agit-il ?", bulle: l.txt, options: o, bonne: l.nom, expl: l.nom + " : " + l.txt });
     });
     imagesChapitre(ch, b.id).forEach(function (x) {
-      var dets = liste(x.d, "details");
+      var dets = liste(x.d, "details"), ref = { c: chap, id: x.id };
       if (dets.length >= 3) melanger(dets.map(function (dt, k) { return k; })).slice(0, 2).forEach(function (k) {
-        qs.push({ type: "detail", d: x.d, k: k, bonneTexte: "le numéro " + (k + 1), expl: dets[k].nom + " : " + dets[k].txt });
+        qs.push({ type: "detail", d: x.d, ref: ref, k: k, bonneTexte: "le numéro " + (k + 1), expl: dets[k].nom + " : " + dets[k].txt });
       });
       questionsDocument(ch, x).forEach(function (qd) {
-        qs.push({ type: "choix", consigne: qd.enonce, image: x.d, options: troisOptions(qd.options, qd.bonne), bonne: qd.bonne, expl: qd.expl });
+        qs.push({ type: "choix", consigne: qd.enonce, image: x.d, ref: ref, options: choisirOptions(qd.options, qd.bonne, diff.options), bonne: qd.bonne, expl: qd.expl });
       });
     });
     return qs;
   }
+  // des questions toutes faites (champ questions : { q, r, faux, expl }) ; les siècles sont calculés
+  function questionsSiecles() {
+    var qs = [];
+    [-52, 476, 622, 800, 987, 1096, 1453, 1492, 1515, 1598, 1661, 1715, 1789, 1800, 1848, 1900, 1914, 1945, 2000, 2024].forEach(function (a) {
+      var y = Math.abs(a), s = Math.floor((y - 1) / 100) + 1, avjc = a < 0 ? " av. J.-C." : "";
+      var faux = [s - 1, s + 1, s + 2, s - 2].filter(function (k) { return k >= 1 && k <= 21; }).map(function (k) { return nomSiecle(k) + avjc; });
+      if (a < 0) faux.unshift(nomSiecle(s));
+      var bornes = a < 0 ? "de " + (s * 100) + " à " + ((s - 1) * 100 + 1) + " av. J.-C." : "de " + ((s - 1) * 100 + 1) + " à " + (s * 100);
+      qs.push({ q: "En quel siècle se situe l'année " + (a < 0 ? y + " av. J.-C." : a) + " ?", r: nomSiecle(s) + avjc, faux: faux,
+        expl: (a < 0 ? y + " av. J.-C." : "L'année " + a) + " appartient au " + nomSiecle(s) + avjc + " (" + bornes + ")." });
+    });
+    [5, 10, 13, 15, 16, 18, 19, 20, 21].forEach(function (s) {
+      var debut = (s - 1) * 100 + 1, fin = s * 100;
+      qs.push({ q: "Le " + nomSiecle(s) + " va…", r: "de " + debut + " à " + fin,
+        faux: ["de " + (debut - 1) + " à " + (fin - 1), "de " + (debut + 100) + " à " + (fin + 100), "de " + (debut - 100) + " à " + (fin - 100)],
+        expl: "Un siècle commence par une année en 01 et finit par une année en 00 : le " + nomSiecle(s) + " va de " + debut + " à " + fin + "." });
+    });
+    return qs;
+  }
+  function poolQuiz(ch, b) {
+    var diff = difficulte(ch);
+    var source = b.data.siecles ? questionsSiecles() : liste(b.data, "questions");
+    return source.map(function (x) {
+      return { type: "choix", consigne: "Choisis la bonne réponse", bulle: x.q, options: choisirOptions([x.r].concat(melanger(x.faux)), x.r, diff.options), bonne: x.r, expl: x.expl };
+    });
+  }
   var MODELES_NIVEAUX = [
     { id: "mots", icone: "essentiel", titre: function () { return "Les mots"; }, pool: poolMots },
     { id: "dates", icone: "frise", titre: function (b) { return liste(b.data, "personnages").length ? "Dates et acteurs" : "Les dates"; }, pool: poolDates },
-    { id: "lieux", icone: "carte", titre: function (b) { return liste(b.data, "documents").some(function (x) { return x.image; }) ? "Lieux et documents" : "Les lieux"; }, pool: poolLieux }
+    { id: "lieux", icone: "carte", titre: function (b) { return liste(b.data, "documents").some(function (x) { return x.image; }) ? "Lieux et documents" : "Les lieux"; }, pool: poolLieux },
+    { id: "quiz", icone: "quiz", titre: function (b) { return b.data.siecles ? "Les siècles" : "Le quiz"; }, pool: poolQuiz }
   ];
-  // un niveau : des types variés, à tour de rôle, sans trop de questions longues (paires, ordre, carte…)
-  var MAX_PAR_TYPE = { paires: 1, ordre: 1, curseur: 2, carte: 3, detail: 2, quisuisje: 2 };
-  function composer(pool, nb) {
+  // un niveau : des types variés, à tour de rôle, sans trop de questions longues ; le nombre de réponses
+  // écrites et de cartes « expertes » dépend de la classe
+  function composer(pool, nb, diff) {
+    var max = { paires: 1, ordre: 1, curseur: 2, carte: diff.carte, experte: diff.experte, detail: 2, quisuisje: 2, saisie: diff.saisie };
     var parType = {};
     melanger(pool).forEach(function (q) { (parType[q.type] = parType[q.type] || []).push(q); });
-    Object.keys(parType).forEach(function (t) { if (MAX_PAR_TYPE[t]) parType[t] = parType[t].slice(0, MAX_PAR_TYPE[t]); });
+    Object.keys(parType).forEach(function (t) { if (t in max) parType[t] = parType[t].slice(0, max[t]); });
     var types = melanger(Object.keys(parType)), out = [];
     while (out.length < nb && types.some(function (t) { return parType[t].length; })) {
       types.forEach(function (t) { if (out.length < nb && parType[t].length) out.push(parType[t].shift()); });
@@ -4114,51 +4388,241 @@
     return out;
   }
 
-  // ----- Le chemin d'un chapitre : niveaux et coffres de chaque unité, puis le défi final -----
+  // ----- Les parcours : un chapitre, le parcours de l'année d'une classe, les repères fondamentaux -----
+  function rangNiveau(n) { for (var i = 0; i < NIVEAUX.length; i++) if (NIVEAUX[i].id === n) return i; return -1; }
+  // les chapitres ouverts d'une classe, dans l'ordre du plan de l'année
+  function chapitresDansLOrdre(n) {
+    var vus = {}, res = [];
+    var classe = PLAN.filter(function (c) { return c.id === n; })[0];
+    (classe && Array.isArray(classe.annee) ? classe.annee : []).forEach(function (t) {
+      liste(t, "chapitres").forEach(function (c) {
+        var ch = c.fiche ? chapitre(c.fiche) : null;
+        if (ch && ch.n === n && estVisible(ch) && !vus[ch.id]) { vus[ch.id] = true; res.push(ch); }
+      });
+    });
+    chapitresNiveau(n).forEach(function (ch) { if (!vus[ch.id]) res.push(ch); });
+    return res;
+  }
+  // un « chapitre » dont chaque unité est un chapitre ouvert de la classe (cours et points de passage réunis)
+  function parcoursAnnee(n) {
+    return { id: "annee-" + n, n: n, d: "histoire", special: "annee", num: nomNiveau(n), titre: "Parcours de l'année",
+      ppo: chapitresDansLOrdre(n).map(function (c) {
+        var b = { id: c.id, court: c.num + " · " + DISC[c.d], titre: c.titre, d: c.d, carte: c.carte, chId: c.id };
+        ["notions", "reperes", "personnages", "lieux", "documents", "trous"].forEach(function (k) {
+          b[k] = [];
+          blocs(c).forEach(function (x) { b[k] = b[k].concat(liste(x.data, k)); });
+        });
+        return b;
+      }) };
+  }
+  function parcoursReperes(n) {
+    var unites = typeof REPERES_FONDAMENTAUX !== "undefined" ? REPERES_FONDAMENTAUX : [];
+    return { id: "reperes-" + n, n: n, d: "histoire", special: "reperes", num: nomNiveau(n), titre: "Repères fondamentaux",
+      ppo: unites.filter(function (u) { return !u.min || rangNiveau(n) >= rangNiveau(u.min); }) };
+  }
+  function cheminAventure(id) {
+    var m = /^(annee|reperes)-(.+)$/.exec(id || "");
+    if (!m) return chapitre(id);
+    if (rangNiveau(m[2]) < 0) return null;
+    return m[1] === "annee" ? parcoursAnnee(m[2]) : parcoursReperes(m[2]);
+  }
+  function retourAventure(ch) { return ch.special ? "#/niveau/" + ch.n : lienChapitre(ch); }
+
+  // le chemin : niveaux et coffre de chaque unité (plus une île de révision par chapitre dans le parcours de l'année), puis le défi
   function routeAventure(ch) {
     var noeuds = [], unites = [];
     blocs(ch).forEach(function (b) {
       var niv = MODELES_NIVEAUX.filter(function (m) { return m.pool(ch, b).length >= 4; });
       if (!niv.length) return;
-      var u = { bloc: b, num: unites.length + 1, nom: b.id === "cours" ? "Le cours" : b.nom };
+      var u = { bloc: b, num: unites.length + 1, nom: b.id === "cours" ? "Le cours" : ch.special === "annee" ? b.data.titre : b.nom,
+        petit: ch.special === "annee" ? b.data.court : "Unité " + (unites.length + 1) };
       niv.forEach(function (m, k) {
         noeuds.push({ type: "niveau", cle: ch.id + "|" + b.id + "|" + m.id, unite: u, m: m, rang: k + 1, nom: m.titre(b), icone: m.icone });
       });
       noeuds.push({ type: "coffre", cle: ch.id + "|" + b.id, unite: u, nom: "Le coffre", icone: "coffre" });
+      if (ch.special === "annee" && unites.length >= 1) noeuds.push({ type: "revision", cle: ch.id + "|rev|" + b.id, unite: u, jusque: unites.length, nom: "Révision : les " + (unites.length + 1) + " premiers chapitres", icone: "eclair" });
       unites.push(u);
     });
-    if (noeuds.length) noeuds.push({ type: "defi", cle: ch.id + "|defi", unite: null, nom: "Le défi final", icone: "bouclier" });
+    if (noeuds.length) noeuds.push({ type: "defi", cle: ch.id + "|defi", unite: null, icone: "bouclier",
+      nom: ch.special === "annee" ? "Le grand défi de l'année" : ch.special === "reperes" ? "Le défi des repères" : "Le défi final" });
     noeuds.forEach(function (n, i) { n.i = i; });
-    return { noeuds: noeuds, unites: unites };
+    return { noeuds: noeuds, unites: unites, parUnite: !!ch.special };
   }
-  // un niveau est réussi à partir de 2 étoiles ; le défi, dès qu'on le finit avec au moins une vie
+  // un niveau (ou une révision) est réussi à partir de 2 étoiles ; le défi, dès qu'on le finit avec au moins une vie
   function noeudFait(n) {
     if (n.type === "coffre") return !!av.coffres[n.cle];
     var x = av.niveaux[n.cle];
     return !!x && (n.type === "defi" || x.e >= ETOILES_POUR_PASSER);
   }
-  function premierAFaire(route) {
-    for (var i = 0; i < route.noeuds.length; i++) if (!noeudFait(route.noeuds[i])) return i;
+  // les étapes s'enchaînent ; dans les grands parcours, chaque unité (un chapitre, un thème) s'ouvre sans attendre les autres
+  function noeudOuvert(route, n) {
+    if (toutOuvert()) return true;
+    for (var i = 0; i < n.i; i++) {
+      var x = route.noeuds[i];
+      if (route.parUnite && n.unite && x.unite !== n.unite) continue;
+      if (!noeudFait(x)) return false;
+    }
+    return true;
+  }
+  function etapeDuMoment(route) {
+    for (var i = 0; i < route.noeuds.length; i++) if (!noeudFait(route.noeuds[i]) && noeudOuvert(route, route.noeuds[i])) return i;
     return -1;
   }
-  function noeudOuvert(route, n) { var p = premierAFaire(route); return toutOuvert() || p < 0 || n.i <= p; }
   function etoilesDe(n) { var x = av.niveaux[n.cle]; return x ? x.e : 0; }
   function etoilesRoute(route) { return route.noeuds.reduce(function (s, n) { return s + etoilesDe(n); }, 0); }
-  function poolNoeud(ch, n) {
-    if (n.type === "defi") {
-      var tout = [];
-      blocs(ch).forEach(function (b) { MODELES_NIVEAUX.forEach(function (m) { tout = tout.concat(m.pool(ch, b)); }); });
-      return tout;
+  function poolNoeud(ch, route, n) {
+    if (n.type === "niveau") return n.m.pool(ch, n.unite.bloc);
+    var tout = [];
+    (n.type === "revision" ? route.unites.slice(0, n.jusque + 1) : route.unites).forEach(function (u) {
+      MODELES_NIVEAUX.forEach(function (m) { tout = tout.concat(m.pool(ch, u.bloc)); });
+    });
+    return tout;
+  }
+
+  // ----- L'île des erreurs : une question ratée revient le lendemain, puis 3 et 7 jours après une bonne réponse -----
+  var DELAIS_ERREURS = [1, 3, 7];
+  function debutJour(t) { var d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); }
+  function signature(q) { return q.type + "|" + (q.bonneTexte || q.bonne || "") + "|" + (q.bulle || q.enonce || q.texte || q.expl || ""); }
+  function ajouterErreur(q) {
+    if (q.type === "paires") return;
+    var e = {};
+    Object.keys(q).forEach(function (k) { if (["fond", "d", "image", "revue", "erreur"].indexOf(k) < 0) e[k] = q[k]; });
+    if (q.fond) e.fondId = q.fond.id;
+    var sig = signature(q);
+    av.erreurs = av.erreurs.filter(function (x) { return x.sig !== sig; });
+    // en mode professeur ou démonstration, l'île se remplit tout de suite, pour qu'on puisse l'essayer
+    av.erreurs.push({ sig: sig, q: e, b: 0, t: toutOuvert() ? Date.now() : debutJour(Date.now()) + DELAIS_ERREURS[0] * JOUR });
+    if (av.erreurs.length > 60) av.erreurs = av.erreurs.slice(-60);
+  }
+  function restaurerErreur(e) {
+    var q = {};
+    Object.keys(e.q).forEach(function (k) { q[k] = e.q[k]; });
+    if (q.fondId) { q.fond = typeof FONDS !== "undefined" ? FONDS[q.fondId] : null; if (!q.fond) return null; }
+    if (q.ref) {
+      var c = chapitre(q.ref.c), x = c ? documentParId(c, q.ref.id) : null;
+      if (!x) return null;
+      if (q.type === "detail") q.d = x.d; else q.image = x.d;
     }
-    return n.m.pool(ch, n.unite.bloc);
+    if (q.options) q.options = melanger(q.options);
+    if (q.lieux) { var cible = q.lieux[q.cible]; q.lieux = melanger(q.lieux); q.cible = q.lieux.indexOf(cible); }
+    q.erreur = e.sig;
+    return q;
+  }
+  function erreursDues() { var t = Date.now(); return av.erreurs.filter(function (e) { return e.t <= t; }); }
+  function noterErreur(sig, juste) {
+    var e = av.erreurs.filter(function (x) { return x.sig === sig; })[0];
+    if (!e) return;
+    if (juste) {
+      e.b++;
+      if (e.b >= DELAIS_ERREURS.length) { av.erreurs = av.erreurs.filter(function (x) { return x !== e; }); return; }
+      e.t = debutJour(Date.now()) + DELAIS_ERREURS[e.b] * JOUR;
+    } else { e.b = 0; e.t = debutJour(Date.now()) + DELAIS_ERREURS[0] * JOUR; }
+  }
+
+  // ----- Quêtes du jour, badges et surnoms, ducats -----
+  var AV_QUETES = [
+    { id: "niveaux", txt: "Réussis 2 niveaux", stat: "niveaux", cible: 2, gain: 15 },
+    { id: "bonnes", txt: "Donne 15 bonnes réponses", stat: "bonnes", cible: 15, gain: 10 },
+    { id: "combo", txt: "Enchaîne 5 bonnes réponses d'affilée", stat: "combo5", cible: 1, gain: 15 },
+    { id: "etoiles", txt: "Gagne 5 étoiles", stat: "etoiles", cible: 5, gain: 15 },
+    { id: "carte", txt: "Trouve 3 lieux sur une carte", stat: "carte", cible: 3, gain: 10 },
+    { id: "dates", txt: "Place 3 dates sur une frise", stat: "dates", cible: 3, gain: 10 },
+    { id: "revues", txt: "Corrige 3 erreurs sur l'île des erreurs", stat: "revues", cible: 3, gain: 15, siErreurs: true },
+    { id: "parfait", txt: "Réussis un niveau sans faute", stat: "sansFaute", cible: 1, gain: 20 }
+  ];
+  function graine(s) { var h = 7; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 1000003; return h; }
+  // trois quêtes par jour, les mêmes toute la journée
+  function journee() {
+    var auj = jourLocal(Date.now());
+    if (av.jour.date !== auj) {
+      var dispo = AV_QUETES.filter(function (q) { return !q.siErreurs || av.erreurs.length; });
+      var g = graine(auj), choix = [];
+      while (choix.length < 3 && dispo.length) { var k = g % dispo.length; choix.push(dispo[k].id); dispo.splice(k, 1); g = Math.floor(g / 3) + 17; }
+      av.jour = { date: auj, compte: {}, quetes: choix, recues: [] };
+    }
+    return av.jour;
+  }
+  var annonces = []; // récompenses gagnées pendant un niveau, rappelées sur l'écran de fin
+  function compter(stat, n) {
+    n = n === undefined ? 1 : n;
+    if (!n) return;
+    av.stats[stat] = (av.stats[stat] || 0) + n;
+    var j = journee();
+    j.compte[stat] = (j.compte[stat] || 0) + n;
+    verifierRecompenses();
+  }
+  function valeurBadge(b) { return b.stat === "xp" ? av.xp : b.stat === "objets" ? nbPossessions() : av.stats[b.stat] || 0; }
+  function verifierRecompenses() {
+    var j = journee();
+    j.quetes.forEach(function (id) {
+      var q = AV_QUETES.filter(function (x) { return x.id === id; })[0];
+      if (!q || j.recues.indexOf(id) >= 0 || (j.compte[q.stat] || 0) < q.cible) return;
+      j.recues.push(id);
+      av.ducats += q.gain;
+      notifier("Quête accomplie : " + q.txt.charAt(0).toLowerCase() + q.txt.slice(1), "parchemin", q.gain);
+    });
+    AV_BADGES.forEach(function (b) {
+      if (av.badges.indexOf(b.id) >= 0 || valeurBadge(b) < b.cible) return;
+      av.badges.push(b.id);
+      av.ducats += 20;
+      notifier("Badge « " + b.nom + " » : nouveau surnom", "medaille", 20);
+    });
+  }
+  function notifier(texte, sym, gain) {
+    annonces.push({ texte: texte, sym: sym, gain: gain });
+    if (document.querySelector(".av.jeu .jeu-question")) return;
+    var zone = document.querySelector(".av-toasts");
+    if (!zone) { zone = el("div", { class: "av-toasts", "aria-live": "polite" }); document.body.appendChild(zone); }
+    var t = el("div", { class: "av-toast" });
+    t.innerHTML = symbole(sym);
+    t.appendChild(el("span", { text: texte }));
+    if (gain) t.appendChild(avecSymbole("ducat", "+" + gain, "av-toast-gain"));
+    zone.appendChild(t);
+    while (zone.childNodes.length > 2) zone.removeChild(zone.firstChild);
+    son("ok");
+    setTimeout(function () { t.classList.add("part"); }, 3400);
+    setTimeout(function () { t.remove(); }, 3900);
+  }
+  function quetesRestantes() { var j = journee(); return j.quetes.filter(function (id) { return j.recues.indexOf(id) < 0; }).length; }
+  function modalQuetes() {
+    var precedent = document.activeElement;
+    var j = journee();
+    var fond = el("div", { class: "av-modal", role: "dialog", "aria-modal": "true", "aria-label": "Quêtes du jour" });
+    var liste_ = el("div", { class: "av-quetes" });
+    j.quetes.forEach(function (id) {
+      var q = AV_QUETES.filter(function (x) { return x.id === id; })[0];
+      if (!q) return;
+      var fait = j.recues.indexOf(id) >= 0, n = Math.min(q.cible, j.compte[q.stat] || 0);
+      var ligne = el("div", { class: "av-quete" + (fait ? " faite" : "") });
+      var ico = el("span", { class: "av-quete-ico", "aria-hidden": "true" });
+      ico.innerHTML = fait ? icone("coche") : symbole("parchemin");
+      ajouter(ligne, [ico, el("div", { class: "av-quete-txt" }, [el("strong", { text: q.txt }), barreProgres(n / q.cible), el("small", { text: fait ? "Accomplie !" : n + " / " + q.cible })]),
+        avecSymbole("ducat", "+" + q.gain, "av-compteur")]);
+      liste_.appendChild(ligne);
+    });
+    var fermerB = el("button", { class: "jeu-valider", type: "button", text: "C'est parti !" });
+    fond.appendChild(el("div", { class: "av-modal-boite" }, [
+      el("h2", { text: "Quêtes du jour" }),
+      el("p", { text: "De nouvelles quêtes chaque jour. Les ducats gagnés s'échangent à la boutique de ton personnage." }),
+      liste_, avecSymbole("ducat", av.ducats + " ducats", "av-compteur grand"), fermerB
+    ]));
+    document.body.appendChild(fond);
+    function fermer() { document.removeEventListener("keydown", touche, true); fond.remove(); if (precedent && precedent.isConnected) precedent.focus(); }
+    function touche(e) { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); fermer(); } }
+    document.addEventListener("keydown", touche, true);
+    fermerB.addEventListener("click", fermer);
+    fond.addEventListener("click", function (e) { if (e.target === fond) fermer(); });
+    fermerB.focus();
   }
 
   // ----- Les vues -----
   function vueAventure(ch, sous, x) {
     document.title = "Mode aventure — " + ch.titre;
+    journee();
     if (sous === "perso") { vueVestiaire(ch); return; }
     if (!av.perso) { vueCreation(ch); return; }
     var route = routeAventure(ch);
+    if (sous === "erreurs" && erreursDues().length) { vueNiveau(ch, route, { type: "erreurs", cle: "erreurs", nom: "L'île des erreurs" }); return; }
     if (sous === "jeu") {
       var n = route.noeuds[Number(x)];
       if (n && n.type !== "coffre" && noeudOuvert(route, n)) { vueNiveau(ch, route, n); return; }
@@ -4173,7 +4637,7 @@
   }
   function barreProgres(part) {
     var b = el("div", { class: "av-barre" }, el("span"));
-    b.firstChild.style.width = Math.round(part * 100) + "%";
+    b.firstChild.style.width = Math.round(Math.max(0, Math.min(1, part)) * 100) + "%";
     return b;
   }
   function boutonSon() {
@@ -4183,63 +4647,88 @@
     maj();
     return b;
   }
+  function boutonQuetes() {
+    var b = el("button", { class: "av-btn-rond av-btn-quetes", type: "button", "aria-label": "Quêtes du jour" });
+    b.innerHTML = symbole("parchemin");
+    var r = quetesRestantes();
+    if (r) b.appendChild(el("span", { class: "av-pastille-num", text: String(r) }));
+    b.addEventListener("click", function () { son("clic"); modalQuetes(); });
+    return b;
+  }
+  function surnomActuel() { return av.titre ? "« " + av.titre + " »" : ""; }
 
   var DECALAGES = [0, .7, 1, .7, 0, -.7, -1, -.7];
   function vueChemin(ch, route) {
     var noeuds = route.noeuds;
-    var premier = premierAFaire(route);
+    var actuel = etapeDuMoment(route);
     var ecran = ecranAventure("av-mer");
-    var lien = el("a", { class: "av-btn-rond", href: lienChapitre(ch), "aria-label": "Retour au chapitre" });
+    var lien = el("a", { class: "av-btn-rond", href: retourAventure(ch), "aria-label": ch.special ? "Retour à l'accueil" : "Retour au chapitre" });
     lien.innerHTML = icone("retour");
-    var moi = el("a", { class: "av-moi", href: lienAventure(ch, "perso"), "aria-label": "Mon personnage et mon musée" });
+    var moi = el("a", { class: "av-moi", href: lienAventure(ch, "perso"), "aria-label": "Mon personnage, la boutique, mes badges et mon musée" });
     moi.innerHTML = dessinPerso(av.perso, true);
     ecran.appendChild(el("div", { class: "av-haut" }, [
       lien,
       el("div", { class: "av-compteurs" }, [
         avecSymbole("flamme", String(serieActuelle())),
-        avecSymbole("eclair", String(av.xp)),
+        avecSymbole("ducat", String(av.ducats)),
         avecSymbole("etoile", String(etoilesRoute(route)))
       ]),
+      boutonQuetes(),
       moi
     ]));
     var faits = noeuds.filter(noeudFait).length;
-    ecran.appendChild(el("div", { class: "av-route" }, [
-      el("small", { text: nomNiveau(ch.n) + " · " + ch.num }),
+    ecran.appendChild(el("div", { class: "av-route" + (ch.special ? " " + ch.special : "") }, [
+      el("small", { text: ch.special ? nomNiveau(ch.n) + " · difficulté " + difficulte(ch).nom.toLowerCase() : nomNiveau(ch.n) + " · " + ch.num }),
       el("strong", { text: ch.titre }),
       barreProgres(noeuds.length ? faits / noeuds.length : 0),
-      el("span", { class: "av-route-info", text: faits + " étape" + (faits > 1 ? "s" : "") + " sur " + noeuds.length })
+      el("span", { class: "av-route-info", text: faits + " étape" + (faits > 1 ? "s" : "") + " sur " + noeuds.length + (route.parUnite ? " · chaque unité s'ouvre dès le départ" : "") })
     ]));
     if (estProf()) ecran.appendChild(el("p", { class: "av-note", text: "Essai professeur : ce mode n'est visible que par vous, et toutes les étapes sont ouvertes. Un élève les débloque dans l'ordre." }));
     else if (DEMO) ecran.appendChild(el("p", { class: "av-note", text: "Démonstration : toutes les étapes sont ouvertes. Un élève les débloque dans l'ordre, en réussissant chaque niveau." }));
     if (!noeuds.length) {
-      ecran.appendChild(el("p", { class: "av-note", text: "Ce chapitre n'a pas encore assez de contenu pour une aventure." }));
+      ecran.appendChild(el("p", { class: "av-note", text: ch.special === "annee" ? "Aucun chapitre n'est encore ouvert pour cette classe." : "Ce chapitre n'a pas encore assez de contenu pour une aventure." }));
       return;
     }
 
     var largeur = Math.min(window.innerWidth || 360, 560);
     var ampleur = Math.max(0, Math.min(84, (largeur - 210) / 2 - 6));
     var chemin = el("div", { class: "av-chemin" });
-    var uniteCourante = null, bulleOuverte = null;
+    var bulleOuverte = null;
+    // l'île des erreurs, en tête du chemin, quand des questions ratées sont à revoir aujourd'hui
+    var dues = erreursDues().length;
+    if (dues) {
+      var ileE = el("div", { class: "av-ile erreurs" });
+      ileE.style.setProperty("--dx", "0px");
+      ileE.innerHTML = svgIle(2, ["palmier", "palmier"]);
+      var bE = el("button", { class: "av-noeud erreurs", type: "button", "aria-label": "L'île des erreurs : " + pluriel(dues, "question") + " à revoir" });
+      bE.innerHTML = icone("revoir");
+      ileE.appendChild(bE);
+      ileE.appendChild(el("div", { class: "av-ile-etiquette", text: "Île des erreurs · " + dues }));
+      bE.addEventListener("click", function () {
+        son("clic");
+        basculer(ileE, bE, { type: "erreurs", nom: "L'île des erreurs" }, true, false);
+      });
+      chemin.appendChild(ileE);
+    }
+    var uniteCourante = null;
     noeuds.forEach(function (n) {
       if (n.unite && n.unite !== uniteCourante) {
         uniteCourante = n.unite;
-        chemin.appendChild(el("div", { class: "av-unite u" + ((n.unite.num - 1) % 4) }, [
-          el("small", { text: "Unité " + n.unite.num }), el("strong", { text: n.unite.nom })
-        ]));
+        chemin.appendChild(el("div", { class: "av-unite u" + ((n.unite.num - 1) % 4) }, [el("small", { text: n.unite.petit }), el("strong", { text: n.unite.nom })]));
       }
-      if (n.type === "defi") chemin.appendChild(el("div", { class: "av-unite defi" }, [el("small", { text: "Pour finir" }), el("strong", { text: "Le défi final" })]));
+      if (n.type === "defi") chemin.appendChild(el("div", { class: "av-unite defi" }, [el("small", { text: "Pour finir" }), el("strong", { text: n.nom })]));
       chemin.appendChild(ile(n));
     });
     ecran.appendChild(chemin);
 
     function ile(n) {
-      var fait = noeudFait(n), ouvert = noeudOuvert(route, n), actuel = n.i === premier || (premier < 0 && n.i === noeuds.length - 1);
-      var wrap = el("div", { class: "av-ile" + (actuel ? " actuelle" : "") });
+      var fait = noeudFait(n), ouvert = noeudOuvert(route, n), ici = n.i === actuel || (actuel < 0 && n.i === noeuds.length - 1);
+      var wrap = el("div", { class: "av-ile" + (ici ? " actuelle" : "") });
       wrap.style.setProperty("--dx", Math.round(DECALAGES[n.i % DECALAGES.length] * ampleur) + "px");
       wrap.innerHTML = svgIle(n.i, AV_DECORS[n.i % AV_DECORS.length], !ouvert);
-      var etat = fait ? "fait" : n.i === premier ? "actuel" : ouvert ? "ouvert" : "verrou";
+      var etat = fait ? "fait" : n.i === actuel ? "actuel" : ouvert ? "ouvert" : "verrou";
       var b = el("button", { class: "av-noeud " + n.type + " " + etat, type: "button", "aria-expanded": "false",
-        "aria-label": n.nom + (n.unite ? ", unité " + n.unite.num : "") + (fait ? ", terminé" : ouvert ? "" : ", verrouillé") });
+        "aria-label": n.nom + (n.unite ? ", " + n.unite.petit.toLowerCase() : "") + (fait ? ", terminé" : ouvert ? "" : ", verrouillé") });
       b.innerHTML = icone(ouvert ? n.icone : "cadenas");
       wrap.appendChild(b);
       if (n.type !== "coffre" && etoilesDe(n) > 0) {
@@ -4247,7 +4736,7 @@
         for (var k = 0; k < 3; k++) et.innerHTML += symbole(k < etoilesDe(n) ? "etoile" : "vide");
         wrap.appendChild(et);
       }
-      if (actuel) {
+      if (ici) {
         var p = el("div", { class: "av-sur-ile", "aria-hidden": "true" });
         p.innerHTML = dessinPerso(av.perso);
         wrap.appendChild(p);
@@ -4267,19 +4756,23 @@
       fermerBulle();
       if (deja) return;
       var bulle = el("div", { class: "av-bulle" + (ouvert ? "" : " verrou") });
-      var haut = n.type === "defi" ? "Pour finir" : "Unité " + n.unite.num + (n.type === "niveau" ? " · Niveau " + n.rang : "");
+      var nb = difficulte(ch);
+      var haut = n.type === "erreurs" ? "À revoir" : n.type === "defi" ? "Pour finir" : n.unite.petit + (n.type === "niveau" ? " · Niveau " + n.rang : "");
       bulle.appendChild(el("small", { text: haut }));
       bulle.appendChild(el("strong", { text: n.nom }));
       var info, action = null;
-      if (n.type === "coffre") {
-        info = fait ? "Déjà ouvert : tes trouvailles t'attendent dans ton musée et ta garde-robe."
+      if (n.type === "erreurs") {
+        info = pluriel(Math.min(8, dues), "question ratée", "questions ratées") + " à revoir. Une question bien corrigée revient dans 3 jours, puis dans 7, puis elle est sue.";
+        action = el("a", { class: "av-bulle-btn", href: lienAventure(ch, "erreurs"), text: "Revoir mes erreurs" });
+      } else if (n.type === "coffre") {
+        info = fait ? "Déjà ouvert : tes trouvailles t'attendent dans ta garde-robe et ton musée."
           : ouvert ? "Bravo, l'unité est terminée ! Ouvre le coffre pour découvrir tes trouvailles." : "Termine les niveaux de l'unité pour l'ouvrir.";
         if (ouvert && !fait) action = el("button", { class: "av-bulle-btn", type: "button", text: "Ouvrir le coffre", onclick: function () { fermerBulle(); modalCoffre(ch, n); } });
         else if (fait) action = el("a", { class: "av-bulle-btn", href: lienAventure(ch, "perso"), text: "Voir mes trouvailles" });
       } else {
-        var nb = n.type === "defi" ? NB_DEFI : NB_Q;
-        info = n.type === "defi" ? nb + " questions sur tout le chapitre, et " + VIES_DEFI + " vies." : nb + " questions variées.";
-        var rec = etoilesDe(n), aPasser = n.type === "niveau" && !fait;
+        info = n.type === "defi" ? nb.defi + " questions sur tout le parcours, et " + VIES_DEFI + " vies."
+          : n.type === "revision" ? (nb.nb + 2) + " questions qui mélangent les chapitres déjà vus." : nb.nb + " questions variées.";
+        var rec = etoilesDe(n), aPasser = n.type !== "defi" && !fait;
         if (rec) info += " Ton record : " + rec + " étoile" + (rec > 1 ? "s" : "") + " sur 3.";
         if (aPasser) info += rec ? " Il en faut " + ETOILES_POUR_PASSER + " pour débloquer la suite." : " Il faut " + ETOILES_POUR_PASSER + " étoiles pour débloquer la suite.";
         if (!ouvert) info = "Termine d'abord l'étape précédente.";
@@ -4300,14 +4793,14 @@
     var ici = chemin.querySelector(".av-ile.actuelle");
     if (ici) {
       if (ici.getBoundingClientRect().bottom > window.innerHeight - 40) ici.scrollIntoView({ block: "center" });
-      var n0 = noeuds[premier];
+      var n0 = noeuds[actuel];
       if (n0 && n0.type === "coffre") basculer(ici, ici.querySelector(".av-noeud"), n0, true, false);
     }
   }
 
-  // ----- Le coffre : un objet pour le personnage, et un document de l'unité pour le musée -----
+  // ----- Le coffre : une pièce pour le personnage, des ducats, et un document de l'unité pour le musée -----
   function recompenseCoffre(ch, b) {
-    var texte = [ch.titre, b.nom, b.data.titre || ""].join(" ");
+    var texte = [ch.special ? "" : ch.titre, b.nom, b.data.titre || ""].join(" ");
     var cands = [];
     AV_CATS.forEach(function (c) {
       c[1].forEach(function (it) {
@@ -4320,8 +4813,8 @@
   }
   function modalCoffre(ch, n) {
     var precedent = document.activeElement;
-    var b = n.unite.bloc;
-    var fond = el("div", { class: "av-modal", role: "dialog", "aria-modal": "true", "aria-label": "Coffre de l'unité " + n.unite.num });
+    var b = n.unite.bloc, chap = b.data.chId || ch.id;
+    var fond = el("div", { class: "av-modal", role: "dialog", "aria-modal": "true", "aria-label": "Coffre : " + n.unite.nom });
     var boite = el("div", { class: "av-modal-boite" });
     var coffre = el("div", { class: "av-coffre secoue" });
     coffre.innerHTML = svgCoffre(false);
@@ -4346,12 +4839,14 @@
       if (ouvert) { fermer(); return; }
       ouvert = true;
       var r = recompenseCoffre(ch, b);
-      var doc = imagesChapitre(ch, b.id).filter(function (x) { return av.musee.indexOf(ch.id + "|" + x.id) < 0; })[0];
+      var doc = imagesChapitre(ch, b.id).filter(function (x) { return av.musee.indexOf(chap + "|" + x.id) < 0; })[0];
       if (r) av.possede[r.cat].push(r.it.id);
-      if (doc) av.musee.push(ch.id + "|" + doc.id);
+      if (doc) av.musee.push(chap + "|" + doc.id);
       av.coffres[n.cle] = true;
       av.xp += 20;
+      av.ducats += 15;
       majSerie();
+      compter("coffres");
       sauverAventure();
       son("fin");
       coffre.classList.remove("secoue");
@@ -4359,14 +4854,15 @@
       coffre.innerHTML = svgCoffre(true);
       confettis(boite);
       titre.textContent = "Tes trouvailles";
-      texte.textContent = "+20 points d'expérience.";
+      texte.textContent = "";
+      ajouter(texte, [avecSymbole("ducat", "+15 ducats", "av-compteur"), " ", avecSymbole("eclair", "+20 XP", "av-compteur")]);
       if (r) {
         var carte = el("div", { class: "av-trouvaille" });
         var fig = el("div", { class: "av-trouvaille-fig" });
         fig.innerHTML = dessinPerso(avecPiece(av.perso, r.cat, r.it.id));
-        var mettre = el("button", { class: "av-mini-btn", type: "button", text: r.cat === "objet" ? "Le prendre en main" : "L'essayer" });
+        var mettre = el("button", { class: "av-mini-btn", type: "button", text: r.cat === "objet" ? "Le prendre en main" : r.cat === "compagnon" ? "L'emmener" : "L'essayer" });
         mettre.addEventListener("click", function () { av.perso[r.cat] = r.it.id; sauverAventure(); mettre.textContent = "C'est fait !"; mettre.disabled = true; son("clic"); });
-        ajouter(carte, [fig, el("div", {}, [el("small", { text: r.cat === "tenue" ? "Nouvelle tenue" : r.cat === "chapeau" ? "Nouveau chapeau" : "Nouvel objet" }), el("strong", { text: r.it.nom }), mettre])]);
+        ajouter(carte, [fig, el("div", {}, [el("small", { text: AV_NOMS_CATS[r.cat] }), el("strong", { text: r.it.nom }), mettre])]);
         trouvailles.appendChild(carte);
       }
       if (doc) {
@@ -4376,23 +4872,28 @@
         ajouter(c2, [el("div", { class: "av-trouvaille-fig doc" }, img), el("div", {}, [el("small", { text: "Pour ton musée" }), el("strong", { text: doc.d.titre }), el("span", { class: "petit", text: doc.d.date || "" })])]);
         trouvailles.appendChild(c2);
       }
-      if (!r && !doc) texte.textContent = "+20 points d'expérience. Tu as déjà tout trouvé : bravo, collectionneur !";
       btn.textContent = "Continuer";
     });
   }
 
-  // ----- Un niveau -----
+  // ----- Un niveau (ou une révision, le défi, l'île des erreurs) -----
   function vueNiveau(ch, route, n) {
-    var defi = n.type === "defi";
-    var qs = composer(poolNoeud(ch, n), defi ? NB_DEFI : NB_Q);
-    var file = qs.slice(), pos = 0, finies = 0, premiersEssais = 0, erreurs = 0, xp = 0, vies = VIES_DEFI;
+    var diff = difficulte(ch);
+    var defi = n.type === "defi", ileErreurs = n.type === "erreurs";
+    var qs = ileErreurs ? melanger(erreursDues()).slice(0, 8).map(restaurerErreur).filter(Boolean)
+      : composer(poolNoeud(ch, route, n), defi ? diff.defi : n.type === "revision" ? diff.nb + 2 : diff.nb, diff);
+    // le guide : Ératosthène pour une unité de géographie, Hérodote sinon
+    var guide = { d: (n.unite && n.unite.bloc.data.d) || ch.d };
+    var file = qs.slice(), pos = 0, finies = 0, premiersEssais = 0, erreurs = 0, xp = 0, vies = VIES_DEFI, combo = 0, corrigees = 0;
+    annonces = [];
     var ecran = ecranAventure("av-nuit jeu");
     var barre = barreProgres(0);
     var quitter = el("a", { class: "av-btn-rond", href: lienAventure(ch), "aria-label": "Quitter le niveau" });
     quitter.innerHTML = icone("fermer");
     var compteurXp = avecSymbole("eclair", "0");
     var coeurs = el("span", { class: "av-coeurs", "aria-label": vies + " vies" });
-    var haut = el("div", { class: "jeu-haut" }, [quitter, barre, defi ? coeurs : compteurXp]);
+    var serieQ = el("span", { class: "jeu-combo", "aria-live": "polite" });
+    var haut = el("div", { class: "jeu-haut" }, [quitter, barre, serieQ, defi ? coeurs : compteurXp]);
     var corps = el("div", { class: "jeu-corps" });
     var pied = el("div", { class: "jeu-pied" });
     ajouter(ecran, [haut, corps, pied]);
@@ -4404,6 +4905,8 @@
       coeurs.innerHTML = "";
       for (var k = 0; k < VIES_DEFI; k++) coeurs.innerHTML += symbole(k < vies ? "coeur" : "coeurVide");
       coeurs.setAttribute("aria-label", vies + " vie" + (vies > 1 ? "s" : ""));
+      serieQ.innerHTML = "";
+      if (combo >= 3) { serieQ.innerHTML = symbole("flamme"); serieQ.appendChild(document.createTextNode("× " + combo)); serieQ.classList.remove("pop"); void serieQ.offsetWidth; serieQ.classList.add("pop"); }
     }
     function poser() {
       continuer = null;
@@ -4413,8 +4916,8 @@
       corps.scrollTop = 0;
       var zone = el("div", { class: "jeu-question" });
       corps.appendChild(zone);
-      RENDUS[q.type](ch, q, zone, pied, function (juste, extra) { repondre(q, juste, extra || {}); });
-      var focus = zone.querySelector("button, input, [tabindex]");
+      RENDUS[q.type](guide, q, zone, pied, function (juste, extra) { repondre(q, juste, extra || {}); });
+      var focus = zone.querySelector("input:not([type=range]), button, input, [tabindex]");
       if (focus) focus.focus({ preventScroll: true });
     }
     function repondre(q, juste, extra) {
@@ -4422,9 +4925,21 @@
         xp += q.revue ? 5 : 10;
         if (!q.revue) premiersEssais++;
         finies++;
+        combo++;
+        compter("bonnes");
+        if (q.type === "carte" || q.type === "experte") compter("carte");
+        if (q.type === "curseur" || q.type === "ordre") compter("dates");
+        if (q.type === "detail") compter("docs");
+        if (q.type === "saisie") compter("saisie");
+        if (combo === 5) compter("combo5");
+        if (combo > (av.stats.comboMax || 0)) { av.stats.comboMax = combo; verifierRecompenses(); }
+        if (ileErreurs && q.erreur && !q.revue) { noterErreur(q.erreur, true); corrigees++; compter("revues"); }
       } else {
+        combo = 0;
         if (!q.revue) erreurs++;
         if (defi) vies--;
+        if (ileErreurs && q.erreur && !q.revue) noterErreur(q.erreur, false);
+        else if (!q.revue && !q.erreur) ajouterErreur(q);
         // on revoit l'erreur à la fin du niveau (une fois), sauf pour les paires, déjà corrigées sur place
         if (!defi && !q.revue && q.type !== "paires") {
           var copie = {};
@@ -4435,19 +4950,20 @@
           file.push(copie);
         } else finies++;
       }
+      sauverAventure();
       son(juste ? "ok" : "ko");
       majHaut();
       var feuille = el("div", { class: "jeu-retour " + (juste ? "bien" : "mal"), role: "status" });
       var bravo = ["Bonne réponse !", "Bravo !", "Exactement !", "Parfait !", "Bien vu !"];
       var h = el("h3");
       h.innerHTML = icone(juste ? "coche" : "fermer");
-      h.appendChild(document.createTextNode(juste ? bravo[Math.floor(Math.random() * bravo.length)] : extra.titre || "Pas tout à fait…"));
+      h.appendChild(document.createTextNode(extra.titre || (juste ? (combo >= 3 ? combo + " bonnes réponses d'affilée !" : bravo[Math.floor(Math.random() * bravo.length)]) : "Pas tout à fait…")));
       feuille.appendChild(h);
       if (!juste && q.bonneTexte !== undefined && q.bonneTexte !== null) feuille.appendChild(el("p", { class: "jeu-bonne" }, ["Réponse : ", el("strong", { text: q.bonneTexte })]));
       else if (!juste && q.bonne && q.type !== "paires") feuille.appendChild(el("p", { class: "jeu-bonne" }, ["Réponse : ", el("strong", { text: q.bonne })]));
       var expl = extra.expl || q.expl;
       if (expl) feuille.appendChild(el("p", { class: "jeu-expl", text: expl }));
-      if (!juste && !defi && !q.revue && q.type !== "paires") feuille.appendChild(el("p", { class: "jeu-aide", text: "Cette question reviendra à la fin du niveau." }));
+      if (!juste && !defi && !q.revue && q.type !== "paires") feuille.appendChild(el("p", { class: "jeu-aide", text: ileErreurs ? "Elle reviendra à la fin, puis demain sur l'île des erreurs." : "Cette question reviendra à la fin du niveau, puis sur l'île des erreurs." }));
       var fini = defi ? vies <= 0 : false;
       var btn = el("button", { class: "jeu-continuer", type: "button", text: "Continuer" });
       continuer = function () {
@@ -4464,28 +4980,50 @@
       btn.focus({ preventScroll: true });
     }
     function bilan() {
+      if (ileErreurs) {
+        var gainE = corrigees * 3;
+        av.ducats += gainE;
+        av.xp += xp;
+        majSerie();
+        sauverAventure();
+        son("fin");
+        finEcran(corrigees ? "Erreurs corrigées !" : "Courage !", 0, [
+          avecSymbole("coche", pluriel(corrigees, "corrigée"), "jeu-stat"),
+          avecSymbole("ducat", "+" + gainE, "jeu-stat"),
+          avecSymbole("eclair", "+" + xp, "jeu-stat")
+        ], false, corrigees ? "Chaque question bien corrigée revient plus tard pour vérifier qu'elle est sue." : "Ces questions reviendront demain : relis bien les corrections.", true);
+        return;
+      }
       var etoiles = defi ? Math.max(1, vies) : erreurs === 0 ? 3 : erreurs <= 2 ? 2 : 1;
+      var reussi = defi || etoiles >= ETOILES_POUR_PASSER;
       if (erreurs === 0) xp += 15;
       var ancien = av.niveaux[n.cle];
       av.niveaux[n.cle] = { e: Math.max(etoiles, ancien ? ancien.e : 0), t: Date.now() };
+      var gain = defi ? 25 + vies * 5 : etoiles * (n.type === "revision" ? 5 : 4) + (erreurs === 0 ? 6 : 0);
+      av.ducats += gain;
       av.xp += xp;
       majSerie();
+      if (reussi && !defi) compter("niveaux");
+      if (defi) compter("defis");
+      compter("etoiles", etoiles);
+      if (erreurs === 0) compter("sansFaute");
+      verifierRecompenses();
       sauverAventure();
       son("fin");
-      var reussi = defi || etoiles >= ETOILES_POUR_PASSER;
       var titre = etoiles === 3 ? (defi ? "Défi relevé haut la main !" : "Parfait !") : etoiles === 2 ? "Bien joué !" : defi ? "Défi relevé !" : "Encore un effort !";
       finEcran(titre, etoiles, [
+        avecSymbole("ducat", "+" + gain, "jeu-stat"),
         avecSymbole("eclair", "+" + xp, "jeu-stat"),
         avecSymbole("cible", Math.round(premiersEssais / qs.length * 100) + " %", "jeu-stat"),
         avecSymbole("flamme", pluriel(serieActuelle(), "jour"), "jeu-stat")
-      ], true, reussi ? null : "Il faut au moins " + ETOILES_POUR_PASSER + " étoiles, soit 2 erreurs au plus, pour débloquer l'étape suivante. Rejoue le niveau\u00a0: les questions changent à chaque fois.", reussi);
+      ], true, reussi ? null : "Il faut au moins " + ETOILES_POUR_PASSER + " étoiles, soit 2 erreurs au plus, pour débloquer l'étape suivante. Rejoue le niveau : les questions changent à chaque fois.", reussi);
     }
     function perdu() {
       av.xp += xp;
       majSerie();
       sauverAventure();
       finEcran("Le défi t'a eu… cette fois !", 0, [avecSymbole("eclair", "+" + xp, "jeu-stat")], false,
-        "Revois les niveaux du chapitre, puis retente ta chance : il faut garder au moins une vie jusqu'au bout.", false);
+        "Revois les niveaux du parcours, puis retente ta chance : il faut garder au moins une vie jusqu'au bout.", false);
     }
     // gagne : le niveau est allé au bout (on montre les étoiles) ; reussi : il débloque la suite
     function finEcran(titre, etoiles, stats, gagne, message, reussi) {
@@ -4497,20 +5035,31 @@
       perso.innerHTML = dessinPerso(av.perso);
       var et = el("div", { class: "jeu-fin-etoiles", "aria-label": etoiles + " étoile" + (etoiles > 1 ? "s" : "") + " sur 3" });
       if (gagne) for (var k = 0; k < 3; k++) { var s = el("span"); s.innerHTML = symbole(k < etoiles ? "etoile" : "vide"); s.style.animationDelay = (.25 + k * .2) + "s"; et.appendChild(s); }
+      var gains = null;
+      if (annonces.length) {
+        gains = el("div", { class: "jeu-gains" });
+        annonces.forEach(function (a) {
+          var g = el("div", { class: "jeu-gain" });
+          g.innerHTML = symbole(a.sym);
+          g.appendChild(el("span", { text: a.texte }));
+          if (a.gain) g.appendChild(avecSymbole("ducat", "+" + a.gain, "av-toast-gain"));
+          gains.appendChild(g);
+        });
+      }
       var bloc = el("div", { class: "jeu-fin" }, [
-        gagne ? et : null, perso, el("h2", { text: titre }),
+        gagne ? et : null, perso, av.titre ? el("div", { class: "av-surnom", text: surnomActuel() }) : null, el("h2", { text: titre }),
         message ? el("p", { text: message }) : null,
-        el("div", { class: "jeu-stats" }, stats)
+        el("div", { class: "jeu-stats" }, stats), gains
       ]);
       corps.appendChild(bloc);
       // réussi : on continue le chemin ; sinon, on rejoue d'abord
       var chemin = el("a", { class: reussi ? "jeu-continuer" : "jeu-secondaire", href: lienAventure(ch), text: reussi ? "Continuer" : "Revenir au chemin" });
-      var encore = el("button", { class: reussi ? "jeu-secondaire" : "jeu-continuer", type: "button", text: defi ? "Retenter le défi" : "Rejouer ce niveau", onclick: function () { rendre(); } });
+      var encore = ileErreurs ? null : el("button", { class: reussi ? "jeu-secondaire" : "jeu-continuer", type: "button", text: defi ? "Retenter le défi" : "Rejouer ce niveau", onclick: function () { rendre(); } });
       var boutons = reussi ? [chemin, encore] : [encore, chemin];
       pied.appendChild(el("div", { class: "jeu-fin-btns" }, boutons));
-      if (reussi) confettis(ecran);
+      if (reussi && !ileErreurs) confettis(ecran);
       annoncer(titre + (message ? " " + message : ""));
-      boutons[0].focus({ preventScroll: true });
+      boutons.filter(Boolean)[0].focus({ preventScroll: true });
     }
     if (!qs.length) { location.hash = lienAventure(ch); return; }
     majHaut();
@@ -4813,7 +5362,7 @@
 
     quisuisje: function (ch, q, zone, pied, fin) {
       zone.appendChild(consigne("Qui suis-je ?"));
-      var vus = 1, fait = false;
+      var vus = q.vus || 1, fait = false;
       var contenu = el("div", { class: "jeu-indices" });
       var plus = el("button", { class: "jeu-indice", type: "button", text: "Un autre indice" });
       function majIndices() {
@@ -4845,29 +5394,52 @@
     },
 
     carte: function (ch, q, zone, pied, fin) {
-      zone.appendChild(consigne("Où se trouve…"));
+      zone.appendChild(consigne(q.expert ? "Situe sans les points" : "Où se trouve…"));
       zone.appendChild(el("div", { class: "jeu-cible", text: q.lieux[q.cible].nom }));
       var fait = false;
       var c = creerCarte(q.fond, q.lieux, {
-        titre: "Carte : touche le bon point",
+        titre: q.expert ? "Carte muette : touche l'endroit" : "Carte : touche le bon point",
         nomAccessible: function (i) { return "Point " + (i + 1); },
-        surLieu: function (i) { choisir(i); },
-        surTouche: function (pt, proches) { if (!fait && proches.length) choisir(proches[0]); else if (!fait) annoncer("Touche l'un des points de la carte."); }
+        surLieu: function (i) { choisir(i, null); },
+        surTouche: function (pt, proches) {
+          if (fait) return;
+          if (q.expert) { choisir(proches.length ? proches[0] : -1, pt); return; }
+          if (proches.length) choisir(proches[0], null); else annoncer("Touche l'un des points de la carte.");
+        }
       });
-      q.lieux.forEach(function (p, i) { c.etat(i, ""); c.nom(i, 0); });
+      q.lieux.forEach(function (p, i) { c.etat(i, q.expert ? "cache" : ""); c.nom(i, 0); });
       zone.appendChild(el("div", { class: "jeu-geo" }, c.boite));
-      zone.appendChild(el("p", { class: "jeu-aide", text: "Points serrés ? Touche la zone : la carte zoome." }));
+      zone.appendChild(el("p", { class: "jeu-aide", text: q.expert ? "Pas de points : touche l'endroit exact. La carte zoome si besoin." : "Points serrés ? Touche la zone : la carte zoome." }));
       c.echelle();
-      function choisir(i) {
+      function choisir(i, pt) {
         if (fait) return;
         fait = true;
         var juste = i === q.cible;
         c.etat(q.cible, juste ? "trouve" : "vise");
         c.nom(q.cible, 3);
-        if (!juste) { c.etat(i, "faux"); c.nom(i, 3); }
+        if (!juste && i >= 0) { c.etat(i, "faux"); c.nom(i, 3); }
+        if (!juste && pt) c.croix(pt);
         if (!juste && !c.dansLaVue(q.cible)) c.toutVoir(); else c.echelle();
-        fin(juste, { titre: juste ? null : "Non : là, c'est " + q.lieux[i].nom + "." });
+        fin(juste, { titre: juste ? null : i >= 0 ? "Non : là, c'est " + q.lieux[i].nom + "." : "Raté : ce n'est pas là." });
       }
+    },
+    experte: function (ch, q, zone, pied, fin) { RENDUS.carte(ch, q, zone, pied, fin); },
+
+    saisie: function (ch, q, zone, pied, fin) {
+      zone.appendChild(consigne(q.consigne || "Écris la réponse"));
+      zone.appendChild(guideBulle(ch, q.bulle, q.grand));
+      var champ = el("input", { class: "jeu-saisie", type: "text", autocomplete: "off", autocapitalize: "off", autocorrect: "off", spellcheck: "false",
+        enterkeyhint: "done", inputmode: q.nombre ? "numeric" : null, "aria-label": "Ta réponse", placeholder: q.nombre ? "Par exemple : 1492" : "Ta réponse" });
+      zone.appendChild(champ);
+      if (q.aide) zone.appendChild(el("p", { class: "jeu-aide", text: q.aide }));
+      var valider = boutonValider(pied, function () {
+        champ.disabled = true;
+        var r = comparerSaisie(champ.value, q.bonne, q.nombre);
+        champ.classList.add(r.ok ? "bien" : "mal");
+        fin(r.ok, { titre: r.presque ? "Presque parfait : attention à l'orthographe (" + q.bonne + ")." : null });
+      });
+      champ.addEventListener("input", function () { valider.disabled = !champ.value.trim(); });
+      champ.addEventListener("keydown", function (e) { if (e.key === "Enter" && !valider.disabled) { e.preventDefault(); valider.click(); } });
     },
 
     detail: function (ch, q, zone, pied, fin) {
@@ -4888,7 +5460,7 @@
     }
   };
 
-  // ----- Créer son personnage, puis l'habiller ; le musée des documents trouvés -----
+  // ----- Créer son personnage, puis l'habiller ; la boutique, les badges et surnoms, le musée -----
   function editeurApparence(p, maj) {
     var boite = el("div", { class: "av-editeur" });
     function rangee(titre, items, rendu, choisi, poser) {
@@ -4920,28 +5492,33 @@
       boite.appendChild(rangee("Coiffure", AV_COIFFURES, function (c) { return apercu(avecPiece(p, "coiffure", c.id), c.nom); }, function (c) { return p.coiffure === c.id; }, function (c) { p.coiffure = c.id; }));
       boite.appendChild(rangee("Cheveux", AV_CHEVEUX, function (c) { return pastille(c, "Couleur des cheveux"); }, function (c) { return p.cheveux === c; }, function (c) { p.cheveux = c; }));
       boite.appendChild(rangee("Barbe", AV_BARBES, function (c) { return apercu(avecPiece(p, "barbe", c.id), c.nom); }, function (c) { return p.barbe === c.id; }, function (c) { p.barbe = c.id; }));
+      boite.appendChild(rangee("Couleur de la tunique", AV_TEINTES, function (c) { return pastille(c[0], "Couleur de la tunique"); },
+        function (c) { return (p.couleur || AV_TEINTES[0][0]) === c[0]; }, function (c) { p.couleur = c[0]; if (!p.tenue || p.tenue !== "tunique") p.tenue = "tunique"; }));
     }
     dessiner();
     return boite;
   }
   function apercuPerso(p) {
     var a = el("div", { class: "av-apercu", "aria-hidden": "true" });
-    function maj() { a.innerHTML = svgIle(1, null) + '<div class="av-apercu-perso">' + dessinPerso(p) + "</div>"; }
+    function maj() {
+      a.innerHTML = svgIle(1, null) + '<div class="av-apercu-perso">' + dessinPerso(p) + "</div>";
+      if (av.titre && p === av.perso) a.appendChild(el("div", { class: "av-surnom", text: surnomActuel() }));
+    }
     maj();
     return { boite: a, maj: maj };
   }
 
   function vueCreation(ch) {
     var g = guideDe(ch);
-    var p = { peau: AV_PEAUX[1], coiffure: "court", cheveux: AV_CHEVEUX[1], barbe: "", tenue: "tunique", chapeau: "", objet: "" };
+    var p = { peau: AV_PEAUX[1], coiffure: "court", cheveux: AV_CHEVEUX[1], barbe: "", tenue: "tunique", couleur: AV_TEINTES[0][0], chapeau: "", objet: "", compagnon: "" };
     var ecran = ecranAventure("av-nuit");
-    var lien = el("a", { class: "av-btn-rond", href: lienChapitre(ch), "aria-label": "Retour au chapitre" });
+    var lien = el("a", { class: "av-btn-rond", href: retourAventure(ch), "aria-label": "Retour" });
     lien.innerHTML = icone("retour");
     ecran.appendChild(el("div", { class: "av-haut" }, [lien, el("strong", { class: "av-haut-titre", text: "Mode aventure" }), boutonSon()]));
     var corps = el("div", { class: "av-page" });
     corps.appendChild(guideBulle(ch, [
       el("p", { text: "Bonjour ! Je suis " + g.nom + ", " + g.qui + "." }),
-      el("p", { text: "Je vais te guider d'île en île. Réponds bien pour gagner des étoiles, des coffres et des trouvailles." }),
+      el("p", { text: "Je vais te guider d'île en île. Réponds bien pour gagner des étoiles, des ducats, des coffres, des badges et des surnoms." }),
       el("p", {}, el("strong", { text: "Mais d'abord : à quoi ressembles-tu ?" }))
     ]));
     var ap = apercuPerso(p);
@@ -4954,6 +5531,23 @@
     ecran.appendChild(corps);
   }
 
+  // une petite fenêtre de confirmation (achat à la boutique)
+  function confirmer(titre, texte, oui, action) {
+    var precedent = document.activeElement;
+    var fond = el("div", { class: "av-modal", role: "dialog", "aria-modal": "true", "aria-label": titre });
+    var ok = el("button", { class: "jeu-valider", type: "button", text: oui });
+    var non = el("button", { class: "jeu-secondaire", type: "button", text: "Annuler" });
+    fond.appendChild(el("div", { class: "av-modal-boite" }, [el("h2", { text: titre }), el("p", { text: texte }), el("div", { class: "jeu-fin-btns" }, [ok, non])]));
+    document.body.appendChild(fond);
+    function fermer() { document.removeEventListener("keydown", touche, true); fond.remove(); if (precedent && precedent.isConnected) precedent.focus(); }
+    function touche(e) { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); fermer(); } }
+    document.addEventListener("keydown", touche, true);
+    ok.addEventListener("click", function () { fermer(); action(); });
+    non.addEventListener("click", fermer);
+    ok.focus();
+  }
+
+  var ongletVestiaire = "tenue";
   function vueVestiaire(ch) {
     if (!av.perso) { vueCreation(ch); return; }
     document.title = "Mon personnage — Mode aventure";
@@ -4965,37 +5559,87 @@
     var corps = el("div", { class: "av-page" });
     var ap = apercuPerso(p);
     corps.appendChild(ap.boite);
-    corps.appendChild(el("div", { class: "av-compteurs centre" }, [avecSymbole("flamme", pluriel(serieActuelle(), "jour")), avecSymbole("eclair", av.xp + " XP")]));
-    var ONGLETS = [{ id: "tenue", nom: "Tenues" }, { id: "chapeau", nom: "Chapeaux" }, { id: "objet", nom: "Objets" }, { id: "apparence", nom: "Apparence" }, { id: "musee", nom: "Musée" }];
-    var actuel = "tenue";
+    var compteurs = el("div", { class: "av-compteurs centre" });
+    function majCompteurs() {
+      compteurs.innerHTML = "";
+      ajouter(compteurs, [avecSymbole("ducat", av.ducats + " ducats"), avecSymbole("flamme", pluriel(serieActuelle(), "jour")), avecSymbole("eclair", av.xp + " XP"), avecSymbole("medaille", av.badges.length + " / " + AV_BADGES.length)]);
+    }
+    majCompteurs();
+    corps.appendChild(compteurs);
+    var ONGLETS = [{ id: "tenue", nom: "Tenues" }, { id: "chapeau", nom: "Chapeaux" }, { id: "objet", nom: "Objets" }, { id: "compagnon", nom: "Compagnons" },
+      { id: "apparence", nom: "Apparence" }, { id: "badges", nom: "Badges et surnoms" }, { id: "musee", nom: "Musée" }];
     var onglets = el("div", { class: "segments av-onglets", role: "group", "aria-label": "Rubrique" });
     var zone = el("div", { class: "av-zone" });
     function montrer(id) {
-      actuel = id;
+      ongletVestiaire = id;
       onglets.innerHTML = "";
-      ONGLETS.forEach(function (o) { onglets.appendChild(el("button", { class: "opt", type: "button", text: o.nom, "aria-pressed": String(o.id === actuel), onclick: function () { montrer(o.id); } })); });
+      ONGLETS.forEach(function (o) { onglets.appendChild(el("button", { class: "opt", type: "button", text: o.nom, "aria-pressed": String(o.id === id), onclick: function () { montrer(o.id); } })); });
       zone.innerHTML = "";
+      majCompteurs();
       if (id === "apparence") { zone.appendChild(editeurApparence(p, function () { sauverAventure(); ap.maj(); })); return; }
       if (id === "musee") { zone.appendChild(musee()); return; }
+      if (id === "badges") { zone.appendChild(badges()); return; }
       var cat = AV_CATS.filter(function (c) { return c[0] === id; })[0];
       var g = el("div", { class: "av-pieces" });
       cat[1].forEach(function (it) {
         if (it.cache) return;
-        var a = possede(id, it.id);
-        var b = el("button", { class: "av-piece" + (a ? "" : " verrou"), type: "button", "aria-pressed": String(p[id] === it.id) });
+        var a = possede(id, it.id), prix = AV_PRIX[id];
+        var b = el("button", { class: "av-piece" + (a ? "" : " verrou"), type: "button", "aria-pressed": String((p[id] || "") === it.id) });
         var f = el("span", { class: "av-piece-fig", "aria-hidden": "true" });
-        f.innerHTML = dessinPerso(avecPiece(p, id, it.id));
+        f.innerHTML = id === "compagnon" ? (it.id ? '<svg viewBox="0 108 40 42" focusable="false">' + svgCompagnon(it.id) + "</svg>" : dessinPerso(p, true)) : dessinPerso(avecPiece(p, id, it.id));
         b.appendChild(f);
         b.appendChild(el("span", { text: it.nom }));
-        if (!a) { var cad = el("span", { class: "av-cadenas" }); cad.innerHTML = icone("cadenas"); b.appendChild(cad); b.setAttribute("aria-label", it.nom + " : à trouver dans un coffre"); }
+        if (!a) {
+          b.appendChild(avecSymbole("ducat", String(prix), "av-prix" + (av.ducats >= prix ? " abordable" : "")));
+          b.setAttribute("aria-label", it.nom + " : " + prix + " ducats à la boutique, ou dans un coffre");
+        }
         b.addEventListener("click", function () {
-          if (!a) { annoncer("À trouver dans un coffre."); b.classList.remove("secoue"); void b.offsetWidth; b.classList.add("secoue"); return; }
-          p[id] = it.id; sauverAventure(); ap.maj(); son("clic"); montrer(id);
+          if (a) { p[id] = it.id; sauverAventure(); ap.maj(); son("clic"); montrer(id); return; }
+          if (av.ducats < prix) {
+            notifier("Il te manque " + (prix - av.ducats) + " ducats : les niveaux, les quêtes et les coffres en rapportent.", "ducat");
+            b.classList.remove("secoue"); void b.offsetWidth; b.classList.add("secoue");
+            return;
+          }
+          confirmer("Acheter « " + it.nom + " » ?", "Prix : " + prix + " ducats. Il t'en restera " + (av.ducats - prix) + ".", "Acheter", function () {
+            av.ducats -= prix;
+            av.possede[id].push(it.id);
+            p[id] = it.id;
+            verifierRecompenses();
+            sauverAventure();
+            ap.maj();
+            son("fin");
+            montrer(id);
+          });
         });
         g.appendChild(b);
       });
       zone.appendChild(g);
-      zone.appendChild(el("p", { class: "av-note", text: "Les pièces grisées se trouvent dans les coffres, au bout de chaque unité." }));
+      zone.appendChild(el("p", { class: "av-note", text: "Les pièces grisées s'achètent avec des ducats, ou se trouvent dans les coffres, au bout de chaque unité." }));
+    }
+    function badges() {
+      var boite = el("div");
+      var titres = el("div", { class: "av-titres", role: "group", "aria-label": "Mon surnom" });
+      var dispo = [""].concat(AV_TITRES_LIBRES, AV_BADGES.filter(function (b) { return av.badges.indexOf(b.id) >= 0; }).map(function (b) { return b.titre; }));
+      dispo.forEach(function (t) {
+        titres.appendChild(el("button", { class: "opt", type: "button", text: t || "Sans surnom", "aria-pressed": String(av.titre === t),
+          onclick: function () { av.titre = t; sauverAventure(); ap.maj(); son("clic"); montrer("badges"); } }));
+      });
+      boite.appendChild(el("h3", { class: "av-sous-titre", text: "Mon surnom" }));
+      boite.appendChild(titres);
+      boite.appendChild(el("h3", { class: "av-sous-titre", text: "Mes badges" }));
+      var g = el("div", { class: "av-badges" });
+      AV_BADGES.forEach(function (b) {
+        var a = av.badges.indexOf(b.id) >= 0, v = Math.min(b.cible, valeurBadge(b));
+        var med = el("span", { class: "av-medaille", "aria-hidden": "true" });
+        med.innerHTML = '<svg viewBox="0 0 48 48"><path d="M14 2h9l3 13-7 3zM34 2h-9l-3 13 7 3z" fill="' + (a ? "#E0457B" : "#3A3F75") + '"/><circle cx="24" cy="30" r="15" fill="' + (a ? b.c : "#2E3270") + '" stroke="' + (a ? "#FFE08A" : "#444A92") + '" stroke-width="3"/>' +
+          '<path d="M24 21l2.6 5.3 5.8.8-4.2 4.1 1 5.8L24 34.3l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="' + (a ? "#FFF6D5" : "#444A92") + '"/></svg>';
+        g.appendChild(el("div", { class: "av-badge" + (a ? " obtenu" : "") }, [med, el("div", {}, [
+          el("strong", { text: b.nom }), el("span", { text: b.txt }),
+          a ? el("small", { text: "Surnom : « " + b.titre + " »" }) : el("div", { class: "av-badge-prog" }, [barreProgres(v / b.cible), el("small", { text: v + " / " + b.cible })])
+        ])]));
+      });
+      boite.appendChild(g);
+      return boite;
     }
     function musee() {
       var g = el("div", { class: "av-musee" });
@@ -5008,13 +5652,13 @@
         b.addEventListener("click", function () { agrandir(x.d); });
         g.appendChild(b);
       });
-      if (!g.childNodes.length) return el("p", { class: "av-note", text: "Ton musée est encore vide : ouvre les coffres pour y exposer les documents du chapitre." });
+      if (!g.childNodes.length) return el("p", { class: "av-note", text: "Ton musée est encore vide : ouvre les coffres pour y exposer les documents des chapitres." });
       return g;
     }
     corps.appendChild(onglets);
     corps.appendChild(zone);
     ecran.appendChild(corps);
-    montrer(actuel);
+    montrer(ONGLETS.some(function (o) { return o.id === ongletVestiaire; }) ? ongletVestiaire : "tenue");
   }
 
   function entreeAventure(ch) {
@@ -5031,6 +5675,28 @@
       estProf() ? el("small", { text: "Essai : visible seulement par vous" }) : DEMO ? el("small", { text: "Démonstration" }) : null
     ]));
     return a;
+  }
+  // sur l'accueil d'une classe : le parcours de l'année et les repères fondamentaux
+  function entreesParcours(niveau) {
+    var g = el("div", { class: "entrees-parcours" });
+    [["annee", "Parcours de l'année", ["temple", "maison"]], ["reperes", "Repères fondamentaux", ["arbre", "dome"]]].forEach(function (x) {
+      var ch = cheminAventure(x[0] + "-" + niveau);
+      var route = ch ? routeAventure(ch) : null;
+      if (!route || !route.noeuds.length) return;
+      var faits = route.noeuds.filter(noeudFait).length;
+      var a = el("a", { class: "entree-aventure petite " + x[0], href: lienAventure(ch) });
+      var fig = el("span", { class: "ea-fig", "aria-hidden": "true" });
+      fig.innerHTML = svgIle(x[0] === "annee" ? 1 : 2, x[2]);
+      a.appendChild(fig);
+      a.appendChild(el("span", { class: "ea-txt" }, [
+        el("strong", { text: x[1] }),
+        el("span", { text: x[0] === "annee" ? pluriel(route.unites.length, "chapitre") + " à la suite" + (faits ? " · " + faits + " / " + route.noeuds.length : "") : "Périodes, siècles, dates, cartes" + (faits ? " · " + faits + " / " + route.noeuds.length : "") })
+      ]));
+      g.appendChild(a);
+    });
+    if (!g.childNodes.length) return null;
+    if (estProf() || DEMO) g.appendChild(el("p", { class: "ea-note", text: estProf() ? "Mode aventure : essai visible seulement par vous." : "Mode aventure : démonstration." }));
+    return g;
   }
 
   // ---------- Espace professeur : choisir les chapitres que voient les élèves ----------
