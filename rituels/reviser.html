@@ -140,6 +140,12 @@
   .ligne-prof { display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 14px; margin-bottom: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
   .ligne-prof.masquee, .ligne-prof.sans-fiche { background: transparent; border-style: dashed; }
   .ligne-prof.sans-fiche { color: var(--faint); padding-top: 11px; padding-bottom: 11px; }
+  .ligne-aventure { margin: 6px 0 14px; padding-left: 8px; border-color: #6C4CF1; }
+  .ligne-aventure.masquee { border-color: #6C4CF1; }
+  .lp-ile { position: relative; width: 64px; height: 44px; flex: none; pointer-events: none; }
+  .lp-ile svg { width: 100%; height: 100%; display: block; }
+  .lp-aide { display: block; font-size: 12.5px; color: var(--sub); line-height: 1.4; }
+  @media (max-width: 480px) { .lp-ile { display: none; } .ligne-aventure { padding-left: 14px; } }
   .lp-txt { flex: 1; min-width: 0; }
   .lp-titre { display: block; font-size: 14.5px; line-height: 1.35; }
   .chap-num.modifie { color: var(--warn); }
@@ -948,6 +954,17 @@
   .entree-aventure.annee { background: linear-gradient(135deg, #0E9384, #2446C0); box-shadow: 0 5px 0 #0A4F6E; }
   .entree-aventure.reperes { background: linear-gradient(135deg, #D9702A, #C93F75); box-shadow: 0 5px 0 #7A2A44; }
   .ea-note { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--sub); }
+  .av-sauvegarde p { color: #D9D6F3; font-size: 14px; margin: 0 0 10px; }
+  .av-sauvegarde .av-sous-titre { margin-top: 18px; }
+  .av-code { margin-top: 12px; }
+  .av-qr { width: min(300px, 100%); margin: 0 auto 14px; padding: 8px; border-radius: 14px; background: #fff; }
+  .av-qr svg { width: 100%; height: auto; display: block; }
+  .av-code-texte { display: block; width: 100%; margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; border: 2px solid #4A50A0; background: #1C1F48; color: #F4F2FF; font: 500 12.5px/1.35 'IBM Plex Mono', ui-monospace, monospace; word-break: break-all; resize: vertical; }
+  .av-code-texte:focus { outline: none; border-color: #8B6CFF; }
+  .av-deja { margin-top: 18px; padding: 12px 14px; border-radius: 16px; background: #23265A; border: 2px solid #33376E; }
+  .av-deja summary { cursor: pointer; font-weight: 700; color: #FFD34D; }
+  .av-deja[open] summary { margin-bottom: 10px; }
+  .av-page > .jeu-secondaire { margin-top: 10px; }
   @media (prefers-reduced-motion: reduce) {
     .av *, .av-modal *, .av-toast { animation: none !important; transition: none !important; }
     .av-confettis { display: none; }
@@ -982,6 +999,7 @@
   var CLE = "reviser-v1";              // progrès de l'élève, sur cet appareil seulement
   var CLE_THEME = "rituels-theme-v1";  // même réglage que l'écran des rituels
   var CLE_VISIBLES = "reviser-visibles-v1"; // dernière liste connue des chapitres ouverts aux élèves
+  var CLE_AV_CLASSES = "reviser-aventure-classes-v1"; // dernière liste connue des classes où le mode aventure est ouvert
   var CLE_PROF = "reviser-prof-v1";         // jeton GitHub du professeur, sur son appareil seulement
   var JOUR = 86400000;
   var INTERVALLES = [0, 1, 2, 4, 8, 16]; // jours avant de revoir une carte, selon sa boîte (0 à 5)
@@ -1125,6 +1143,7 @@
   // Les élèves ne voient que les chapitres ouverts par le professeur (activation.json) ;
   // tant que la liste n'a jamais pu être lue, tous les chapitres restent visibles.
   var visibles = lire(CLE_VISIBLES, null);
+  var classesAventure = lire(CLE_AV_CLASSES, []);
   function estVisible(ch) { return !Array.isArray(visibles) || visibles.indexOf(ch.id) >= 0; }
   function chapitresNiveau(n) { return CHAPITRES.filter(function (c) { return c.n === n && estVisible(c); }); }
   function tousChapitresNiveau(n) { return CHAPITRES.filter(function (c) { return c.n === n; }); }
@@ -1299,6 +1318,7 @@
   // #/c/<chapitre>/<outil> un outil du chapitre
   // #/aventure/<chapitre>  le mode aventure du chapitre (/perso : le personnage ; /jeu/<n> : un niveau ; /erreurs : l'île des erreurs)
   // #/aventure/annee-<classe>, #/aventure/reperes-<classe>  le parcours de l'année, les repères fondamentaux
+  // #/sauvegarde/<code>    récupérer sa progression du mode aventure (le QR code du code de sauvegarde)
   function routeActuelle() {
     var p = location.hash.replace(/^#\/?/, "").split("/").map(function (s) {
       try { return decodeURIComponent(s); } catch (e) { return s; }
@@ -1306,6 +1326,7 @@
     if (p[0] === "c") return { vue: p[2] ? "outil" : "chapitre", ch: p[1], outil: p[2], sous: p[3] };
     if (p[0] === "prof") return { vue: "prof" };
     if (p[0] === "aventure") return { vue: "aventure", ch: p[1], sous: p[2], x: p[3] };
+    if (p[0] === "sauvegarde") return { vue: "sauvegarde", code: p[1] };
     if (p[0] === "express") return { vue: "express", niveau: p[1] };
     if (p[0] === "niveau") return { vue: "accueil", niveau: p[1] };
     return { vue: "accueil" };
@@ -1326,11 +1347,12 @@
     app.innerHTML = "";
     var r = routeActuelle();
     var ch = r.ch ? chapitre(r.ch) : null;
-    document.documentElement.classList.toggle("av-ouvert", r.vue === "aventure");
+    document.documentElement.classList.toggle("av-ouvert", r.vue === "aventure" || r.vue === "sauvegarde");
+    if (r.vue === "sauvegarde") { vueSauvegarde(r.code); return; }
     if (r.vue === "aventure") {
-      // un chapitre, ou un grand parcours : annee-<classe>, reperes-<classe>
+      // un chapitre, ou un grand parcours : annee-<classe>, reperes-<classe> (si le mode est ouvert pour la classe)
       var parcours = cheminAventure(r.ch);
-      if (parcours && aventureDispo() && (parcours.special || estVisible(parcours) || estProf())) vueAventure(parcours, r.sous, r.x);
+      if (parcours && aventureDispo(parcours.n) && (parcours.special || estVisible(parcours) || estProf())) vueAventure(parcours, r.sous, r.x);
       else if (ch) vueChapitre(ch); else vueAccueil();
       return;
     }
@@ -1426,7 +1448,7 @@
       ]));
       app.appendChild(ex);
     }
-    var parcours = aventureDispo() ? entreesParcours(niveau) : null;
+    var parcours = aventureDispo(niveau) ? entreesParcours(niveau) : null;
     if (parcours) app.appendChild(parcours);
 
     ["histoire", "geo"].forEach(function (d) {
@@ -1505,7 +1527,7 @@
       ch.question ? el("div", { class: "question" }, [el("small", { text: "Question du chapitre" }), ch.question]) : null
     ]));
 
-    var entree = aventureDispo() ? entreeAventure(ch) : null;
+    var entree = aventureDispo(ch.n) ? entreeAventure(ch) : null;
     if (entree) app.appendChild(entree);
 
     app.appendChild(el("div", { class: "etiq", text: "Mes outils" }));
@@ -3760,7 +3782,8 @@
   function sauverAventure() { ecrire(CLE_AV, av); }
   window.addEventListener("storage", function (e) { if (e.key === CLE_AV) chargerAventure(); });
   var DEMO = /[?&]demo(=|&|$)/.test(location.search);
-  function aventureDispo() { return estProf() || DEMO; }
+  // le mode aventure : pour le professeur, en démonstration, ou pour les élèves d'une classe que le professeur a ouverte
+  function aventureDispo(n) { return estProf() || DEMO || (!!n && Array.isArray(classesAventure) && classesAventure.indexOf(n) >= 0); }
   function toutOuvert() { return estProf() || DEMO; }
   function lienAventure(ch, suite) { return "#/aventure/" + encodeURIComponent(ch.id) + (suite ? "/" + suite : ""); }
 
@@ -4249,7 +4272,8 @@
       if (diff.saisie && n.mot.length <= 28) qs.push({ type: "saisie", consigne: "Écris le mot qui correspond", bulle: n.def, bonne: n.mot, aide: aideSaisie(n.mot, diff), expl: expl });
     });
     qs = qs.concat(phrasesATrous(d, diff));
-    var courtes = notions.filter(function (n) { return n.def.length <= 130; });
+    // un même mot peut être défini deux fois (cours et point de passage) : une seule fois dans les paires
+    var courtes = uniquesPar(notions.filter(function (n) { return n.def.length <= 130; }), function (n) { return n.mot; });
     if (courtes.length >= 4) qs.push({ type: "paires", paires: courtes.slice(0, 4).map(function (n) { return { g: n.mot, d: n.def }; }) });
     return qs;
   }
@@ -5528,6 +5552,9 @@
     var go = el("button", { class: "jeu-valider", type: "button", text: "C'est parti !" });
     go.addEventListener("click", function () { av.perso = p; sauverAventure(); son("fin"); rendre(); });
     corps.appendChild(go);
+    var deja = el("details", { class: "av-deja" }, el("summary", { text: "Tu as déjà un personnage sur un autre appareil ? Récupère ta progression" }));
+    deja.appendChild(blocSauvegarde(function () { rendre(); }));
+    corps.appendChild(deja);
     ecran.appendChild(corps);
   }
 
@@ -5545,6 +5572,171 @@
     ok.addEventListener("click", function () { fermer(); action(); });
     non.addEventListener("click", fermer);
     ok.focus();
+  }
+
+  // ----- Le code de sauvegarde : retrouver sa progression sur un autre appareil, sans compte ni serveur -----
+  // Le code (préfixe « A1 » compressé, « A0 » sinon) contient le personnage, les possessions, les étoiles, les coffres,
+  // les ducats, les badges et la série ; pas l'île des erreurs ni les quêtes du jour, propres à chaque appareil.
+  function enBase64(octets) {
+    var s = "";
+    for (var i = 0; i < octets.length; i += 4096) s += String.fromCharCode.apply(null, octets.subarray(i, i + 4096));
+    return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function deBase64(t) {
+    var s = atob(t.replace(/-/g, "+").replace(/_/g, "/"));
+    var o = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) o[i] = s.charCodeAt(i);
+    return o;
+  }
+  function transformer(octets, flux) { return new Response(new Blob([octets]).stream().pipeThrough(flux)).arrayBuffer().then(function (b) { return new Uint8Array(b); }); }
+  function creerCodeSauvegarde() {
+    var etat = { v: 1, p: av.perso, o: av.possede, m: av.musee, b: av.badges, t: av.titre, x: av.xp, d: av.ducats, s: av.serie, st: av.stats,
+      n: {}, c: Object.keys(av.coffres).filter(function (k) { return av.coffres[k]; }) };
+    Object.keys(av.niveaux).forEach(function (k) { etat.n[k] = av.niveaux[k].e; });
+    var octets = new TextEncoder().encode(JSON.stringify(etat));
+    var compresse;
+    try { compresse = typeof CompressionStream === "function" ? transformer(octets, new CompressionStream("deflate-raw")) : null; } catch (e) { compresse = null; }
+    if (!compresse) return Promise.resolve("A0" + enBase64(octets));
+    return compresse.then(function (o) { return "A1" + enBase64(o); }, function () { return "A0" + enBase64(octets); });
+  }
+  function lireCodeSauvegarde(code) {
+    code = String(code || "").replace(/\s+/g, "");
+    var m = /^A([01])([A-Za-z0-9_-]+)$/.exec(code);
+    if (!m) return Promise.reject(new Error("code"));
+    var octets;
+    try { octets = deBase64(m[2]); } catch (e) { return Promise.reject(new Error("code")); }
+    var texte = m[1] === "0" ? Promise.resolve(octets)
+      : typeof DecompressionStream === "function" ? transformer(octets, new DecompressionStream("deflate-raw")) : Promise.reject(new Error("navigateur"));
+    return texte.then(function (o) {
+      var etat = JSON.parse(new TextDecoder().decode(o));
+      if (!etat || etat.v !== 1 || !etat.p || typeof etat.p !== "object") throw new Error("code");
+      return etat;
+    }).catch(function (e) { throw e.message === "navigateur" ? e : new Error("code"); });
+  }
+  // le code vient d'un autre appareil : on ne garde que des valeurs connues (le dessin du personnage passe dans du SVG)
+  function nettoyerEtat(etat) {
+    function parmi(liste, v, defaut) { return liste.indexOf(v) >= 0 ? v : defaut; }
+    function ids(cat) { return AV_CATS.filter(function (c) { return c[0] === cat; })[0][1].map(function (x) { return x.id; }); }
+    function nombre(v, max) { v = Number(v); return isFinite(v) && v > 0 ? Math.min(Math.floor(v), max) : 0; }
+    var p = etat.p, o = etat.o && typeof etat.o === "object" ? etat.o : {};
+    var res = {
+      perso: {
+        peau: parmi(AV_PEAUX, p.peau, AV_PEAUX[1]), cheveux: parmi(AV_CHEVEUX, p.cheveux, AV_CHEVEUX[1]),
+        coiffure: parmi(AV_COIFFURES.map(function (x) { return x.id; }), p.coiffure, "court"), barbe: parmi(AV_BARBES.map(function (x) { return x.id; }), p.barbe, ""),
+        couleur: parmi(AV_TEINTES.map(function (x) { return x[0]; }), p.couleur, AV_TEINTES[0][0]),
+        tenue: parmi(ids("tenue"), p.tenue, "tunique"), chapeau: parmi(ids("chapeau"), p.chapeau, ""), objet: parmi(ids("objet"), p.objet, ""), compagnon: parmi(ids("compagnon"), p.compagnon, "")
+      },
+      possede: {}, niveaux: {}, coffres: {}, stats: {},
+      musee: (Array.isArray(etat.m) ? etat.m : []).filter(function (x) { return typeof x === "string" && x.length < 120; }),
+      badges: (Array.isArray(etat.b) ? etat.b : []).filter(function (x) { return AV_BADGES.some(function (b) { return b.id === x; }); }),
+      xp: nombre(etat.x, 1e7), ducats: nombre(etat.d, 1e6),
+      serie: { n: nombre(etat.s && etat.s.n, 5000), jour: etat.s && /^\d{4}-\d{1,2}-\d{1,2}$/.test(etat.s.jour) ? etat.s.jour : "" }
+    };
+    AV_CATS.forEach(function (c) {
+      var connus = ids(c[0]);
+      res.possede[c[0]] = (Array.isArray(o[c[0]]) ? o[c[0]] : []).filter(function (x) { return x && connus.indexOf(x) >= 0; });
+    });
+    Object.keys(etat.n || {}).forEach(function (k) { if (k.length < 160) res.niveaux[k] = { e: Math.max(0, Math.min(3, Math.round(Number(etat.n[k]) || 0))), t: Date.now() }; });
+    (Array.isArray(etat.c) ? etat.c : []).forEach(function (k) { if (typeof k === "string" && k.length < 160) res.coffres[k] = true; });
+    Object.keys(etat.st || {}).forEach(function (k) { if (/^[a-zA-Z0-9]{1,20}$/.test(k)) res.stats[k] = nombre(etat.st[k], 1e7); });
+    var titres = AV_TITRES_LIBRES.concat(AV_BADGES.filter(function (b) { return res.badges.indexOf(b.id) >= 0; }).map(function (b) { return b.titre; }));
+    res.titre = titres.indexOf(etat.t) >= 0 ? etat.t : "";
+    return res;
+  }
+  function resumeEtat(e) {
+    var etoiles = Object.keys(e.niveaux).reduce(function (s, k) { return s + e.niveaux[k].e; }, 0);
+    return pluriel(etoiles, "étoile") + " · " + e.ducats + " ducats · " + pluriel(e.badges.length, "badge") + " · " + pluriel(Object.keys(e.coffres).length, "coffre ouvert", "coffres ouverts");
+  }
+  function appliquerEtat(e) {
+    ["perso", "possede", "niveaux", "coffres", "stats", "musee", "badges", "xp", "ducats", "serie", "titre"].forEach(function (k) { av[k] = e[k]; });
+    sauverAventure();
+    chargerAventure();
+  }
+  function lienSauvegarde(code) { return location.href.split("#")[0] + "#/sauvegarde/" + code; }
+  function messageCode(e) { return e.message === "navigateur" ? "Ce navigateur est trop ancien pour lire ce code : mets-le à jour, ou essaie avec un autre." : "Ce code n'est pas valide : vérifie qu'il est complet, sans lettre en trop ni en moins."; }
+
+  // dans « Mon personnage » : emporter sa progression, ou en récupérer une
+  function blocSauvegarde(apres) {
+    var boite = el("div", { class: "av-sauvegarde" });
+    var zoneCode = el("div", { class: "av-code" });
+    var creer = el("button", { class: "jeu-valider", type: "button", text: "Créer mon code de sauvegarde" });
+    creer.addEventListener("click", function () {
+      creer.disabled = true;
+      creerCodeSauvegarde().then(function (code) {
+        creer.hidden = true;
+        zoneCode.innerHTML = "";
+        var qr = el("div", { class: "av-qr", role: "img", "aria-label": "QR code de ta sauvegarde" });
+        try { var q = qrcode(0, "L"); q.addData(lienSauvegarde(code)); q.make(); qr.innerHTML = q.createSvgTag({ cellSize: 4, margin: 3, scalable: true }); } catch (e) { qr = null; }
+        var texte = el("textarea", { class: "av-code-texte", readonly: true, rows: "3", "aria-label": "Mon code de sauvegarde" });
+        texte.value = code;
+        var copier = el("button", { class: "av-mini-btn", type: "button", text: "Copier le code" });
+        copier.addEventListener("click", function () {
+          var fini = function () { copier.textContent = "Copié !"; son("clic"); };
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(fini, function () { texte.select(); });
+          else { texte.select(); try { document.execCommand("copy"); fini(); } catch (e) {} }
+        });
+        ajouter(zoneCode, [
+          qr ? el("p", { text: "Sur ton nouvel appareil, scanne ce QR code avec l'appareil photo :" }) : null, qr,
+          el("p", { text: "Ou garde ce code (envoie-le-toi par message) et colle-le plus tard dans « Récupérer une progression » :" }),
+          texte, copier,
+          el("p", { class: "av-note", text: "Le code reprend ta progression du jour : refais-en un après avoir avancé." })
+        ]);
+      });
+    });
+    var champ = el("textarea", { class: "av-code-texte", rows: "3", placeholder: "Colle ici ton code (il commence par A1 ou A0)", "aria-label": "Code de sauvegarde à récupérer", spellcheck: "false" });
+    var retour = el("p", { class: "av-note", "aria-live": "polite" });
+    var recup = el("button", { class: "jeu-secondaire", type: "button", text: "Récupérer cette progression" });
+    recup.addEventListener("click", function () {
+      lireCodeSauvegarde(champ.value).then(function (etat) {
+        var e = nettoyerEtat(etat);
+        confirmer("Récupérer cette progression ?", "Elle remplacera celle de cet appareil. Dans le code : " + resumeEtat(e) + ".", "Récupérer", function () {
+          appliquerEtat(e);
+          son("fin");
+          notifier("Progression récupérée !", "coche");
+          if (apres) apres();
+        });
+      }, function (err) { retour.textContent = messageCode(err); });
+    });
+    ajouter(boite, [
+      el("h3", { class: "av-sous-titre", text: "Emporter ma progression" }),
+      el("p", { text: "Ta progression reste sur ce téléphone. Pour la retrouver ailleurs (nouveau téléphone, tablette, ordinateur), crée un code de sauvegarde." }),
+      creer, zoneCode,
+      el("h3", { class: "av-sous-titre", text: "Récupérer une progression" }),
+      champ, recup, retour
+    ]);
+    return boite;
+  }
+
+  // l'adresse du QR code : #/sauvegarde/<code>
+  function vueSauvegarde(code) {
+    document.title = "Récupérer ma progression — Mode aventure";
+    var ecran = ecranAventure("av-nuit");
+    var lien = el("a", { class: "av-btn-rond", href: "#/", "aria-label": "Retour à l'accueil" });
+    lien.innerHTML = icone("retour");
+    ecran.appendChild(el("div", { class: "av-haut" }, [lien, el("strong", { class: "av-haut-titre", text: "Ma sauvegarde" }), el("span")]));
+    var corps = el("div", { class: "av-page" });
+    ecran.appendChild(corps);
+    var guide = { d: "histoire" };
+    lireCodeSauvegarde(code).then(function (etat) {
+      var e = nettoyerEtat(etat);
+      var ap = apercuPerso(e.perso);
+      var ok = el("button", { class: "jeu-valider", type: "button", text: "Récupérer ma progression" });
+      ok.addEventListener("click", function () {
+        appliquerEtat(e);
+        son("fin");
+        notifier("Progression récupérée !", "coche");
+        location.hash = "#/";
+      });
+      ajouter(corps, [
+        guideBulle(guide, [el("p", { text: "Te revoilà ! Voici le personnage de ton code de sauvegarde." }),
+          el("p", {}, el("strong", { text: resumeEtat(e) + "." })),
+          av.perso ? el("p", { text: "Attention : il remplacera la progression de cet appareil." }) : null]),
+        ap.boite, ok,
+        el("a", { class: "jeu-secondaire", href: "#/", text: "Annuler" })
+      ]);
+    }, function (err) {
+      ajouter(corps, [guideBulle(guide, messageCode(err)), el("a", { class: "jeu-continuer", href: "#/", text: "Retour à l'accueil" })]);
+    });
   }
 
   var ongletVestiaire = "tenue";
@@ -5567,7 +5759,7 @@
     majCompteurs();
     corps.appendChild(compteurs);
     var ONGLETS = [{ id: "tenue", nom: "Tenues" }, { id: "chapeau", nom: "Chapeaux" }, { id: "objet", nom: "Objets" }, { id: "compagnon", nom: "Compagnons" },
-      { id: "apparence", nom: "Apparence" }, { id: "badges", nom: "Badges et surnoms" }, { id: "musee", nom: "Musée" }];
+      { id: "apparence", nom: "Apparence" }, { id: "badges", nom: "Badges et surnoms" }, { id: "musee", nom: "Musée" }, { id: "sauvegarde", nom: "Sauvegarde" }];
     var onglets = el("div", { class: "segments av-onglets", role: "group", "aria-label": "Rubrique" });
     var zone = el("div", { class: "av-zone" });
     function montrer(id) {
@@ -5579,6 +5771,7 @@
       if (id === "apparence") { zone.appendChild(editeurApparence(p, function () { sauverAventure(); ap.maj(); })); return; }
       if (id === "musee") { zone.appendChild(musee()); return; }
       if (id === "badges") { zone.appendChild(badges()); return; }
+      if (id === "sauvegarde") { zone.appendChild(blocSauvegarde(function () { rendre(); })); return; }
       var cat = AV_CATS.filter(function (c) { return c[0] === id; })[0];
       var g = el("div", { class: "av-pieces" });
       cat[1].forEach(function (it) {
@@ -5709,6 +5902,7 @@
     return m && racine ? { owner: m[1], repo: racine } : { owner: "loannlegaillard42", repo: "Cahier-de-progression" };
   })();
   var brouillon = null;   // chapitres visibles en cours de réglage, pas encore publiés
+  var brouillonAventure = null; // classes où le mode aventure est ouvert, en cours de réglage
   var classeProf = null;
   var messageProf = null; // { ok: true|false, texte }
 
@@ -5741,16 +5935,16 @@
       throw e;
     });
   }
-  function publierVisibles(t, ids) {
+  function publierVisibles(t, ids, aventure) {
     var url = urlDepot() + "/contents/" + FICHIER_VISIBLES;
     var h = enTetesGitHub(t);
     return appelGitHub(url + "?ref=main", { headers: h, cache: "no-store" }).catch(function (e) {
       if (e.statut === 404) return null; // le fichier n'existe pas encore : on le crée
       throw e;
     }).then(function (actuel) {
-      var contenu = JSON.stringify({ visibles: ids, modifie: new Date().toISOString() }, null, 2) + "\n";
+      var contenu = JSON.stringify({ visibles: ids, aventure: aventure, modifie: new Date().toISOString() }, null, 2) + "\n";
       var corps = {
-        message: "Espace professeur : chapitres visibles par les élèves",
+        message: "Espace professeur : chapitres visibles et mode aventure",
         content: btoa(unescape(encodeURIComponent(contenu))),
         branch: "main"
       };
@@ -5762,6 +5956,7 @@
   function vueProf() {
     document.title = "Espace professeur — Réviser";
     if (!brouillon) brouillon = CHAPITRES.filter(function (c) { return estPublie(c.id); }).map(function (c) { return c.id; });
+    if (!brouillonAventure) brouillonAventure = (classesAventure || []).slice();
     if (!classeProf) classeProf = prog.niveau && NIVEAUX.some(function (n) { return n.id === prog.niveau; }) ? prog.niveau : NIVEAUX[0].id;
 
     app.appendChild(lienRetour("#/", "Retour à la boîte à outils"));
@@ -5790,6 +5985,7 @@
       } }));
     });
     app.appendChild(choix);
+    app.appendChild(ligneAventureProf(classeProf));
 
     var classe = PLAN.filter(function (c) { return c.id === classeProf; })[0];
     var annee = classe && Array.isArray(classe.annee) ? classe.annee : [];
@@ -5815,16 +6011,21 @@
       horsPlan.forEach(function (ch) { app.appendChild(ligneProf(ch)); });
     });
 
-    var changements = CHAPITRES.filter(function (c) { return (brouillon.indexOf(c.id) >= 0) !== estPublie(c.id); }).length;
+    var changements = CHAPITRES.filter(function (c) { return (brouillon.indexOf(c.id) >= 0) !== estPublie(c.id); }).length +
+      NIVEAUX.filter(function (n) { return (brouillonAventure.indexOf(n.id) >= 0) !== aventureOuvertePour(n.id); }).length;
     var btnPublier = el("button", { class: "btn plein", type: "button", text: "Publier", disabled: !changements || !estProf() });
     btnPublier.addEventListener("click", function () {
       btnPublier.disabled = true;
       btnPublier.textContent = "Publication…";
       var ids = CHAPITRES.map(function (c) { return c.id; }).filter(function (id) { return brouillon.indexOf(id) >= 0; });
-      publierVisibles(jeton(), ids).then(function () {
+      var classes = NIVEAUX.map(function (n) { return n.id; }).filter(function (id) { return brouillonAventure.indexOf(id) >= 0; });
+      publierVisibles(jeton(), ids, classes).then(function () {
         visibles = ids.slice();
+        classesAventure = classes.slice();
         ecrire(CLE_VISIBLES, visibles);
+        ecrire(CLE_AV_CLASSES, classesAventure);
         brouillon = null;
+        brouillonAventure = null;
         var h = new Date();
         messageProf = { ok: true, texte: "Publié à " + h.getHours() + " h " + String(h.getMinutes()).padStart(2, "0") + ". Les élèves verront le changement d'ici une à deux minutes, en rechargeant la page." };
         rendre();
@@ -5838,10 +6039,43 @@
     app.appendChild(el("div", { class: "barre-publier" }, [
       el("span", { text: !estProf() ? "Connectez GitHub pour publier" : changements ? pluriel(changements, "changement") + " à publier" : "Tout est publié" }),
       el("div", { class: "btns" }, [
-        changements ? el("button", { class: "btn", type: "button", text: "Annuler", onclick: function () { brouillon = null; messageProf = null; rendre(); } }) : null,
+        changements ? el("button", { class: "btn", type: "button", text: "Annuler", onclick: function () { brouillon = null; brouillonAventure = null; messageProf = null; rendre(); } }) : null,
         btnPublier
       ])
     ]));
+  }
+
+  function aventureOuvertePour(n) { return Array.isArray(classesAventure) && classesAventure.indexOf(n) >= 0; }
+  // le mode aventure de la classe : ouvert ou non aux élèves (chapitres ouverts, parcours de l'année, repères fondamentaux)
+  function ligneAventureProf(n) {
+    var ouvert = brouillonAventure.indexOf(n) >= 0;
+    var modifie = ouvert !== aventureOuvertePour(n);
+    var inter = el("button", {
+      class: "interrupteur", type: "button", role: "switch", "aria-checked": String(ouvert),
+      "aria-label": "Mode aventure ouvert aux élèves de " + nomNiveau(n), "data-id": "aventure-" + n
+    }, [el("span", { class: "piste" }, el("span", { class: "curseur" })), el("span", { class: "etat", text: ouvert ? "Ouvert" : "Fermé" })]);
+    inter.addEventListener("click", function () {
+      if (ouvert) brouillonAventure = brouillonAventure.filter(function (x) { return x !== n; });
+      else brouillonAventure.push(n);
+      messageProf = null;
+      var y = window.scrollY;
+      rendre();
+      window.scrollTo(0, y);
+      var meme = app.querySelector('.interrupteur[data-id="aventure-' + n + '"]');
+      if (meme) meme.focus();
+    });
+    var fig = el("span", { class: "lp-ile", "aria-hidden": "true" });
+    fig.innerHTML = svgIle(0, ["temple", "arbre"]);
+    return el("div", { class: "ligne-prof ligne-aventure" + (ouvert ? "" : " masquee") }, [
+      fig,
+      el("div", { class: "lp-txt" }, [
+        el("span", { class: "chap-num" + (modifie ? " modifie" : ""), text: "Mode aventure · " + nomNiveau(n) + (modifie ? " · pas encore publié" : "") }),
+        el("span", { class: "lp-titre", text: ouvert ? "Ouvert aux élèves de la classe" : "Fermé aux élèves (vous seul le voyez)" }),
+        el("span", { class: "lp-aide", text: "Sur chaque chapitre ouvert, plus le parcours de l'année et les repères fondamentaux. La progression reste sur le téléphone de l'élève." }),
+        el("a", { class: "lien-discret", href: "#/niveau/" + n, text: "Voir l'accueil de la classe" })
+      ]),
+      inter
+    ]);
   }
 
   function ligneProf(ch) {
@@ -5924,6 +6158,12 @@
     return bloc;
   }
 
+  // ---------- Hors connexion : le service worker de la boîte à outils (rituels/sw.js) garde la page et les fiches ----------
+  // (sur le site en https ; ?sw dans l'adresse l'active aussi en local, pour le tester)
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || /[?&]sw(=|&|$)/.test(location.search))) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+  }
+
   // ---------- Démarrage : lire la liste des chapitres ouverts, puis afficher ----------
   function chargerVisibles() {
     return fetch("activation.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) {
@@ -5931,16 +6171,19 @@
       return r.json();
     }).then(function (j) {
       if (!j || !Array.isArray(j.visibles)) return false;
-      var change = JSON.stringify(j.visibles) !== JSON.stringify(visibles);
+      var classes = Array.isArray(j.aventure) ? j.aventure : [];
+      var change = JSON.stringify(j.visibles) !== JSON.stringify(visibles) || JSON.stringify(classes) !== JSON.stringify(classesAventure);
       visibles = j.visibles;
+      classesAventure = classes;
       ecrire(CLE_VISIBLES, visibles);
+      ecrire(CLE_AV_CLASSES, classesAventure);
       return change;
     });
   }
   // la liste a changé depuis le dernier passage : on rafraîchit, sans interrompre un exercice en cours
   function rafraichirApresChargement() {
     var r = routeActuelle();
-    if (r.vue === "prof" || r.vue === "express" || r.vue === "aventure") return;
+    if (r.vue === "prof" || r.vue === "express" || r.vue === "aventure" || r.vue === "sauvegarde") return;
     if (r.vue === "outil") {
       var ch = chapitre(r.ch);
       if (!ch || estVisible(ch) || estProf()) return;

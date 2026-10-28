@@ -14,7 +14,8 @@ self.addEventListener("install", (e) => {
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+    // les caches « reviser-… » appartiennent au service worker de la boîte à outils (rituels/sw.js) : on n'y touche pas
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE && !k.startsWith("reviser-")).map((k) => caches.delete(k))))
   );
   self.clients.claim();
 });
