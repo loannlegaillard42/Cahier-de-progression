@@ -30,6 +30,8 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   const url = e.request.url.split(/[?#]/)[0];
   if (url === RITUELS || url.startsWith(RITUELS + "/")) return;
+  // Synchro : l'API GitHub, toujours en direct
+  if (url.startsWith("https://api.github.com/")) return;
 
   // La page elle-même : on va chercher la version du réseau d'abord, pour qu'une
   // mise à jour s'applique dès le rechargement. Le cache sert de secours sans

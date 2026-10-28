@@ -43,6 +43,10 @@
   .hit, .hit-y { position: relative; }
   .hit::after { content: ""; position: absolute; inset: -9px; }
   .hit-y::after { content: ""; position: absolute; inset: -9px 0; }
+  /* Minuteur du mode « En classe » : clignote quand le temps est écoulé */
+  @keyframes clignote { 50% { opacity: .35; } }
+  .clignote { animation: clignote 1s step-end infinite; }
+  @media (prefers-reduced-motion: reduce) { .clignote { animation: none; } }
 
   /* Impression / PDF : seule la fiche de progression s'imprime, toujours sur fond blanc */
   .print-sheet { display: none; }
@@ -632,6 +636,9 @@ function withDefaults(raw) {
   });
   if (!Array.isArray(data.competences)) data.competences = DEFAULT_COMPETENCES.map(c => ({ ...c }));
   if (!data.trimestres || typeof data.trimestres !== "object") data.trimestres = {};
+  if (!data.appreciations || typeof data.appreciations !== "object") data.appreciations = {};
+  if (!data.apprOptions || typeof data.apprOptions !== "object") data.apprOptions = { prenom: true };
+  if (!data.observations || typeof data.observations !== "object" || Array.isArray(data.observations)) data.observations = {};
   data.evaluations.forEach(ev => {
     if (!ev.grades || typeof ev.grades !== "object") ev.grades = {};
     if (!Array.isArray(ev.comps)) ev.comps = [];
@@ -2209,7 +2216,7 @@ function workDueOn(data, classId, iso, ref) {
 }
 
 /* ---------- Ma journée (accueil) ---------- */
-function MyDay({ data, setView }) {
+function MyDay({ data, setView, onClassMode }) {
   const h = React.createElement;
   const todayISO = localISO(new Date());
   let dayISO = todayISO;
@@ -2232,6 +2239,12 @@ function MyDay({ data, setView }) {
         h("h2", { style: { fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 600, color: COLORS.ink, margin: 0 } }, title),
         h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint } }, longDate(dayISO))),
       h("button", { className: "hit-y", onClick: () => setView && setView("schedule"), style: { background: "none", border: "none", color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0 } }, "Semainier →")),
+    onClassMode && data.order.length > 0 && (() => {
+      const cur = isToday ? pickSlot(slots, nowHM) : null;
+      const label = cur ? `${(data.classes[cur.classId] || {}).name || ""} · ${cur.start.replace(":", " h ")}` : "";
+      return h("button", { onClick: onClassMode, style: { ...primaryBtn, width: "100%", padding: "11px 14px", fontSize: 14, borderRadius: 9, marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 } },
+        h(IconUsers, { size: 16 }), "Mode En classe", label && h("span", { style: { fontWeight: 400, opacity: 0.85 } }, label));
+    })(),
     data.schedule.slots.length === 0 && h("p", { style: { ...txt, color: COLORS.faint, margin: 0 } }, "Renseigne ton emploi du temps (Semaine → Emploi du temps) pour voir ta journée ici."),
     events.length > 0 && h("div", { style: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 8 } },
       events.map(ev => h("div", { key: ev.id, style: { display: "flex", alignItems: "center", gap: 10, padding: "7px 12px", borderRadius: 8, border: `1px dashed ${agendaCat(ev.cat).color}` } },
@@ -2263,7 +2276,7 @@ function MyDay({ data, setView }) {
 }
 
 /* ---------- Cahier de textes prêt à copier (École Directe) ---------- */
-function CopyBtn({ text, label }) {
+function CopyBtn({ text, label, big }) {
   const h = React.createElement;
   const [ok, setOk] = useState(false);
   const copy = async () => {
@@ -2271,7 +2284,7 @@ function CopyBtn({ text, label }) {
     catch (e) { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
     setOk(true); setTimeout(() => setOk(false), 1400);
   };
-  return h("button", { onClick: copy, style: { ...ghostBtn, padding: "4px 10px", fontSize: 11.5, display: "inline-flex", alignItems: "center", gap: 5, color: ok ? COLORS.done : COLORS.accent, borderColor: ok ? COLORS.done : COLORS.line, flexShrink: 0 } },
+  return h("button", { onClick: copy, style: { ...ghostBtn, padding: big ? "11px 14px" : "4px 10px", fontSize: big ? 14 : 11.5, display: "inline-flex", alignItems: "center", gap: 5, color: ok ? COLORS.done : COLORS.accent, borderColor: ok ? COLORS.done : COLORS.line, flexShrink: 0 } },
     ok ? h(IconCheck, { size: 12 }) : null, ok ? "Copié" : label || "Copier");
 }
 function CahierTextes({ data, monday }) {
@@ -2947,7 +2960,7 @@ function withoutEmbedded(data, ids) {
 // Après un import, les fichiers des fiches qui n'existent plus prennent de la place pour rien.
 function forgetUnusedFiles(fiches) {
   const used = new Set(fiches.map(f => f.id));
-  return fileStore("readonly", st => st.getAllKeys()).then(keys => Promise.all(keys.filter(k => !used.has(k) && !String(k).startsWith("secours")).map(fileRemove))).catch(() => {});
+  return fileStore("readonly", st => st.getAllKeys()).then(keys => Promise.all(keys.filter(k => !used.has(k) && !/^(secours|synchro)/.test(String(k))).map(fileRemove))).catch(() => {});
 }
 // Remet le contenu des fichiers dans les fiches, pour une sauvegarde complète (et lisible
 // par les anciennes versions de l'app).
@@ -3220,10 +3233,20 @@ function FicheLink({ f }) {
   useEffect(() => {
     if (!f.fileInDb || f.fileData) return;
     let alive = true;
-    fileLoad(f.id).then(d => alive && (d ? setStored(d) : setMissing(true)), () => alive && setMissing(true));
-    return () => { alive = false; };
+    const load = () => fileLoad(f.id).then(d => {
+      if (!alive) return;
+      setStored(d || null);
+      setMissing(!d);
+    }, () => alive && setMissing(true));
+    load();
+    // Fichier reçu d'un autre appareil par la synchro
+    window.addEventListener("cahier-fichiers", load);
+    return () => {
+      alive = false;
+      window.removeEventListener("cahier-fichiers", load);
+    };
   }, [f.id, f.fileInDb]);
-  if (missing) return h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.histoire, margin: "8px 0 0" } }, "Fichier introuvable sur cet appareil.");
+  if (missing) return h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.histoire, margin: "8px 0 0" } }, syncConfig() ? "Fichier pas encore reçu sur cet appareil : il arrivera avec la synchro." : "Fichier introuvable sur cet appareil.");
   const href = isFile ? f.fileData || stored : f.url;
   if (!href) return null;
   return h("a", { href, target: "_blank", rel: "noreferrer", download: f.fileName || undefined,
@@ -3851,6 +3874,167 @@ function CompBook({ cls, evals, students, competences }) {
       h("span", null, mode === "moyenne" ? "· niveau retenu = moyenne des évaluations, arrondie ; ×3 = évalué 3 fois" : "· niveau retenu = dernière évaluation de la compétence")));
 }
 
+/* ---------- Appréciations de bulletin ----------
+   Brouillon proposé à partir des résultats du trimestre (moyenne, évolution, compétences) et des
+   observations cochées ; le texte reste entièrement modifiable. Les phrases évitent pronoms et
+   accords (« le travail est sérieux » plutôt que « il est sérieux ») : elles conviennent à tous. */
+const APPR_TAGS = [
+  { id: "participation", label: "Participe", plus: true, text: "La participation orale est active et pertinente." },
+  { id: "regulier", label: "Travail régulier", plus: true, text: "Le travail est sérieux et régulier." },
+  { id: "efforts", label: "Efforts", plus: true, text: "Des efforts sont visibles et doivent se poursuivre." },
+  { id: "autonomie", label: "Autonomie", plus: true, text: "Le travail en classe montre une belle autonomie." },
+  { id: "soin", label: "Soin", plus: true, text: "Les productions sont soignées." },
+  { id: "oral", label: "Peu à l'oral", plus: false, text: "Il faut oser participer davantage à l'oral." },
+  { id: "bavardages", label: "Bavardages", plus: false, text: "Les bavardages nuisent à la concentration." },
+  { id: "attention", label: "Concentration", plus: false, text: "La concentration en classe doit être plus constante." },
+  { id: "travailperso", label: "Travail perso.", plus: false, text: "Le travail personnel (leçons, exercices) doit être plus régulier." },
+  { id: "materiel", label: "Matériel", plus: false, text: "Le matériel doit être apporté à chaque séance." },
+  { id: "organisation", label: "Organisation", plus: false, text: "Un effort de soin et d'organisation est attendu." }
+];
+const COMP_PHRASES = { "c4-temps": "les repères chronologiques", "c4-espace": "les repères géographiques", "c4-raisonner": "le raisonnement",
+  "c4-numerique": "la recherche d'informations", "c4-document": "l'analyse de documents", "c4-langages": "la pratique des langages (croquis, récit…)", "c4-cooperer": "le travail en équipe" };
+const compPhrase = c => COMP_PHRASES[c.id] || c.label.charAt(0).toLowerCase() + c.label.slice(1);
+// Prénom : « Adam Benali » → Adam ; « BENALI Adam » → Adam
+function firstName(name) {
+  const t = String(name || "").trim().split(/\s+/);
+  return t.length > 1 && t[0].length > 1 && t[0] === t[0].toUpperCase() && /[A-Z]/.test(t[0]) ? t.slice(1).join(" ") : t[0];
+}
+const deP = P => /^[aeiouyhàâäéèêëîïôöûü]/i.test(P) ? `d'${P}` : `de ${P}`;
+const joinFr = list => list.length <= 1 ? list.join("") : `${list.slice(0, -1).join(", ")} et ${list[list.length - 1]}`;
+const hashStr = str => { let x = 0; for (const ch of str) x = (x * 31 + ch.charCodeAt(0)) >>> 0; return x; };
+function apprDraft({ name, avg, prev, comps, tags, withName, seed }) {
+  const pick = arr => arr[seed % arr.length];
+  const P = withName ? firstName(name) : null;
+  const strong = comps.filter(c => c.mean >= 3.5), weak = comps.filter(c => c.mean <= 2);
+  const compMean = comps.length ? comps.reduce((a, c) => a + c.mean, 0) / comps.length : null;
+  const lv = avg !== null ? (avg >= 16 ? 5 : avg >= 14 ? 4 : avg >= 12 ? 3 : avg >= 10 ? 2 : avg >= 8 ? 1 : 0)
+    : compMean !== null ? (compMean >= 3.5 ? 4 : compMean >= 2.75 ? 3 : compMean >= 2 ? 2 : 1) : null;
+  const OPEN = [
+    [["Trimestre difficile : les résultats sont très insuffisants.", "Les résultats de ce trimestre sont très insuffisants."], ["{P} traverse un trimestre difficile : les résultats sont très insuffisants.", "Les résultats {deP} sont très insuffisants ce trimestre."]],
+    [["Trimestre fragile : les résultats restent insuffisants.", "Les résultats sont encore insuffisants ce trimestre."], ["{P} réalise un trimestre fragile : les résultats restent insuffisants.", "Les résultats {deP} sont encore insuffisants ce trimestre."]],
+    [["Trimestre correct, mais les résultats restent fragiles.", "Des résultats corrects, à consolider."], ["{P} réalise un trimestre correct, mais les résultats restent fragiles.", "{P} obtient des résultats corrects, à consolider."]],
+    [["Bon trimestre.", "Trimestre satisfaisant : les résultats sont solides."], ["{P} réalise un bon trimestre.", "{P} obtient des résultats satisfaisants ce trimestre."]],
+    [["Très bon trimestre : les résultats sont solides.", "Très bon ensemble ce trimestre."], ["{P} réalise un très bon trimestre.", "{P} obtient de très bons résultats ce trimestre."]],
+    [["Excellent trimestre : les résultats sont remarquables.", "Excellent ensemble ce trimestre."], ["{P} réalise un excellent trimestre.", "{P} obtient d'excellents résultats ce trimestre."]]
+  ];
+  const out = [];
+  if (lv === null) out.push(P ? `Pas encore assez d'évaluations pour faire le bilan du trimestre ${deP(P)}.` : "Pas encore assez d'évaluations pour faire le bilan du trimestre.");
+  else out.push(pick(OPEN[lv][P ? 1 : 0]).replace("{deP}", P ? deP(P) : "").replace("{P}", P));
+  if (avg !== null && prev !== null) {
+    const d = avg - prev;
+    if (d >= 1.5) out.push(pick(["Nette progression depuis le trimestre précédent, c'est encourageant.", "La progression est nette depuis le trimestre précédent."]));
+    else if (d >= 0.75) out.push(pick(["Une progression se dessine depuis le trimestre précédent.", "Une progression est sensible depuis le trimestre précédent."]));
+    else if (d <= -1.5) out.push(pick(["Nette baisse par rapport au trimestre précédent : il faut se ressaisir.", "La baisse est nette par rapport au trimestre précédent."]));
+    else if (d <= -0.75) out.push(pick(["Léger fléchissement par rapport au trimestre précédent.", "Un léger fléchissement est à surveiller."]));
+  }
+  if (strong.length) out.push(`Points forts : ${joinFr(strong.map(compPhrase))}.`);
+  if (weak.length) out.push(`À consolider : ${joinFr(weak.map(compPhrase))}.`);
+  APPR_TAGS.filter(t => t.plus && tags.includes(t.id)).forEach(t => out.push(t.text));
+  APPR_TAGS.filter(t => !t.plus && tags.includes(t.id)).forEach(t => out.push(t.text));
+  if (lv !== null) out.push(pick(lv >= 4 ? ["Il faut poursuivre dans cette voie.", "Cette dynamique est à maintenir."]
+    : lv >= 2 ? ["Un travail régulier permettra de progresser encore.", "Des efforts réguliers permettront d'aller plus loin."]
+    : ["Un travail plus régulier est indispensable pour progresser.", "Il faut se remettre au travail avec régularité : les progrès sont possibles."]));
+  return out.join(" ");
+}
+
+// Une carte par élève : repères chiffrés, observations à cocher, texte modifiable
+function ApprCard({ s, info, entry, withName, seed, onSave }) {
+  const h = React.createElement;
+  // Observations notées en classe : cochées d'office quand elles reviennent souvent
+  const tags = apprTags(entry, info);
+  const count = t => {
+    const k = OBS_KINDS.find(x => x.tag === t.id);
+    return k && info.obs ? info.obs[k.id] || 0 : 0;
+  };
+  const obsLine = OBS_KINDS.filter(k => !k.toggle && info.obs && info.obs[k.id]).map(k => obsPlural(k.id, info.obs[k.id])).join(" · ");
+  const draft = apprDraft({ name: s.name, avg: info.avg, prev: info.prev, comps: info.comps, tags, withName, seed });
+  const [local, setLocal] = useState(null);
+  const save = useDebouncedSave(text => onSave({ text, edited: true }));
+  const value = local !== null ? local : entry.edited ? entry.text : draft;
+  // La zone de texte s'agrandit pour montrer toute l'appréciation
+  const taRef = useRef(null);
+  React.useLayoutEffect(() => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + 2 + "px";
+  }, [value]);
+  const toggleTag = id => onSave({ tags: tags.includes(id) ? tags.filter(x => x !== id) : [...tags, id] });
+  const chip = t => {
+    const on = tags.includes(t.id);
+    return h("button", { key: t.id, onClick: () => toggleTag(t.id), "aria-pressed": on,
+      style: { fontFamily: "Inter, sans-serif", fontSize: 12, padding: "4px 9px", borderRadius: 999, cursor: "pointer", fontWeight: on ? 600 : 400,
+        border: `1px solid ${on ? (t.plus ? COLORS.doneInk : "var(--danger)") : COLORS.line}`, background: on ? (t.plus ? COLORS.doneSoft : "var(--histoireSoft)") : "transparent",
+        color: on ? (t.plus ? COLORS.doneInk : "var(--danger)") : COLORS.sub } }, (t.plus ? "+ " : "− ") + t.label, count(t) ? ` · ${count(t)}` : "");
+  };
+  const fmt = v => v === null ? "—" : fmtGrade(v);
+  return h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderLeft: `4px solid ${entry.ok ? COLORS.done : COLORS.line}`, borderRadius: 8, padding: "12px 14px" } },
+    h("div", { style: { display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap", marginBottom: 6 } },
+      h("span", { style: { fontFamily: "Fraunces, serif", fontSize: 15, color: COLORS.ink, fontWeight: 600 } }, s.name),
+      h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub } }, `moy. ${fmt(info.avg)}`, info.prev !== null ? ` · avant ${fmt(info.prev)}` : ""),
+      info.comps.length > 0 && h("span", { style: { display: "inline-flex", gap: 4, flexWrap: "wrap" } }, info.comps.map(c => h("span", { key: c.id, title: c.label, style: { display: "inline-flex", alignItems: "center", gap: 3, fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.sub } }, c.short, h(LevelChip, { n: Math.min(4, Math.max(1, Math.round(c.mean))), small: true }))))),
+    s.note && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub, margin: "0 0 6px", fontStyle: "italic" } }, `Ta remarque : ${s.note}`),
+    obsLine && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub, margin: "0 0 6px" } }, `En classe ce trimestre : ${obsLine}`),
+    h("div", { style: { display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 8 } }, APPR_TAGS.map(chip)),
+    h("textarea", { ref: taRef, value, rows: 3, "aria-label": `Appréciation de ${s.name}`,
+      onChange: e => { setLocal(e.target.value); save(e.target.value); }, onBlur: save.flush,
+      style: { ...inputStyle, resize: "vertical", lineHeight: 1.45, fontFamily: "Inter, sans-serif" } }),
+    h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginTop: 6 } },
+      h(CopyBtn, { text: value }),
+      h("button", { onClick: () => onSave({ ok: !entry.ok }), "aria-pressed": !!entry.ok, style: { ...ghostBtn, padding: "4px 10px", fontSize: 11.5, color: entry.ok ? COLORS.doneInk : COLORS.sub, borderColor: entry.ok ? COLORS.doneInk : COLORS.line } }, entry.ok ? "✓ Relue" : "Marquer comme relue"),
+      entry.edited && h("button", { onClick: () => { if (confirm("Remplacer ton texte par une nouvelle proposition ?")) { save.cancel(); setLocal(null); onSave({ edited: false, text: "" }); } }, style: { ...ghostBtn, padding: "4px 10px", fontSize: 11.5 } }, "Nouvelle proposition"),
+      h("span", { style: { marginLeft: "auto", fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: COLORS.faint } }, `${value.length} car.`, entry.edited ? " · modifiée" : " · proposée")));
+}
+
+function AppreciationsView({ data, cls, classId, students, allEvals, tri, per, onSave, onSetOptions }) {
+  const h = React.createElement;
+  if (per === 0) return h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.sub } }, "Les appréciations se rédigent trimestre par trimestre : choisis T1, T2 ou T3 ci-dessus.");
+  if (students.length === 0) return h(EmptyState, { icon: h(IconUsers, { size: 26 }), text: `Ajoute les élèves de ${cls.name} dans l'onglet Élèves pour rédiger leurs appréciations.` });
+  const key = `${tri.annee}-T${per}`;
+  const store = ((data.appreciations || {})[key] || {})[classId] || {};
+  const withName = (data.apprOptions || {}).prenom !== false;
+  const inT = k => allEvals.filter(ev => ev.date && trimestreOf(tri, ev.date) === k);
+  const noted = k => inT(k).filter(ev => !ev.sansNote);
+  const obsT = obsCounts(data, classId, ...trimestreRange(tri, per));
+  const infoOf = sid => {
+    const evs = inT(per);
+    const comps = data.competences.map(c => {
+      const vals = evs.filter(ev => (ev.comps || []).includes(c.id)).map(ev => levelOf(ev, sid, c.id)).filter(Boolean);
+      return vals.length ? { ...c, mean: vals.reduce((a, b) => a + b, 0) / vals.length } : null;
+    }).filter(Boolean);
+    return { avg: studentAverage(sid, noted(per)), prev: per > 1 ? studentAverage(sid, noted(per - 1)) : null, comps, obs: obsT[sid] || {} };
+  };
+  const texts = students.map(st => {
+    const e = store[st.id] || {};
+    const info = infoOf(st.id);
+    return e.edited ? e.text : apprDraft({ name: st.name, ...info, tags: apprTags(e, info), withName, seed: hashStr(st.id + key) });
+  });
+  const relues = students.filter(st => (store[st.id] || {}).ok).length;
+  const exportCSV = () => {
+    const esc = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [["Élève", `Appréciation ${TRIM_NAME[per]}`].map(esc).join(";"), ...students.map((st, i) => [st.name, texts[i]].map(esc).join(";"))];
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" }));
+    a.download = `appreciations-${cls.name.replace(/\s+/g, "_")}-T${per}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  return h("div", null,
+    h("div", { style: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 6 } },
+      h("div", { style: { flex: "1 1 160px" } }, h(LevelBar, { counts: [0, 0, relues, 0], total: Math.max(1, students.length) })),
+      h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub } }, `${relues}/${students.length} relues`)),
+    h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 } },
+      h("label", { style: { display: "flex", alignItems: "center", gap: 6, fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, cursor: "pointer" } },
+        h("input", { type: "checkbox", checked: withName, onChange: e => onSetOptions({ ...(data.apprOptions || {}), prenom: e.target.checked }) }), "Commencer par le prénom"),
+      h("span", { style: { flex: 1 } }),
+      h(CopyBtn, { text: students.map((st, i) => `${st.name} : ${texts[i]}`).join("\n\n"), label: "Copier tout" }),
+      h("button", { onClick: exportCSV, style: { ...ghostBtn, padding: "4px 10px", fontSize: 11.5 } }, "Exporter (tableur)")),
+    h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint, margin: "0 0 12px", lineHeight: 1.5 } },
+      "Proposition construite à partir de la moyenne, de l'évolution, des compétences et des observations cochées. Modifie librement le texte : il ne sera plus remplacé."),
+    h("div", { className: "list-grid", style: { display: "flex", flexDirection: "column", gap: 10 } },
+      students.map(st => h(ApprCard, { key: st.id + key, s: st, info: infoOf(st.id), entry: store[st.id] || {}, withName, seed: hashStr(st.id + key), onSave: patch => onSave(key, classId, st.id, patch) }))));
+}
+
 // Réglages : fins de trimestre de l'année en cours
 function TrimestreSettings({ data, onChange }) {
   const h = React.createElement;
@@ -4054,7 +4238,7 @@ function GradeBook({ data, cls, evals, students, onSetGrade, trimCols, emptyText
       h("span", null, "Moyennes ramenées sur 20 et pondérées par les coefficients · Entrée ou ↓ pour passer à l'élève suivant")));
 }
 
-function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, onDelete, onSetGrade, onSetLevel }) {
+function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, onDelete, onSetGrade, onSetLevel, onSaveAppreciation, onSetApprOptions }) {
   const h = React.createElement;
   const [tab, setTab] = useState(() => { try { return localStorage.getItem("evals-tab-v1") || "liste"; } catch (e) { return "liste"; } });
   const [adding, setAdding] = useState(false);
@@ -4082,7 +4266,8 @@ function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, on
     h("div", { style: { display: "inline-flex", flexWrap: "wrap", gap: 4, padding: 3, borderRadius: 9, background: COLORS.encadre, marginBottom: 18 } },
       h("button", { onClick: () => switchTab("liste"), style: tabStyle(tab === "liste") }, `Évaluations (${evals.length})`, toCorrect ? ` · ${toCorrect} à corriger` : ""),
       h("button", { onClick: () => switchTab("releve"), style: tabStyle(tab === "releve") }, "Relevé de notes"),
-      h("button", { onClick: () => switchTab("competences"), style: tabStyle(tab === "competences") }, "Compétences")),
+      h("button", { onClick: () => switchTab("competences"), style: tabStyle(tab === "competences") }, "Compétences"),
+      h("button", { onClick: () => switchTab("appreciations"), style: tabStyle(tab === "appreciations") }, "Appréciations")),
     h("div", { style: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 16 } },
       h("span", { style: { ...labelStyle, marginBottom: 0, marginRight: 2 } }, "Période"),
       [[1, "T1"], [2, "T2"], [3, "T3"], [0, "Année"]].map(([k, l]) => h("button", { key: k, onClick: () => setPeriode(k), "aria-pressed": per === k, title: k ? `${TRIM_NAME[k]} : ${trimestreRange(tri, k).map(formatDate).join(" → ")}` : "Toute l'année",
@@ -4094,6 +4279,7 @@ function EvaluationsView({ data, activeClass, onAdd, onUpdate, onCycleStatus, on
     tab === "releve" ? h(GradeBook, { data, cls, evals: dated.filter(ev => !ev.sansNote), students, onSetGrade, emptyText: per ? `Aucune évaluation notée au ${TRIM_NAME[per]} pour ${cls.name}.` : null,
       trimCols: per === 0 ? [1, 2, 3].map(k => ({ label: `T${k}`, evals: allEvals.filter(ev => !ev.sansNote && ev.date && trimestreOf(tri, ev.date) === k) })) : null }) :
     tab === "competences" ? h(CompBook, { cls, evals: dated, students, competences: data.competences }) :
+    tab === "appreciations" ? h(AppreciationsView, { data, cls, classId: activeClass, students, allEvals, tri, per, onSave: onSaveAppreciation, onSetOptions: onSetApprOptions }) :
     h(React.Fragment, null,
       evals.length === 0 && !adding && h(EmptyState, { icon: h(IconClipboard, { size: 26 }), text: `Aucune évaluation pour ${cls.name} pour l'instant.` }),
       h("div", { className: "list-grid", style: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 } },
@@ -4277,7 +4463,9 @@ function SettingsView({
   onSetZone,
   onRefreshCalendar,
   onSetCompetences,
-  onSetTrimestres
+  onSetTrimestres,
+  sync,
+  syncActions
 }) {
   const [status, setStatus] = useState(null);
   const fileRef = useRef(null);
@@ -4341,6 +4529,14 @@ function SettingsView({
       gap: 36
     }
   }, /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+    icon: /*#__PURE__*/React.createElement(IconCloud, {
+      size: 15
+    }),
+    title: "Synchronisation"
+  }), /*#__PURE__*/React.createElement(SyncSettings, {
+    sync: sync,
+    ...syncActions
+  })), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
     icon: /*#__PURE__*/React.createElement(IconDownload, {
       size: 15
     }),
@@ -4354,7 +4550,7 @@ function SettingsView({
       marginBottom: 16,
       lineHeight: 1.55
     }
-  }, "Tes données sont enregistrées uniquement sur cet appareil, dans ce navigateur. Elles ne passent pas d'un appareil à l'autre toutes seules — et un nettoyage du navigateur les efface. Exporte régulièrement, et importe le fichier sur ton autre appareil pour t'y retrouver avec le même contenu."), /*#__PURE__*/React.createElement("div", {
+  }, sync.on ? "La synchronisation partage ton cahier entre tes appareils et en garde une copie chiffrée en ligne. Un export de temps en temps reste une bonne précaution." : "Tes données sont enregistrées uniquement sur cet appareil, dans ce navigateur. Elles ne passent pas d'un appareil à l'autre toutes seules — et un nettoyage du navigateur les efface. Active la synchronisation ci-dessus, ou exporte régulièrement et importe le fichier sur ton autre appareil."), /*#__PURE__*/React.createElement("div", {
     style: {
       background: COLORS.panel,
       border: `1px solid ${COLORS.line}`,
@@ -4433,7 +4629,7 @@ function SettingsView({
       color: COLORS.faint,
       lineHeight: 1.55
     }
-  }, "L'import remplace intégralement le contenu actuel de cet appareil par celui du fichier. Pense à exporter avant, si tu as saisi des choses ici que tu veux garder.")), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
+  }, "L'import remplace intégralement le contenu actuel de cet appareil par celui du fichier. Pense à exporter avant, si tu as saisi des choses ici que tu veux garder.", sync.on ? " Avec la synchronisation active, l'import remplace aussi le cahier de tes autres appareils." : "")), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement(SectionTitle, {
     icon: /*#__PURE__*/React.createElement(IconCalendar, {
       size: 15
     }),
@@ -4699,7 +4895,8 @@ function HomeView({
   onAddTodo,
   onToggleTodo,
   onDeleteTodo,
-  onSetAnnualHours
+  onSetAnnualHours,
+  onClassMode
 }) {
   const today = new Date();
   const in7 = new Date(today);
@@ -4761,7 +4958,8 @@ function HomeView({
     data: data
   }), /*#__PURE__*/React.createElement(SchoolBanner, null), /*#__PURE__*/React.createElement(MyDay, {
     data: data,
-    setView: setView
+    setView: setView,
+    onClassMode: onClassMode
   }), /*#__PURE__*/React.createElement("div", {
     className: "rail-inline"
   }, /*#__PURE__*/React.createElement(UpcomingDates, {
@@ -5164,6 +5362,9 @@ function BackupReminder({ data }) {
   const today = localISO(new Date());
   const since = info.last || info.first;
   if (!since || since > shiftISO(today, -14) || (info.snooze && info.snooze > today)) return null;
+  // La synchro garde déjà une copie en ligne
+  const sc = syncConfig();
+  if (sc && sc.last && localISO(new Date(sc.last)) > shiftISO(today, -14)) return null;
   const days = Math.round((parseISO(today) - parseISO(since)) / 86400000);
   const save = () => {
     setBusy(true);
@@ -5181,6 +5382,905 @@ function BackupReminder({ data }) {
     h("span", { style: { display: "flex", gap: 8 } },
       h("button", { onClick: save, disabled: busy, style: { ...primaryBtn, padding: "7px 12px", fontSize: 12.5 } }, busy ? "Sauvegarde…" : "Sauvegarder"),
       h("button", { onClick: later, style: { ...ghostBtn, padding: "7px 12px", fontSize: 12.5 } }, "Plus tard")));
+}
+
+/* ---------- Synchronisation entre appareils ----------
+   Le cahier est chiffré sur l'appareil (AES-GCM 256 bits, clé tirée du mot de passe par
+   PBKDF2-SHA-256) puis rangé dans « cahier.json » d'un dépôt GitHub privé, par l'API GitHub
+   et une clé d'accès limitée à ce dépôt : GitHub ne voit que du texte chiffré. Les fichiers
+   joints suivent, un par fiche, dans « fichiers/ ».
+   Fusion à trois voies : la dernière version échangée (la « base », gardée dans IndexedDB)
+   sert de référence pour garder à la fois les modifications de cet appareil et celles des
+   autres. Si la même valeur a changé des deux côtés, cet appareil l'emporte (le cahier en
+   ligne, juste après « Réunir ») ; une modification l'emporte sur une suppression. */
+const SYNC_KEY = "synchro-v1";
+const SYNC_BASE = "synchro-base";
+const SYNC_FILE = "cahier.json";
+const SYNC_DIR = "fichiers";
+const SYNC_ITER = 600000;
+const SYNC_GZIP = typeof CompressionStream === "function" && typeof DecompressionStream === "function";
+const SYNC_MESSAGES = {
+  reseau: "Pas de connexion : la synchro reprendra toute seule.",
+  cle: "GitHub refuse la clé d'accès (expirée, supprimée ou mal copiée).",
+  depot: "Dépôt introuvable : vérifie son nom (pseudo/nom-du-dépôt) et que la clé donne bien accès à ce dépôt.",
+  droits: "La clé ne permet pas d'écrire dans le dépôt : donne-lui l'autorisation « Contents : Read and write ».",
+  public: "Ce dépôt est public : rends-le privé sur GitHub (Settings › Change visibility) avant d'y ranger ton cahier.",
+  motdepasse: "Mot de passe incorrect.",
+  format: "Le fichier cahier.json de ce dépôt n'est pas un cahier synchronisé.",
+  navigateur: "Ce navigateur est trop ancien pour la synchro chiffrée : mets-le à jour.",
+  quota: "GitHub limite temporairement les échanges : la synchro reprendra dans quelques minutes.",
+  conflit: "Plusieurs appareils envoient en même temps : nouvel essai dans un instant.",
+  serveur: "GitHub ne répond pas correctement pour l'instant : nouvel essai plus tard.",
+  court: "Le mot de passe doit faire au moins 8 caractères.",
+  differents: "Les deux mots de passe sont différents."
+};
+const syncMessage = code => SYNC_MESSAGES[code] || "Erreur inattendue pendant la synchro.";
+// Pendant la synchro, « mot de passe incorrect » veut dire qu'il a été changé ailleurs
+const syncPause = code => "Synchro en pause. " + (code === "motdepasse" ? "Le mot de passe a été changé depuis un autre appareil : retape-le dans les Réglages." : syncMessage(code));
+function syncError(code) {
+  const e = new Error("synchro : " + code);
+  e.code = code;
+  return e;
+}
+function syncConfig() {
+  try {
+    const c = JSON.parse(localStorage.getItem(SYNC_KEY));
+    return c && c.repo && c.token && c.key ? c : null;
+  } catch (e) {
+    return null;
+  }
+}
+function saveSyncConfig(cfg) {
+  try {
+    if (cfg) localStorage.setItem(SYNC_KEY, JSON.stringify(cfg));
+    else localStorage.removeItem(SYNC_KEY);
+  } catch (e) {}
+}
+// N'écrit que si la synchro est toujours active (elle a pu être arrêtée pendant un échange)
+function patchSyncConfig(patch) {
+  const cfg = syncConfig();
+  if (cfg) saveSyncConfig({ ...cfg, ...patch });
+}
+function deviceName() {
+  const ua = navigator.userAgent || "";
+  if (/CrOS/.test(ua)) return "Chromebook";
+  if (/iPhone/.test(ua)) return "iPhone";
+  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return "iPad";
+  if (/Android/.test(ua)) return "Android";
+  if (/Windows/.test(ua)) return "PC Windows";
+  if (/Macintosh/.test(ua)) return "Mac";
+  return "Ordinateur";
+}
+// Sur GitHub Pages (pseudo.github.io), le dépôt proposé est pseudo/cahier-donnees
+function defaultSyncRepo() {
+  const host = location.hostname;
+  return /\.github\.io$/.test(host) ? host.split(".")[0] + "/cahier-donnees" : "";
+}
+const SYNC_REPO_RE = /^[\w.-]+\/[\w.-]+$/;
+// Lien qui préremplit la création de la clé : nom, sans expiration, droit d'écrire le contenu
+const syncTokenUrl = () => "https://github.com/settings/personal-access-tokens/new?" + new URLSearchParams({
+  name: `Cahier de progression (${deviceName()})`,
+  description: "Synchro chiffrée du cahier de progression",
+  expires_in: "none",
+  contents: "write"
+}).toString();
+// Création du dépôt, déjà réglée sur « privé »
+const syncRepoUrl = repo => "https://github.com/new?" + new URLSearchParams({
+  name: (repo.split("/")[1] || "cahier-donnees").trim(),
+  visibility: "private",
+  description: "Copie chiffrée du cahier de progression (synchro entre appareils)"
+}).toString();
+function syncWhen(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const mins = (Date.now() - d) / 60000;
+  if (mins < 1) return "à l'instant";
+  const heure = `${d.getHours()} h ${pad2(d.getMinutes())}`;
+  return localISO(d) === localISO(new Date()) ? `à ${heure}` : `le ${pad2(d.getDate())}/${pad2(d.getMonth() + 1)} à ${heure}`;
+}
+
+// Octets <-> base64 (par tranches : les gros fichiers dépasseraient la pile)
+function bytesToB64(bytes) {
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+function b64ToBytes(b64) {
+  const s = atob(String(b64).replace(/\s/g, ""));
+  const out = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+  return out;
+}
+async function gzipBytes(bytes, inflate) {
+  const stream = new Blob([bytes]).stream().pipeThrough(inflate ? new DecompressionStream("gzip") : new CompressionStream("gzip"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+async function deriveSyncKey(password, salt, iter) {
+  if (!window.crypto || !crypto.subtle) throw syncError("navigateur");
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: b64ToBytes(salt), iterations: iter }, base, 256);
+  return bytesToB64(new Uint8Array(bits));
+}
+// Chiffre un texte ; l'enveloppe garde en clair le sel, l'appareil et la date d'envoi
+async function sealSync(cfg, text) {
+  let bytes = new TextEncoder().encode(text);
+  if (SYNC_GZIP) bytes = await gzipBytes(bytes, false);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await crypto.subtle.importKey("raw", b64ToBytes(cfg.key), "AES-GCM", false, ["encrypt"]);
+  const data = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, bytes));
+  return JSON.stringify({ app: "cahier-de-progression", v: 1, salt: cfg.salt, iter: cfg.iter, gzip: SYNC_GZIP, appareil: cfg.device, date: new Date().toISOString(), iv: bytesToB64(iv), data: bytesToB64(data) });
+}
+function parseEnvelope(text) {
+  let env = null;
+  try {
+    env = JSON.parse(text);
+  } catch (e) {}
+  if (!env || env.app !== "cahier-de-progression" || !env.iv || !env.data || !env.salt) throw syncError("format");
+  return env;
+}
+async function openSync(keyB64, env) {
+  let bytes;
+  try {
+    const key = await crypto.subtle.importKey("raw", b64ToBytes(keyB64), "AES-GCM", false, ["decrypt"]);
+    bytes = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64ToBytes(env.iv) }, key, b64ToBytes(env.data)));
+  } catch (e) {
+    throw syncError("motdepasse");
+  }
+  if (env.gzip) {
+    if (!SYNC_GZIP) throw syncError("navigateur");
+    bytes = await gzipBytes(bytes, true);
+  }
+  return new TextDecoder().decode(bytes);
+}
+
+// API GitHub (dépôt « pseudo/nom »)
+async function ghRequest(cfg, path, { method = "GET", body, allow404 } = {}) {
+  let res;
+  try {
+    res = await fetch(`https://api.github.com/repos/${cfg.repo}${path}`, {
+      method,
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${cfg.token}`, Accept: "application/vnd.github+json", ...(body ? { "Content-Type": "application/json" } : {}) },
+      body: body ? JSON.stringify(body) : undefined
+    });
+  } catch (e) {
+    throw syncError("reseau");
+  }
+  if (res.ok) return res.status === 204 ? null : res.json();
+  if (res.status === 404 && allow404) return null;
+  const s = res.status;
+  const limite = res.headers.get("x-ratelimit-remaining") === "0";
+  throw syncError(s === 401 ? "cle" : s === 404 ? "depot" : s === 409 || s === 422 ? "conflit" : s === 429 || (s === 403 && limite) ? "quota" : s === 403 ? "droits" : "serveur");
+}
+async function ghGetFile(cfg, path) {
+  const meta = await ghRequest(cfg, `/contents/${path}`, { allow404: true });
+  if (!meta || Array.isArray(meta)) return null;
+  // Au-delà de 1 Mo, l'API ne joint plus le contenu : on passe par le « blob »
+  const b64 = meta.encoding === "base64" && meta.content ? meta.content : (await ghRequest(cfg, `/git/blobs/${meta.sha}`)).content;
+  return { sha: meta.sha, text: new TextDecoder().decode(b64ToBytes(b64)) };
+}
+async function ghPutFile(cfg, path, text, sha, message) {
+  const r = await ghRequest(cfg, `/contents/${path}`, { method: "PUT", body: { message, content: bytesToB64(new TextEncoder().encode(text)), ...(sha ? { sha } : {}) } });
+  return r.content.sha;
+}
+// Empreinte actuelle de « cahier.json », lue dans la liste du dépôt : une petite réponse,
+// pour ne pas retélécharger tout le cahier chaque minute quand rien n'a changé
+const ghHeadSha = cfg => ghRequest(cfg, "/contents", { allow404: true }).then(list => {
+  const f = Array.isArray(list) ? list.find(x => x.name === SYNC_FILE) : null;
+  return f ? f.sha : null;
+});
+const ghListDir = cfg => ghRequest(cfg, `/contents/${SYNC_DIR}`, { allow404: true }).then(list => Array.isArray(list) ? list : []);
+const ghDeleteFile = (cfg, path, sha) => ghRequest(cfg, `/contents/${path}`, { method: "DELETE", body: { message: "Fichier joint supprimé", sha }, allow404: true });
+
+// Fusion à trois voies
+const isPlainObj = v => v !== null && typeof v === "object" && !Array.isArray(v);
+function sameJSON(a, b) {
+  if (a === b) return true;
+  if (Array.isArray(a)) return Array.isArray(b) && a.length === b.length && a.every((x, i) => sameJSON(x, b[i]));
+  if (!isPlainObj(a) || !isPlainObj(b)) return false;
+  const ka = Object.keys(a).filter(k => a[k] !== undefined);
+  const kb = Object.keys(b).filter(k => b[k] !== undefined);
+  return ka.length === kb.length && ka.every(k => sameJSON(a[k], b[k]));
+}
+function merge3(base, mine, theirs, prefer = "mine") {
+  if (sameJSON(mine, theirs)) return mine;
+  if (sameJSON(base, mine)) return theirs;
+  if (sameJSON(base, theirs)) return mine;
+  if (isPlainObj(mine) && isPlainObj(theirs)) {
+    const b = isPlainObj(base) ? base : {};
+    const out = {};
+    new Set([...Object.keys(mine), ...Object.keys(theirs)]).forEach(k => {
+      const v = merge3(b[k], mine[k], theirs[k], prefer);
+      if (v !== undefined) out[k] = v;
+    });
+    return out;
+  }
+  if (Array.isArray(mine) && Array.isArray(theirs)) {
+    const b = Array.isArray(base) ? base : [];
+    const all = [...b, ...mine, ...theirs];
+    if (all.every(x => isPlainObj(x) && x.id != null)) return mergeById(b, mine, theirs, prefer);
+    if (all.every(x => x === null || typeof x !== "object")) return mergeSet(b, mine, theirs);
+  }
+  if (mine === undefined) return theirs;
+  if (theirs === undefined) return mine;
+  return prefer === "theirs" ? theirs : mine;
+}
+// Titre (et classe, date) d'un élément : sert à reconnaître le même élément créé des deux côtés
+function naturalKey(x) {
+  const t = x.title ?? x.text ?? x.name ?? x.label;
+  return typeof t === "string" && t.trim() ? JSON.stringify([x.classId ?? null, x.date ?? null, t.trim()]) : null;
+}
+// Listes d'éléments avec id (classes, chapitres, évaluations…) : élément par élément.
+// Un élément créé des deux côtés avec le même titre (ex. : le programme de départ d'un
+// nouvel appareil) n'est pas dédoublé : il garde l'id déjà en ligne.
+function mergeById(base, mine, theirs, prefer) {
+  const byId = list => new Map(list.map(x => [String(x.id), x]));
+  const B = byId(base), M = byId(mine), T = byId(theirs);
+  const theirsNew = new Map();
+  theirs.forEach(x => {
+    const id = String(x.id), k = naturalKey(x);
+    if (k && !B.has(id) && !M.has(id) && !theirsNew.has(k)) theirsNew.set(k, x);
+  });
+  const out = [], seen = new Set();
+  const keep = id => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    const v = merge3(B.get(id), M.get(id), T.get(id), prefer);
+    if (v !== undefined) out.push(v);
+  };
+  mine.forEach(x => {
+    const id = String(x.id), k = naturalKey(x);
+    const twin = k && !B.has(id) && !T.has(id) ? theirsNew.get(k) : null;
+    if (!twin) return keep(id);
+    theirsNew.delete(k);
+    seen.add(id);
+    seen.add(String(twin.id));
+    out.push(merge3(undefined, { ...x, id: twin.id }, twin, prefer));
+  });
+  theirs.forEach(x => keep(String(x.id)));
+  return out;
+}
+// Listes de valeurs simples (ordre des classes, compétences d'une évaluation…)
+function mergeSet(base, mine, theirs) {
+  const B = new Set(base), M = new Set(mine), T = new Set(theirs);
+  const out = mine.filter(x => !(B.has(x) && !T.has(x)));
+  theirs.forEach(x => {
+    if (!B.has(x) && !M.has(x) && !out.includes(x)) out.push(x);
+  });
+  return out;
+}
+
+const loadSyncBase = () => fileLoad(SYNC_BASE).then(t => t ? JSON.parse(t) : null, () => null);
+const saveSyncBase = d => (d ? fileSave(SYNC_BASE, JSON.stringify(d)) : fileRemove(SYNC_BASE)).catch(() => {});
+
+// Un échange : récupère la version en ligne, fusionne avec celle de l'appareil, envoie le résultat.
+async function syncRound(getLocal, applyMerged) {
+  for (let essai = 0; essai < 4; essai++) {
+    const cfg = syncConfig();
+    if (!cfg) return;
+    let base = await loadSyncBase();
+    const head = await ghHeadSha(cfg);
+    if (head && head === cfg.sha && sameJSON(getLocal(), base)) return;
+    const remote = !head ? null : head === cfg.sha ? { sha: head } : await ghGetFile(cfg, SYNC_FILE);
+    let sha = remote ? cfg.sha : null;
+    if (remote && remote.sha !== cfg.sha) {
+      const theirs = JSON.parse(await openSync(cfg.key, parseEnvelope(remote.text)));
+      // Rien d'asynchrone entre la lecture des données de l'appareil et l'application de la fusion
+      const mine = getLocal();
+      const merged = withDefaults(merge3(base, mine, theirs, cfg.reunir ? "theirs" : "mine"));
+      if (!sameJSON(merged, mine)) applyMerged(merged);
+      base = theirs;
+      sha = remote.sha;
+      await saveSyncBase(base);
+      patchSyncConfig({ sha, reunir: false });
+    }
+    const snapshot = getLocal();
+    if (remote && sameJSON(snapshot, base)) return;
+    try {
+      const text = await sealSync(cfg, JSON.stringify(snapshot));
+      const newSha = await ghPutFile(cfg, SYNC_FILE, text, sha, `Synchro depuis ${cfg.device}`);
+      await saveSyncBase(snapshot);
+      patchSyncConfig({ sha: newSha });
+      return;
+    } catch (e) {
+      // Un autre appareil a envoyé entre-temps : on recommence avec sa version
+      if (e.code !== "conflit") throw e;
+    }
+  }
+  throw syncError("conflit");
+}
+// Fichiers joints : envoie ceux qui manquent en ligne, récupère ceux qui manquent ici,
+// retire en ligne ceux des fiches supprimées. Le cahier part toujours avant ses fichiers.
+async function syncFiles(getLocal) {
+  const cfg = syncConfig();
+  if (!cfg) return;
+  const fiches = getLocal().fiches.filter(f => f.fileInDb);
+  const known = new Set(cfg.files || []);
+  const here = await Promise.all(fiches.map(f => fileLoad(f.id).then(d => !!d, () => false)));
+  const toSend = fiches.filter((f, i) => here[i] && !known.has(f.id));
+  const toFetch = fiches.filter((f, i) => !here[i]);
+  const gone = [...known].filter(id => !getLocal().fiches.some(f => f.id === id));
+  if (!toSend.length && !toFetch.length && !gone.length) return;
+  const online = new Map((await ghListDir(cfg)).map(x => [x.name, x.sha]));
+  let received = false;
+  for (const f of toSend) {
+    if (!online.has(f.id)) {
+      const content = await fileLoad(f.id);
+      await ghPutFile(cfg, `${SYNC_DIR}/${f.id}`, await sealSync(cfg, content), null, "Fichier joint");
+    }
+    known.add(f.id);
+  }
+  for (const f of toFetch) {
+    if (!online.has(f.id)) continue;
+    const file = await ghGetFile(cfg, `${SYNC_DIR}/${f.id}`);
+    if (!file) continue;
+    await fileSave(f.id, await openSync(cfg.key, parseEnvelope(file.text)));
+    known.add(f.id);
+    received = true;
+  }
+  for (const id of gone) {
+    if (online.has(id)) await ghDeleteFile(cfg, `${SYNC_DIR}/${id}`, online.get(id)).catch(() => {});
+    known.delete(id);
+  }
+  patchSyncConfig({ files: [...known] });
+  if (received) window.dispatchEvent(new Event("cahier-fichiers"));
+}
+// Mise en route : vérifie la clé et le dépôt, regarde s'il contient déjà un cahier
+async function syncProbe(repo, token) {
+  const cfg = { repo, token };
+  const info = await ghRequest(cfg, "");
+  if (!info || info.private !== true) throw syncError("public");
+  const remote = await ghGetFile(cfg, SYNC_FILE);
+  return remote ? { remote, env: parseEnvelope(remote.text) } : { remote: null, env: null };
+}
+
+const IconCloud = ({ size = 17, etat }) => React.createElement(Icon, { size },
+  React.createElement("path", { d: "M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" }),
+  etat === "ok" ? React.createElement("path", { d: "m9.5 14.5 2 2 3.5-3.5" })
+  : etat === "horsligne" ? React.createElement("path", { d: "M3 3l18 18" })
+  : etat === "erreur" ? React.createElement("path", { d: "M12.5 11.5v2.5M12.5 17h.01" })
+  : etat === "encours" || etat === "attente" ? React.createElement("path", { d: "M9.5 15h.01M12.5 15h.01M15.5 15h.01" }) : null);
+const syncLabel = sync => sync.etat === "ok" ? `Synchronisé ${syncWhen(sync.last)}`
+  : sync.etat === "horsligne" ? "Hors ligne : tes modifications partiront au retour du réseau."
+  : sync.etat === "erreur" ? syncPause(sync.erreur)
+  : "Synchronisation en cours…";
+// Petit nuage dans l'en-tête : état de la synchro ; un appui relance un échange
+function SyncIndicator({ sync, onClick }) {
+  if (!sync.on) return null;
+  const label = syncLabel(sync);
+  return React.createElement("button", { className: "hit", onClick, title: label, "aria-label": label,
+    style: { background: "none", border: "none", color: sync.etat === "erreur" ? "var(--danger)" : COLORS.faint, cursor: "pointer", padding: 4, display: "flex" } },
+    React.createElement(IconCloud, { size: 17, etat: sync.etat }));
+}
+// Erreurs qui demandent une action (les autres se règlent seules au prochain essai)
+const SYNC_BLOCKING = ["cle", "depot", "droits", "public", "motdepasse", "format", "navigateur"];
+
+function SyncSettings({ sync, onProbe, onActivate, onRunNow, onStop, onFixToken, onFixPassword }) {
+  const h = React.createElement;
+  const cfg = syncConfig();
+  const [repo, setRepo] = useState(() => cfg ? cfg.repo : defaultSyncRepo());
+  const [token, setToken] = useState("");
+  const [pass, setPass] = useState("");
+  const [pass2, setPass2] = useState("");
+  const [probe, setProbe] = useState(null);
+  const [mode, setMode] = useState("remplacer");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const text = (t, extra) => h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, lineHeight: 1.5, margin: "0 0 12px", ...extra } }, t);
+  const field = (label, props) => h("label", { style: { display: "block", marginBottom: 12 } },
+    h("span", { style: labelStyle }, label),
+    h("input", { ...props, style: { ...inputStyle, fontSize: 14, padding: "8px 10px" } }));
+  const run = fn => {
+    setBusy(true);
+    setMsg(null);
+    Promise.resolve().then(fn).catch(e => {
+      console.error(e);
+      setMsg(syncMessage(e && e.code));
+    }).then(() => setBusy(false));
+  };
+  const reset = () => {
+    setProbe(null);
+    setPass("");
+    setPass2("");
+    setMsg(null);
+    setMode("remplacer");
+  };
+  const link = (href, label) => h("a", { className: "hit-y", href, target: "_blank", rel: "noreferrer", style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.accent, display: "inline-flex", alignItems: "center", gap: 5, margin: "-4px 0 14px" } },
+    h(IconExternal, { size: 12 }), " ", label);
+  const tokenLink = link(syncTokenUrl(), "Créer la clé sur GitHub");
+  const tokenHelp = h("details", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, lineHeight: 1.5, margin: "0 0 14px" } },
+    h("summary", { style: { cursor: "pointer", color: COLORS.ink } }, "Comment faire ?"),
+    h("ol", { style: { margin: "8px 0 0", paddingLeft: 20 } },
+      h("li", null, "Si ce n'est pas déjà fait, crée le dépôt privé avec le lien au-dessus (une seule fois, pour tous tes appareils)."),
+      h("li", null, "Touche « Créer la clé sur GitHub » (connecte-toi si besoin)."),
+      h("li", null, "Dans « Repository access », choisis « Only select repositories », puis le dépôt ", h("b", null, repo.split("/")[1] || "cahier-donnees"), "."),
+      h("li", null, "« Contents » est déjà réglé sur « Read and write » : ne touche à rien d'autre."),
+      h("li", null, "Touche « Generate token », copie la clé (elle commence par github_pat_) et colle-la ici.")),
+    h("p", { style: { margin: "8px 0 0" } }, "Une clé par appareil : sur ton téléphone, refais ces étapes depuis l'app du téléphone."));
+  const status = msg && h("p", { role: "alert", style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: "var(--danger)", lineHeight: 1.5, margin: "0 0 12px" } }, msg);
+  const card = (...children) => h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderRadius: 10, padding: "16px 18px" } }, ...children);
+  const btnRow = (...children) => h("div", { style: { display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" } }, ...children);
+
+  // Synchro active sur cet appareil
+  if (sync.on && cfg) {
+    const err = sync.etat === "erreur" ? sync.erreur : null;
+    const color = err ? "var(--danger)" : sync.etat === "ok" ? COLORS.doneInk : COLORS.sub;
+    return card(
+      h("div", { style: { display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 8, color } },
+        h("span", { style: { display: "flex", flexShrink: 0, marginTop: 1 } }, h(IconCloud, { size: 18, etat: sync.etat })),
+        h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: 600, lineHeight: 1.45 } }, syncLabel(sync))),
+      text(`Dépôt ${cfg.repo} · cet appareil : ${cfg.device}. Tes modifications partent quelques secondes après la saisie ; celles des autres appareils arrivent à l'ouverture de l'app, puis chaque minute.`),
+      err === "cle" && h("div", null,
+        field("Nouvelle clé d'accès GitHub", { type: "password", value: token, autoComplete: "off", onChange: e => setToken(e.target.value), placeholder: "github_pat_…" }),
+        tokenLink, tokenHelp, status,
+        h("div", { style: { marginBottom: 14 } }, h("button", { disabled: busy || !token.trim(), onClick: () => run(() => onFixToken(token.trim()).then(() => setToken(""))), style: primaryBtn }, busy ? "Vérification…" : "Reprendre la synchro"))),
+      err === "motdepasse" && h("div", null,
+        field("Mot de passe de la synchro", { type: "password", value: pass, autoComplete: "current-password", onChange: e => setPass(e.target.value) }),
+        status,
+        h("div", { style: { marginBottom: 14 } }, h("button", { disabled: busy || !pass, onClick: () => run(() => onFixPassword(pass).then(() => setPass(""))), style: primaryBtn }, busy ? "Vérification…" : "Reprendre la synchro"))),
+      btnRow(
+        h("button", { onClick: onRunNow, disabled: sync.etat === "encours", style: { ...ghostBtn, padding: "8px 12px", fontSize: 12.5 } }, "Synchroniser maintenant"),
+        h("button", { onClick: () => {
+          if (confirm("Arrêter la synchronisation sur cet appareil ? Tes données restent ici ; la copie en ligne et tes autres appareils ne sont pas touchés.")) {
+            onStop();
+            reset();
+          }
+        }, style: { ...ghostBtn, padding: "8px 12px", fontSize: 12.5 } }, "Arrêter sur cet appareil")));
+  }
+
+  // Étape 1 : dépôt et clé d'accès
+  if (!probe) {
+    const repoOk = SYNC_REPO_RE.test(repo.trim());
+    return card(
+      text("Retrouve le même cahier sur tous tes appareils (Chromebook, iPhone…) : chaque modification est chiffrée avec ton mot de passe, rangée dans un dépôt GitHub privé, puis récupérée par tes autres appareils.", { color: COLORS.ink }),
+      field("Dépôt GitHub privé", { value: repo, onChange: e => setRepo(e.target.value), placeholder: "pseudo/cahier-donnees", autoCapitalize: "off", autoCorrect: "off", spellCheck: false }),
+      h("div", null, link(syncRepoUrl(repo), "Pas encore de dépôt ? Le créer sur GitHub (privé)")),
+      field("Clé d'accès GitHub", { type: "password", value: token, autoComplete: "off", onChange: e => setToken(e.target.value), placeholder: "github_pat_…" }),
+      tokenLink, tokenHelp, status,
+      h("button", { disabled: busy || !repoOk || !token.trim(), onClick: () => run(() => onProbe(repo.trim(), token.trim()).then(p => {
+        setProbe(p);
+        setMode(p.remote ? "remplacer" : "nouveau");
+      })), style: primaryBtn }, busy ? "Vérification…" : "Continuer"));
+  }
+
+  // Étape 2 : mot de passe (nouveau cahier en ligne, ou cahier déjà synchronisé)
+  const back = h("button", { onClick: reset, disabled: busy, style: { ...ghostBtn, padding: "8px 14px" } }, "Retour");
+  const creating = mode === "nouveau" || mode === "ecraser";
+  const activate = () => run(() => {
+    if (creating && pass.length < 8) throw syncError("court");
+    if (creating && pass !== pass2) throw syncError("differents");
+    if (mode === "ecraser" && !confirm("Remplacer la copie en ligne par le cahier de cet appareil ? Tes autres appareils devront taper le nouveau mot de passe ; leurs données seront alors réunies avec celles-ci.")) return;
+    return onActivate({ repo: repo.trim(), token: token.trim(), password: pass, probe, mode }).then(reset);
+  });
+  const passFields = creating ? [
+    field("Mot de passe de la synchro (8 caractères au moins)", { type: "password", value: pass, autoComplete: "new-password", onChange: e => setPass(e.target.value) }),
+    field("Confirme le mot de passe", { type: "password", value: pass2, autoComplete: "new-password", onChange: e => setPass2(e.target.value) }),
+    text("Note-le bien : il sera demandé sur chaque appareil. Sans lui, la copie en ligne est illisible (les données de tes appareils restent intactes).")
+  ] : [field("Mot de passe de la synchro", { type: "password", value: pass, autoComplete: "current-password", onChange: e => setPass(e.target.value) })];
+  const choice = (value, label, hint) => h("label", { key: value, style: { display: "flex", gap: 9, alignItems: "flex-start", marginBottom: 10, cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.ink, lineHeight: 1.45 } },
+    h("input", { type: "radio", name: "synchro-mode", checked: mode === value, onChange: () => setMode(value), style: { marginTop: 3 } }),
+    h("span", null, label, h("span", { style: { display: "block", fontSize: 12, color: COLORS.sub } }, hint)));
+  const env = probe.env;
+  return card(
+    mode === "nouveau" ? text("Le dépôt est prêt. Choisis le mot de passe qui chiffrera ton cahier.", { color: COLORS.ink })
+    : mode === "ecraser" ? text("Mot de passe oublié : le cahier de cet appareil va remplacer la copie en ligne, chiffré avec un nouveau mot de passe.", { color: COLORS.ink })
+    : text(`Ce dépôt contient déjà un cahier synchronisé${env && env.date ? ` (dernier envoi ${syncWhen(env.date)}${env.appareil ? `, depuis l'appareil «\u00a0${env.appareil}\u00a0»` : ""})` : ""}.`, { color: COLORS.ink }),
+    ...passFields,
+    !creating && h("div", { role: "radiogroup", "aria-label": "Données de cet appareil", style: { margin: "4px 0 6px" } },
+      choice("remplacer", "Utiliser le cahier en ligne", "Remplace ce qui est sur cet appareil. Conseillé pour un appareil neuf ou peu utilisé."),
+      choice("reunir", "Réunir les deux cahiers", "Garde aussi les classes, notes et fiches saisies sur cet appareil.")),
+    status,
+    btnRow(
+      h("button", { onClick: activate, disabled: busy || !pass, style: primaryBtn }, busy ? "Patiente…" : mode === "ecraser" ? "Remplacer la copie en ligne" : "Activer la synchronisation"),
+      back,
+      mode !== "nouveau" && mode !== "ecraser" && h("button", { onClick: () => { setMode("ecraser"); setPass(""); setPass2(""); setMsg(null); }, disabled: busy, style: { background: "none", border: "none", padding: "8px 4px", fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, textDecoration: "underline", cursor: "pointer" } }, "Mot de passe oublié ?")));
+}
+
+/* ---------- Mode « En classe » ----------
+   Écran du téléphone pendant le cours : observations en un appui (elles alimentent les
+   appréciations du trimestre), tirage au sort, minuteur, et fin d'heure (cahier de textes,
+   progression du chapitre). Il n'est pas fait pour être projeté : les noms des élèves et
+   les observations restent sur l'appareil (et dans la synchro chiffrée).
+   Données : data.observations[date][classe][élève] = { participe: 2, bavardage: 1, … } */
+const OBS_KINDS = [
+  { id: "participe", label: "Participe", plus: true, tag: "participation", seuil: 3 },
+  { id: "bavardage", label: "Bavarde", tag: "bavardages", seuil: 3 },
+  { id: "materiel", label: "Matériel oublié", short: "Matériel", tag: "materiel", seuil: 2 },
+  { id: "travail", label: "Travail non fait", short: "Travail", tag: "travailperso", seuil: 2 },
+  { id: "absent", label: "Absent", toggle: true }
+];
+const OBS_NAMES = { participe: ["participation", "participations"], bavardage: ["bavardage", "bavardages"], materiel: ["oubli de matériel", "oublis de matériel"], travail: ["travail non fait", "travaux non faits"] };
+const obsPlural = (kind, n) => `${n} ${OBS_NAMES[kind][n > 1 ? 1 : 0]}`;
+const hmToMin = hm => { const [a, b] = String(hm).split(":").map(Number); return a * 60 + (b || 0); };
+const nowHM = () => { const d = new Date(); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+// Observations d'une classe sur une période : { élève: { participe: 6, … } }
+function obsCounts(data, classId, fromISO, toISO) {
+  const out = {};
+  Object.entries(data.observations || {}).forEach(([iso, day]) => {
+    if (iso < fromISO || iso > toISO || !day || !day[classId]) return;
+    Object.entries(day[classId]).forEach(([sid, kinds]) => {
+      const o = out[sid] || (out[sid] = {});
+      Object.entries(kinds || {}).forEach(([k, n]) => { if (k !== "absent") o[k] = (o[k] || 0) + (Number(n) || 0); });
+    });
+  });
+  return out;
+}
+// Observations cochées d'office dans les appréciations, quand elles reviennent souvent
+const suggestedTags = obs => OBS_KINDS.filter(k => k.tag && obs && (obs[k.id] || 0) >= k.seuil).map(k => k.tag);
+const apprTags = (entry, info) => entry.tags || suggestedTags(info.obs);
+// Le cours à afficher : celui en cours (ou qui commence dans moins de 15 min), sinon le suivant de la journée, sinon le dernier
+function pickSlot(slots, hm) {
+  const m = hmToMin(hm);
+  return slots.find(s => hmToMin(s.start) - 15 <= m && hmToMin(s.end) > m) || slots.find(s => hmToMin(s.start) > m) || slots[slots.length - 1] || null;
+}
+// Chapitre proposé : celui de la séance du jour, sinon celui de la dernière séance de ce cours
+// (ou le suivant s'il est terminé), sinon le premier chapitre commencé de la classe.
+function guessChapter(data, slot, classId, iso) {
+  const cls = data.classes[classId];
+  if (!cls) return "";
+  const all = cls.themes.flatMap(th => th.chapters);
+  const entries = data.cahier || {};
+  if (slot) {
+    const today = entries[`${iso}|${slot.id}`];
+    if (today && today.chapterId && all.some(c => c.id === today.chapterId)) return today.chapterId;
+    const ids = new Set(data.schedule.slots.filter(s => sameCourse(s, slot)).map(s => s.id));
+    const last = Object.keys(entries).filter(k => {
+      const [d, sid] = k.split("|");
+      return d < iso && ids.has(sid) && entries[k] && entries[k].chapterId;
+    }).sort().pop();
+    if (last) {
+      const i = all.findIndex(c => c.id === entries[last].chapterId);
+      if (i >= 0) {
+        if (chapterStatus(all[i]) !== "done") return all[i].id;
+        const next = all.slice(i + 1).find(c => chapterStatus(c) !== "done");
+        if (next) return next.id;
+      }
+    }
+  }
+  const wip = all.find(c => chapterStatus(c) === "wip") || all.find(c => chapterStatus(c) === "todo");
+  return wip ? wip.id : "";
+}
+// Tirage au sort : chaque élève passe une fois avant que le tour recommence (mémorisé pour la journée)
+const DRAW_KEY = "en-classe-tirage-v1";
+function loadDrawn(key) {
+  try {
+    return (JSON.parse(localStorage.getItem(DRAW_KEY)) || {})[key] || [];
+  } catch (e) {
+    return [];
+  }
+}
+function saveDrawn(key, ids) {
+  try {
+    const all = JSON.parse(localStorage.getItem(DRAW_KEY)) || {};
+    const day = key.split("|")[0];
+    Object.keys(all).forEach(k => { if (k.split("|")[0] !== day) delete all[k]; });
+    all[key] = ids;
+    localStorage.setItem(DRAW_KEY, JSON.stringify(all));
+  } catch (e) {}
+}
+
+function ClassDraw({ students, absent, drawKey, onObserve }) {
+  const h = React.createElement;
+  const [drawn, setDrawn] = useState(() => loadDrawn(drawKey));
+  const [shown, setShown] = useState(null);
+  const [rolling, setRolling] = useState(false);
+  const [note, setNote] = useState("");
+  useEffect(() => {
+    setDrawn(loadDrawn(drawKey));
+    setShown(null);
+    setNote("");
+  }, [drawKey]);
+  const present = students.filter(s => !absent.has(s.id));
+  const done = drawn.filter(id => present.some(s => s.id === id));
+  const draw = () => {
+    let pool = present.filter(s => !done.includes(s.id));
+    let base = done;
+    setNote("");
+    if (!pool.length) {
+      pool = present;
+      base = [];
+      setNote("Tout le monde est passé : nouveau tour.");
+    }
+    if (!pool.length) return;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    const ids = [...base, pick.id];
+    setDrawn(ids);
+    saveDrawn(drawKey, ids);
+    // Petit défilement des prénoms avant le résultat
+    setRolling(true);
+    let n = 0;
+    const t = setInterval(() => {
+      n++;
+      setShown(n < 9 ? present[Math.floor(Math.random() * present.length)] : pick);
+      if (n >= 9) {
+        clearInterval(t);
+        setRolling(false);
+      }
+    }, 70);
+  };
+  const restart = () => {
+    setDrawn([]);
+    saveDrawn(drawKey, []);
+    setShown(null);
+    setNote("");
+  };
+  const big = { fontFamily: "Fraunces, serif", fontSize: 30, fontWeight: 600, color: COLORS.ink, lineHeight: 1.2, minHeight: 72, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" };
+  return h("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
+    h("div", { "aria-live": "polite", style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 12, boxShadow: CARD_SHADOW, padding: "22px 16px" } },
+      h("div", { style: { ...big, opacity: rolling ? 0.55 : 1 } }, shown ? shown.name : "—"),
+      note && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, textAlign: "center", margin: "6px 0 0" } }, note)),
+    h("button", { onClick: draw, disabled: rolling || !present.length, style: { ...primaryBtn, fontSize: 16, padding: "14px 16px", borderRadius: 10 } }, "Tirer au sort"),
+    shown && !rolling && h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } },
+      h("button", { onClick: () => onObserve(shown.id, "participe", 1), style: { ...ghostBtn, flex: 1, color: COLORS.doneInk, borderColor: COLORS.doneInk, fontWeight: 600 } }, "+ Participe"),
+      h("button", { onClick: () => {
+        onObserve(shown.id, "absent", 1);
+        setShown(null);
+      }, style: { ...ghostBtn, flex: 1 } }, "Absent")),
+    h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, margin: 0, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" } },
+      `Déjà passés : ${done.length} sur ${present.length}${absent.size ? ` (${absent.size} absent${absent.size > 1 ? "s" : ""} écarté${absent.size > 1 ? "s" : ""})` : ""}.`,
+      done.length > 0 && h("button", { className: "hit-y", onClick: restart, style: { background: "none", border: "none", padding: 0, color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 600, cursor: "pointer" } }, "Recommencer le tour")));
+}
+
+function ClassTimer() {
+  const h = React.createElement;
+  const [total, setTotal] = useState(300);
+  const [left, setLeft] = useState(300);
+  const [endAt, setEndAt] = useState(null);
+  const [fini, setFini] = useState(false);
+  const audio = useRef(null);
+  useEffect(() => {
+    if (!endAt) return;
+    const tick = () => {
+      const rest = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+      setLeft(rest);
+      if (rest === 0) {
+        setEndAt(null);
+        setFini(true);
+        try {
+          navigator.vibrate && navigator.vibrate([250, 120, 250, 120, 250]);
+        } catch (e) {}
+        const ctx = audio.current;
+        if (ctx) [0, 0.45, 0.9].forEach(t0 => {
+          try {
+            const o = ctx.createOscillator(), g = ctx.createGain();
+            o.frequency.value = 880;
+            o.connect(g);
+            g.connect(ctx.destination);
+            g.gain.setValueAtTime(0.3, ctx.currentTime + t0);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t0 + 0.35);
+            o.start(ctx.currentTime + t0);
+            o.stop(ctx.currentTime + t0 + 0.36);
+          } catch (e) {}
+        });
+      }
+    };
+    tick();
+    const t = setInterval(tick, 250);
+    return () => clearInterval(t);
+  }, [endAt]);
+  const choose = s => {
+    setTotal(s);
+    setLeft(s);
+    setEndAt(null);
+    setFini(false);
+  };
+  const start = () => {
+    // Le son doit être autorisé par un appui (iPhone) : on prépare l'audio ici
+    try {
+      if (!audio.current) audio.current = new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.current.state === "suspended") audio.current.resume();
+    } catch (e) {}
+    const s = left > 0 ? left : total;
+    setLeft(s);
+    setFini(false);
+    setEndAt(Date.now() + s * 1000);
+  };
+  const running = !!endAt;
+  const presets = [[60, "1 min"], [120, "2 min"], [180, "3 min"], [300, "5 min"], [600, "10 min"], [900, "15 min"]];
+  return h("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
+    h("div", { role: "timer", "aria-label": `Minuteur : ${Math.floor(left / 60)} min ${left % 60} s`, className: fini ? "clignote" : "",
+      style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 76, fontWeight: 500, textAlign: "center", color: fini ? "var(--danger)" : COLORS.ink, background: COLORS.panel, border: `1px solid ${fini ? "var(--danger)" : COLORS.line}`, borderRadius: 12, boxShadow: CARD_SHADOW, padding: "14px 8px", lineHeight: 1.1 } },
+      `${Math.floor(left / 60)}:${pad2(left % 60)}`),
+    fini && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 600, color: "var(--danger)", textAlign: "center", margin: 0 } }, "Temps écoulé !"),
+    h("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 } },
+      presets.map(([s, lab]) => h("button", { key: s, onClick: () => choose(s), "aria-pressed": total === s,
+        style: { ...ghostBtn, padding: "10px 6px", fontWeight: total === s ? 700 : 400, color: total === s ? COLORS.accent : COLORS.sub, borderColor: total === s ? COLORS.accent : COLORS.line, background: total === s ? COLORS.accentSoft : "transparent" } }, lab))),
+    h("div", { style: { display: "flex", gap: 8 } },
+      h("button", { onClick: running ? () => setEndAt(null) : start, style: { ...primaryBtn, flex: 2, fontSize: 16, padding: "14px 16px", borderRadius: 10 } }, running ? "Pause" : left > 0 && left < total ? "Reprendre" : "Démarrer"),
+      h("button", { onClick: () => choose(total), style: { ...ghostBtn, flex: "0 0 auto", borderRadius: 10, whiteSpace: "nowrap" } }, "Remise à zéro")));
+}
+
+function ClassMode({ data, onClose, onObserve, onSaveEntry }) {
+  const h = React.createElement;
+  const [todayISO] = useState(() => localISO(new Date()));
+  const [hm, setHm] = useState(nowHM);
+  useEffect(() => {
+    const t = setInterval(() => setHm(nowHM()), 20000);
+    return () => clearInterval(t);
+  }, []);
+  const slots = dayInfo(todayISO).schoolDay ? slotsOnDate(data, todayISO) : [];
+  const [slotId, setSlotId] = useState(() => (pickSlot(slots, nowHM()) || {}).id || "");
+  const slot = slots.find(s => s.id === slotId) || null;
+  const [freeClass, setFreeClass] = useState(() => data.order[0] || "");
+  const classId = slot ? slot.classId : freeClass;
+  const cls = data.classes[classId];
+  const [tab, setTab] = useState("eleves");
+  const [kind, setKind] = useState("participe");
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
+
+  // Écran allumé, retour du téléphone = quitter, Échap au clavier
+  useEffect(() => {
+    let lock = null;
+    const ask = () => {
+      try {
+        if (navigator.wakeLock && document.visibilityState === "visible") navigator.wakeLock.request("screen").then(l => { lock = l; }, () => {});
+      } catch (e) {}
+    };
+    ask();
+    document.addEventListener("visibilitychange", ask);
+    try {
+      history.pushState({ enClasse: true }, "");
+    } catch (e) {}
+    const onPop = () => onClose(true);
+    const onKey = e => e.key === "Escape" && onClose(false);
+    window.addEventListener("popstate", onPop);
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("visibilitychange", ask);
+      window.removeEventListener("popstate", onPop);
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+      try {
+        lock && lock.release();
+      } catch (e) {}
+      clearTimeout(toastTimer.current);
+    };
+  }, []);
+
+  const students = cls ? [...cls.students].sort((a, b) => a.name.localeCompare(b.name, "fr")) : [];
+  const today = ((data.observations || {})[todayISO] || {})[classId] || {};
+  const absent = new Set(students.filter(s => (today[s.id] || {}).absent).map(s => s.id));
+  const observe = (sid, k, delta) => {
+    const s = students.find(x => x.id === sid);
+    const kd = OBS_KINDS.find(x => x.id === k);
+    const d = kd.toggle ? ((today[sid] || {})[k] ? -1 : 1) : delta;
+    onObserve(todayISO, classId, sid, k, d);
+    clearTimeout(toastTimer.current);
+    const what = kd.toggle ? (d < 0 ? "Présent" : kd.label) : d < 0 ? `Retiré : ${kd.label}` : kd.label;
+    setToast({ text: `${what} · ${s ? s.name : ""}`, undo: () => onObserve(todayISO, classId, sid, k, -d) });
+    toastTimer.current = setTimeout(() => setToast(null), 5000);
+    try {
+      navigator.vibrate && navigator.vibrate(12);
+    } catch (e) {}
+  };
+
+  // Chapitre et séance (cahier de textes du créneau)
+  const key = slot ? `${todayISO}|${slot.id}` : null;
+  const stored = key ? (data.cahier || {})[key] : null;
+  const [entry, setEntry] = useState(stored || null);
+  useEffect(() => setEntry(stored || null), [key, stored]);
+  const chapterId = (entry && entry.chapterId) || guessChapter(data, slot, classId, todayISO);
+  const found = chapterId ? findChapter(data, classId, chapterId) : null;
+  const typed = useDebouncedSave(n => key && onSaveEntry(key, todayISO, classId, n));
+  const base = () => ({ seance: "", devoirs: "", done: false, ...(entry || {}), chapterId });
+  const type = patch => {
+    const n = { ...base(), ...patch };
+    setEntry(n);
+    typed(n);
+  };
+  const commit = patch => {
+    typed.cancel();
+    const n = { ...base(), ...patch };
+    setEntry(n);
+    if (key) onSaveEntry(key, todayISO, classId, n);
+  };
+  const ch = found ? found.chapter : null;
+  const total = ch ? Math.max(1, Number(ch.total) || 1) : 0;
+  const seanceN = ch ? Math.min(total, (Number(ch.done) || 0) + (entry && entry.done ? 0 : 1)) : 0;
+  const next = slot ? nextSessionDate(data, classId, todayISO, slot) : null;
+  const done = !!(entry && entry.done);
+  const copyText = [ch ? ch.title : "", entry && entry.seance ? entry.seance : "", entry && entry.devoirs ? `Pour le ${next ? longDate(next) : "prochain cours"} : ${entry.devoirs}` : ""].filter(Boolean).join("\n");
+
+  const color = classId ? classColor(data, classId) : COLORS.accent;
+  const txt = { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.sub, lineHeight: 1.5 };
+  const pill = (active, extra) => ({ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: active ? 700 : 500, padding: "8px 12px", borderRadius: 999, cursor: "pointer", whiteSpace: "nowrap", border: `1px solid ${active ? COLORS.accent : COLORS.line}`, background: active ? COLORS.accent : COLORS.panel, color: active ? COLORS.bg : COLORS.ink, ...extra });
+  const kindStyle = (k, active) => {
+    const ink = k.plus ? COLORS.doneInk : k.toggle ? COLORS.sub : "var(--danger)";
+    const soft = k.plus ? COLORS.doneSoft : k.toggle ? COLORS.encadre : "var(--histoireSoft)";
+    return { fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: active ? 700 : 500, padding: "9px 12px", borderRadius: 999, cursor: "pointer", border: `${active ? 2 : 1}px solid ${active ? ink : COLORS.line}`, background: active ? soft : COLORS.panel, color: active ? ink : COLORS.sub };
+  };
+  const TABS = [["eleves", "Élèves"], ["tirage", "Tirage"], ["minuteur", "Minuteur"], ["fin", "Fin d'heure"]];
+
+  const elevesPanel = !cls ? h("p", { style: txt }, "Aucune classe : crée d'abord tes classes.")
+    : students.length === 0 ? h("p", { style: txt }, `Ajoute les élèves de ${cls.name} dans l'onglet Élèves pour noter tes observations en classe.`)
+    : h("div", null,
+      h("div", { role: "radiogroup", "aria-label": "Observation à noter", style: { position: "sticky", top: 0, zIndex: 2, background: COLORS.bg, padding: "8px 0 10px", display: "flex", gap: 6, flexWrap: "wrap" } },
+        OBS_KINDS.map(k => h("button", { key: k.id, role: "radio", "aria-checked": kind === k.id, onClick: () => setKind(k.id), style: kindStyle(k, kind === k.id) }, (k.plus ? "+ " : k.toggle ? "" : "− ") + (k.short || k.label)))),
+      h("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8 } },
+        students.map(s => {
+          const o = today[s.id] || {};
+          const isAbs = !!o.absent;
+          const kd = OBS_KINDS.find(k => k.id === kind);
+          // « − » : retire une observation du type choisi (clic de travers), à tout moment de la journée
+          const n = kd.toggle ? 0 : o[kind] || 0;
+          return h("div", { key: s.id, style: { position: "relative" } },
+            h("button", { onClick: () => observe(s.id, kind, 1), "aria-label": `${s.name} : ${kd.toggle ? (isAbs ? "marquer présent" : "marquer absent") : kd.label}`,
+            style: { width: "100%", height: "100%", textAlign: "left", minHeight: 64, padding: n ? "10px 50px 10px 11px" : "10px 11px", borderRadius: 10, cursor: "pointer", background: isAbs ? COLORS.encadre : COLORS.panel, border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${isAbs ? COLORS.line : color}`, boxShadow: isAbs ? "none" : CARD_SHADOW, display: "flex", flexDirection: "column", gap: 5, opacity: isAbs ? 0.75 : 1 } },
+            h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 600, color: isAbs ? COLORS.sub : COLORS.ink, lineHeight: 1.25, textDecoration: isAbs ? "line-through" : "none" } }, s.name),
+            h("span", { style: { display: "flex", gap: 4, flexWrap: "wrap" } },
+              isAbs && h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: COLORS.sub } }, "Absent"),
+              OBS_KINDS.filter(k => !k.toggle && o[k.id]).map(k => h("span", { key: k.id, style: { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, borderRadius: 999, padding: "1px 7px", color: k.plus ? COLORS.doneInk : "var(--danger)", background: k.plus ? COLORS.doneSoft : "var(--histoireSoft)" } }, `${k.plus ? "+" : "−"}${o[k.id]} ${(k.short || k.label).toLowerCase()}`)))),
+            n > 0 && h("button", { onClick: () => observe(s.id, kind, -1), "aria-label": `Retirer une observation « ${kd.label} » à ${s.name}`, title: "Retirer",
+              style: { position: "absolute", top: 8, right: 8, width: 36, height: 36, borderRadius: 18, border: `1px solid ${COLORS.line}`, background: COLORS.bg, color: COLORS.sub, fontFamily: "Inter, sans-serif", fontSize: 20, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 } }, "−"));
+        })),
+      h("p", { style: { ...txt, fontSize: 12, color: COLORS.faint, margin: "14px 0 0" } }, "Choisis l'observation, puis touche les élèves concernés. Un clic de travers ? Le bouton « − » sur la carte de l'élève retire une observation du type choisi. Elles sont reprises dans les appréciations du trimestre."));
+
+  const finPanel = !slot ? h("p", { style: txt }, "Choisis un cours de ton emploi du temps (en haut) pour remplir le cahier de textes et faire avancer le chapitre.")
+    : h("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
+      h("div", null, h("label", { style: labelStyle, htmlFor: "ec-chapitre" }, "Chapitre"),
+        h("select", { id: "ec-chapitre", style: { ...inputStyle, fontSize: 14, padding: "9px 10px" }, value: chapterId, onChange: e => commit({ chapterId: e.target.value }) },
+          h("option", { value: "" }, "—"),
+          cls && cls.themes.map(th => h("optgroup", { key: th.id, label: th.title }, th.chapters.map(c => h("option", { key: c.id, value: c.id }, c.title)))))),
+      h("div", null, h("label", { style: labelStyle, htmlFor: "ec-seance" }, "Ce qui a été fait"),
+        h("textarea", { id: "ec-seance", style: { ...inputStyle, fontSize: 14, minHeight: 70, resize: "vertical", lineHeight: 1.45 }, value: (entry && entry.seance) || "", placeholder: "Ex. I. b) Étude de cas : docs 1 à 3, trace écrite", onChange: e => type({ seance: e.target.value }), onBlur: typed.flush })),
+      h("div", null, h("label", { style: labelStyle, htmlFor: "ec-devoirs" }, next ? `Travail pour le ${longDate(next)}` : "Travail donné"),
+        h("input", { id: "ec-devoirs", style: { ...inputStyle, fontSize: 14, padding: "9px 10px" }, value: (entry && entry.devoirs) || "", placeholder: "Ex. Apprendre la leçon, finir l'exercice 2", onChange: e => type({ devoirs: e.target.value }), onBlur: typed.flush })),
+      h("button", { onClick: () => commit({ done: !done }), "aria-pressed": done, style: { ...primaryBtn, fontSize: 15, padding: "13px 16px", borderRadius: 10, background: done ? COLORS.done : COLORS.accent, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 } },
+        done && h(IconCheck, { size: 16 }), done ? "Séance faite" : ch ? `Séance faite · ${ch.title.length > 34 ? ch.title.slice(0, 33) + "…" : ch.title}` : "Séance faite"),
+      h("p", { style: { ...txt, fontSize: 12, color: COLORS.faint, margin: 0 } }, ch ? "« Séance faite » ajoute la séance au journal du chapitre et fait avancer sa progression (touche à nouveau pour annuler)." : "Choisis le chapitre pour que la séance fasse avancer la progression."),
+      h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" } },
+        h(CopyBtn, { text: copyText, label: "Copier pour ÉcoleDirecte", big: true })));
+
+  const recap = OBS_KINDS.filter(k => !k.toggle).map(k => {
+    const who = students.filter(s => (today[s.id] || {})[k.id]);
+    return who.length ? `${k.label} : ${who.map(s => `${firstName(s.name)}${today[s.id][k.id] > 1 ? ` (${today[s.id][k.id]})` : ""}`).join(", ")}` : null;
+  }).filter(Boolean);
+
+  return h("div", { role: "dialog", "aria-modal": "true", "aria-label": "Mode En classe", style: { position: "fixed", inset: 0, zIndex: 100, background: COLORS.bg, overflowY: "auto", WebkitOverflowScrolling: "touch" } },
+    h("div", { style: { maxWidth: 640, margin: "0 auto", padding: "calc(10px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))" } },
+      h("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 10 } },
+        h("button", { onClick: () => onClose(false), style: { ...ghostBtn, padding: "8px 12px", display: "flex", alignItems: "center", gap: 6 } }, "← Quitter"),
+        h("span", { style: { fontFamily: "Fraunces, serif", fontSize: 19, fontWeight: 600, color: COLORS.accent, flex: 1 } }, "En classe"),
+        h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 14, color: COLORS.sub } }, hm.replace(":", " h "))),
+      // Choix du cours
+      slots.length > 0 && h("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 } },
+        slots.map(s => h("button", { key: s.id, onClick: () => setSlotId(s.id), "aria-pressed": s.id === slotId, style: pill(s.id === slotId) }, `${s.start} · ${(data.classes[s.classId] || {}).name || "?"}${s.groupe ? " " + s.groupe : ""}`)),
+        h("button", { onClick: () => setSlotId(""), "aria-pressed": !slot, style: pill(!slot) }, "Autre classe")),
+      !slot && h("div", { style: { marginBottom: 10 } },
+        slots.length === 0 && h("p", { style: { ...txt, margin: "0 0 8px" } }, "Pas de cours prévu aujourd'hui dans ton emploi du temps : choisis la classe."),
+        h("select", { "aria-label": "Classe", style: { ...inputStyle, fontSize: 14, padding: "9px 10px" }, value: freeClass, onChange: e => setFreeClass(e.target.value) },
+          data.order.map(cid => h("option", { key: cid, value: cid }, data.classes[cid].name)))),
+      cls && h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderLeft: `5px solid ${color}`, borderRadius: 10, boxShadow: CARD_SHADOW, padding: "12px 14px", marginBottom: 14 } },
+        h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" } },
+          h("span", { style: { fontFamily: "Fraunces, serif", fontSize: 20, fontWeight: 600, color: COLORS.ink } }, cls.name),
+          slot && h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12.5, color: COLORS.sub } }, `${slot.start}–${slot.end}`),
+          slot && h(SlotBadges, { slot, small: true }),
+          slot && slot.room && h("span", { style: { ...txt, fontSize: 12 } }, "Salle " + slot.room)),
+        ch && h("div", { style: { ...txt, color: COLORS.ink, marginTop: 4 } }, ch.title, h("span", { style: { color: COLORS.sub } }, ` · séance\u00a0${seanceN}\u00a0sur\u00a0${total}`)),
+        entry && entry.seance && !done && h("div", { style: { ...txt, fontSize: 12.5, marginTop: 4 } }, h("strong", null, "Prévu : "), entry.seance),
+        done && h("div", { style: { ...txt, fontSize: 12.5, marginTop: 4, color: COLORS.doneInk, fontWeight: 600 } }, "Séance faite")),
+      // Onglets
+      h("div", { role: "tablist", style: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, background: COLORS.encadre, borderRadius: 10, padding: 4, marginBottom: 12 } },
+        TABS.map(([id, lab]) => h("button", { key: id, role: "tab", "aria-selected": tab === id, onClick: () => setTab(id),
+          style: { fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: tab === id ? 700 : 500, padding: "10px 4px", minHeight: 42, borderRadius: 7, border: "none", cursor: "pointer", background: tab === id ? COLORS.panel : "transparent", color: tab === id ? COLORS.accent : COLORS.sub, boxShadow: tab === id ? CARD_SHADOW : "none" } }, lab))),
+      // Les panneaux restent montés : le minuteur continue quand on change d'onglet
+      h("div", { role: "tabpanel", style: { display: tab === "eleves" ? "block" : "none" } }, elevesPanel),
+      h("div", { role: "tabpanel", style: { display: tab === "tirage" ? "block" : "none" } },
+        students.length ? h(ClassDraw, { students, absent, drawKey: `${todayISO}|${classId}`, onObserve: (sid, k, d) => observe(sid, k, d) }) : h("p", { style: txt }, "Ajoute d'abord les élèves de la classe.")),
+      h("div", { role: "tabpanel", style: { display: tab === "minuteur" ? "block" : "none" } }, h(ClassTimer, null)),
+      h("div", { role: "tabpanel", style: { display: tab === "fin" ? "block" : "none" } }, finPanel,
+        recap.length > 0 && h("div", { style: { marginTop: 18 } },
+          h("div", { style: labelStyle }, "Observations du jour"),
+          recap.map((r, i) => h("p", { key: i, style: { ...txt, fontSize: 12.5, margin: "2px 0" } }, r))))),
+    toast && h("div", { role: "status", style: { position: "fixed", left: 16, right: 16, bottom: "calc(16px + env(safe-area-inset-bottom))", maxWidth: 608, margin: "0 auto", display: "flex", alignItems: "center", gap: 10, background: COLORS.ink, color: COLORS.bg, borderRadius: 10, padding: "10px 12px 10px 14px", boxShadow: "0 4px 16px rgba(0,0,0,.25)", fontFamily: "Inter, sans-serif", fontSize: 13.5 } },
+      h("span", { style: { flex: 1, minWidth: 0 } }, toast.text),
+      h("button", { onClick: () => {
+        toast.undo();
+        setToast(null);
+      }, style: { background: "none", border: `1px solid ${COLORS.bg}`, color: COLORS.bg, borderRadius: 7, padding: "7px 12px", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700, cursor: "pointer" } }, "Annuler")));
 }
 
 /* ---------- Prévision de fin de programme ----------
@@ -5383,6 +6483,140 @@ function App() {
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
+  // Mode « En classe » (écran plein, par-dessus le reste)
+  const [enClasse, setEnClasse] = useState(false);
+  // Synchronisation entre appareils (voir syncRound)
+  const [sync, setSync] = useState(() => {
+    const c = syncConfig();
+    return { on: !!c, etat: c ? "attente" : "off", last: c ? c.last || null : null, erreur: null };
+  });
+  const syncJob = useRef(null);
+  const syncAgain = useRef(false);
+  const syncTimer = useRef(null);
+  const syncedData = useRef(null);
+  const applyRemote = useCallback(next => {
+    dataRef.current = next;
+    persist(next);
+    setActiveClass(cid => next.classes[cid] ? cid : next.order[0] || null);
+  }, [persist]);
+  const runSync = useCallback(() => {
+    clearTimeout(syncTimer.current);
+    syncTimer.current = null;
+    if (!syncConfig() || !dataRef.current) return Promise.resolve();
+    if (syncJob.current) {
+      syncAgain.current = true;
+      return syncJob.current;
+    }
+    setSync(s => ({ ...s, on: true, etat: "encours" }));
+    // Un seul échange à la fois, même avec l'app ouverte dans deux fenêtres
+    const exclusive = fn => navigator.locks && navigator.locks.request ? navigator.locks.request("cahier-synchro", fn) : fn();
+    const job = exclusive(() => syncRound(() => dataRef.current, applyRemote).then(() => syncFiles(() => dataRef.current))).then(() => {
+      const last = new Date().toISOString();
+      patchSyncConfig({ last });
+      syncedData.current = dataRef.current;
+      const on = !!syncConfig();
+      setSync({ on, etat: on ? "ok" : "off", last, erreur: null });
+    }, e => {
+      console.error(e);
+      const on = !!syncConfig();
+      setSync(s => ({ ...s, on, etat: !on ? "off" : e && e.code === "reseau" ? "horsligne" : "erreur", erreur: e && e.code || "inconnu" }));
+    }).then(() => {
+      syncJob.current = null;
+      if (syncAgain.current) {
+        syncAgain.current = false;
+        runSync();
+      }
+    });
+    syncJob.current = job;
+    return job;
+  }, [applyRemote]);
+  // Après une modification : envoi 3 s plus tard (des frappes rapprochées font un seul envoi)
+  useEffect(() => {
+    if (!data || data === syncedData.current || !syncConfig()) return;
+    clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(runSync, 3000);
+  }, [data, runSync]);
+  // À l'ouverture, au retour sur l'app, au retour du réseau, puis chaque minute
+  const dataReady = !!data;
+  useEffect(() => {
+    if (!dataReady) return;
+    runSync();
+    const onVisibility = () => {
+      // En arrière-plan : ce qui attendait part tout de suite
+      if (document.visibilityState === "visible" || syncTimer.current) runSync();
+    };
+    const onHide = () => syncTimer.current && runSync();
+    const onOnline = () => runSync();
+    const tick = setInterval(() => document.visibilityState === "visible" && runSync(), 60000);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", onHide);
+    window.addEventListener("online", onOnline);
+    return () => {
+      clearInterval(tick);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", onHide);
+      window.removeEventListener("online", onOnline);
+    };
+  }, [dataReady, runSync]);
+  const syncActivate = async ({ repo, token, password, probe, mode }) => {
+    const common = { repo, token, device: deviceName(), files: [], last: null };
+    if (mode === "nouveau" || mode === "ecraser") {
+      const salt = bytesToB64(crypto.getRandomValues(new Uint8Array(16)));
+      const key = await deriveSyncKey(password, salt, SYNC_ITER);
+      if (mode === "ecraser") {
+        // Les fichiers joints en ligne étaient chiffrés avec l'ancien mot de passe
+        const cfg0 = { repo, token };
+        for (const f of await ghListDir(cfg0)) await ghDeleteFile(cfg0, `${SYNC_DIR}/${f.name}`, f.sha).catch(() => {});
+      }
+      await saveSyncBase(null);
+      saveSyncConfig({ ...common, key, salt, iter: SYNC_ITER, sha: probe.remote ? probe.remote.sha : null });
+    } else {
+      const env = probe.env;
+      const iter = env.iter || SYNC_ITER;
+      const key = await deriveSyncKey(password, env.salt, iter);
+      const theirs = JSON.parse(await openSync(key, env));
+      if (mode === "remplacer") {
+        // Copie de côté des données de cet appareil, au cas où
+        await fileSave("synchro-avant-" + localISO(new Date()), JSON.stringify(dataRef.current)).catch(() => {});
+        await saveSyncBase(theirs);
+        saveSyncConfig({ ...common, key, salt: env.salt, iter, sha: probe.remote.sha });
+        applyRemote(withDefaults(theirs));
+      } else {
+        // Cet appareil rejoint un cahier existant : en cas de désaccord, le cahier en ligne l'emporte
+        await saveSyncBase(null);
+        saveSyncConfig({ ...common, key, salt: env.salt, iter, sha: null, reunir: true });
+      }
+    }
+    setSync({ on: true, etat: "attente", last: null, erreur: null });
+    await runSync();
+  };
+  const syncStop = () => {
+    saveSyncConfig(null);
+    saveSyncBase(null);
+    clearTimeout(syncTimer.current);
+    syncTimer.current = null;
+    setSync({ on: false, etat: "off", last: null, erreur: null });
+  };
+  const syncFixToken = async token => {
+    await ghRequest({ repo: syncConfig().repo, token }, "");
+    patchSyncConfig({ token });
+    await runSync();
+  };
+  const syncFixPassword = async password => {
+    const cfg = syncConfig();
+    const remote = await ghGetFile(cfg, SYNC_FILE);
+    if (remote) {
+      const env = parseEnvelope(remote.text);
+      const iter = env.iter || SYNC_ITER;
+      const key = await deriveSyncKey(password, env.salt, iter);
+      await openSync(key, env);
+      // Copie en ligne remplacée depuis un autre appareil : on réunit les deux cahiers
+      // (comme « Réunir »), pour ne rien perdre de ce que cet appareil avait déjà envoyé
+      await saveSyncBase(null);
+      patchSyncConfig({ key, salt: env.salt, iter, sha: null, files: [] });
+    }
+    await runSync();
+  };
   // Impression de la progression d'une classe
   const [printing, setPrinting] = useState(null);
   useEffect(() => {
@@ -5728,6 +6962,26 @@ function App() {
       };
     })
   });
+  const saveAppreciation = (key, cid, sid, patch) => {
+    const all = data.appreciations || {};
+    const byClass = (all[key] || {})[cid] || {};
+    persist({
+      ...data,
+      appreciations: {
+        ...all,
+        [key]: {
+          ...(all[key] || {}),
+          [cid]: {
+            ...byClass,
+            [sid]: {
+              ...(byClass[sid] || {}),
+              ...patch
+            }
+          }
+        }
+      }
+    });
+  };
   const addStudent = (cid, name) => {
     const next = {
       ...data
@@ -5818,6 +7072,36 @@ function App() {
     if (entry.done && entry.chapterId) link(entry.chapterId);
     persist(next);
   };
+  // Mode « En classe »
+  const closeClassMode = fromBack => {
+    setEnClasse(false);
+    // Fermé par le bouton : on retire l'étape ajoutée à l'historique à l'ouverture
+    if (!fromBack) try {
+      history.back();
+    } catch (e) {}
+  };
+  const addObservation = (iso, cid, sid, kind, delta) => {
+    const d = dataRef.current;
+    const obs = d.observations || {};
+    const day = obs[iso] || {};
+    const forClass = day[cid] || {};
+    const st = { ...(forClass[sid] || {}) };
+    const n = Math.max(0, (Number(st[kind]) || 0) + delta);
+    if (n) st[kind] = n;
+    else delete st[kind];
+    const nextClass = { ...forClass };
+    if (Object.keys(st).length) nextClass[sid] = st;
+    else delete nextClass[sid];
+    const nextDay = { ...day };
+    if (Object.keys(nextClass).length) nextDay[cid] = nextClass;
+    else delete nextDay[cid];
+    const nextObs = { ...obs };
+    if (Object.keys(nextDay).length) nextObs[iso] = nextDay;
+    else delete nextObs[iso];
+    const next = { ...d, observations: nextObs };
+    dataRef.current = next;
+    persist(next);
+  };
   const setAnnualHours = (cid, hours) => {
     const next = {
       ...data
@@ -5861,6 +7145,10 @@ function App() {
     text: "Tes données enregistrées n'ont pas pu être relues. Une copie a été mise de côté sur cet appareil : télécharge-la pour pouvoir la récupérer.",
     action: "Télécharger la copie",
     onAction: () => downloadText(rescue, `cahier-copie-de-secours-${localISO(new Date())}.json`)
+  }), sync.on && sync.etat === "erreur" && SYNC_BLOCKING.includes(sync.erreur) && view !== "settings" && /*#__PURE__*/React.createElement(AlertBanner, {
+    text: syncPause(sync.erreur),
+    action: "Réglages",
+    onAction: () => setView("settings")
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -5878,7 +7166,16 @@ function App() {
       margin: 0,
       letterSpacing: "-0.01em"
     }
-  }, "Cahier de progression"), /*#__PURE__*/React.createElement("button", {
+  }, "Cahier de progression"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 4
+    }
+  }, /*#__PURE__*/React.createElement(SyncIndicator, {
+    sync: sync,
+    onClick: () => sync.etat === "erreur" && SYNC_BLOCKING.includes(sync.erreur) ? setView("settings") : runSync()
+  }), /*#__PURE__*/React.createElement("button", {
     className: "hit",
     onClick: () => setTheme(theme === "dark" ? "light" : "dark"),
     title: "Changer de thème",
@@ -5894,7 +7191,7 @@ function App() {
     size: 17
   }) : /*#__PURE__*/React.createElement(IconMoon, {
     size: 17
-  }))), /*#__PURE__*/React.createElement("span", {
+  })))), /*#__PURE__*/React.createElement("span", {
     style: {
       fontFamily: "Inter, sans-serif",
       fontSize: 12,
@@ -6030,7 +7327,8 @@ function App() {
     onAddTodo: addTodo,
     onToggleTodo: toggleTodo,
     onDeleteTodo: deleteTodo,
-    onSetAnnualHours: setAnnualHours
+    onSetAnnualHours: setAnnualHours,
+    onClassMode: () => setEnClasse(true)
   }) : view === "fiches" ? /*#__PURE__*/React.createElement(FichesView, {
     data: data,
     onAdd: addFiche,
@@ -6056,7 +7354,16 @@ function App() {
     onSetTrimestres: tri => persist({
       ...data,
       trimestres: tri
-    })
+    }),
+    sync: sync,
+    syncActions: {
+      onProbe: syncProbe,
+      onActivate: syncActivate,
+      onRunNow: runSync,
+      onStop: syncStop,
+      onFixToken: syncFixToken,
+      onFixPassword: syncFixPassword
+    }
   }) : view === "schedule" ? /*#__PURE__*/React.createElement(WeekView, {
     data: data,
     onSaveEntry: saveCahierEntry,
@@ -6077,7 +7384,12 @@ function App() {
     onCycleStatus: cycleEvalStatus,
     onDelete: deleteEvaluation,
     onSetGrade: setGrade,
-    onSetLevel: setLevel
+    onSetLevel: setLevel,
+    onSaveAppreciation: saveAppreciation,
+    onSetApprOptions: opts => persist({
+      ...data,
+      apprOptions: opts
+    })
   }) : view === "students" ? /*#__PURE__*/React.createElement(StudentsView, {
     data: data,
     activeClass: activeClass,
@@ -6212,6 +7524,11 @@ function App() {
   }), /*#__PURE__*/React.createElement(SideNav, {
     view: view,
     setView: setView
+  }), enClasse && /*#__PURE__*/React.createElement(ClassMode, {
+    data: data,
+    onClose: closeClassMode,
+    onObserve: addObservation,
+    onSaveEntry: saveCahierEntry
   }), printing && data.classes[printing] && ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
     className: "print-sheet"
   }, /*#__PURE__*/React.createElement(PrintSheet, {
