@@ -43,6 +43,10 @@
   .hit, .hit-y { position: relative; }
   .hit::after { content: ""; position: absolute; inset: -9px; }
   .hit-y::after { content: ""; position: absolute; inset: -9px 0; }
+  /* Minuteur du mode « En classe » : clignote quand le temps est écoulé */
+  @keyframes clignote { 50% { opacity: .35; } }
+  .clignote { animation: clignote 1s step-end infinite; }
+  @media (prefers-reduced-motion: reduce) { .clignote { animation: none; } }
 
   /* Impression / PDF : seule la fiche de progression s'imprime, toujours sur fond blanc */
   .print-sheet { display: none; }
@@ -634,6 +638,7 @@ function withDefaults(raw) {
   if (!data.trimestres || typeof data.trimestres !== "object") data.trimestres = {};
   if (!data.appreciations || typeof data.appreciations !== "object") data.appreciations = {};
   if (!data.apprOptions || typeof data.apprOptions !== "object") data.apprOptions = { prenom: true };
+  if (!data.observations || typeof data.observations !== "object" || Array.isArray(data.observations)) data.observations = {};
   data.evaluations.forEach(ev => {
     if (!ev.grades || typeof ev.grades !== "object") ev.grades = {};
     if (!Array.isArray(ev.comps)) ev.comps = [];
@@ -2211,7 +2216,7 @@ function workDueOn(data, classId, iso, ref) {
 }
 
 /* ---------- Ma journée (accueil) ---------- */
-function MyDay({ data, setView }) {
+function MyDay({ data, setView, onClassMode }) {
   const h = React.createElement;
   const todayISO = localISO(new Date());
   let dayISO = todayISO;
@@ -2234,6 +2239,12 @@ function MyDay({ data, setView }) {
         h("h2", { style: { fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 600, color: COLORS.ink, margin: 0 } }, title),
         h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.faint } }, longDate(dayISO))),
       h("button", { className: "hit-y", onClick: () => setView && setView("schedule"), style: { background: "none", border: "none", color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0 } }, "Semainier →")),
+    onClassMode && data.order.length > 0 && (() => {
+      const cur = isToday ? pickSlot(slots, nowHM) : null;
+      const label = cur ? `${(data.classes[cur.classId] || {}).name || ""} · ${cur.start.replace(":", " h ")}` : "";
+      return h("button", { onClick: onClassMode, style: { ...primaryBtn, width: "100%", padding: "11px 14px", fontSize: 14, borderRadius: 9, marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 } },
+        h(IconUsers, { size: 16 }), "Mode En classe", label && h("span", { style: { fontWeight: 400, opacity: 0.85 } }, label));
+    })(),
     data.schedule.slots.length === 0 && h("p", { style: { ...txt, color: COLORS.faint, margin: 0 } }, "Renseigne ton emploi du temps (Semaine → Emploi du temps) pour voir ta journée ici."),
     events.length > 0 && h("div", { style: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 8 } },
       events.map(ev => h("div", { key: ev.id, style: { display: "flex", alignItems: "center", gap: 10, padding: "7px 12px", borderRadius: 8, border: `1px dashed ${agendaCat(ev.cat).color}` } },
@@ -2265,7 +2276,7 @@ function MyDay({ data, setView }) {
 }
 
 /* ---------- Cahier de textes prêt à copier (École Directe) ---------- */
-function CopyBtn({ text, label }) {
+function CopyBtn({ text, label, big }) {
   const h = React.createElement;
   const [ok, setOk] = useState(false);
   const copy = async () => {
@@ -2273,7 +2284,7 @@ function CopyBtn({ text, label }) {
     catch (e) { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
     setOk(true); setTimeout(() => setOk(false), 1400);
   };
-  return h("button", { onClick: copy, style: { ...ghostBtn, padding: "4px 10px", fontSize: 11.5, display: "inline-flex", alignItems: "center", gap: 5, color: ok ? COLORS.done : COLORS.accent, borderColor: ok ? COLORS.done : COLORS.line, flexShrink: 0 } },
+  return h("button", { onClick: copy, style: { ...ghostBtn, padding: big ? "11px 14px" : "4px 10px", fontSize: big ? 14 : 11.5, display: "inline-flex", alignItems: "center", gap: 5, color: ok ? COLORS.done : COLORS.accent, borderColor: ok ? COLORS.done : COLORS.line, flexShrink: 0 } },
     ok ? h(IconCheck, { size: 12 }) : null, ok ? "Copié" : label || "Copier");
 }
 function CahierTextes({ data, monday }) {
@@ -3929,7 +3940,13 @@ function apprDraft({ name, avg, prev, comps, tags, withName, seed }) {
 // Une carte par élève : repères chiffrés, observations à cocher, texte modifiable
 function ApprCard({ s, info, entry, withName, seed, onSave }) {
   const h = React.createElement;
-  const tags = entry.tags || [];
+  // Observations notées en classe : cochées d'office quand elles reviennent souvent
+  const tags = apprTags(entry, info);
+  const count = t => {
+    const k = OBS_KINDS.find(x => x.tag === t.id);
+    return k && info.obs ? info.obs[k.id] || 0 : 0;
+  };
+  const obsLine = OBS_KINDS.filter(k => !k.toggle && info.obs && info.obs[k.id]).map(k => obsPlural(k.id, info.obs[k.id])).join(" · ");
   const draft = apprDraft({ name: s.name, avg: info.avg, prev: info.prev, comps: info.comps, tags, withName, seed });
   const [local, setLocal] = useState(null);
   const save = useDebouncedSave(text => onSave({ text, edited: true }));
@@ -3948,7 +3965,7 @@ function ApprCard({ s, info, entry, withName, seed, onSave }) {
     return h("button", { key: t.id, onClick: () => toggleTag(t.id), "aria-pressed": on,
       style: { fontFamily: "Inter, sans-serif", fontSize: 12, padding: "4px 9px", borderRadius: 999, cursor: "pointer", fontWeight: on ? 600 : 400,
         border: `1px solid ${on ? (t.plus ? COLORS.doneInk : "var(--danger)") : COLORS.line}`, background: on ? (t.plus ? COLORS.doneSoft : "var(--histoireSoft)") : "transparent",
-        color: on ? (t.plus ? COLORS.doneInk : "var(--danger)") : COLORS.sub } }, (t.plus ? "+ " : "− ") + t.label);
+        color: on ? (t.plus ? COLORS.doneInk : "var(--danger)") : COLORS.sub } }, (t.plus ? "+ " : "− ") + t.label, count(t) ? ` · ${count(t)}` : "");
   };
   const fmt = v => v === null ? "—" : fmtGrade(v);
   return h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, boxShadow: CARD_SHADOW, borderLeft: `4px solid ${entry.ok ? COLORS.done : COLORS.line}`, borderRadius: 8, padding: "12px 14px" } },
@@ -3957,6 +3974,7 @@ function ApprCard({ s, info, entry, withName, seed, onSave }) {
       h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12, color: COLORS.sub } }, `moy. ${fmt(info.avg)}`, info.prev !== null ? ` · avant ${fmt(info.prev)}` : ""),
       info.comps.length > 0 && h("span", { style: { display: "inline-flex", gap: 4, flexWrap: "wrap" } }, info.comps.map(c => h("span", { key: c.id, title: c.label, style: { display: "inline-flex", alignItems: "center", gap: 3, fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.sub } }, c.short, h(LevelChip, { n: Math.min(4, Math.max(1, Math.round(c.mean))), small: true }))))),
     s.note && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub, margin: "0 0 6px", fontStyle: "italic" } }, `Ta remarque : ${s.note}`),
+    obsLine && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.sub, margin: "0 0 6px" } }, `En classe ce trimestre : ${obsLine}`),
     h("div", { style: { display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 8 } }, APPR_TAGS.map(chip)),
     h("textarea", { ref: taRef, value, rows: 3, "aria-label": `Appréciation de ${s.name}`,
       onChange: e => { setLocal(e.target.value); save(e.target.value); }, onBlur: save.flush,
@@ -3977,15 +3995,20 @@ function AppreciationsView({ data, cls, classId, students, allEvals, tri, per, o
   const withName = (data.apprOptions || {}).prenom !== false;
   const inT = k => allEvals.filter(ev => ev.date && trimestreOf(tri, ev.date) === k);
   const noted = k => inT(k).filter(ev => !ev.sansNote);
+  const obsT = obsCounts(data, classId, ...trimestreRange(tri, per));
   const infoOf = sid => {
     const evs = inT(per);
     const comps = data.competences.map(c => {
       const vals = evs.filter(ev => (ev.comps || []).includes(c.id)).map(ev => levelOf(ev, sid, c.id)).filter(Boolean);
       return vals.length ? { ...c, mean: vals.reduce((a, b) => a + b, 0) / vals.length } : null;
     }).filter(Boolean);
-    return { avg: studentAverage(sid, noted(per)), prev: per > 1 ? studentAverage(sid, noted(per - 1)) : null, comps };
+    return { avg: studentAverage(sid, noted(per)), prev: per > 1 ? studentAverage(sid, noted(per - 1)) : null, comps, obs: obsT[sid] || {} };
   };
-  const texts = students.map(st => { const e = store[st.id] || {}; return e.edited ? e.text : apprDraft({ name: st.name, ...infoOf(st.id), tags: e.tags || [], withName, seed: hashStr(st.id + key) }); });
+  const texts = students.map(st => {
+    const e = store[st.id] || {};
+    const info = infoOf(st.id);
+    return e.edited ? e.text : apprDraft({ name: st.name, ...info, tags: apprTags(e, info), withName, seed: hashStr(st.id + key) });
+  });
   const relues = students.filter(st => (store[st.id] || {}).ok).length;
   const exportCSV = () => {
     const esc = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
@@ -4872,7 +4895,8 @@ function HomeView({
   onAddTodo,
   onToggleTodo,
   onDeleteTodo,
-  onSetAnnualHours
+  onSetAnnualHours,
+  onClassMode
 }) {
   const today = new Date();
   const in7 = new Date(today);
@@ -4934,7 +4958,8 @@ function HomeView({
     data: data
   }), /*#__PURE__*/React.createElement(SchoolBanner, null), /*#__PURE__*/React.createElement(MyDay, {
     data: data,
-    setView: setView
+    setView: setView,
+    onClassMode: onClassMode
   }), /*#__PURE__*/React.createElement("div", {
     className: "rail-inline"
   }, /*#__PURE__*/React.createElement(UpcomingDates, {
@@ -5851,6 +5876,407 @@ function SyncSettings({ sync, onProbe, onActivate, onRunNow, onStop, onFixToken,
       mode !== "nouveau" && mode !== "ecraser" && h("button", { onClick: () => { setMode("ecraser"); setPass(""); setPass2(""); setMsg(null); }, disabled: busy, style: { background: "none", border: "none", padding: "8px 4px", fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, textDecoration: "underline", cursor: "pointer" } }, "Mot de passe oublié ?")));
 }
 
+/* ---------- Mode « En classe » ----------
+   Écran du téléphone pendant le cours : observations en un appui (elles alimentent les
+   appréciations du trimestre), tirage au sort, minuteur, et fin d'heure (cahier de textes,
+   progression du chapitre). Il n'est pas fait pour être projeté : les noms des élèves et
+   les observations restent sur l'appareil (et dans la synchro chiffrée).
+   Données : data.observations[date][classe][élève] = { participe: 2, bavardage: 1, … } */
+const OBS_KINDS = [
+  { id: "participe", label: "Participe", plus: true, tag: "participation", seuil: 3 },
+  { id: "bavardage", label: "Bavarde", tag: "bavardages", seuil: 3 },
+  { id: "materiel", label: "Matériel oublié", short: "Matériel", tag: "materiel", seuil: 2 },
+  { id: "travail", label: "Travail non fait", short: "Travail", tag: "travailperso", seuil: 2 },
+  { id: "absent", label: "Absent", toggle: true }
+];
+const OBS_NAMES = { participe: ["participation", "participations"], bavardage: ["bavardage", "bavardages"], materiel: ["oubli de matériel", "oublis de matériel"], travail: ["travail non fait", "travaux non faits"] };
+const obsPlural = (kind, n) => `${n} ${OBS_NAMES[kind][n > 1 ? 1 : 0]}`;
+const hmToMin = hm => { const [a, b] = String(hm).split(":").map(Number); return a * 60 + (b || 0); };
+const nowHM = () => { const d = new Date(); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+// Observations d'une classe sur une période : { élève: { participe: 6, … } }
+function obsCounts(data, classId, fromISO, toISO) {
+  const out = {};
+  Object.entries(data.observations || {}).forEach(([iso, day]) => {
+    if (iso < fromISO || iso > toISO || !day || !day[classId]) return;
+    Object.entries(day[classId]).forEach(([sid, kinds]) => {
+      const o = out[sid] || (out[sid] = {});
+      Object.entries(kinds || {}).forEach(([k, n]) => { if (k !== "absent") o[k] = (o[k] || 0) + (Number(n) || 0); });
+    });
+  });
+  return out;
+}
+// Observations cochées d'office dans les appréciations, quand elles reviennent souvent
+const suggestedTags = obs => OBS_KINDS.filter(k => k.tag && obs && (obs[k.id] || 0) >= k.seuil).map(k => k.tag);
+const apprTags = (entry, info) => entry.tags || suggestedTags(info.obs);
+// Le cours à afficher : celui en cours (ou qui commence dans moins de 15 min), sinon le suivant de la journée, sinon le dernier
+function pickSlot(slots, hm) {
+  const m = hmToMin(hm);
+  return slots.find(s => hmToMin(s.start) - 15 <= m && hmToMin(s.end) > m) || slots.find(s => hmToMin(s.start) > m) || slots[slots.length - 1] || null;
+}
+// Chapitre proposé : celui de la séance du jour, sinon celui de la dernière séance de ce cours
+// (ou le suivant s'il est terminé), sinon le premier chapitre commencé de la classe.
+function guessChapter(data, slot, classId, iso) {
+  const cls = data.classes[classId];
+  if (!cls) return "";
+  const all = cls.themes.flatMap(th => th.chapters);
+  const entries = data.cahier || {};
+  if (slot) {
+    const today = entries[`${iso}|${slot.id}`];
+    if (today && today.chapterId && all.some(c => c.id === today.chapterId)) return today.chapterId;
+    const ids = new Set(data.schedule.slots.filter(s => sameCourse(s, slot)).map(s => s.id));
+    const last = Object.keys(entries).filter(k => {
+      const [d, sid] = k.split("|");
+      return d < iso && ids.has(sid) && entries[k] && entries[k].chapterId;
+    }).sort().pop();
+    if (last) {
+      const i = all.findIndex(c => c.id === entries[last].chapterId);
+      if (i >= 0) {
+        if (chapterStatus(all[i]) !== "done") return all[i].id;
+        const next = all.slice(i + 1).find(c => chapterStatus(c) !== "done");
+        if (next) return next.id;
+      }
+    }
+  }
+  const wip = all.find(c => chapterStatus(c) === "wip") || all.find(c => chapterStatus(c) === "todo");
+  return wip ? wip.id : "";
+}
+// Tirage au sort : chaque élève passe une fois avant que le tour recommence (mémorisé pour la journée)
+const DRAW_KEY = "en-classe-tirage-v1";
+function loadDrawn(key) {
+  try {
+    return (JSON.parse(localStorage.getItem(DRAW_KEY)) || {})[key] || [];
+  } catch (e) {
+    return [];
+  }
+}
+function saveDrawn(key, ids) {
+  try {
+    const all = JSON.parse(localStorage.getItem(DRAW_KEY)) || {};
+    const day = key.split("|")[0];
+    Object.keys(all).forEach(k => { if (k.split("|")[0] !== day) delete all[k]; });
+    all[key] = ids;
+    localStorage.setItem(DRAW_KEY, JSON.stringify(all));
+  } catch (e) {}
+}
+
+function ClassDraw({ students, absent, drawKey, onObserve }) {
+  const h = React.createElement;
+  const [drawn, setDrawn] = useState(() => loadDrawn(drawKey));
+  const [shown, setShown] = useState(null);
+  const [rolling, setRolling] = useState(false);
+  const [note, setNote] = useState("");
+  useEffect(() => {
+    setDrawn(loadDrawn(drawKey));
+    setShown(null);
+    setNote("");
+  }, [drawKey]);
+  const present = students.filter(s => !absent.has(s.id));
+  const done = drawn.filter(id => present.some(s => s.id === id));
+  const draw = () => {
+    let pool = present.filter(s => !done.includes(s.id));
+    let base = done;
+    setNote("");
+    if (!pool.length) {
+      pool = present;
+      base = [];
+      setNote("Tout le monde est passé : nouveau tour.");
+    }
+    if (!pool.length) return;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    const ids = [...base, pick.id];
+    setDrawn(ids);
+    saveDrawn(drawKey, ids);
+    // Petit défilement des prénoms avant le résultat
+    setRolling(true);
+    let n = 0;
+    const t = setInterval(() => {
+      n++;
+      setShown(n < 9 ? present[Math.floor(Math.random() * present.length)] : pick);
+      if (n >= 9) {
+        clearInterval(t);
+        setRolling(false);
+      }
+    }, 70);
+  };
+  const restart = () => {
+    setDrawn([]);
+    saveDrawn(drawKey, []);
+    setShown(null);
+    setNote("");
+  };
+  const big = { fontFamily: "Fraunces, serif", fontSize: 30, fontWeight: 600, color: COLORS.ink, lineHeight: 1.2, minHeight: 72, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" };
+  return h("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
+    h("div", { "aria-live": "polite", style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 12, boxShadow: CARD_SHADOW, padding: "22px 16px" } },
+      h("div", { style: { ...big, opacity: rolling ? 0.55 : 1 } }, shown ? shown.name : "—"),
+      note && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, textAlign: "center", margin: "6px 0 0" } }, note)),
+    h("button", { onClick: draw, disabled: rolling || !present.length, style: { ...primaryBtn, fontSize: 16, padding: "14px 16px", borderRadius: 10 } }, "Tirer au sort"),
+    shown && !rolling && h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } },
+      h("button", { onClick: () => onObserve(shown.id, "participe", 1), style: { ...ghostBtn, flex: 1, color: COLORS.doneInk, borderColor: COLORS.doneInk, fontWeight: 600 } }, "+ Participe"),
+      h("button", { onClick: () => {
+        onObserve(shown.id, "absent", 1);
+        setShown(null);
+      }, style: { ...ghostBtn, flex: 1 } }, "Absent")),
+    h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.sub, margin: 0, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" } },
+      `Déjà passés : ${done.length} sur ${present.length}${absent.size ? ` (${absent.size} absent${absent.size > 1 ? "s" : ""} écarté${absent.size > 1 ? "s" : ""})` : ""}.`,
+      done.length > 0 && h("button", { className: "hit-y", onClick: restart, style: { background: "none", border: "none", padding: 0, color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 600, cursor: "pointer" } }, "Recommencer le tour")));
+}
+
+function ClassTimer() {
+  const h = React.createElement;
+  const [total, setTotal] = useState(300);
+  const [left, setLeft] = useState(300);
+  const [endAt, setEndAt] = useState(null);
+  const [fini, setFini] = useState(false);
+  const audio = useRef(null);
+  useEffect(() => {
+    if (!endAt) return;
+    const tick = () => {
+      const rest = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+      setLeft(rest);
+      if (rest === 0) {
+        setEndAt(null);
+        setFini(true);
+        try {
+          navigator.vibrate && navigator.vibrate([250, 120, 250, 120, 250]);
+        } catch (e) {}
+        const ctx = audio.current;
+        if (ctx) [0, 0.45, 0.9].forEach(t0 => {
+          try {
+            const o = ctx.createOscillator(), g = ctx.createGain();
+            o.frequency.value = 880;
+            o.connect(g);
+            g.connect(ctx.destination);
+            g.gain.setValueAtTime(0.3, ctx.currentTime + t0);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t0 + 0.35);
+            o.start(ctx.currentTime + t0);
+            o.stop(ctx.currentTime + t0 + 0.36);
+          } catch (e) {}
+        });
+      }
+    };
+    tick();
+    const t = setInterval(tick, 250);
+    return () => clearInterval(t);
+  }, [endAt]);
+  const choose = s => {
+    setTotal(s);
+    setLeft(s);
+    setEndAt(null);
+    setFini(false);
+  };
+  const start = () => {
+    // Le son doit être autorisé par un appui (iPhone) : on prépare l'audio ici
+    try {
+      if (!audio.current) audio.current = new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.current.state === "suspended") audio.current.resume();
+    } catch (e) {}
+    const s = left > 0 ? left : total;
+    setLeft(s);
+    setFini(false);
+    setEndAt(Date.now() + s * 1000);
+  };
+  const running = !!endAt;
+  const presets = [[60, "1 min"], [120, "2 min"], [180, "3 min"], [300, "5 min"], [600, "10 min"], [900, "15 min"]];
+  return h("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
+    h("div", { role: "timer", "aria-label": `Minuteur : ${Math.floor(left / 60)} min ${left % 60} s`, className: fini ? "clignote" : "",
+      style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 76, fontWeight: 500, textAlign: "center", color: fini ? "var(--danger)" : COLORS.ink, background: COLORS.panel, border: `1px solid ${fini ? "var(--danger)" : COLORS.line}`, borderRadius: 12, boxShadow: CARD_SHADOW, padding: "14px 8px", lineHeight: 1.1 } },
+      `${Math.floor(left / 60)}:${pad2(left % 60)}`),
+    fini && h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 600, color: "var(--danger)", textAlign: "center", margin: 0 } }, "Temps écoulé !"),
+    h("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 } },
+      presets.map(([s, lab]) => h("button", { key: s, onClick: () => choose(s), "aria-pressed": total === s,
+        style: { ...ghostBtn, padding: "10px 6px", fontWeight: total === s ? 700 : 400, color: total === s ? COLORS.accent : COLORS.sub, borderColor: total === s ? COLORS.accent : COLORS.line, background: total === s ? COLORS.accentSoft : "transparent" } }, lab))),
+    h("div", { style: { display: "flex", gap: 8 } },
+      h("button", { onClick: running ? () => setEndAt(null) : start, style: { ...primaryBtn, flex: 2, fontSize: 16, padding: "14px 16px", borderRadius: 10 } }, running ? "Pause" : left > 0 && left < total ? "Reprendre" : "Démarrer"),
+      h("button", { onClick: () => choose(total), style: { ...ghostBtn, flex: "0 0 auto", borderRadius: 10, whiteSpace: "nowrap" } }, "Remise à zéro")));
+}
+
+function ClassMode({ data, onClose, onObserve, onSaveEntry }) {
+  const h = React.createElement;
+  const [todayISO] = useState(() => localISO(new Date()));
+  const [hm, setHm] = useState(nowHM);
+  useEffect(() => {
+    const t = setInterval(() => setHm(nowHM()), 20000);
+    return () => clearInterval(t);
+  }, []);
+  const slots = dayInfo(todayISO).schoolDay ? slotsOnDate(data, todayISO) : [];
+  const [slotId, setSlotId] = useState(() => (pickSlot(slots, nowHM()) || {}).id || "");
+  const slot = slots.find(s => s.id === slotId) || null;
+  const [freeClass, setFreeClass] = useState(() => data.order[0] || "");
+  const classId = slot ? slot.classId : freeClass;
+  const cls = data.classes[classId];
+  const [tab, setTab] = useState("eleves");
+  const [kind, setKind] = useState("participe");
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
+
+  // Écran allumé, retour du téléphone = quitter, Échap au clavier
+  useEffect(() => {
+    let lock = null;
+    const ask = () => {
+      try {
+        if (navigator.wakeLock && document.visibilityState === "visible") navigator.wakeLock.request("screen").then(l => { lock = l; }, () => {});
+      } catch (e) {}
+    };
+    ask();
+    document.addEventListener("visibilitychange", ask);
+    try {
+      history.pushState({ enClasse: true }, "");
+    } catch (e) {}
+    const onPop = () => onClose(true);
+    const onKey = e => e.key === "Escape" && onClose(false);
+    window.addEventListener("popstate", onPop);
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("visibilitychange", ask);
+      window.removeEventListener("popstate", onPop);
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+      try {
+        lock && lock.release();
+      } catch (e) {}
+      clearTimeout(toastTimer.current);
+    };
+  }, []);
+
+  const students = cls ? [...cls.students].sort((a, b) => a.name.localeCompare(b.name, "fr")) : [];
+  const today = ((data.observations || {})[todayISO] || {})[classId] || {};
+  const absent = new Set(students.filter(s => (today[s.id] || {}).absent).map(s => s.id));
+  const observe = (sid, k, delta) => {
+    const s = students.find(x => x.id === sid);
+    const kd = OBS_KINDS.find(x => x.id === k);
+    const d = kd.toggle ? ((today[sid] || {})[k] ? -1 : 1) : delta;
+    onObserve(todayISO, classId, sid, k, d);
+    clearTimeout(toastTimer.current);
+    setToast({ text: `${kd.toggle && d < 0 ? "Présent" : kd.label} · ${s ? s.name : ""}`, undo: () => onObserve(todayISO, classId, sid, k, -d) });
+    toastTimer.current = setTimeout(() => setToast(null), 5000);
+    try {
+      navigator.vibrate && navigator.vibrate(12);
+    } catch (e) {}
+  };
+
+  // Chapitre et séance (cahier de textes du créneau)
+  const key = slot ? `${todayISO}|${slot.id}` : null;
+  const stored = key ? (data.cahier || {})[key] : null;
+  const [entry, setEntry] = useState(stored || null);
+  useEffect(() => setEntry(stored || null), [key, stored]);
+  const chapterId = (entry && entry.chapterId) || guessChapter(data, slot, classId, todayISO);
+  const found = chapterId ? findChapter(data, classId, chapterId) : null;
+  const typed = useDebouncedSave(n => key && onSaveEntry(key, todayISO, classId, n));
+  const base = () => ({ seance: "", devoirs: "", done: false, ...(entry || {}), chapterId });
+  const type = patch => {
+    const n = { ...base(), ...patch };
+    setEntry(n);
+    typed(n);
+  };
+  const commit = patch => {
+    typed.cancel();
+    const n = { ...base(), ...patch };
+    setEntry(n);
+    if (key) onSaveEntry(key, todayISO, classId, n);
+  };
+  const ch = found ? found.chapter : null;
+  const total = ch ? Math.max(1, Number(ch.total) || 1) : 0;
+  const seanceN = ch ? Math.min(total, (Number(ch.done) || 0) + (entry && entry.done ? 0 : 1)) : 0;
+  const next = slot ? nextSessionDate(data, classId, todayISO, slot) : null;
+  const done = !!(entry && entry.done);
+  const copyText = [ch ? ch.title : "", entry && entry.seance ? entry.seance : "", entry && entry.devoirs ? `Pour le ${next ? longDate(next) : "prochain cours"} : ${entry.devoirs}` : ""].filter(Boolean).join("\n");
+
+  const color = classId ? classColor(data, classId) : COLORS.accent;
+  const txt = { fontFamily: "Inter, sans-serif", fontSize: 13, color: COLORS.sub, lineHeight: 1.5 };
+  const pill = (active, extra) => ({ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: active ? 700 : 500, padding: "8px 12px", borderRadius: 999, cursor: "pointer", whiteSpace: "nowrap", border: `1px solid ${active ? COLORS.accent : COLORS.line}`, background: active ? COLORS.accent : COLORS.panel, color: active ? COLORS.bg : COLORS.ink, ...extra });
+  const kindStyle = (k, active) => {
+    const ink = k.plus ? COLORS.doneInk : k.toggle ? COLORS.sub : "var(--danger)";
+    const soft = k.plus ? COLORS.doneSoft : k.toggle ? COLORS.encadre : "var(--histoireSoft)";
+    return { fontFamily: "Inter, sans-serif", fontSize: 13.5, fontWeight: active ? 700 : 500, padding: "9px 12px", borderRadius: 999, cursor: "pointer", border: `${active ? 2 : 1}px solid ${active ? ink : COLORS.line}`, background: active ? soft : COLORS.panel, color: active ? ink : COLORS.sub };
+  };
+  const TABS = [["eleves", "Élèves"], ["tirage", "Tirage"], ["minuteur", "Minuteur"], ["fin", "Fin d'heure"]];
+
+  const elevesPanel = !cls ? h("p", { style: txt }, "Aucune classe : crée d'abord tes classes.")
+    : students.length === 0 ? h("p", { style: txt }, `Ajoute les élèves de ${cls.name} dans l'onglet Élèves pour noter tes observations en classe.`)
+    : h("div", null,
+      h("div", { role: "radiogroup", "aria-label": "Observation à noter", style: { position: "sticky", top: 0, zIndex: 2, background: COLORS.bg, padding: "8px 0 10px", display: "flex", gap: 6, flexWrap: "wrap" } },
+        OBS_KINDS.map(k => h("button", { key: k.id, role: "radio", "aria-checked": kind === k.id, onClick: () => setKind(k.id), style: kindStyle(k, kind === k.id) }, (k.plus ? "+ " : k.toggle ? "" : "− ") + (k.short || k.label)))),
+      h("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8 } },
+        students.map(s => {
+          const o = today[s.id] || {};
+          const isAbs = !!o.absent;
+          const kd = OBS_KINDS.find(k => k.id === kind);
+          return h("button", { key: s.id, onClick: () => observe(s.id, kind, 1), "aria-label": `${s.name} : ${kd.toggle ? (isAbs ? "marquer présent" : "marquer absent") : kd.label}`,
+            style: { textAlign: "left", minHeight: 64, padding: "10px 11px", borderRadius: 10, cursor: "pointer", background: isAbs ? COLORS.encadre : COLORS.panel, border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${isAbs ? COLORS.line : color}`, boxShadow: isAbs ? "none" : CARD_SHADOW, display: "flex", flexDirection: "column", gap: 5, opacity: isAbs ? 0.75 : 1 } },
+            h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 600, color: isAbs ? COLORS.sub : COLORS.ink, lineHeight: 1.25, textDecoration: isAbs ? "line-through" : "none" } }, s.name),
+            h("span", { style: { display: "flex", gap: 4, flexWrap: "wrap" } },
+              isAbs && h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 600, color: COLORS.sub } }, "Absent"),
+              OBS_KINDS.filter(k => !k.toggle && o[k.id]).map(k => h("span", { key: k.id, style: { fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, borderRadius: 999, padding: "1px 7px", color: k.plus ? COLORS.doneInk : "var(--danger)", background: k.plus ? COLORS.doneSoft : "var(--histoireSoft)" } }, `${k.plus ? "+" : "−"}${o[k.id]} ${(k.short || k.label).toLowerCase()}`))));
+        })),
+      h("p", { style: { ...txt, fontSize: 12, color: COLORS.faint, margin: "14px 0 0" } }, "Choisis l'observation, puis touche les élèves concernés. Elles sont reprises dans les appréciations du trimestre."));
+
+  const finPanel = !slot ? h("p", { style: txt }, "Choisis un cours de ton emploi du temps (en haut) pour remplir le cahier de textes et faire avancer le chapitre.")
+    : h("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
+      h("div", null, h("label", { style: labelStyle, htmlFor: "ec-chapitre" }, "Chapitre"),
+        h("select", { id: "ec-chapitre", style: { ...inputStyle, fontSize: 14, padding: "9px 10px" }, value: chapterId, onChange: e => commit({ chapterId: e.target.value }) },
+          h("option", { value: "" }, "—"),
+          cls && cls.themes.map(th => h("optgroup", { key: th.id, label: th.title }, th.chapters.map(c => h("option", { key: c.id, value: c.id }, c.title)))))),
+      h("div", null, h("label", { style: labelStyle, htmlFor: "ec-seance" }, "Ce qui a été fait"),
+        h("textarea", { id: "ec-seance", style: { ...inputStyle, fontSize: 14, minHeight: 70, resize: "vertical", lineHeight: 1.45 }, value: (entry && entry.seance) || "", placeholder: "Ex. I. b) Étude de cas : docs 1 à 3, trace écrite", onChange: e => type({ seance: e.target.value }), onBlur: typed.flush })),
+      h("div", null, h("label", { style: labelStyle, htmlFor: "ec-devoirs" }, next ? `Travail pour le ${longDate(next)}` : "Travail donné"),
+        h("input", { id: "ec-devoirs", style: { ...inputStyle, fontSize: 14, padding: "9px 10px" }, value: (entry && entry.devoirs) || "", placeholder: "Ex. Apprendre la leçon, finir l'exercice 2", onChange: e => type({ devoirs: e.target.value }), onBlur: typed.flush })),
+      h("button", { onClick: () => commit({ done: !done }), "aria-pressed": done, style: { ...primaryBtn, fontSize: 15, padding: "13px 16px", borderRadius: 10, background: done ? COLORS.done : COLORS.accent, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 } },
+        done && h(IconCheck, { size: 16 }), done ? "Séance faite" : ch ? `Séance faite · ${ch.title.length > 34 ? ch.title.slice(0, 33) + "…" : ch.title}` : "Séance faite"),
+      h("p", { style: { ...txt, fontSize: 12, color: COLORS.faint, margin: 0 } }, ch ? "« Séance faite » ajoute la séance au journal du chapitre et fait avancer sa progression (touche à nouveau pour annuler)." : "Choisis le chapitre pour que la séance fasse avancer la progression."),
+      h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" } },
+        h(CopyBtn, { text: copyText, label: "Copier pour ÉcoleDirecte", big: true })));
+
+  const recap = OBS_KINDS.filter(k => !k.toggle).map(k => {
+    const who = students.filter(s => (today[s.id] || {})[k.id]);
+    return who.length ? `${k.label} : ${who.map(s => `${firstName(s.name)}${today[s.id][k.id] > 1 ? ` (${today[s.id][k.id]})` : ""}`).join(", ")}` : null;
+  }).filter(Boolean);
+
+  return h("div", { role: "dialog", "aria-modal": "true", "aria-label": "Mode En classe", style: { position: "fixed", inset: 0, zIndex: 100, background: COLORS.bg, overflowY: "auto", WebkitOverflowScrolling: "touch" } },
+    h("div", { style: { maxWidth: 640, margin: "0 auto", padding: "calc(10px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))" } },
+      h("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 10 } },
+        h("button", { onClick: () => onClose(false), style: { ...ghostBtn, padding: "8px 12px", display: "flex", alignItems: "center", gap: 6 } }, "← Quitter"),
+        h("span", { style: { fontFamily: "Fraunces, serif", fontSize: 19, fontWeight: 600, color: COLORS.accent, flex: 1 } }, "En classe"),
+        h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 14, color: COLORS.sub } }, hm.replace(":", " h "))),
+      // Choix du cours
+      slots.length > 0 && h("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 } },
+        slots.map(s => h("button", { key: s.id, onClick: () => setSlotId(s.id), "aria-pressed": s.id === slotId, style: pill(s.id === slotId) }, `${s.start} · ${(data.classes[s.classId] || {}).name || "?"}${s.groupe ? " " + s.groupe : ""}`)),
+        h("button", { onClick: () => setSlotId(""), "aria-pressed": !slot, style: pill(!slot) }, "Autre classe")),
+      !slot && h("div", { style: { marginBottom: 10 } },
+        slots.length === 0 && h("p", { style: { ...txt, margin: "0 0 8px" } }, "Pas de cours prévu aujourd'hui dans ton emploi du temps : choisis la classe."),
+        h("select", { "aria-label": "Classe", style: { ...inputStyle, fontSize: 14, padding: "9px 10px" }, value: freeClass, onChange: e => setFreeClass(e.target.value) },
+          data.order.map(cid => h("option", { key: cid, value: cid }, data.classes[cid].name)))),
+      cls && h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderLeft: `5px solid ${color}`, borderRadius: 10, boxShadow: CARD_SHADOW, padding: "12px 14px", marginBottom: 14 } },
+        h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" } },
+          h("span", { style: { fontFamily: "Fraunces, serif", fontSize: 20, fontWeight: 600, color: COLORS.ink } }, cls.name),
+          slot && h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 12.5, color: COLORS.sub } }, `${slot.start}–${slot.end}`),
+          slot && h(SlotBadges, { slot, small: true }),
+          slot && slot.room && h("span", { style: { ...txt, fontSize: 12 } }, "Salle " + slot.room)),
+        ch && h("div", { style: { ...txt, color: COLORS.ink, marginTop: 4 } }, ch.title, h("span", { style: { color: COLORS.sub } }, ` · séance\u00a0${seanceN}\u00a0sur\u00a0${total}`)),
+        entry && entry.seance && !done && h("div", { style: { ...txt, fontSize: 12.5, marginTop: 4 } }, h("strong", null, "Prévu : "), entry.seance),
+        done && h("div", { style: { ...txt, fontSize: 12.5, marginTop: 4, color: COLORS.doneInk, fontWeight: 600 } }, "Séance faite")),
+      // Onglets
+      h("div", { role: "tablist", style: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, background: COLORS.encadre, borderRadius: 10, padding: 4, marginBottom: 12 } },
+        TABS.map(([id, lab]) => h("button", { key: id, role: "tab", "aria-selected": tab === id, onClick: () => setTab(id),
+          style: { fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: tab === id ? 700 : 500, padding: "10px 4px", minHeight: 42, borderRadius: 7, border: "none", cursor: "pointer", background: tab === id ? COLORS.panel : "transparent", color: tab === id ? COLORS.accent : COLORS.sub, boxShadow: tab === id ? CARD_SHADOW : "none" } }, lab))),
+      // Les panneaux restent montés : le minuteur continue quand on change d'onglet
+      h("div", { role: "tabpanel", style: { display: tab === "eleves" ? "block" : "none" } }, elevesPanel),
+      h("div", { role: "tabpanel", style: { display: tab === "tirage" ? "block" : "none" } },
+        students.length ? h(ClassDraw, { students, absent, drawKey: `${todayISO}|${classId}`, onObserve: (sid, k, d) => observe(sid, k, d) }) : h("p", { style: txt }, "Ajoute d'abord les élèves de la classe.")),
+      h("div", { role: "tabpanel", style: { display: tab === "minuteur" ? "block" : "none" } }, h(ClassTimer, null)),
+      h("div", { role: "tabpanel", style: { display: tab === "fin" ? "block" : "none" } }, finPanel,
+        recap.length > 0 && h("div", { style: { marginTop: 18 } },
+          h("div", { style: labelStyle }, "Observations du jour"),
+          recap.map((r, i) => h("p", { key: i, style: { ...txt, fontSize: 12.5, margin: "2px 0" } }, r))))),
+    toast && h("div", { role: "status", style: { position: "fixed", left: 16, right: 16, bottom: "calc(16px + env(safe-area-inset-bottom))", maxWidth: 608, margin: "0 auto", display: "flex", alignItems: "center", gap: 10, background: COLORS.ink, color: COLORS.bg, borderRadius: 10, padding: "10px 12px 10px 14px", boxShadow: "0 4px 16px rgba(0,0,0,.25)", fontFamily: "Inter, sans-serif", fontSize: 13.5 } },
+      h("span", { style: { flex: 1, minWidth: 0 } }, toast.text),
+      h("button", { onClick: () => {
+        toast.undo();
+        setToast(null);
+      }, style: { background: "none", border: `1px solid ${COLORS.bg}`, color: COLORS.bg, borderRadius: 7, padding: "7px 12px", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700, cursor: "pointer" } }, "Annuler")));
+}
+
 /* ---------- Prévision de fin de programme ----------
    Compare les séances encore prévues (chapitres) aux créneaux d'histoire-géo qui restent
    d'ici la fin de l'année, d'après l'emploi du temps (semaines A/B, vacances, fériés).
@@ -6051,6 +6477,8 @@ function App() {
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
+  // Mode « En classe » (écran plein, par-dessus le reste)
+  const [enClasse, setEnClasse] = useState(false);
   // Synchronisation entre appareils (voir syncRound)
   const [sync, setSync] = useState(() => {
     const c = syncConfig();
@@ -6638,6 +7066,36 @@ function App() {
     if (entry.done && entry.chapterId) link(entry.chapterId);
     persist(next);
   };
+  // Mode « En classe »
+  const closeClassMode = fromBack => {
+    setEnClasse(false);
+    // Fermé par le bouton : on retire l'étape ajoutée à l'historique à l'ouverture
+    if (!fromBack) try {
+      history.back();
+    } catch (e) {}
+  };
+  const addObservation = (iso, cid, sid, kind, delta) => {
+    const d = dataRef.current;
+    const obs = d.observations || {};
+    const day = obs[iso] || {};
+    const forClass = day[cid] || {};
+    const st = { ...(forClass[sid] || {}) };
+    const n = Math.max(0, (Number(st[kind]) || 0) + delta);
+    if (n) st[kind] = n;
+    else delete st[kind];
+    const nextClass = { ...forClass };
+    if (Object.keys(st).length) nextClass[sid] = st;
+    else delete nextClass[sid];
+    const nextDay = { ...day };
+    if (Object.keys(nextClass).length) nextDay[cid] = nextClass;
+    else delete nextDay[cid];
+    const nextObs = { ...obs };
+    if (Object.keys(nextDay).length) nextObs[iso] = nextDay;
+    else delete nextObs[iso];
+    const next = { ...d, observations: nextObs };
+    dataRef.current = next;
+    persist(next);
+  };
   const setAnnualHours = (cid, hours) => {
     const next = {
       ...data
@@ -6863,7 +7321,8 @@ function App() {
     onAddTodo: addTodo,
     onToggleTodo: toggleTodo,
     onDeleteTodo: deleteTodo,
-    onSetAnnualHours: setAnnualHours
+    onSetAnnualHours: setAnnualHours,
+    onClassMode: () => setEnClasse(true)
   }) : view === "fiches" ? /*#__PURE__*/React.createElement(FichesView, {
     data: data,
     onAdd: addFiche,
@@ -7059,6 +7518,11 @@ function App() {
   }), /*#__PURE__*/React.createElement(SideNav, {
     view: view,
     setView: setView
+  }), enClasse && /*#__PURE__*/React.createElement(ClassMode, {
+    data: data,
+    onClose: closeClassMode,
+    onObserve: addObservation,
+    onSaveEntry: saveCahierEntry
   }), printing && data.classes[printing] && ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
     className: "print-sheet"
   }, /*#__PURE__*/React.createElement(PrintSheet, {
