@@ -1190,6 +1190,15 @@
   .met-modele { display: grid; gap: 10px; margin-top: 12px; }
   .met-modele-partie { padding: 10px 14px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
   .met-modele-partie p { margin: 4px 0 0; font-family: Fraunces, serif; font-size: 15px; line-height: 1.5; }
+  .met-doc-image { display: block; width: 100%; height: auto; border-radius: 8px; margin: 2px 0 8px; }
+  .met-doc-notes { margin: 8px 0 0; padding: 0; list-style: none; font-size: 12.5px; line-height: 1.4; color: var(--sub); }
+  .met-questions { margin: 4px 0 0; padding-left: 20px; }
+  .met-questions li { margin: 4px 0; font-family: Inter, sans-serif; font-size: 15px; line-height: 1.45; }
+  .met-reponse { padding: 10px 14px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
+  .met-reponse > strong { display: block; font-size: 14px; line-height: 1.4; }
+  .met-reponse p { margin: 6px 0 0; font-family: Fraunces, serif; font-size: 15px; line-height: 1.5; }
+  .met-morceau b, .met-reponse b { color: var(--accent); }
+  .met-verifier { margin: 14px 0 0; padding: 10px 14px 10px 32px; border-radius: 10px; background: var(--okSoft); font-size: 14.5px; line-height: 1.5; }
   .met-chapitre { margin-top: 6px; }
   /* duo */
   .express.duo { margin-top: 10px; background: #6C4CF1; color: #fff; }
@@ -7352,7 +7361,7 @@
     ]);
   }
 
-  // ---------- La méthode : fiches méthode et ateliers (composition, analyse de document, figurés du croquis) ----------
+  // ---------- La méthode : fiches méthode et ateliers (développement construit, composition, analyse de document, figurés) ----------
   // Les contenus sont dans methode.js (METHODE). Un atelier est rattaché à un chapitre : il n'apparaît que pour sa classe,
   // et seulement si le chapitre est ouvert aux élèves. Les meilleurs scores restent sur le téléphone.
   var MET = typeof METHODE !== "undefined" ? METHODE : { fiches: [], compos: [], docs: [], figures: [] };
@@ -7362,25 +7371,45 @@
     if (!(cle in scoresMethode) || pc > scoresMethode[cle]) { scoresMethode[cle] = pc; ecrire(CLE_METHODE, scoresMethode); }
   }
   function listeMet(champ) { var v = MET[champ]; return !v ? [] : Array.isArray(v) ? v : [v]; }
+  // n : une classe ou une liste de classes ; sans n, pour toutes les classes
+  function pourNiveau(x, n) { return !x.n || (Array.isArray(x.n) ? x.n.indexOf(n) >= 0 : x.n === n); }
   // un atelier est visible pour la classe n si son chapitre est de cette classe et ouvert (ou si l'on est professeur)
   function atelierVisible(x, n) {
     if (x.chapitre) {
       var ch = chapitre(x.chapitre);
       return !!ch && ch.n === n && (estVisible(ch) || estProf());
     }
-    return !x.n || x.n === n;
+    return pourNiveau(x, n);
   }
   function ateliersNiveau(n) {
-    return {
-      compos: listeMet("compos").filter(function (x) { return atelierVisible(x, n); }),
-      docs: listeMet("docs").filter(function (x) { return atelierVisible(x, n); }),
-      figures: listeMet("figures").filter(function (x) { return atelierVisible(x, n); })
-    };
+    function vis(champ) { return listeMet(champ).filter(function (x) { return atelierVisible(x, n); }); }
+    return { dcs: vis("dcs"), compos: vis("compos"), docs: vis("docs"), figures: vis("figures") };
   }
-  function nbAteliers(a) { return a.compos.length + a.docs.length + a.figures.length; }
+  function fichesNiveau(n) { return listeMet("fiches").filter(function (f) { return pourNiveau(f, n); }); }
+  // la fiche méthode d'un genre d'atelier pour la classe n
+  function ficheDe(n, genre, defaut) {
+    var f = fichesNiveau(n).filter(function (x) { return x.atelier === genre; })[0];
+    return f ? f.id : defaut;
+  }
+  function nbAteliers(a) { return a.dcs.length + a.compos.length + a.docs.length + a.figures.length; }
   function cleFigures(f) { return "figures" + (f.n ? ":" + f.n : ""); }
   function trouverMet(liste, id) { return liste.filter(function (x) { return x.id === id; })[0] || null; }
   function titreMethode() { return MET.titre || "Les ateliers de méthode"; }
+  // « développement construit, analyse de document, carte » : les genres des fiches de la classe
+  function genresMethode(n) {
+    var g = fichesNiveau(n).filter(function (f) { return f.court; }).map(function (f) { return f.court; });
+    if (!g.length) return "Composition, analyse de document, croquis";
+    var t = g.join(", ");
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+  // un texte où les passages entre ** sont mis en valeur (mots de liaison, vocabulaire)
+  function texteGras(txt) {
+    var s = el("span");
+    String(txt).split(/\*\*(.+?)\*\*/).forEach(function (bout, i) {
+      if (bout) s.appendChild(i % 2 ? el("b", { text: bout }) : document.createTextNode(bout));
+    });
+    return s;
+  }
 
   var SVG_METHODE = '<svg viewBox="0 0 64 56"><rect x="12" y="4" width="36" height="46" rx="5" fill="#fff"/><path d="M19 15h22M19 22h22M19 29h16M19 36h12" stroke="#1F4E5F" stroke-width="3" stroke-linecap="round"/><path d="M50 18l6 6-17 17-8 2 2-8z" fill="#F2C94C" stroke="#3A2A00" stroke-width="2" stroke-linejoin="round"/></svg>';
 
@@ -7388,7 +7417,8 @@
   function entreeMethode(n) {
     var a = ateliersNiveau(n), nb = nbAteliers(a);
     if (!nb) return null;
-    var faits = a.compos.filter(function (c) { return ("compo:" + c.id) in scoresMethode; }).length
+    var faits = a.dcs.filter(function (c) { return ("dc:" + c.id) in scoresMethode; }).length
+      + a.compos.filter(function (c) { return ("compo:" + c.id) in scoresMethode; }).length
       + a.docs.filter(function (d) { return ("doc:" + d.id) in scoresMethode; }).length
       + a.figures.filter(function (f) { return cleFigures(f) in scoresMethode; }).length;
     var x = el("a", { class: "entree-methode", href: "#/methode/" + n });
@@ -7397,14 +7427,15 @@
     x.appendChild(fig);
     x.appendChild(el("span", { class: "em-txt" }, [
       el("strong", { text: titreMethode() }),
-      el("span", { text: "Composition, analyse de document, croquis : " + pluriel(MET.fiches.length, "fiche") + " et " + pluriel(nb, "atelier") + (faits ? " · " + faits + " / " + nb + " faits" : "") })
+      el("span", { text: genresMethode(n) + " : " + pluriel(fichesNiveau(n).length, "fiche") + " et " + pluriel(nb, "atelier") + (faits ? " · " + faits + " / " + nb + " faits" : "") })
     ]));
     return x;
   }
 
   function vueMethode(n, sous, id) {
     var a = ateliersNiveau(n), f;
-    if (sous === "fiche" && (f = trouverMet(MET.fiches, id))) return vueFicheMethode(n, f);
+    if (sous === "fiche" && (f = trouverMet(fichesNiveau(n), id))) return vueFicheMethode(n, f);
+    if (sous === "dc" && (f = trouverMet(a.dcs, id))) return vueAtelierDc(n, f);
     if (sous === "compo" && (f = trouverMet(a.compos, id))) return vueAtelierCompo(n, f);
     if (sous === "doc" && (f = trouverMet(a.docs, id))) return vueAtelierDoc(n, f);
     if (sous === "figures" && a.figures.length) return vueAtelierFigures(n, a.figures[0]);
@@ -7426,6 +7457,7 @@
   }
   function lignesAteliers(n, a, chapitreSeul) {
     var t = [];
+    a.dcs.forEach(function (c) { if (!chapitreSeul || c.chapitre === chapitreSeul) t.push(ligneAtelier("#/methode/" + n + "/dc/" + c.id, "dc:" + c.id, (chapitreSeul ? "Développement construit : " : "") + c.sujet, chapitreSeul ? null : etiquetteChapitre(c.chapitre), (chapitre(c.chapitre) || {}).d)); });
     a.compos.forEach(function (c) { if (!chapitreSeul || c.chapitre === chapitreSeul) t.push(ligneAtelier("#/methode/" + n + "/compo/" + c.id, "compo:" + c.id, (chapitreSeul ? "Composition : " : "") + c.sujet, chapitreSeul ? null : etiquetteChapitre(c.chapitre), (chapitre(c.chapitre) || {}).d)); });
     a.docs.forEach(function (x) { if (!chapitreSeul || x.chapitre === chapitreSeul) t.push(ligneAtelier("#/methode/" + n + "/doc/" + x.id, "doc:" + x.id, (chapitreSeul ? "Analyse de document : " : "") + x.doc.titre, chapitreSeul ? null : etiquetteChapitre(x.chapitre), (chapitre(x.chapitre) || {}).d)); });
     a.figures.forEach(function (f) { if (!chapitreSeul || f.chapitre === chapitreSeul) t.push(ligneAtelier("#/methode/" + n + "/figures", cleFigures(f), f.titre, f.sous, "geo")); });
@@ -7448,7 +7480,7 @@
     ]));
     app.appendChild(el("div", { class: "etiq", text: "Les fiches méthode" }));
     var g = el("div", { class: "outils" });
-    MET.fiches.forEach(function (f) {
+    fichesNiveau(n).forEach(function (f) {
       var x = el("a", { class: "outil" + (f.d === "geo" ? " geo" : ""), href: "#/methode/" + n + "/fiche/" + f.id });
       x.appendChild(el("span", { class: "pastille", icone: f.icone || "essentiel" }));
       x.appendChild(el("strong", { text: f.titre }));
@@ -7456,6 +7488,10 @@
       g.appendChild(x);
     });
     app.appendChild(g);
+    if (a.dcs.length) {
+      app.appendChild(el("div", { class: "etiq", text: "Ateliers · le développement construit" }));
+      a.dcs.forEach(function (c) { app.appendChild(ligneAtelier("#/methode/" + n + "/dc/" + c.id, "dc:" + c.id, c.sujet, etiquetteChapitre(c.chapitre), (chapitre(c.chapitre) || {}).d)); });
+    }
     if (a.compos.length) {
       app.appendChild(el("div", { class: "etiq", text: "Ateliers · la composition" }));
       a.compos.forEach(function (c) { app.appendChild(ligneAtelier("#/methode/" + n + "/compo/" + c.id, "compo:" + c.id, c.sujet, etiquetteChapitre(c.chapitre), (chapitre(c.chapitre) || {}).d)); });
@@ -7550,7 +7586,8 @@
       ]));
     }
     var a = ateliersNiveau(n);
-    var vide = { compos: [], docs: [], figures: [] };
+    var vide = { dcs: [], compos: [], docs: [], figures: [] };
+    if (f.atelier === "dc") vide.dcs = a.dcs;
     if (f.atelier === "compo") vide.compos = a.compos;
     if (f.atelier === "doc") vide.docs = a.docs;
     if (f.atelier === "figures") vide.figures = a.figures;
@@ -7660,8 +7697,9 @@
     poser();
   }
 
-  // ranger des éléments dans des parties : items [{ t, i (rang de la bonne partie) }], parties [titres]
-  function suiteRanger(zone, items, parties, nomItem, fini, apres) {
+  // ranger des éléments dans des parties : items [{ t, i (rang de la bonne partie), expl? }], parties [titres]
+  function suiteRanger(zone, items, parties, nomItem, fini, apres, lettres) {
+    lettres = lettres || ["I", "II", "III", "IV"];
     var n = 0, justes = 0;
     var cadre = el("div");
     zone.appendChild(cadre);
@@ -7673,11 +7711,12 @@
       cadre.appendChild(el("p", { class: "met-argument", text: x.t }));
       var opts = el("div", { class: "options" });
       var boutons = parties.map(function (p, i) {
-        var b = el("button", { class: "option", type: "button" }, [el("span", { class: "lettre", text: ["I", "II", "III", "IV"][i] }), el("span", { text: p })]);
+        var b = el("button", { class: "option", type: "button" }, [el("span", { class: "lettre", text: lettres[i] }), el("span", { text: p })]);
         b.addEventListener("click", function () {
           boutons.forEach(function (y) { y.disabled = true; });
           boutons[x.i].classList.add("juste");
           if (i === x.i) justes++; else b.classList.add("faux");
+          if (x.expl) cadre.appendChild(el("p", { class: "met-expl " + (i === x.i ? "ok" : "ko") }, [el("strong", { text: i === x.i ? "Oui. " : "Non. " }), x.expl]));
           cadre.appendChild(boutonSuite(n + 1 < items.length ? "Suivant" : "Étape suivante", function () { n++; poser(); }));
         });
         opts.appendChild(b);
@@ -7711,7 +7750,7 @@
     document.title = "Atelier composition — " + nomNiveau(n);
     var parties = c.plan.parties;
     atelier(n, {
-      genre: "Atelier · la composition", titre: c.sujet, cle: "compo:" + c.id, fiche: "composition", chapitre: c.chapitre,
+      genre: "Atelier · la composition", titre: c.sujet, cle: "compo:" + c.id, fiche: ficheDe(n, "compo", "composition"), chapitre: c.chapitre,
       conseil: c.conseil || "rédige maintenant l'introduction et la première partie au propre, en 30 minutes, sans regarder le modèle.",
       etapes: [
         { nom: "Analyser le sujet", aide: "Les mots du sujet, les bornes, l'espace : c'est ce qui délimite ton devoir.", faire: function (zone, fini) {
@@ -7764,52 +7803,115 @@
   }
 
   // ----- atelier analyse de document -----
+  // un texte (extrait) ou une image (image, alt, credit), avec ses notes éventuelles
   function blocDocument(d, replie) {
+    var extrait = d.extrait ? (Array.isArray(d.extrait) ? d.extrait : [d.extrait]) : [];
     var corps = el("div", { class: "met-doc" }, [
       el("p", { class: "met-doc-titre", text: d.titre }),
-      el("div", { class: "met-doc-texte" }, (Array.isArray(d.extrait) ? d.extrait : [d.extrait]).map(function (p) { return el("p", { text: p }); })),
-      el("p", { class: "met-doc-source", text: d.source })
+      d.image ? el("img", { class: "met-doc-image", src: d.image, alt: d.alt || d.titre, loading: "lazy" }) : null,
+      extrait.length ? el("div", { class: "met-doc-texte" }, extrait.map(function (p) { return el("p", { text: p }); })) : null,
+      d.notes ? el("ul", { class: "met-doc-notes" }, d.notes.map(function (t) { return el("li", { text: t }); })) : null,
+      el("p", { class: "met-doc-source", text: d.source + (d.credit ? " — " + d.credit : "") })
     ]);
     if (!replie) return corps;
-    return el("details", { class: "met-relire" }, [el("summary", { text: "Relire le document" }), corps]);
+    // une image reste dépliée : c'est elle qu'on observe à chaque étape
+    return el("details", { class: "met-relire", open: !!d.image }, [el("summary", { text: d.image ? "Le document" : "Relire le document" }), corps]);
   }
+  // au lycée : une consigne et une réponse organisée ; au collège (questions) : des questions et des réponses rédigées
   function vueAtelierDoc(n, x) {
     document.title = "Atelier analyse de document — " + nomNiveau(n);
-    atelier(n, {
-      genre: "Atelier · l'analyse de document", titre: x.doc.titre, cle: "doc:" + x.id, fiche: "analyse-document", chapitre: x.chapitre,
-      conseil: "rédige toi-même la réponse à la consigne, puis compare-la au modèle : as-tu cité le texte ? as-tu ajouté tes connaissances ?",
-      etapes: [
-        { nom: "Lire", aide: "Lis la consigne, puis le document, crayon en main.", faire: function (zone, fini) {
-          zone.appendChild(el("p", { class: "question" }, [el("small", { text: "Consigne" }), x.consigne]));
-          var d = blocDocument(x.doc);
-          zone.appendChild(d);
+    var college = !!x.questions;
+    function consigne() {
+      if (!college) return el("p", { class: "question" }, [el("small", { text: "Consigne" }), x.consigne]);
+      return el("div", { class: "question" }, [el("small", { text: "Consigne" }), x.consigne,
+        el("ol", { class: "met-questions" }, x.questions.map(function (q) { return el("li", { text: q }); }))]);
+    }
+    function avecDocument(liste, suite) {
+      return function (zone, fini) {
+        zone.appendChild(blocDocument(x.doc, true));
+        suite(zone, liste, fini);
+      };
+    }
+    var etapes = [
+      { nom: "Lire", aide: college ? "Lis les questions, puis le document deux fois, crayon en main." : "Lis la consigne, puis le document, crayon en main.", faire: function (zone, fini) {
+        zone.appendChild(consigne());
+        var d = blocDocument(x.doc);
+        zone.appendChild(d);
+        if (x.doc.extrait) {
           var lirebtn = boutonLire(function () { return d.querySelector(".met-doc-texte"); }, "Écouter le document");
           lirebtn.classList.add("met-lire");
           zone.appendChild(lirebtn);
-          zone.appendChild(boutonSuite("J'ai lu le document", function () { fini(0, 0); }));
+        }
+        zone.appendChild(boutonSuite("J'ai lu le document", function () { fini(0, 0); }));
+      } },
+      { nom: "Présenter", aide: college ? "Nature, auteur, date, sujet : les quatre informations à donner." : "Nature, auteur, date, contexte, destinataire.", faire: avecDocument(x.presentation, suiteQcm) }
+    ];
+    if (x.prelever) etapes.push({ nom: x.doc.image ? "Observer" : "Prélever", aide: x.doc.image ? "Que voit-on, et où ? Observe chaque plan de l'image." : "Pour prouver une réponse, on cite le texte entre guillemets : choisis la bonne citation.", faire: avecDocument(x.prelever, suiteQcm) });
+    if (x.comprendre) etapes.push({ nom: "Comprendre", aide: college ? "Vérifie chaque affirmation dans le document." : "Que dit vraiment le texte ? Vérifie chaque affirmation dans le document.", faire: avecDocument(x.comprendre, suiteVraiFaux) });
+    if (x.portee) etapes.push({ nom: college ? "Regard critique" : "Prendre du recul", aide: college ? "Qui parle, et pourquoi ? Un document ne montre pas tout." : "L'intérêt du document, son point de vue, ses limites.", faire: avecDocument(x.portee, suiteQcm) });
+    etapes.push({ nom: "Le modèle", aide: college ? "Des phrases complètes, des citations entre guillemets et des connaissances du cours." : "Une réponse organisée : introduction, deux ou trois parties, conclusion.", faire: function (zone, fini) {
+      var m = x.modele;
+      if (college) {
+        zone.appendChild(el("div", { class: "met-modele" }, m.reponses.map(function (r, i) {
+          return el("div", { class: "met-reponse" }, [el("strong", { text: (i + 1) + ". " + (x.questions[i] || "") }), el("p", null, texteGras(r))]);
+        })));
+      } else {
+        zone.appendChild(consigne());
+        zone.appendChild(el("div", { class: "met-modele" }, [
+          el("p", { class: "met-morceau r1" }, [el("small", { text: "Introduction" }), m.intro]),
+          el("div", null, m.parties.map(function (p, i) {
+            return el("div", { class: "met-modele-partie" }, [el("strong", { text: ["I", "II", "III"][i] + ". " + p.titre }), el("p", { text: p.txt })]);
+          })),
+          el("p", { class: "met-morceau r6" }, [el("small", { text: "Conclusion" }), m.conclusion])
+        ]));
+      }
+      zone.appendChild(boutonSuite("Voir mon score", function () { fini(0, 0); }));
+    } });
+    atelier(n, {
+      genre: "Atelier · l'analyse de document", titre: x.doc.titre, cle: "doc:" + x.id, fiche: ficheDe(n, "doc", "analyse-document"), chapitre: x.chapitre,
+      conseil: college ? "réponds toi-même aux questions sur ton cahier, puis compare avec le modèle : as-tu fait des phrases complètes ? as-tu cité le document ?"
+        : "rédige toi-même la réponse à la consigne, puis compare-la au modèle : as-tu cité le texte ? as-tu ajouté tes connaissances ?",
+      etapes: etapes
+    });
+  }
+
+  // ----- atelier développement construit (collège) : comprendre la consigne, trier, organiser, relier, le texte rédigé -----
+  function morceauDc(titre, txt, r) { return el("p", { class: "met-morceau r" + r }, [el("small", { text: titre }), texteGras(txt)]); }
+  function vueAtelierDc(n, c) {
+    document.title = "Atelier développement construit — " + nomNiveau(n);
+    var parties = c.plan.parties;
+    atelier(n, {
+      genre: "Atelier · le développement construit", titre: c.sujet, cle: "dc:" + c.id, fiche: ficheDe(n, "dc", "developpement-construit"), chapitre: c.chapitre,
+      conseil: c.conseil || "sans regarder le modèle, rédige ce développement construit sur ton cahier en 15 minutes, puis compare.",
+      etapes: [
+        { nom: "Comprendre la consigne", aide: "Le verbe (raconter, décrire, expliquer, montrer), le thème, les dates et le lieu.", faire: function (zone, fini) {
+          zone.appendChild(el("p", { class: "met-sujet", text: c.sujet }));
+          suiteQcm(zone, c.analyse, fini);
         } },
-        { nom: "Présenter", aide: "Nature, auteur, date, contexte, destinataire.", faire: function (zone, fini) {
-          zone.appendChild(blocDocument(x.doc, true));
-          suiteQcm(zone, x.presentation, fini);
+        { nom: "Trier ses idées", aide: "Ne garde que ce qui répond à la consigne.", faire: function (zone, fini) {
+          zone.appendChild(el("p", { class: "met-sujet", text: c.sujet }));
+          var idees = c.tri.map(function (x) { return { t: x.t, i: x.garder ? 0 : 1, expl: x.expl }; });
+          suiteRanger(zone, melanger(idees), ["Je garde : cela répond à la consigne", "Je laisse de côté : hors sujet"], "Idée", fini, null, ["✓", "✗"]);
         } },
-        { nom: "Comprendre", aide: "Que dit vraiment le texte ? Vérifie chaque affirmation dans le document.", faire: function (zone, fini) {
-          zone.appendChild(blocDocument(x.doc, true));
-          suiteVraiFaux(zone, x.comprendre, fini);
+        { nom: "Organiser", aide: "Un paragraphe par idée : range chaque phrase dans le bon paragraphe.", faire: function (zone, fini) {
+          var idees = [];
+          parties.forEach(function (p, i) { p.idees.forEach(function (t) { idees.push({ t: t, i: i }); }); });
+          suiteRanger(zone, melanger(idees), parties.map(function (p, i) { return "Paragraphe " + (i + 1) + " : " + p.titre; }), "Idée", fini, null, ["1", "2", "3", "4"]);
         } },
-        { nom: "Prendre du recul", aide: "L'intérêt du document, son point de vue, ses limites.", faire: function (zone, fini) {
-          zone.appendChild(blocDocument(x.doc, true));
-          suiteQcm(zone, x.portee, fini);
+        { nom: "Relier", aide: "Les mots de liaison rendent le texte clair : d'abord, ensuite, car, donc, mais, par exemple…", faire: function (zone, fini) {
+          suiteQcm(zone, c.liens, fini);
         } },
-        { nom: "Le modèle", aide: "Une réponse organisée : introduction, deux ou trois parties, conclusion.", faire: function (zone, fini) {
-          zone.appendChild(el("p", { class: "question" }, [el("small", { text: "Consigne" }), x.consigne]));
-          var m = x.modele;
-          zone.appendChild(el("div", { class: "met-modele" }, [
-            el("p", { class: "met-morceau r1" }, [el("small", { text: "Introduction" }), m.intro]),
-            el("div", null, m.parties.map(function (p, i) {
-              return el("div", { class: "met-modele-partie" }, [el("strong", { text: ["I", "II", "III"][i] + ". " + p.titre }), el("p", { text: p.txt })]);
-            })),
-            el("p", { class: "met-morceau r6" }, [el("small", { text: "Conclusion" }), m.conclusion])
-          ]));
+        { nom: "Le texte rédigé", aide: "Le modèle, paragraphe par paragraphe : les mots de liaison et le vocabulaire sont en couleur.", faire: function (zone, fini) {
+          var m = c.modele;
+          zone.appendChild(el("div", { class: "met-annote" }, [morceauDc("Introduction", m.intro, 1)]
+            .concat(m.paragraphes.map(function (p, i) { return morceauDc("Paragraphe " + (i + 1) + " · " + (parties[i] ? parties[i].titre : ""), p, [4, 2, 5][i % 3]); }))
+            .concat([morceauDc("Conclusion", m.conclusion, 6)])));
+          zone.appendChild(el("ul", { class: "met-verifier" }, [
+            "Une introduction qui présente le sujet.",
+            "Un paragraphe par idée, avec des dates, des lieux et le vocabulaire du chapitre.",
+            "Des mots de liaison entre les phrases.",
+            "Une conclusion qui répond à la consigne."
+          ].map(function (t) { return el("li", { text: t }); })));
           zone.appendChild(boutonSuite("Voir mon score", function () { fini(0, 0); }));
         } }
       ]
@@ -7820,7 +7922,7 @@
   function vueAtelierFigures(n, f) {
     document.title = "Atelier croquis — " + nomNiveau(n);
     atelier(n, {
-      genre: "Atelier · le croquis", titre: f.titre, cle: cleFigures(f), fiche: "croquis", chapitre: f.chapitre,
+      genre: "Atelier · le croquis", titre: f.titre, cle: cleFigures(f), fiche: ficheDe(n, "figures", "croquis"), chapitre: f.chapitre,
       conseil: "reprends un croquis de ton cahier et vérifie que chaque figuré correspond au phénomène qu'il représente.",
       etapes: [
         { nom: "Choisir le figuré", aide: "Un lieu, un flux ou un espace ? Choisis la famille de figurés.", faire: function (zone, fini) {
