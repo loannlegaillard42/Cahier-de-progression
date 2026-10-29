@@ -1,13 +1,18 @@
 /* Les ateliers de méthode — fiches méthode et ateliers d'entraînement de la boîte à outils (reviser.html#/methode/<classe>).
    titre    nom de la rubrique
-   fiches   { id, titre, d?, icone, resume, cle, structure?: [{ nom, part, taille, txt }], figures?, etapes: [{ titre, points, exemple? }],
-              faire, eviter, atelier: "compo" | "doc" | "figures" } — communes à toutes les classes du lycée
+   fiches   { id, titre, n? (classes : collège ou lycée ; sans n, toutes), court (nom court du genre), d?, icone, resume, cle,
+              structure?: [{ nom, part, taille, txt }], figures?, etapes: [{ titre, points, exemple? }],
+              faire, eviter, atelier: "dc" | "compo" | "doc" | "figures" }
+   dcs      développement construit (collège) : { id, chapitre, sujet, analyse: [QCM], tri: [{ t, garder, expl? }],
+              plan: { parties: [{ titre, idees }] }, liens: [QCM], modele: { intro, paragraphes, conclusion } }
+              — dans le modèle, les mots entre ** (mots de liaison, vocabulaire) sont mis en couleur
    compos   { id, chapitre (identifiant de cours.js), sujet, analyse: [{ q, r, faux, expl }], problematique: { r, faux, expl },
               plan: { type, expl, parties: [{ titre, args }] }, intro / conclusion: [{ role, txt }] }
               rôles : accroche, definitions, contexte, problematique, annonce ; bilan, reponse, ouverture
-   docs     { id, chapitre, consigne, doc: { titre, extrait, source }, presentation: [QCM], comprendre: [{ a, vrai, expl }],
-              portee: [QCM], modele: { intro, parties: [{ titre, txt }], conclusion } }
-              — les documents sont ceux des points de passage de cours.js, recopiés à l'identique
+   docs     { id, chapitre, consigne, doc: { titre, extrait | image, alt?, notes?, source, credit? }, presentation: [QCM],
+              comprendre: [{ a, vrai, expl }], portee: [QCM], modele: { intro, parties: [{ titre, txt }], conclusion } }
+              au collège : questions: [..], prelever?: [QCM], modele: { reponses: [une réponse rédigée par question] }
+              — les documents sont ceux des points de passage de cours.js ou des dossiers du professeur, recopiés à l'identique
    figures  [{ n, chapitre, titre, sous, nb, items: [{ txt, type: "ponctuel" | "lineaire" | "surfacique", fig, expl }],
               legende: { sujet, parties: [{ titre, items }] } }]
    Un atelier n'apparaît que pour la classe de son chapitre, et seulement si ce chapitre est ouvert aux élèves. */
@@ -29,12 +34,27 @@ const METHODE = (function () {
     { txt: "Une mégalopole", type: "surfacique", fig: "aplat", expl: "Un aplat autour des grandes villes qu'elle relie." },
     { txt: "Une région exposée aux séismes", type: "surfacique", fig: "hachures", expl: "Des hachures pour une zone de risque." }
   ];
+  // en 5e, sur le chapitre « La croissance démographique et ses effets »
+  var FIGURES_5E = [
+    { txt: "New Delhi, une très grande ville", type: "ponctuel", fig: "cercle", expl: "Un cercle, plus gros quand la ville est plus peuplée." },
+    { txt: "L'Inde, pays le plus peuplé du monde, sur une carte du monde", type: "ponctuel", fig: "etoile", expl: "Sur une carte du monde, un pays peut être signalé par un symbole : l'étoile du croquis fait en classe." },
+    { txt: "Le Nigeria, pays le plus peuplé d'Afrique, sur une carte du monde", type: "ponctuel", fig: "cercle", expl: "Un symbole (un rond) pour le signaler, comme sur le croquis fait en classe." },
+    { txt: "Un grand fleuve (le Gange, en Inde)", type: "lineaire", fig: "trait", expl: "Un trait bleu qui suit le cours du fleuve." },
+    { txt: "L'exode rural : des habitants quittent les campagnes pour les villes", type: "lineaire", fig: "fleche", expl: "Une flèche, de la campagne vers la ville." },
+    { txt: "Une frontière entre deux pays", type: "lineaire", fig: "pointilles", expl: "Un trait discontinu." },
+    { txt: "Une route ou une voie ferrée", type: "lineaire", fig: "trait", expl: "Un trait continu." },
+    { txt: "Les régions où la population va beaucoup augmenter d'ici 2050", type: "surfacique", fig: "aplat", expl: "Un aplat de couleur chaude (rouge), comme sur le croquis fait en classe." },
+    { txt: "Les régions où la population stagne ou diminue", type: "surfacique", fig: "aplat", expl: "Un aplat de couleur froide (bleu), comme sur le croquis fait en classe." },
+    { txt: "Les quartiers de bidonvilles d'une grande ville", type: "surfacique", fig: "hachures", expl: "Des hachures sur le plan de la ville : un espace où les conditions de vie sont difficiles." },
+    { txt: "Une région où une partie de la population souffre de la faim", type: "surfacique", fig: "hachures", expl: "Des hachures : un espace en difficulté." }
+  ];
+  var COLLEGE = ["6e", "5e", "4e", "3e"], LYCEE = ["2nde", "1ere", "Tle"];
 
   return {
     titre: "Les ateliers de méthode",
     fiches: [
       {
-        id: "composition", titre: "La composition", icone: "essentiel",
+        id: "composition", titre: "La composition", n: LYCEE, court: "composition", icone: "essentiel",
         resume: "Répondre à un sujet par un texte organisé : introduction, deux ou trois parties, conclusion.",
         cle: "Une composition n'est pas une récitation : c'est une démonstration organisée qui répond à une problématique, avec des exemples précis. En Seconde, on commence souvent par une réponse organisée plus courte, construite de la même façon.",
         titreStructure: "La structure d'une composition (part du devoir)",
@@ -85,7 +105,7 @@ const METHODE = (function () {
         atelier: "compo"
       },
       {
-        id: "analyse-document", titre: "L'analyse de document", icone: "document",
+        id: "analyse-document", titre: "L'analyse de document", n: LYCEE, court: "analyse de document", icone: "document",
         resume: "Présenter, comprendre et critiquer un ou deux documents pour répondre à une consigne.",
         cle: "On analyse un document pour répondre à la consigne : on le présente, on en extrait les informations utiles, on les explique avec ses connaissances, et on en mesure la portée et les limites.",
         etapes: [
@@ -129,7 +149,7 @@ const METHODE = (function () {
         atelier: "doc"
       },
       {
-        id: "croquis", titre: "Le croquis de géographie", d: "geo", icone: "croquis",
+        id: "croquis", titre: "Le croquis de géographie", n: LYCEE, court: "croquis", d: "geo", icone: "croquis",
         resume: "Représenter une organisation de l'espace sur un fond de carte, avec un titre et une légende organisée.",
         cle: "Un croquis montre une organisation de l'espace pour répondre à un sujet : chaque figuré a un sens, et la légende est organisée en parties, comme un plan.",
         figures: true,
@@ -169,6 +189,134 @@ const METHODE = (function () {
         atelier: "figures"
       },
       {
+        id: "developpement-construit", titre: "Le développement construit", n: COLLEGE, court: "développement construit", icone: "essentiel",
+        resume: "Répondre à une consigne par un texte organisé en paragraphes, avec des connaissances précises.",
+        cle: "Un développement construit est un texte rédigé et organisé : une courte introduction, deux ou trois paragraphes reliés par des mots de liaison, une conclusion. Il montre que tu sais utiliser tes connaissances (dates, lieux, personnages, vocabulaire) pour répondre à la consigne.",
+        titreStructure: "La structure d'un développement construit",
+        structure: [
+          { nom: "Introduction", part: "1 ou 2 phrases", taille: 14, txt: "Présenter le sujet : de quoi parle-t-on, quand et où ?" },
+          { nom: "Paragraphe 1", part: "une idée", taille: 30, txt: "Une idée, expliquée avec des exemples précis : dates, lieux, personnages, vocabulaire." },
+          { nom: "Paragraphe 2", part: "une idée", taille: 30, txt: "Une autre idée, introduite par un mot de liaison (ensuite, de plus…)." },
+          { nom: "Paragraphe 3", part: "facultatif", taille: 22, txt: "Si le sujet le demande : une troisième idée." },
+          { nom: "Conclusion", part: "1 ou 2 phrases", taille: 14, txt: "Répondre clairement à la consigne." }
+        ],
+        etapes: [
+          { titre: "Comprendre la consigne", points: [
+            "Souligne le verbe : raconter (dans l'ordre chronologique), décrire (dire comment c'est), expliquer (dire comment ou pourquoi), montrer (prouver avec des exemples).",
+            "Repère le thème, les dates et le lieu du sujet."
+          ], exemple: "« Raconte comment l'islam naît en Arabie et comment les califes construisent un immense empire » : raconter = suivre l'ordre des événements, de Mahomet aux Abbassides." },
+          { titre: "Faire la liste de ses idées (au brouillon)", points: [
+            "Note tout ce que tu sais : dates, lieux, personnages, mots du vocabulaire.",
+            "Barre ce qui ne répond pas à la consigne ou sort des dates du sujet."
+          ] },
+          { titre: "Organiser ses idées", points: [
+            "Regroupe les idées qui vont ensemble : chaque groupe fera un paragraphe.",
+            "Pour raconter, suis l'ordre chronologique ; pour expliquer ou montrer, un paragraphe par idée."
+          ] },
+          { titre: "Rédiger", points: [
+            "Une introduction courte qui présente le sujet.",
+            "Un paragraphe par idée : va à la ligne à chaque nouveau paragraphe.",
+            "Relie tes phrases avec des mots de liaison.",
+            "Une conclusion qui répond à la consigne."
+          ], exemple: "Mots de liaison : d'abord, ensuite, enfin (l'ordre) ; car, en effet (la cause) ; donc, c'est pourquoi, ainsi (la conséquence) ; mais, cependant (l'opposition) ; par exemple (un exemple)." },
+          { titre: "Se relire", points: [
+            "Vérifie les dates, les noms propres et l'orthographe des mots du vocabulaire.",
+            "Vérifie que tu as bien répondu à la consigne."
+          ] }
+        ],
+        faire: [
+          "Écrire des phrases complètes.",
+          "Utiliser le vocabulaire du chapitre.",
+          "Donner des exemples précis : dates, lieux, personnages.",
+          "Aller à la ligne à chaque paragraphe."
+        ],
+        eviter: [
+          "Répondre par une liste à tirets.",
+          "Recopier la leçon sans répondre à la consigne.",
+          "Mélanger l'ordre des événements quand on raconte.",
+          "Oublier l'introduction ou la conclusion."
+        ],
+        atelier: "dc"
+      },
+      {
+        id: "document-college", titre: "Analyser un document", n: COLLEGE, court: "analyse de document", icone: "document",
+        resume: "Présenter un texte ou une image, y prélever des informations et les expliquer avec ses connaissances.",
+        cle: "Pour étudier un document, on le présente (nature, auteur, date, sujet), on y cherche les informations demandées en citant le document, puis on les explique avec ce qu'on a appris. On se demande aussi qui parle, et pourquoi.",
+        etapes: [
+          { titre: "Lire les questions, puis le document", points: [
+            "Lis les questions avant le document : tu sais ce que tu cherches.",
+            "Lis le document deux fois, crayon en main : souligne les mots importants."
+          ] },
+          { titre: "Présenter le document", points: [
+            "Nature : un texte (récit, loi, lettre…), une image (enluminure, mosaïque, photographie), une carte…",
+            "Auteur : qui l'a écrit ou réalisé ? Quelle est sa fonction ?",
+            "Date : quand ? Au moment des faits, ou plus tard ?",
+            "Sujet : de quoi parle-t-il ?"
+          ], exemple: "Ce document est un extrait du Livre des pays, écrit en 891 par al-Ya'qubi, un géographe arabe. Il décrit Bagdad, la capitale des califes abbassides." },
+          { titre: "Prélever des informations", points: [
+            "Réponds par une phrase complète.",
+            "Cite le texte entre guillemets « … » pour prouver ta réponse.",
+            "Pour une image : décris ce que tu vois (premier plan, arrière-plan, personnages, détails)."
+          ] },
+          { titre: "Expliquer avec ses connaissances", points: [
+            "Explique la citation avec tes mots et avec ce que tu as appris en cours.",
+            "Utilise le vocabulaire du chapitre."
+          ] },
+          { titre: "Garder un regard critique", points: [
+            "Qui parle ? Un auteur peut admirer un souverain ou défendre un camp, et embellir ce qu'il raconte.",
+            "Le document montre-t-il tout ? Que manque-t-il ?"
+          ] }
+        ],
+        faire: [
+          "Présenter le document avant de l'étudier.",
+          "Citer le document entre guillemets.",
+          "Répondre par des phrases complètes.",
+          "Ajouter ce que tu sais du cours."
+        ],
+        eviter: [
+          "Recopier tout le texte.",
+          "Répondre sans regarder le document.",
+          "Croire que l'auteur est toujours objectif.",
+          "Répondre par un seul mot."
+        ],
+        atelier: "doc"
+      },
+      {
+        id: "carte-college", titre: "Lire et compléter une carte", n: COLLEGE, court: "carte", d: "geo", icone: "croquis",
+        resume: "Comprendre une carte grâce à son titre et à sa légende, puis la compléter avec les bons figurés.",
+        cle: "Une carte a toujours un titre, une légende, une orientation et une échelle. Dans la légende, chaque figuré a un sens : un point pour un lieu, une ligne ou une flèche pour un déplacement ou une limite, une surface colorée pour un espace.",
+        figures: true,
+        etapes: [
+          { titre: "Lire le titre", points: [
+            "Il dit de quoi parle la carte : le thème, l'espace, parfois la date."
+          ] },
+          { titre: "Lire la légende", points: [
+            "Chaque figuré correspond à une information.",
+            "Les couleurs ont un sens : des couleurs chaudes (rouge, orange) pour ce qui augmente ou est en difficulté, des couleurs froides (bleu, vert) pour ce qui stagne ou diminue."
+          ] },
+          { titre: "Se repérer", points: [
+            "Cherche les continents, les océans, les pays et les villes.",
+            "Utilise l'orientation (le nord) et l'échelle."
+          ] },
+          { titre: "Compléter une carte", points: [
+            "Colorie d'abord les surfaces, puis trace les lignes et les flèches, puis place les points.",
+            "Écris les noms à l'horizontale, lisiblement.",
+            "Complète la légende : chaque figuré avec son explication."
+          ] }
+        ],
+        faire: [
+          "Commencer par lire le titre et la légende.",
+          "Utiliser les mêmes couleurs sur la carte et dans la légende.",
+          "Écrire les noms lisiblement."
+        ],
+        eviter: [
+          "Colorier sans regarder la légende.",
+          "Oublier le titre.",
+          "Utiliser la même couleur pour deux informations différentes."
+        ],
+        atelier: "figures"
+      },
+      {
         id: "reviser", titre: "Bien réviser", icone: "cartes",
         resume: "Retenir durablement : se tester, espacer les révisions, alterner.",
         cle: "On retient mieux en essayant de se souvenir qu'en relisant : se tester, plusieurs fois, en espaçant les séances.",
@@ -190,7 +338,7 @@ const METHODE = (function () {
             "Le duo : chacun son tour sur le même téléphone, celui ou celle qui a le plus de bonnes réponses gagne."
           ] },
           { titre: "S'entraîner aux exercices", points: [
-            "Un sujet de composition de temps en temps : au moins l'introduction et le plan détaillé.",
+            "Un sujet d'entraînement de temps en temps (développement construit au collège, composition au lycée) : au moins l'introduction et le plan.",
             "Les ateliers de cette page : pas à pas, avec la correction."
           ] }
         ],
@@ -204,6 +352,185 @@ const METHODE = (function () {
           "Relire et surligner sans se tester.",
           "Réviser avec les notifications du téléphone allumées."
         ]
+      }
+    ],
+
+    dcs: [
+      {
+        id: "deux-empires", chapitre: "5e-h1-c1",
+        sujet: "Montre que l'empereur byzantin et Charlemagne sont à la fois des héritiers de Rome et des empereurs chrétiens.",
+        analyse: [
+          { q: "Que demande le verbe « Montre » ?", r: "Prouver une idée avec des exemples précis", faux: ["Dessiner une carte des deux empires", "Raconter toute la vie de Charlemagne", "Donner son avis personnel"], expl: "Montrer, c'est prouver : chaque idée doit être appuyée par un exemple (une date, un lieu, un personnage)." },
+          { q: "De quels empereurs parle le sujet ?", r: "Le basileus de l'Empire byzantin et Charlemagne, empereur carolingien", faux: ["Les empereurs romains de l'Antiquité", "Le calife et le pape", "Clovis et le pape"], expl: "Le sujet compare les deux empires chrétiens du chapitre : Byzance à l'est, l'Empire carolingien à l'ouest." },
+          { q: "Quelles sont les deux idées à démontrer ?", r: "Ils sont héritiers de Rome, et ils sont chrétiens", faux: ["Ils sont riches, et ils sont puissants", "Ils sont alliés, et ils sont ennemis", "Ils sont jeunes, et ils sont guerriers"], expl: "Deux idées, donc deux paragraphes : l'héritage de Rome, puis le christianisme." }
+        ],
+        tri: [
+          { t: "Le basileus est couronné par le patriarche dans l'église Sainte-Sophie.", garder: true, expl: "Cela montre que l'empereur byzantin est chrétien." },
+          { t: "Le 25 décembre 800, Charlemagne est couronné empereur par le pape à Rome.", garder: true, expl: "Couronné à Rome par le pape : il est à la fois héritier de Rome et chrétien." },
+          { t: "Justinien fait rassembler les lois des anciens empereurs romains dans le Code Justinien.", garder: true, expl: "Il reprend les lois romaines : c'est un héritier de Rome." },
+          { t: "Les missi dominici contrôlent les comtes dans tout l'Empire.", garder: false, expl: "C'est la façon de gouverner l'Empire : utile pour un autre sujet." },
+          { t: "En 843, le traité de Verdun partage l'Empire carolingien.", garder: false, expl: "Cela parle du partage de l'Empire, pas de l'héritage de Rome ni du christianisme de l'empereur." },
+          { t: "En 1453, les Turcs prennent Constantinople.", garder: false, expl: "C'est la fin de l'Empire byzantin : cela ne répond pas à la consigne." }
+        ],
+        plan: { parties: [
+          { titre: "Des héritiers de Rome", idees: [
+            "L'Empire byzantin est l'ancien Empire romain d'Orient, qui survit après 476.",
+            "Justinien rassemble les lois des anciens empereurs romains dans le Code Justinien.",
+            "En 800, Charlemagne est acclamé « empereur des Romains » et appelé « Auguste »."
+          ] },
+          { titre: "Des empereurs chrétiens", idees: [
+            "Le basileus est couronné par le patriarche dans l'église Sainte-Sophie de Constantinople.",
+            "Charlemagne est couronné empereur par le pape dans la basilique Saint-Pierre de Rome.",
+            "Sur ses pièces de monnaie, Charlemagne fait inscrire « religion chrétienne »."
+          ] }
+        ] },
+        liens: [
+          { q: "« Le basileus règne sur l'ancien Empire romain d'Orient. ___, il fait rassembler les lois romaines dans un code. » Quel mot de liaison convient ?", r: "De plus", faux: ["Pourtant", "C'est pourquoi"], expl: "« De plus » ajoute une idée qui va dans le même sens." },
+          { q: "« Charlemagne est couronné par le pape. ___, son pouvoir vient de Dieu. » Quel mot de liaison convient ?", r: "Ainsi", faux: ["Pourtant", "Par exemple"], expl: "« Ainsi » introduit une conséquence : couronné par le pape, il tient son pouvoir de Dieu." },
+          { q: "« Les deux empereurs se disent héritiers de Rome, ___ l'un règne à Constantinople et l'autre à Aix-la-Chapelle. » Quel mot de liaison convient ?", r: "mais", faux: ["donc", "car"], expl: "« Mais » marque une opposition : ils ont un point commun, mais des capitales différentes." },
+          { q: "Par quel mot de liaison peut commencer la conclusion ?", r: "En conclusion", faux: ["Tout d'abord", "Par exemple"], expl: "« En conclusion » (ou « Pour conclure », « Ainsi ») annonce la réponse finale à la consigne." }
+        ],
+        modele: {
+          intro: "Au Moyen Âge, deux empires se partagent l'héritage de l'Empire romain : l'**Empire byzantin**, à l'est, et l'**Empire carolingien** de Charlemagne, à l'ouest. Leurs empereurs sont à la fois des héritiers de Rome et des empereurs chrétiens.",
+          paragraphes: [
+            "**Tout d'abord**, ces empereurs sont des **héritiers de Rome**. L'Empire byzantin est l'ancien Empire romain d'Orient, qui survit après la disparition de l'Empire d'Occident en 476. **Ainsi**, l'empereur **Justinien** (527-565) fait rassembler les lois des anciens empereurs romains dans le **Code Justinien**. **De même**, en 800, à Rome, Charlemagne est acclamé « empereur des Romains » et appelé « **Auguste** », comme les empereurs de l'Antiquité.",
+            "**Ensuite**, ce sont des **empereurs chrétiens**. Le **basileus** est couronné par le **patriarche** dans l'église **Sainte-Sophie** de Constantinople : il est considéré comme l'élu de Dieu. **De son côté**, Charlemagne est couronné empereur par le **pape** Léon III dans la basilique Saint-Pierre de Rome, le 25 décembre 800. Il fait **même** inscrire « religion chrétienne » sur ses pièces de monnaie."
+          ],
+          conclusion: "**En conclusion**, le basileus comme Charlemagne se présentent comme les continuateurs des empereurs romains et tiennent leur pouvoir de Dieu. **Mais** l'Empire byzantin dure jusqu'en 1453, alors que l'Empire carolingien est partagé dès 843."
+        }
+      },
+      {
+        id: "naissance-islam", chapitre: "5e-h1-c2",
+        sujet: "Raconte comment l'islam naît en Arabie et comment les califes construisent un immense empire (VIIᵉ-VIIIᵉ siècles).",
+        analyse: [
+          { q: "Que demande le verbe « Raconte » ?", r: "Présenter les faits dans l'ordre chronologique, avec des dates", faux: ["Décrire un lieu sans parler du temps", "Comparer deux religions", "Donner son opinion sur l'islam"], expl: "Raconter, c'est suivre l'ordre des événements : de 622 à 762, avec des mots qui montrent le temps qui passe." },
+          { q: "Quelles sont les bornes chronologiques du sujet ?", r: "Les VIIᵉ et VIIIᵉ siècles, de Mahomet aux Abbassides", faux: ["Le XIIIᵉ siècle, avec la prise de Bagdad", "L'Antiquité romaine", "Le XXᵉ siècle"], expl: "VIIᵉ siècle : naissance de l'islam (622) ; VIIIᵉ siècle : fin des conquêtes et fondation de Bagdad (762)." },
+          { q: "Quel espace est concerné ?", r: "L'Arabie, puis un empire qui va de l'Atlantique à l'Indus", faux: ["Seulement la ville de La Mecque", "L'Europe carolingienne", "L'Empire byzantin"], expl: "L'islam naît en Arabie ; les conquêtes créent un empire immense autour de la Méditerranée et jusqu'en Asie." }
+        ],
+        tri: [
+          { t: "En 622, Mahomet quitte La Mecque pour Médine : c'est l'Hégire.", garder: true },
+          { t: "Après la mort de Mahomet, en 632, les califes dirigent les musulmans.", garder: true },
+          { t: "Les conquêtes arabes vont de l'océan Atlantique jusqu'à l'Indus.", garder: true },
+          { t: "En 762, les Abbassides fondent Bagdad.", garder: true },
+          { t: "En 1258, les Mongols prennent Bagdad.", garder: false, expl: "C'est au XIIIᵉ siècle : en dehors des bornes du sujet." },
+          { t: "En 1054, catholiques et orthodoxes se séparent.", garder: false, expl: "Cela concerne les chrétiens, et c'est en dehors des bornes du sujet." },
+          { t: "Charlemagne gouverne depuis Aix-la-Chapelle.", garder: false, expl: "C'est l'Empire carolingien : un autre chapitre." }
+        ],
+        plan: { parties: [
+          { titre: "La naissance de l'islam en Arabie", idees: [
+            "Selon la tradition musulmane, Mahomet, un marchand de La Mecque, prêche un dieu unique.",
+            "En 622, il part pour Médine : c'est l'Hégire, l'an 1 du calendrier musulman.",
+            "En 630, il reprend La Mecque ; à sa mort, en 632, une grande partie de l'Arabie est convertie."
+          ] },
+          { titre: "Les conquêtes des califes", idees: [
+            "Après 632, les califes, successeurs de Mahomet, mènent des conquêtes.",
+            "En un peu plus d'un siècle, l'empire s'étend de l'Atlantique à l'Indus.",
+            "L'expansion est arrêtée devant Constantinople (718) et à Poitiers (732)."
+          ] },
+          { titre: "Des capitales qui changent avec les dynasties", idees: [
+            "En 661, les califes omeyyades s'installent à Damas.",
+            "En 750, les Abbassides remplacent les Omeyyades.",
+            "En 762, les Abbassides fondent Bagdad, leur nouvelle capitale."
+          ] }
+        ] },
+        liens: [
+          { q: "« Les habitants de La Mecque s'opposent à Mahomet. ___, en 622, il part pour Médine. » Quel mot de liaison convient ?", r: "C'est pourquoi", faux: ["Pourtant", "Par exemple"], expl: "« C'est pourquoi » introduit une conséquence : l'opposition des Mecquois explique son départ." },
+          { q: "« Les califes mènent de grandes conquêtes. ___, l'empire s'étend de l'Atlantique à l'Indus. » Quel mot de liaison convient ?", r: "Ainsi", faux: ["Cependant", "Car"], expl: "« Ainsi » introduit le résultat des conquêtes." },
+          { q: "Pour raconter, quelle expression montre le temps qui passe ?", r: "Quelques années plus tard", faux: ["C'est pourquoi", "Par exemple"], expl: "Quand on raconte, on utilise des repères de temps : d'abord, puis, en 622, quelques années plus tard, enfin…" }
+        ],
+        modele: {
+          intro: "Au VIIᵉ siècle, une nouvelle religion monothéiste, l'**islam**, naît en Arabie. En un peu plus d'un siècle, les successeurs de son prophète construisent un immense empire.",
+          paragraphes: [
+            "**D'abord**, selon la tradition musulmane, **Mahomet**, un marchand de **La Mecque**, prêche l'existence d'un dieu unique. Les habitants de La Mecque s'opposent à lui : **c'est pourquoi**, en **622**, il part pour **Médine**. Ce départ, l'**Hégire**, marque l'an 1 du calendrier musulman. **En 630**, Mahomet reprend La Mecque ; **à sa mort, en 632**, une grande partie de l'Arabie s'est convertie à l'islam.",
+            "**Ensuite**, ses successeurs, les **califes**, à la fois chefs politiques et religieux, mènent des conquêtes. **En un peu plus d'un siècle**, l'empire s'étend de l'océan Atlantique jusqu'à l'Indus. L'expansion est arrêtée devant **Constantinople** en 718 et à **Poitiers** en 732.",
+            "**Enfin**, la capitale change avec les dynasties. **En 661**, les califes **omeyyades** s'installent à **Damas**. **En 750**, les **Abbassides** les remplacent, **puis** fondent **Bagdad** en **762**."
+          ],
+          conclusion: "**Ainsi**, en moins d'un siècle et demi, l'islam né en Arabie est devenu la religion d'un immense **empire** dirigé par les califes, de l'Atlantique à l'Indus."
+        }
+      },
+      {
+        id: "seigneurie", chapitre: "5e-h2-c3",
+        sujet: "Explique comment le seigneur domine les paysans de sa seigneurie.",
+        analyse: [
+          { q: "Que demande le verbe « Explique comment » ?", r: "Dire de quelle manière cela se passe, en donnant des exemples précis", faux: ["Faire la liste des châteaux forts", "Raconter une bataille", "Décrire un paysage"], expl: "Expliquer comment, c'est montrer les moyens : ici, comment le seigneur impose son pouvoir aux paysans." },
+          { q: "Qu'est-ce qu'une seigneurie ?", r: "Le domaine sur lequel un seigneur exerce son pouvoir", faux: ["Une ville libre dirigée par des bourgeois", "Un monastère", "Le royaume du roi de France"], expl: "Le seigneur y possède les terres, rend la justice et protège les habitants." },
+          { q: "Quels acteurs le sujet met-il face à face ?", r: "Le seigneur et les paysans", faux: ["Le roi et le pape", "Les bourgeois et les marchands", "Le vassal et son seigneur"], expl: "Attention : le vassal est un seigneur lié à un autre seigneur. Le sujet porte sur les paysans." }
+        ],
+        tri: [
+          { t: "Le seigneur possède les terres, rend la justice et protège les habitants.", garder: true },
+          { t: "Les paysans doivent des corvées pour cultiver la réserve.", garder: true },
+          { t: "Ils paient le cens, le champart et les banalités pour le moulin et le four.", garder: true },
+          { t: "Les serfs ne peuvent ni quitter la seigneurie ni se marier sans l'autorisation du seigneur.", garder: true },
+          { t: "Le vassal jure fidélité à son seigneur lors de la cérémonie de l'hommage.", garder: false, expl: "C'est un lien entre seigneurs (la vassalité), pas entre le seigneur et les paysans." },
+          { t: "Les chevaliers s'entraînent dans des tournois.", garder: false, expl: "C'est la vie des seigneurs, pas leur domination sur les paysans." }
+        ],
+        plan: { parties: [
+          { titre: "Un seigneur maître de la seigneurie", idees: [
+            "Le seigneur possède les terres : il garde la réserve et loue des tenures aux paysans.",
+            "Il rend la justice et protège les habitants depuis son château.",
+            "Les serfs ne peuvent ni quitter la seigneurie ni se marier sans son autorisation."
+          ] },
+          { titre: "Des paysans qui doivent de nombreuses obligations", idees: [
+            "Ils travaillent gratuitement sur la réserve : ce sont les corvées.",
+            "Ils paient des taxes en argent (le cens) et en nature (le champart).",
+            "Ils paient des banalités pour utiliser le moulin, le four ou le pressoir du seigneur."
+          ] }
+        ] },
+        liens: [
+          { q: "« Le seigneur protège les paysans. ___, ceux-ci lui doivent des corvées et des taxes. » Quel mot de liaison convient ?", r: "En échange", faux: ["Pourtant", "Par exemple"], expl: "« En échange » montre ce que chacun doit à l'autre : la protection contre les obligations." },
+          { q: "« Les paysans doivent de nombreuses taxes. ___, ils donnent le champart, une part de leur récolte. » Quel mot de liaison convient ?", r: "Par exemple", faux: ["Pourtant", "En conclusion"], expl: "« Par exemple » introduit un exemple précis." },
+          { q: "« Les serfs ne sont pas libres ; ___, les vilains sont libres, mais doivent aussi des taxes. » Quel mot de liaison convient ?", r: "en revanche", faux: ["donc", "c'est pourquoi"], expl: "« En revanche » oppose deux situations : les serfs et les vilains." }
+        ],
+        modele: {
+          intro: "Au Moyen Âge, à partir du XIᵉ siècle, les campagnes sont organisées en **seigneuries**. Le seigneur y domine les paysans, qui forment la grande majorité de la population.",
+          paragraphes: [
+            "**D'abord**, le seigneur est le maître de la seigneurie. Il possède les terres : il garde pour lui la **réserve** et loue des **tenures** aux paysans. Depuis son château, il rend la justice et protège les habitants. Les **serfs** ne peuvent ni quitter la seigneurie ni se marier sans son autorisation.",
+            "**Ensuite**, les paysans, serfs ou **vilains**, doivent de nombreuses obligations à leur seigneur. Ils viennent travailler gratuitement sur la réserve : ce sont les **corvées**. Ils paient aussi des taxes en argent, le **cens**, et en nature, **par exemple** le **champart**, une part de la récolte. **Enfin**, ils paient des **banalités** pour utiliser le moulin, le four ou le pressoir du seigneur."
+          ],
+          conclusion: "**En conclusion**, le seigneur domine les paysans par la possession de la terre, la justice et les obligations qu'il leur impose. **En échange**, il leur doit sa protection."
+        }
+      },
+      {
+        id: "inde-defi", chapitre: "5e-g1-c1",
+        sujet: "Explique pourquoi la croissance démographique est un défi pour l'Inde.",
+        analyse: [
+          { q: "Que demande « Explique pourquoi » ?", r: "Donner les causes et les conséquences, avec des exemples précis", faux: ["Dessiner une carte de l'Inde", "Raconter l'histoire de l'Inde", "Faire la liste des villes indiennes"], expl: "On explique d'où vient la croissance de la population, puis les défis qu'elle pose." },
+          { q: "Que signifie « croissance démographique » ?", r: "L'augmentation de la population", faux: ["L'augmentation de la richesse", "La croissance des villes seulement", "La baisse du nombre de naissances"], expl: "La population augmente quand il y a plus de naissances que de décès : c'est l'accroissement naturel." },
+          { q: "Quel est l'espace étudié ?", r: "L'Inde, pays le plus peuplé du monde", faux: ["Le Nigeria", "Le monde entier", "La Chine"], expl: "Le sujet porte sur l'étude de cas de l'Inde." }
+        ],
+        tri: [
+          { t: "Depuis 2023, l'Inde est le pays le plus peuplé du monde, avec plus de 1,4 milliard d'habitants.", garder: true },
+          { t: "40 % des Indiens ont moins de 25 ans.", garder: true },
+          { t: "Avec l'exode rural, les villes comme New Delhi grandissent très vite et les bidonvilles s'étendent.", garder: true },
+          { t: "Les inégalités restent fortes entre les États indiens.", garder: true },
+          { t: "Le Nigeria est le pays le plus peuplé d'Afrique.", garder: false, expl: "C'est exact, mais le sujet porte sur l'Inde." },
+          { t: "En Europe et au Japon, la population stagne ou diminue.", garder: false, expl: "Cela ne concerne pas l'Inde." }
+        ],
+        plan: { parties: [
+          { titre: "Une population très nombreuse et jeune", idees: [
+            "Depuis 1950, la population de l'Inde a presque quadruplé : plus de 1,4 milliard d'habitants.",
+            "Depuis 2023, c'est le pays le plus peuplé du monde.",
+            "40 % des Indiens ont moins de 25 ans."
+          ] },
+          { titre: "De nombreux défis à relever", idees: [
+            "Il faut des écoles et des emplois pour tous ces jeunes.",
+            "Avec l'exode rural, les villes grandissent très vite et beaucoup de migrants vivent dans des bidonvilles.",
+            "Les inégalités restent fortes entre les États, et la population commence à vieillir."
+          ] }
+        ] },
+        liens: [
+          { q: "« La mortalité a baissé plus vite que la natalité. ___, la population a presque quadruplé. » Quel mot de liaison convient ?", r: "C'est pourquoi", faux: ["Pourtant", "D'abord"], expl: "« C'est pourquoi » introduit la conséquence de la baisse de la mortalité." },
+          { q: "« Beaucoup d'habitants quittent les campagnes ; ___, les villes grandissent très vite. » Quel mot de liaison convient ?", r: "par conséquent", faux: ["pourtant", "par exemple"], expl: "L'exode rural a pour conséquence la croissance rapide des villes." },
+          { q: "« Les Indiens vivent mieux qu'en 1950. ___, les inégalités restent fortes. » Quel mot de liaison convient ?", r: "Cependant", faux: ["Donc", "Ainsi"], expl: "« Cependant » marque une opposition : des progrès, mais des inégalités." }
+        ],
+        modele: {
+          intro: "Depuis 2023, l'**Inde** est le pays le plus peuplé du monde. Cette forte **croissance démographique** est un défi pour son **développement**.",
+          paragraphes: [
+            "**Tout d'abord**, la population indienne est très nombreuse et très jeune. Depuis 1950, la **mortalité** a baissé plus vite que la **natalité** : **c'est pourquoi** la population a presque quadruplé, jusqu'à dépasser 1,4 milliard d'habitants. **Aujourd'hui**, 40 % des Indiens ont moins de 25 ans.",
+            "**Ensuite**, cette croissance pose de nombreux défis. Il faut des écoles et des emplois pour tous ces jeunes. Avec l'**exode rural**, les villes comme **New Delhi** grandissent très vite, et beaucoup de migrants vivent dans des **bidonvilles**. Les Indiens vivent mieux qu'en 1950 : l'espérance de vie est passée de 41 à 72 ans. **Cependant**, les **inégalités** restent fortes entre les États."
+          ],
+          conclusion: "**En conclusion**, la croissance démographique est un défi pour l'Inde : il faut loger, scolariser et employer une population immense et jeune. **Mais** les femmes ont aujourd'hui moins d'enfants : la croissance ralentit et la population commence à vieillir."
+        }
       }
     ],
 
@@ -634,6 +961,144 @@ const METHODE = (function () {
           ],
           conclusion: "Louis-Napoléon Bonaparte justifie son coup d'État en accusant l'Assemblée et en s'appuyant sur le peuple. Le plébiscite lui donne raison, et l'Empire est rétabli un an plus tard : la France a le suffrage universel sans la République."
         }
+      },
+      // 5e : documents des dossiers de la classe (séance 2 du chapitre 1, séance 2 du chapitre 2) et de la fiche du chapitre de géographie
+      {
+        id: "couronnement-basileus", chapitre: "5e-h1-c1",
+        consigne: "Lis le document deux fois. Dans chaque réponse, cite un mot ou une phrase du texte entre guillemets.",
+        questions: [
+          "Présente le document : sa nature, son auteur, sa date et ce dont il parle.",
+          "Relève deux éléments qui montrent que le pouvoir de l'empereur vient de Dieu.",
+          "Comment les dignitaires montrent-ils qu'ils obéissent à l'empereur ?",
+          "Ce texte est écrit d'après un empereur, Constantin VII. Pourquoi faut-il le lire avec un regard critique ?"
+        ],
+        doc: {
+          titre: "Le couronnement du basileus",
+          extrait: [
+            "« L'empereur entre dans l'église Sainte-Sophie de Constantinople. Il revêt les habits du sacre puis pénètre dans la nef (1) avec le patriarche (2). Le patriarche fait la prière sur le manteau pourpre de l'empereur, dont on revêt le souverain. Ensuite, le patriarche fait la prière sur la couronne impériale et la place en personne sur la tête du souverain.",
+            "Aussitôt le peuple lance par trois fois l'acclamation : « Saint, Saint, Saint, Gloire à Dieu dans les hauteurs et paix sur la terre ! » Puis : « Nombreuses années au grand empereur ! » Couronné, il s'assoit sur son fauteuil et tous les dignitaires (3) entrent, tombant à terre et baisant ses genoux. »"
+          ],
+          notes: [
+            "(1) Allée centrale d'une église.",
+            "(2) Chef de l'Église byzantine ; il n'est pas soumis au pape de Rome.",
+            "(3) Personnes importantes dans la gestion de l'Empire, de l'armée, de l'Église."
+          ],
+          source: "D'après Constantin VII, Le Livre des cérémonies, Xᵉ siècle."
+        },
+        presentation: [
+          { q: "Quelle est la nature de ce document ?", r: "Un texte qui décrit une cérémonie", faux: ["Une loi de l'empereur", "Une lettre du pape", "Une enluminure"], expl: "Le texte décrit, étape par étape, le couronnement (le sacre) d'un empereur." },
+          { q: "Qui est l'auteur ?", r: "Constantin VII, un empereur byzantin", faux: ["Charlemagne", "Le patriarche de Constantinople", "Un historien d'aujourd'hui"], expl: "Le texte est écrit d'après l'empereur byzantin Constantin VII, dans Le Livre des cérémonies." },
+          { q: "De quand date-t-il ?", r: "Du Xᵉ siècle", faux: ["Du VIᵉ siècle, sous Justinien", "De l'an 800", "Du XVᵉ siècle"], expl: "Xᵉ siècle : les années 900." },
+          { q: "De quoi parle-t-il ?", r: "Du couronnement de l'empereur byzantin dans l'église Sainte-Sophie", faux: ["Du couronnement de Charlemagne à Rome", "De la prise de Constantinople", "De la construction de Sainte-Sophie"], expl: "L'empereur byzantin (le basileus) est couronné à Constantinople." }
+        ],
+        prelever: [
+          { q: "Quelle citation montre que l'empereur est couronné par un chef religieux ?", r: "« le patriarche fait la prière sur la couronne impériale et la place en personne sur la tête du souverain »", faux: ["« L'empereur entre dans l'église Sainte-Sophie de Constantinople »", "« Couronné, il s'assoit sur son fauteuil »"], expl: "Le patriarche, chef de l'Église byzantine, pose lui-même la couronne." },
+          { q: "Quelle citation montre que la cérémonie est religieuse ?", r: "« Saint, Saint, Saint, Gloire à Dieu dans les hauteurs et paix sur la terre ! »", faux: ["« Il revêt les habits du sacre »", "« tous les dignitaires entrent »"], expl: "L'acclamation est une prière : on chante la gloire de Dieu au moment du couronnement." },
+          { q: "Quelle citation montre que les dignitaires se soumettent à l'empereur ?", r: "« tombant à terre et baisant ses genoux »", faux: ["« Nombreuses années au grand empereur ! »", "« il s'assoit sur son fauteuil »"], expl: "Ils se prosternent devant lui : c'est un geste de soumission." }
+        ],
+        comprendre: [
+          { a: "Le couronnement a lieu dans une église.", vrai: true, expl: "« l'église Sainte-Sophie de Constantinople »." },
+          { a: "C'est le pape qui couronne l'empereur byzantin.", vrai: false, expl: "C'est le patriarche, qui « n'est pas soumis au pape de Rome »." },
+          { a: "L'empereur porte un manteau pourpre.", vrai: true, expl: "« le manteau pourpre de l'empereur » : le pourpre est la couleur des empereurs depuis Rome." },
+          { a: "Les dignitaires restent debout devant l'empereur.", vrai: false, expl: "Ils entrent « tombant à terre et baisant ses genoux »." }
+        ],
+        portee: [
+          { q: "Que montre ce texte sur le pouvoir du basileus ?", r: "C'est un pouvoir à la fois politique et religieux : l'empereur est considéré comme l'élu de Dieu", faux: ["L'empereur obéit au pape de Rome", "L'empereur est élu par le peuple", "L'empereur n'a aucun lien avec l'Église"], expl: "Couronné par le patriarche dans une église, il tient son pouvoir de Dieu." },
+          { q: "Pourquoi faut-il lire ce texte avec un regard critique ?", r: "Il est écrit d'après un empereur, qui veut montrer la grandeur de son pouvoir", faux: ["Il est écrit par un ennemi de l'empereur", "C'est une photographie de la cérémonie", "Il est écrit par un historien neutre"], expl: "Le texte décrit la cérémonie telle que l'empereur veut qu'on la voie." }
+        ],
+        modele: { reponses: [
+          "Ce document est un **texte** qui décrit une cérémonie. Il est tiré du Livre des cérémonies, écrit d'après l'empereur byzantin **Constantin VII** au **Xᵉ siècle**. Il raconte le couronnement d'un empereur byzantin, le **basileus**, dans l'église Sainte-Sophie de Constantinople.",
+          "Le pouvoir de l'empereur vient de Dieu : il est couronné dans une église, « Sainte-Sophie », par le chef de l'Église byzantine, le **patriarche**, qui « place en personne » la couronne « sur la tête du souverain ». **De plus**, le peuple chante « Gloire à Dieu dans les hauteurs ». L'empereur est donc considéré comme l'élu de Dieu.",
+          "Les **dignitaires** entrent en « tombant à terre et baisant ses genoux » : ils se prosternent devant l'empereur. Ce geste montre qu'ils lui obéissent et qu'il a un très grand pouvoir.",
+          "Le texte est écrit d'après un empereur : il a intérêt à montrer la grandeur et le caractère sacré du pouvoir impérial. Il décrit la cérémonie telle que l'empereur veut qu'on la voie : il faut **garder un regard critique**."
+        ] }
+      },
+      {
+        id: "bagdad-yaqubi", chapitre: "5e-h1-c2",
+        consigne: "Lis le document deux fois. Dans chaque réponse, cite un mot ou une phrase du texte entre guillemets.",
+        questions: [
+          "Présente le document : sa nature, son auteur, sa date et ce dont il parle.",
+          "Quelle forme a la ville de Bagdad ? Combien a-t-elle de portes ?",
+          "Que trouve-t-on au centre de la ville ? Qu'est-ce que cela montre ?",
+          "Pourquoi al-Ya'qubi dit-il que l'Irak est « le nombril de la terre » ? Peut-il être totalement objectif ?"
+        ],
+        doc: {
+          titre: "Bagdad vue par un géographe arabe",
+          extrait: [
+            "« Si je commence par l'Irak, c'est uniquement parce qu'il est le centre de ce bas monde, le nombril de la terre. […]",
+            "Al-Mansur en fit une ville ronde, la seule ville au monde connue dans le monde entier. La ville fut pourvue de quatre portes que le Calife nomma : porte de Kufa, porte de Basra, porte du Kurasan, porte de Syrie. […] Au centre de la grande place s'élevait le palais, à côté duquel se trouvait la grande mosquée. »"
+          ],
+          source: "Al-Ya'qubi, géographe et historien arabe, Le Livre des pays, 891, trad. G. Wiet, Le Caire, 1937 (extraits). Al-Mansur est le calife abbasside qui fonde Bagdad en 762."
+        },
+        presentation: [
+          { q: "Quelle est la nature de ce document ?", r: "Un extrait d'un livre de géographie", faux: ["Un plan de la ville", "Une sourate du Coran", "Une lettre du calife"], expl: "Le Livre des pays décrit les régions et les villes du monde musulman." },
+          { q: "Qui est l'auteur ?", r: "Al-Ya'qubi, un géographe et historien arabe", faux: ["Al-Mansur, le calife", "Mahomet", "Un voyageur chrétien"], expl: "Al-Ya'qubi vit dans l'empire abbasside." },
+          { q: "De quand date-t-il ?", r: "De 891, au IXᵉ siècle", faux: ["De 762, l'année de la fondation de Bagdad", "De 1258, l'année de la prise de Bagdad", "De 622, l'année de l'Hégire"], expl: "Le texte est écrit plus d'un siècle après la fondation de la ville." },
+          { q: "De quoi parle-t-il ?", r: "De Bagdad, la capitale des califes abbassides", faux: ["De La Mecque, ville sainte", "De Damas, capitale des Omeyyades", "De Constantinople, capitale byzantine"], expl: "Bagdad est fondée en 762 par le calife al-Mansur." }
+        ],
+        prelever: [
+          { q: "Quelle citation donne la forme de la ville ?", r: "« Al-Mansur en fit une ville ronde »", faux: ["« La ville fut pourvue de quatre portes »", "« le centre de ce bas monde »"], expl: "Bagdad est une ville ronde, avec quatre portes." },
+          { q: "Quelle citation montre l'importance de la religion dans la ville ?", r: "« le palais, à côté duquel se trouvait la grande mosquée »", faux: ["« porte de Kufa, porte de Basra »", "« Si je commence par l'Irak »"], expl: "La grande mosquée est au centre, à côté du palais du calife." },
+          { q: "Quelle citation montre que l'auteur admire l'Irak ?", r: "« le centre de ce bas monde, le nombril de la terre »", faux: ["« La ville fut pourvue de quatre portes »", "« Au centre de la grande place »"], expl: "Pour lui, l'Irak est le centre du monde." }
+        ],
+        comprendre: [
+          { a: "Bagdad a été fondée par le calife al-Mansur.", vrai: true, expl: "Al-Mansur, calife abbasside, fonde Bagdad en 762." },
+          { a: "La ville a six portes.", vrai: false, expl: "Elle a « quatre portes » : Kufa, Basra, le Kurasan et la Syrie." },
+          { a: "Au centre de la ville se trouvent le palais et la grande mosquée.", vrai: true, expl: "« Au centre de la grande place s'élevait le palais, à côté duquel se trouvait la grande mosquée »." },
+          { a: "L'auteur pense que l'Irak est une région sans importance.", vrai: false, expl: "Il en fait au contraire « le nombril de la terre »." }
+        ],
+        portee: [
+          { q: "Pourquoi le palais et la grande mosquée sont-ils côte à côte au centre de la ville ?", r: "Le calife est à la fois chef politique et guide religieux", faux: ["Par hasard, faute de place", "Parce que le calife habite dans la mosquée", "Parce que les marchands y vendent leurs produits"], expl: "Le palais (le pouvoir politique) et la mosquée (la religion) sont réunis au cœur de la ville." },
+          { q: "Al-Ya'qubi peut-il être totalement objectif ?", r: "Non : il vit dans l'empire abbasside et admire sa capitale, il peut embellir sa description", faux: ["Oui : un géographe dit toujours la vérité", "Oui : il n'a jamais vu Bagdad", "Non : il déteste les Abbassides"], expl: "Un auteur qui admire son souverain peut embellir ce qu'il décrit : il faut garder un regard critique." }
+        ],
+        modele: { reponses: [
+          "Ce document est un extrait du Livre des pays, un **livre de géographie** écrit en **891** par **al-Ya'qubi**, un géographe et historien arabe. Il décrit **Bagdad**, la capitale des califes abbassides, fondée en 762 par le calife al-Mansur.",
+          "Bagdad est une ville ronde : « Al-Mansur en fit une ville ronde ». Elle a « quatre portes » : la porte de Kufa, celle de Basra, celle du Kurasan et celle de Syrie.",
+          "Au centre de la ville, sur la grande place, se trouvent « le palais » du calife et « la grande mosquée ». Cela montre que le **calife** est à la fois le chef politique et le guide religieux des musulmans.",
+          "Al-Ya'qubi dit que l'Irak est « le centre de ce bas monde, le nombril de la terre » parce qu'il vit dans l'empire abbasside et admire sa capitale, une des plus grandes villes du monde. Il ne peut pas être totalement objectif : il peut embellir ce qu'il décrit, il faut **garder un regard critique**."
+        ] }
+      },
+      {
+        id: "le-caire-corniche", chapitre: "5e-g1-c2",
+        consigne: "Observe bien la photographie, puis réponds par des phrases complètes.",
+        questions: [
+          "Présente le document : sa nature, sa date et le lieu photographié.",
+          "Décris ce que l'on voit au premier plan et à l'arrière-plan.",
+          "Quel type de quartier cette photographie montre-t-elle ? Justifie.",
+          "Cette photographie suffit-elle pour décrire tout Le Caire ? Pourquoi ?"
+        ],
+        doc: {
+          titre: "Le Caire : les tours de la Corniche du Nil",
+          image: "docs/5e-g1-c2/corniche-nil.jpg",
+          alt: "Le Nil au premier plan, une felouque, un pont à gauche, des arbres à droite et les tours du centre du Caire à l'arrière-plan",
+          source: "Photographie, Le Caire (Égypte), 2013 (Nile Corniche, Wikimedia Commons).",
+          credit: "Phevos87, CC BY-SA 3.0"
+        },
+        presentation: [
+          { q: "Quelle est la nature de ce document ?", r: "Une photographie", faux: ["Une carte", "Un tableau peint", "Un graphique"], expl: "C'est une photographie prise depuis le fleuve ou sa rive." },
+          { q: "Quand a-t-elle été prise ?", r: "En 2013", faux: ["En 1925", "En 1969", "En 1990"], expl: "C'est une photographie récente du Caire." },
+          { q: "Quel lieu montre-t-elle ?", r: "Le Caire, capitale de l'Égypte, au bord du Nil", faux: ["New Delhi, capitale de l'Inde", "Lagos, au Nigeria", "Paris, au bord de la Seine"], expl: "Le Caire est une très grande métropole, traversée par le Nil." }
+        ],
+        prelever: [
+          { q: "Que voit-on au premier plan ?", r: "Le Nil, un large fleuve", faux: ["Un bidonville", "Des champs cultivés", "Le désert"], expl: "Le fleuve occupe tout le bas de la photographie." },
+          { q: "Que voit-on à l'arrière-plan ?", r: "De hautes tours : bureaux, ministères, hôtels de luxe", faux: ["Des pyramides", "Des maisons en terre", "Des usines"], expl: "Ce sont les tours du centre-ville, au bord du Nil." },
+          { q: "Quel bateau navigue sur le fleuve ?", r: "Une felouque, un bateau à voile traditionnel", faux: ["Un porte-conteneurs", "Un paquebot de croisière géant", "Un sous-marin"], expl: "La felouque est aujourd'hui surtout utilisée pour les promenades des touristes." }
+        ],
+        comprendre: [
+          { a: "Les tours appartiennent à un quartier d'affaires.", vrai: true, expl: "Bureaux, ministères, hôtels de luxe : c'est le centre riche de la métropole." },
+          { a: "Un pont relie les deux rives du fleuve.", vrai: true, expl: "À gauche, un pont traverse le Nil." },
+          { a: "La photographie montre des quartiers très pauvres.", vrai: false, expl: "On ne voit que le centre riche : la pauvreté n'apparaît pas sur cette image." }
+        ],
+        portee: [
+          { q: "Quelle image du Caire cette photographie donne-t-elle ?", r: "Celle d'une métropole moderne et riche", faux: ["Celle d'un petit village", "Celle d'une ville en ruine", "Celle d'une ville sans fleuve"], expl: "Les tours et les rives aménagées montrent la richesse du centre." },
+          { q: "Pourquoi faut-il compléter cette photographie avec d'autres documents ?", r: "Elle ne montre que le centre riche : il faut aussi voir les quartiers pauvres, comme la Cité des Morts", faux: ["Parce qu'elle est trop ancienne", "Parce que Le Caire n'a pas de quartier riche", "Parce qu'une photographie ne montre jamais rien de vrai"], expl: "Le Caire est une ville de contrastes entre richesse et grande pauvreté." }
+        ],
+        modele: { reponses: [
+          "Ce document est une **photographie** prise en **2013** au **Caire**, la capitale de l'Égypte. Elle montre le centre-ville, au bord du Nil.",
+          "Au premier plan, on voit le **Nil**, un large fleuve, sur lequel navigue une **felouque**, un bateau à voile. À l'arrière-plan, on voit de **hautes tours** : des bureaux, des ministères et des hôtels de luxe. À gauche, un **pont** traverse le fleuve ; à droite, des arbres bordent la rive.",
+          "Cette photographie montre un **quartier d'affaires** moderne et riche, au cœur d'une très grande **métropole** : les tours de bureaux et d'hôtels de luxe, et la rive aménagée avec des arbres, montrent la richesse de ce quartier.",
+          "Non : la photographie ne montre que le centre riche du Caire. **Or** Le Caire est une ville de **contrastes** entre richesse et grande pauvreté : il faut d'autres documents pour voir les quartiers pauvres, comme la Cité des Morts."
+        ] }
       }
     ],
 
@@ -661,6 +1126,18 @@ const METHODE = (function () {
             { titre: "Des métropoles qui dominent le monde", items: ["Métropole mondiale de premier rang (New York, Londres)", "Autre grande métropole mondiale (Paris, Tokyo, Shanghai…)", "Mégalopole (Nord-Est des États-Unis, de Londres à Milan, Japon)"] },
             { titre: "Des métropoles en forte croissance dans les Suds", items: ["Mégapole à forte croissance (Lagos, Mumbai, Jakarta)", "Région où l'urbanisation progresse vite (Afrique subsaharienne, Asie du Sud)"] },
             { titre: "Des métropoles reliées en réseau", items: ["Flux majeurs entre les grandes métropoles", "Archipel mégalopolitain mondial"] }
+          ]
+        }
+      },
+      {
+        n: "5e", chapitre: "5e-g1-c1",
+        titre: "Les figurés et la légende d'une carte", sous: "Choisir le bon figuré, puis organiser la légende de la carte sur la population mondiale en 2050", nb: 8,
+        items: FIGURES_5E,
+        legende: {
+          sujet: "Carte : où la population va-t-elle augmenter d'ici 2050 ?",
+          parties: [
+            { titre: "Une croissance de la population très inégale", items: ["La population va beaucoup augmenter (Afrique)", "La population va encore augmenter (Asie du Sud)", "La population stagne ou diminue (Europe, Japon, Chine)"] },
+            { titre: "Deux géants démographiques", items: ["L'Inde, pays le plus peuplé du monde", "Le Nigeria, pays le plus peuplé d'Afrique"] }
           ]
         }
       }
