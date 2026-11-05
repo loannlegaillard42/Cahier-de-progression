@@ -5170,7 +5170,9 @@ function SupportsView({ data, onSave, onDelete, onReplaceAll }) {
         h("button", { onClick: () => fileRef.current && fileRef.current.click(), style: { ...ghostBtn, padding: "6px 12px", fontSize: 12 } }, "Importer"),
         h("input", { ref: fileRef, type: "file", accept: ".json,application/json", style: { display: "none" }, onChange: e => { const f = e.target.files[0]; e.target.value = ""; if (f) importJSON(f); } })),
       h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint, margin: "12px 0 0", lineHeight: 1.5 } },
-        "Les liens claude.ai ne s'ouvrent que si tu es connecté à ton compte Claude sur le poste de la salle. Un lien GitHub Pages (…github.io/…/diaporamas/…) s'ouvre sans compte. Dans une présentation animée, F passe en plein écran.")));
+        "Sur les ordinateurs du lycée, ouvre la page publique ",
+        h("a", { href: "diaporamas/", target: "_blank", rel: "noopener", style: { color: COLORS.accent, fontWeight: 600 } }, "Projeter"),
+        " (à mettre en favori) : la même liste, sans aucune donnée d'élève. Elle lit le fichier diaporamas/supports.json du dépôt : après un ajout ici, exporte la liste et dépose le fichier dans ce dossier sur GitHub. Les liens claude.ai demandent d'être connecté à ton compte Claude ; dans une présentation animée, F passe en plein écran.")));
 }
 
 function HomeView({

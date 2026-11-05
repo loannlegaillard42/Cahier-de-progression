@@ -1,4 +1,4 @@
-const CACHE = "cahier-hg-v13";
+const CACHE = "cahier-hg-v14";
 const ASSETS = [
   "./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png",
   // React, hébergé dans le dépôt : sans lui en cache, l'app reste blanche hors connexion.
@@ -26,11 +26,14 @@ const fromCache = (req) => caches.open(CACHE).then((cache) => cache.match(req));
 
 // Le dossier rituels/ est une app à part : le service worker n'y touche pas.
 const RITUELS = new URL("./rituels", self.registration.scope).href;
+// La page publique « Projeter » (diaporamas/) non plus : sa liste doit toujours venir du réseau.
+const DIAPOS = new URL("./diaporamas", self.registration.scope).href;
 
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   const url = e.request.url.split(/[?#]/)[0];
   if (url === RITUELS || url.startsWith(RITUELS + "/")) return;
+  if (url === DIAPOS || url.startsWith(DIAPOS + "/")) return;
   // Synchro : l'API GitHub, toujours en direct
   if (url.startsWith("https://api.github.com/")) return;
 
