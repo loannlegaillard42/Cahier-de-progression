@@ -617,6 +617,7 @@ function withDefaults(raw) {
   if (!Array.isArray(data.todos)) data.todos = [];
   if (!Array.isArray(data.fiches)) data.fiches = [];
   if (!Array.isArray(data.evaluations)) data.evaluations = [];
+  if (!Array.isArray(data.supports)) data.supports = DEFAULT_SUPPORTS();
   if (!Array.isArray(data.agenda)) data.agenda = DEFAULT_AGENDA();
   if (!data.cahier || typeof data.cahier !== "object") data.cahier = {};
   if (!data.calendrier || typeof data.calendrier !== "object") data.calendrier = {};
@@ -4889,6 +4890,289 @@ function MiniSchedule({
     }, cls ? cls.name : "?"));
   }))))));
 }
+/* ---------- Diaporamas & supports à projeter ----------
+   Un support = un lien (artifact claude.ai, page GitHub Pages, Slides…) rattaché à un niveau,
+   une discipline et un chapitre. Rangés dans data.supports : sauvegardés et synchronisés avec le reste. */
+const SUPPORT_TYPES = ["présentation animée", "Slides", "jeu", "3D", "outil", "fiche", "corrigé"];
+const SUPPORT_LEVELS = ["5e", "2de", "1re"];
+const SUPPORTS_FILTER_KEY = "supports-filtre-v1";
+const DEFAULT_SUPPORTS = () => [
+  ["De la naissance de l'islam à la prise de Bagdad", "5e", "H", "Thème 1 · ch. 2", "Slides", "LvMAbhjNheHkCw7Gre17tc"],
+  ["Frise de la vie de Mahomet", "5e", "H", "Thème 1 · ch. 2", "outil", "AyNz7Fof1DFChiWEjKNUDJ"],
+  ["Miniature de la bataille d'Uhud", "5e", "H", "Thème 1 · ch. 2", "outil", "LLundZmtVtzaZ8PMaqiCah"],
+  ["La ville ronde de Bagdad (3D)", "5e", "H", "Thème 1 · ch. 2", "3D", "LrftaQHoYBUbFr6eKumDev"],
+  ["Corrigé prof — G1 La croissance démographique", "5e", "G", "Thème 1 · G1", "corrigé", "9fwKnHuwjPaoCJ9QLjhark"],
+  ["2de · Thème 1 — Le monde méditerranéen : trois études", "2de", "H", "Thème 1", "Slides", "HPPw5ubDpASf1ghsnY8LkU"],
+  ["Le voyage d'une amphore", "2de", "H", "Thème 1 · ch. 1", "outil", "2LnQKWzhPqMj5JVp7bFYJy"],
+  ["Constantin, chrétien ou pas ?", "2de", "H", "Thème 1 · ch. 1", "outil", "DdLbpUGFWDCnGyZ9KDmQzz"],
+  ["La Méditerranée médiévale — chapitre 2", "2de", "H", "Thème 1 · ch. 2", "Slides", "8JH38bC3SYfXaV12DuWAK6"],
+  ["Une mer, trois civilisations (fiche élève)", "2de", "H", "Thème 1 · ch. 2", "fiche", "BAY6stwGCHNf8gCXPSVLrk"],
+  ["Galère pour l'Orient (PPO Venise)", "2de", "H", "Thème 1 · ch. 2", "jeu", "LDwCXnypEMRsfi5YCE14Pb"],
+  ["Vézelay, 31 mars 1146 (PPO Bernard)", "2de", "H", "Thème 1 · ch. 2", "3D", "MvAeqc27vw8KjP8E6BtuV2"],
+  ["Sociétés et environnements · 2de", "2de", "G", "Thème 1", "présentation animée", "STFLSAcUVs6cEVRasqpFFn"],
+  ["Simulateur de submersion marine", "2de", "G", "Thème 1", "outil", "UwdTUqc7jqwdTFHLfjVjDY"],
+  ["Soulac 2064", "2de", "G", "Thème 1 · ch. 3", "jeu", "7jJoP2dJWEPxAMffFYYjZa"],
+  ["Soulac 2064 en 3D", "2de", "G", "Thème 1 · ch. 3", "3D", "VaTeYwofjUnT3sBUQgpFpA"],
+  ["Corrigés et bilans — Géo 2de Thème 1", "2de", "G", "Thème 1", "corrigé", "9MrUDkXaRoZu37znMvsSQT"],
+  ["Corrigés des croquis — Géo 2de Thème 1", "2de", "G", "Thème 1", "corrigé", "WD5V9oPJyWfANEGcDvZox6"],
+  ["La table de Vienne (PPO Metternich)", "1re", "H", "Thème 1 · ch. 2", "jeu", "Hw57GCiwZvWEEjRoNtjkqX"],
+  ["Entrer dans La Liberté (1830-1848)", "1re", "H", "Thème 1 · ch. 2", "outil", "VWSq3XUMrDY2fXAqZmtAiE"],
+  ["La métropolisation · 1re", "1re", "G", "Thème 1", "présentation animée", "MwkHxmvRtHhouTzfedK4LZ"]
+].map(([titre, niveau, disc, chapitre, type, id]) => ({ id: uid(), titre, niveau, disc, chapitre, chapitreTitre: "", type, url: "https://claude.ai/artifact/" + id }));
+
+// Niveau d'une classe d'après son nom : « Seconde 3 » → 2de, « 5ème1 » → 5e, « Première 4 » → 1re
+function classLevel(cls) {
+  const n = String((cls && cls.name) || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if (/second|2nde|2de|^2/.test(n)) return "2de";
+  if (/premi|1re|1ere|^1/.test(n)) return "1re";
+  if (/termin|tle/.test(n)) return "Tle";
+  const m = n.match(/^([3-6])/);
+  return m ? m[1] + "e" : null;
+}
+const normTxt = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+// « Thème 1 · ch. 2 » → { theme: 1, ch: 2 } ; « Thème 1 · G1 » → { theme: 1, ch: 1 } ; « Thème 1 » → { theme: 1, ch: null }
+function parseChapLabel(label) {
+  const s = String(label || "");
+  const t = s.match(/th[eè]me\s*(\d+)/i);
+  const c = s.match(/(?:ch(?:apitre)?\.?\s*|\b[HG])(\d+)/i);
+  return { theme: t ? Number(t[1]) : null, ch: c ? Number(c[1]) : null };
+}
+// Numéro d'un chapitre : celui de son titre (« Chapitre 2 : … ») ou sa place dans le thème
+function chapNumber(th, ch) {
+  const m = String(ch.title || "").match(/^\s*(?:chapitre|ch\.?|[HG])\s*(\d+)/i);
+  return m ? Number(m[1]) : th.chapters.indexOf(ch) + 1;
+}
+// Le support va-t-il avec ce chapitre de cette classe ?
+function supportMatches(sp, cls, th, ch) {
+  if (classLevel(cls) !== sp.niveau) return false;
+  const disc = th.discipline === "geo" ? "G" : "H";
+  if (sp.disc && sp.disc !== disc) return false;
+  if (sp.chapitreTitre) return normTxt(sp.chapitreTitre) === normTxt(ch.title);
+  const p = parseChapLabel(sp.chapitre);
+  if (p.theme === null) return false;
+  const sameDisc = cls.themes.filter(t => (t.discipline === "geo" ? "G" : "H") === disc);
+  if (sameDisc.indexOf(th) + 1 !== p.theme) return false;
+  return p.ch === null || chapNumber(th, ch) === p.ch;
+}
+// Chapitre(s) prévus pour un cours : celui noté dans le semainier, sinon ceux en cours dans la progression
+function chaptersForSlot(data, slot, iso) {
+  const cls = data.classes[slot.classId]; if (!cls) return [];
+  const e = (data.cahier || {})[`${iso}|${slot.id}`] || {};
+  if (e.chapterId) { const f = findChapter(data, slot.classId, e.chapterId); if (f) return [{ cls, theme: f.theme, chapter: f.chapter }]; }
+  const out = [];
+  cls.themes.forEach(th => th.chapters.forEach(ch => { if (chapterStatus(ch) === "wip") out.push({ cls, theme: th, chapter: ch }); }));
+  return out;
+}
+function supportsForSlot(data, slot, iso) {
+  const chs = chaptersForSlot(data, slot, iso);
+  const list = (data.supports || []).filter(sp => chs.some(c => supportMatches(sp, c.cls, c.theme, c.chapter)));
+  return { chapters: chs, list };
+}
+// Prochain jour de cours (aujourd'hui s'il y a cours), comme « Ma journée »
+function nextTeachingDay(data) {
+  const today = localISO(new Date());
+  const has = iso => dayInfo(iso).schoolDay && slotsOnDate(data, iso).length > 0;
+  if (has(today)) return today;
+  const d = parseISO(today);
+  for (let k = 0; k < 30; k++) { d.setDate(d.getDate() + 1); if (has(localISO(d))) return localISO(d); }
+  return null;
+}
+const isCorrige = sp => sp.type === "corrigé";
+const typeTone = t => t === "corrigé" ? { fg: COLORS.histoire, bg: "var(--histoireSoft)" } : t === "présentation animée" || t === "Slides" ? { fg: COLORS.accent, bg: COLORS.accentSoft } : t === "jeu" || t === "3D" ? { fg: COLORS.wipInk, bg: COLORS.wipSoft } : { fg: COLORS.sub, bg: COLORS.encadre };
+const isClaudeLink = u => /claude\.ai\//.test(u || "");
+
+const IconProject = p => React.createElement(Icon, p,
+  React.createElement("rect", { x: 3, y: 4, width: 18, height: 12, rx: 1.5 }),
+  React.createElement("path", { d: "M10 8.2v3.6l3.2-1.8z", fill: "currentColor", stroke: "none" }),
+  React.createElement("path", { d: "M12 16v4M8 20h8" }));
+
+function ProjectBtn({ sp, small }) {
+  const h = React.createElement;
+  return h("a", { href: sp.url, target: "_blank", rel: "noopener", title: isClaudeLink(sp.url) ? "S'ouvre dans claude.ai : il faut être connecté à ton compte Claude sur ce poste" : sp.url,
+    style: { ...primaryBtn, padding: small ? "5px 11px" : "7px 14px", fontSize: small ? 12 : 13, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", flexShrink: 0 } },
+    h(IconProject, { size: small ? 13 : 14 }), "Projeter");
+}
+function TypeChip({ type, short }) {
+  const t = typeTone(type);
+  return React.createElement("span", { style: { fontFamily: "Inter, sans-serif", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.02em", textTransform: "uppercase", color: t.fg, background: t.bg, borderRadius: 4, padding: "2px 7px", whiteSpace: "nowrap", flexShrink: 0 } }, short && type === "présentation animée" ? "animée" : type);
+}
+
+// Bloc « Aujourd'hui » : un cours = une ligne, avec les supports du chapitre prévu
+function TodaySupports({ data, compact, onOpenTab }) {
+  const h = React.createElement;
+  const [showCorr, setShowCorr] = useState({});
+  const day = nextTeachingDay(data);
+  const todayISO = localISO(new Date());
+  if (!(data.supports || []).length) return null;
+  const head = day === todayISO ? "À projeter aujourd'hui" : day ? `À projeter · ${longDate(day)}` : "À projeter";
+  const slots = day ? slotsOnDate(data, day) : [];
+  const rows = slots.map(s => ({ s, ...supportsForSlot(data, s, day) }));
+  const any = rows.some(r => r.list.length);
+  if (compact && !any) return null;
+  const txt = { fontFamily: "Inter, sans-serif", fontSize: 12.5, lineHeight: 1.45 };
+  return h("section", null,
+    h("div", { style: { display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, marginBottom: 10 } },
+      h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+        h("span", { style: { color: COLORS.accent, display: "flex" } }, h(IconProject, { size: 16 })),
+        h("h2", { style: { fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 600, color: COLORS.ink, margin: 0 } }, head)),
+      onOpenTab && h("button", { className: "hit-y", onClick: onOpenTab, style: { background: "none", border: "none", color: COLORS.accent, fontFamily: "Inter, sans-serif", fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0 } }, "Tous les supports →")),
+    !slots.length ? h("p", { style: { ...txt, color: COLORS.faint, margin: 0 } }, data.schedule.slots.length ? "Pas de cours prévu dans les prochains jours." : "Renseigne ton emploi du temps (Semaine → Emploi du temps) pour voir ici les supports de chaque cours.") :
+    h("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+      rows.filter(r => !compact || r.list.length).map(({ s, chapters, list }) => {
+        const cls = data.classes[s.classId];
+        const main = list.filter(sp => !isCorrige(sp)), corr = list.filter(isCorrige);
+        const k = s.id;
+        return h("div", { key: k, style: { padding: "10px 12px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${classColor(data, s.classId)}`, borderRadius: 8, boxShadow: CARD_SHADOW } },
+          h("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: list.length || chapters.length ? 6 : 0 } },
+            h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub } }, s.start),
+            h(ClassTag, { color: classColor(data, s.classId), name: cls ? cls.name : "?" }),
+            chapters.length > 0 && h("span", { style: { ...txt, fontSize: 11.5, color: COLORS.sub, fontStyle: "italic", flex: 1, minWidth: 0 } }, chapters.map(c => c.chapter.title).join(" · "))),
+          !list.length ? h("div", { style: { ...txt, fontSize: 12, color: COLORS.faint } }, chapters.length ? "Aucun support rattaché à ce chapitre." : "Aucun chapitre en cours pour cette classe dans la progression.") :
+          h("div", { style: { display: "flex", flexDirection: "column", gap: 5 } },
+            main.map(sp => h("div", { key: sp.id, style: { display: "flex", alignItems: "center", gap: 8 } },
+              h("span", { style: { ...txt, color: COLORS.ink, flex: 1, minWidth: 0, overflowWrap: "anywhere" } }, sp.titre), h(TypeChip, { type: sp.type, short: true }), h(ProjectBtn, { sp, small: true }))),
+            corr.length > 0 && (showCorr[k]
+              ? corr.map(sp => h("div", { key: sp.id, style: { display: "flex", alignItems: "center", gap: 8 } },
+                  h("span", { style: { ...txt, color: COLORS.ink, flex: 1, minWidth: 0, overflowWrap: "anywhere" } }, sp.titre), h(TypeChip, { type: sp.type, short: true }), h(ProjectBtn, { sp, small: true })))
+              : h("button", { onClick: () => setShowCorr({ ...showCorr, [k]: true }), style: { alignSelf: "flex-start", background: "none", border: "none", padding: 0, cursor: "pointer", ...txt, fontSize: 11.5, color: COLORS.faint, textDecoration: "underline" } },
+                  `${corr.length} corrigé${corr.length > 1 ? "s" : ""} (masqué${corr.length > 1 ? "s" : ""})`))));
+      })));
+}
+
+function SupportForm({ data, initial, onSave, onCancel, onDelete }) {
+  const h = React.createElement;
+  const [f, setF] = useState({ titre: "", url: "", niveau: "5e", disc: "H", chapitre: "", chapitreTitre: "", type: "présentation animée", ...initial });
+  const set = (k, v) => setF(p => ({ ...p, [k]: v }));
+  // Chapitres de la progression pour ce niveau et cette discipline (toutes classes du niveau confondues)
+  const chapOptions = [];
+  const seen = new Set();
+  data.order.forEach(cid => {
+    const cls = data.classes[cid];
+    if (classLevel(cls) !== f.niveau) return;
+    const sameDisc = cls.themes.filter(t => (t.discipline === "geo" ? "G" : "H") === f.disc);
+    sameDisc.forEach((th, ti) => th.chapters.forEach(ch => {
+      const key = normTxt(ch.title); if (!key || seen.has(key)) return; seen.add(key);
+      chapOptions.push({ title: ch.title, label: `Thème ${ti + 1} · ch. ${chapNumber(th, ch)}` });
+    }));
+  });
+  const pickChap = title => {
+    const o = chapOptions.find(c => c.title === title);
+    setF(p => ({ ...p, chapitreTitre: title, chapitre: o ? o.label : p.chapitre }));
+  };
+  const ok = f.titre.trim() && /^https?:\/\//.test(f.url.trim());
+  const field = (label, el, w) => h("div", { style: { flex: w ? `0 0 ${w}px` : "1 1 140px", minWidth: 0 } }, h("label", { style: labelStyle }, label), el);
+  const seg = (vals, cur, k) => h("div", { style: { display: "flex", gap: 4 } }, vals.map(([v, t]) => h("button", { key: v, type: "button", onClick: () => set(k, v), style: { fontFamily: "Inter, sans-serif", fontSize: 12.5, padding: "6px 10px", borderRadius: 6, cursor: "pointer", border: `1px solid ${cur === v ? COLORS.accent : COLORS.line}`, background: cur === v ? COLORS.accentSoft : "transparent", color: cur === v ? COLORS.accent : COLORS.sub, fontWeight: cur === v ? 600 : 400 } }, t)));
+  return h("div", { style: { background: COLORS.encadre, borderRadius: 10, padding: 16, marginBottom: 16 } },
+    h("label", { style: labelStyle }, "Titre"),
+    h("input", { value: f.titre, autoFocus: true, onChange: e => set("titre", e.target.value), placeholder: "Ex. : La métropolisation · 1re", style: { ...inputStyle, marginBottom: 10 } }),
+    h("label", { style: labelStyle }, "Lien (claude.ai, GitHub Pages, Google Slides…)"),
+    h("input", { value: f.url, onChange: e => set("url", e.target.value), placeholder: "https://…", inputMode: "url", style: { ...inputStyle, marginBottom: 10, fontFamily: "IBM Plex Mono, monospace", fontSize: 12.5 } }),
+    h("div", { style: { display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 10 } },
+      field("Niveau", seg(SUPPORT_LEVELS.map(l => [l, l]), f.niveau, "niveau"), 170),
+      field("Discipline", seg([["H", "Histoire"], ["G", "Géo"]], f.disc, "disc"), 170),
+      field("Type", h("select", { value: f.type, onChange: e => set("type", e.target.value), style: inputStyle }, SUPPORT_TYPES.map(t => h("option", { key: t, value: t }, t))))),
+    h("div", { style: { display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 12 } },
+      field("Chapitre de la progression", h("select", { value: f.chapitreTitre, onChange: e => pickChap(e.target.value), style: inputStyle },
+        h("option", { value: "" }, chapOptions.length ? "— choisir —" : "Aucun chapitre pour ce niveau"),
+        chapOptions.map(c => h("option", { key: c.title, value: c.title }, `${c.label} — ${c.title}`)))),
+      field("Repère affiché", h("input", { value: f.chapitre, onChange: e => set("chapitre", e.target.value), placeholder: "Thème 1 · ch. 2", style: inputStyle }), 150)),
+    h("div", { style: { display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" } },
+      h("button", { disabled: !ok, onClick: () => onSave({ ...f, titre: f.titre.trim(), url: f.url.trim(), chapitre: f.chapitre.trim() }), style: { ...primaryBtn, opacity: ok ? 1 : 0.5, cursor: ok ? "pointer" : "default" } }, initial && initial.id ? "Enregistrer" : "Ajouter"),
+      h("button", { onClick: onCancel, style: ghostBtn }, "Annuler"),
+      h("span", { style: { flex: 1 } }),
+      onDelete && h("button", { onClick: () => { if (confirm(`Supprimer « ${f.titre} » de la liste ? (le support lui-même n'est pas effacé)`)) onDelete(); }, style: { background: "none", border: "none", color: COLORS.histoire, fontFamily: "Inter, sans-serif", fontSize: 12.5, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 } }, h(IconTrash, { size: 13 }), "Supprimer")));
+}
+
+function SupportCard({ sp, onEdit }) {
+  const h = React.createElement;
+  return h("div", { style: { display: "flex", alignItems: "center", gap: 12, padding: "11px 14px", background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderRadius: 8, boxShadow: CARD_SHADOW } },
+    h("div", { style: { flex: 1, minWidth: 0 } },
+      h("div", { style: { fontFamily: "Fraunces, serif", fontSize: 15, color: COLORS.ink, lineHeight: 1.3 } }, sp.titre),
+      h("div", { style: { display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap", marginTop: 5 } },
+        h(TypeChip, { type: sp.type }),
+        h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 11, color: COLORS.faint } }, `${sp.niveau} · ${sp.disc === "G" ? "Géo" : "Histoire"}`),
+        !isClaudeLink(sp.url) && h("span", { title: "S'ouvre sans compte Claude", style: { fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.done } }, "lien public"))),
+    h("button", { onClick: onEdit, title: "Modifier", "aria-label": `Modifier ${sp.titre}`, style: { background: "none", border: "none", color: COLORS.faint, fontFamily: "Inter, sans-serif", fontSize: 12, textDecoration: "underline", cursor: "pointer", flexShrink: 0 } }, "modifier"),
+    h(ProjectBtn, { sp }));
+}
+
+function SupportsView({ data, onSave, onDelete, onReplaceAll }) {
+  const h = React.createElement;
+  const saved = (() => { try { return JSON.parse(localStorage.getItem(SUPPORTS_FILTER_KEY)) || {}; } catch (e) { return {}; } })();
+  const levels = [...SUPPORT_LEVELS, ...new Set((data.supports || []).map(s => s.niveau).filter(l => l && !SUPPORT_LEVELS.includes(l)))];
+  const [niveau, setNiveau] = useState(levels.includes(saved.niveau) ? saved.niveau : "5e");
+  const [disc, setDisc] = useState(saved.disc === "G" ? "G" : "H");
+  const [editing, setEditing] = useState(null); // null | "new" | id
+  const [corrOpen, setCorrOpen] = useState(false);
+  const fileRef = useRef(null);
+  const remember = (n, d) => { try { localStorage.setItem(SUPPORTS_FILTER_KEY, JSON.stringify({ niveau: n, disc: d })); } catch (e) {} };
+  const pickN = n => { setNiveau(n); setCorrOpen(false); remember(n, disc); };
+  const pickD = d => { setDisc(d); setCorrOpen(false); remember(niveau, d); };
+  const all = data.supports || [];
+  const list = all.filter(s => s.niveau === niveau && s.disc === disc);
+  const main = list.filter(s => !isCorrige(s)), corr = list.filter(isCorrige);
+  // Regroupement par repère de chapitre, dans l'ordre « Thème 1 », « Thème 1 · ch. 1 », « Thème 1 · ch. 2 »…
+  const key = s => { const p = parseChapLabel(s.chapitre); return [p.theme ?? 99, p.ch ?? 0, s.chapitre || ""]; };
+  const groups = [];
+  [...main].sort((a, b) => { const x = key(a), y = key(b); return x[0] - y[0] || x[1] - y[1] || x[2].localeCompare(y[2]); })
+    .forEach(s => { const g = s.chapitre || "Sans chapitre"; const last = groups[groups.length - 1]; if (last && last.g === g) last.items.push(s); else groups.push({ g, items: [s] }); });
+  const count = (n, d) => all.filter(s => s.niveau === n && (!d || s.disc === d) && !isCorrige(s)).length;
+
+  const exportJSON = () => {
+    const clean = all.map(({ id, ...rest }) => rest);
+    const blob = new Blob([JSON.stringify(clean, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "supports.json"; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  const importJSON = async file => {
+    try {
+      const arr = JSON.parse(await file.text());
+      if (!Array.isArray(arr)) throw new Error();
+      const ok = arr.filter(s => s && s.titre && s.url).map(s => ({ id: uid(), titre: String(s.titre), url: String(s.url), niveau: String(s.niveau || "5e"), disc: s.disc === "G" ? "G" : "H", chapitre: String(s.chapitre || ""), chapitreTitre: String(s.chapitreTitre || ""), type: SUPPORT_TYPES.includes(s.type) ? s.type : "outil" }));
+      if (!ok.length) throw new Error();
+      const known = new Set(all.map(s => s.url));
+      const fresh = ok.filter(s => !known.has(s.url));
+      if (confirm(`${ok.length} support(s) dans le fichier, dont ${fresh.length} nouveau(x).\n\nOK : ajouter les nouveaux à ta liste.\nAnnuler : ne rien changer.`)) onReplaceAll([...all, ...fresh]);
+    } catch (e) { alert("Ce fichier n'est pas une liste de supports valide (supports.json)."); }
+  };
+
+  const segBtn = (active, onClick, label, n) => h("button", { onClick, style: { fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: active ? 600 : 500, padding: "7px 14px", borderRadius: 7, cursor: "pointer", border: "none", background: active ? COLORS.accent : "transparent", color: active ? "var(--bg)" : COLORS.sub, display: "inline-flex", alignItems: "center", gap: 6 } },
+    label, n !== undefined && h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 11, opacity: 0.75 } }, n));
+  const bar = { display: "inline-flex", gap: 3, padding: 3, borderRadius: 9, background: COLORS.encadre };
+
+  return h("div", { style: { display: "flex", flexDirection: "column", gap: 30 } },
+    h(TodaySupports, { data }),
+    h("section", null,
+      h("div", { style: { display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 16, alignItems: "center" } },
+        h("div", { style: bar }, levels.map(l => segBtn(niveau === l, () => pickN(l), l, count(l)))),
+        h("div", { style: bar }, segBtn(disc === "H", () => pickD("H"), "Histoire", count(niveau, "H")), segBtn(disc === "G", () => pickD("G"), "Géographie", count(niveau, "G")))),
+      editing === "new" && h(SupportForm, { data, initial: { niveau, disc }, onCancel: () => setEditing(null), onSave: f => { onSave(f); setEditing(null); } }),
+      !main.length && editing !== "new" && h(EmptyState, { icon: h(IconProject, { size: 26 }), text: `Aucun support en ${niveau} · ${disc === "G" ? "géographie" : "histoire"} pour l'instant.` }),
+      h("div", { style: { display: "flex", flexDirection: "column", gap: 20 } },
+        groups.map(gr => h("div", { key: gr.g },
+          h("div", { style: { ...labelStyle, fontSize: 11, marginBottom: 8 } }, gr.g),
+          h("div", { className: "list-grid", style: { display: "flex", flexDirection: "column", gap: 8 } },
+            gr.items.map(sp => editing === sp.id
+              ? h(SupportForm, { key: sp.id, data, initial: sp, onCancel: () => setEditing(null), onSave: f => { onSave(f); setEditing(null); }, onDelete: () => { onDelete(sp.id); setEditing(null); } })
+              : h(SupportCard, { key: sp.id, sp, onEdit: () => setEditing(sp.id) })))))),
+      corr.length > 0 && h("div", { style: { marginTop: 22, border: `1px dashed ${COLORS.line}`, borderRadius: 9, padding: corrOpen ? "12px 12px 14px" : 0 } },
+        h("button", { onClick: () => setCorrOpen(!corrOpen), "aria-expanded": corrOpen, style: { width: "100%", display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: corrOpen ? "0 2px 10px" : "11px 14px", fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 600, color: COLORS.histoire } },
+          h(corrOpen ? IconChevronDown : IconChevronRight, { size: 14 }), `Corrigés (${corr.length})`,
+          h("span", { style: { fontWeight: 400, color: COLORS.faint, fontSize: 12 } }, corrOpen ? "· ne pas projeter par erreur" : "· repliés pour ne pas les ouvrir devant les élèves")),
+        corrOpen && h("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+          corr.map(sp => editing === sp.id
+            ? h(SupportForm, { key: sp.id, data, initial: sp, onCancel: () => setEditing(null), onSave: f => { onSave(f); setEditing(null); }, onDelete: () => { onDelete(sp.id); setEditing(null); } })
+            : h(SupportCard, { key: sp.id, sp, onEdit: () => setEditing(sp.id) })))),
+      h("div", { style: { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 20, alignItems: "center" } },
+        editing !== "new" && h("button", { onClick: () => setEditing("new"), style: { ...ghostBtn, display: "inline-flex", alignItems: "center", gap: 6 } }, h(IconPlus, { size: 14 }), "Ajouter un support"),
+        h("span", { style: { flex: 1 } }),
+        h("button", { onClick: exportJSON, style: { ...ghostBtn, padding: "6px 12px", fontSize: 12 } }, "Exporter la liste"),
+        h("button", { onClick: () => fileRef.current && fileRef.current.click(), style: { ...ghostBtn, padding: "6px 12px", fontSize: 12 } }, "Importer"),
+        h("input", { ref: fileRef, type: "file", accept: ".json,application/json", style: { display: "none" }, onChange: e => { const f = e.target.files[0]; e.target.value = ""; if (f) importJSON(f); } })),
+      h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 11.5, color: COLORS.faint, margin: "12px 0 0", lineHeight: 1.5 } },
+        "Les liens claude.ai ne s'ouvrent que si tu es connecté à ton compte Claude sur le poste de la salle. Un lien GitHub Pages (…github.io/…/diaporamas/…) s'ouvre sans compte. Dans une présentation animée, F passe en plein écran.")));
+}
+
 function HomeView({
   data,
   setView,
@@ -4960,6 +5244,10 @@ function HomeView({
     data: data,
     setView: setView,
     onClassMode: onClassMode
+  }), /*#__PURE__*/React.createElement(TodaySupports, {
+    data: data,
+    compact: true,
+    onOpenTab: setView ? () => setView("supports") : null
   }), /*#__PURE__*/React.createElement("div", {
     className: "rail-inline"
   }, /*#__PURE__*/React.createElement(UpcomingDates, {
@@ -5176,6 +5464,11 @@ const NAV_ITEMS = [{
   label: "Progression",
   icon: IconGrid
 }, {
+  id: "supports",
+  label: "Diaporamas",
+  short: "Diapos",
+  icon: IconProject
+}, {
   id: "planning",
   label: "Agenda",
   icon: IconCalendar
@@ -5253,7 +5546,7 @@ function BottomNav({
         fontWeight: active ? 700 : 500,
         letterSpacing: "0.01em"
       }
-    }, item.label), /*#__PURE__*/React.createElement("span", {
+    }, item.short || item.label), /*#__PURE__*/React.createElement("span", {
       style: {
         width: 3,
         height: 3,
@@ -7199,7 +7492,7 @@ function App() {
     }
   }, "Histoire-Géographie"), /*#__PURE__*/React.createElement("div", {
     style: {
-      display: view === "planning" || view === "schedule" ? "none" : "flex",
+      display: view === "planning" || view === "schedule" || view === "supports" ? "none" : "flex",
       alignItems: "flex-end",
       gap: 18,
       marginTop: 18,
@@ -7329,6 +7622,20 @@ function App() {
     onDeleteTodo: deleteTodo,
     onSetAnnualHours: setAnnualHours,
     onClassMode: () => setEnClasse(true)
+  }) : view === "supports" ? /*#__PURE__*/React.createElement(SupportsView, {
+    data: data,
+    onSave: sp => persist({
+      ...data,
+      supports: sp.id && data.supports.some(x => x.id === sp.id) ? data.supports.map(x => x.id === sp.id ? { ...x, ...sp } : x) : [...data.supports, { ...sp, id: uid() }]
+    }),
+    onDelete: id => persist({
+      ...data,
+      supports: data.supports.filter(x => x.id !== id)
+    }),
+    onReplaceAll: list => persist({
+      ...data,
+      supports: list
+    })
   }) : view === "fiches" ? /*#__PURE__*/React.createElement(FichesView, {
     data: data,
     onAdd: addFiche,
