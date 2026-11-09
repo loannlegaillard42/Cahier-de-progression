@@ -1199,6 +1199,32 @@
   .met-reponse p { margin: 6px 0 0; font-family: Fraunces, serif; font-size: 15px; line-height: 1.5; }
   .met-morceau b, .met-reponse b { color: var(--accent); }
   .met-verifier { margin: 14px 0 0; padding: 10px 14px 10px 32px; border-radius: 10px; background: var(--okSoft); font-size: 14.5px; line-height: 1.5; }
+  /* tâche finale : surligner le texte, puis le corrigé du croquis */
+  .met-texte { padding: 14px 16px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); margin: 12px 0; }
+  .met-texte p { font-family: Fraunces, serif; font-size: 16px; line-height: 1.75; margin: 0 0 10px; }
+  .met-texte p:last-child { margin-bottom: 0; }
+  .met-seg { border-bottom: 2px dotted var(--faint); padding: 0 1px; cursor: pointer; border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .met-seg:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .met-seg.choisi { background: #F7E27A; color: #22282A; border-bottom-color: #B8930E; }
+  .met-seg.bien { background: var(--okSoft); color: var(--ok); border-bottom: 2px solid var(--ok); }
+  .met-seg.manque { background: var(--warnSoft); color: var(--warn); border-bottom: 2px solid var(--warn); }
+  .met-seg.faux { background: var(--koSoft); color: var(--ko); border-bottom: 2px solid var(--ko); text-decoration: line-through; }
+  .met-seg[aria-disabled="true"] { cursor: default; }
+  .met-compteur { font-size: 14px; color: var(--sub); margin: 0 0 10px; }
+  .met-cle { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--sub); margin: 0 0 10px; }
+  .met-cle span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -2px; background: var(--c); }
+  .met-retours { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .met-retours li { padding: 8px 12px; border-radius: 10px; font-size: 14px; line-height: 1.45; background: var(--panel); border: 1px solid var(--line); }
+  .met-retours li.manque { border-left: 4px solid var(--warn); } .met-retours li.faux { border-left: 4px solid var(--ko); }
+  /* le croquis et sa légende restent sur fond clair, comme sur papier, même en mode sombre */
+  .met-croquis, .met-legende { --terre: #FBF8F2; --mer: #D6E6EC; --cote: #93ABB4; --accent: #1F4E5F; background: #FBF8F2; color: #22282A; border: 1px solid #E4DFD4; border-radius: 12px; }
+  .met-croquis { margin: 12px 0; padding: 10px; }
+  .met-croquis figcaption { font-family: Fraunces, serif; font-size: 16px; font-weight: 600; margin: 2px 4px 8px; }
+  .met-legende { display: grid; gap: 4px; margin: 10px 0 0; padding: 8px 12px 12px; }
+  .met-croquis .met-legende { padding: 0 2px; border: 0; }
+  .met-legende h3 { margin: 8px 0 2px; font-size: 14px; }
+  .met-legende-ligne { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 1.35; }
+  .met-legende-ligne .cq-figure-svg, .met-expl .cq-figure-svg { width: 44px; height: 26px; flex: none; }
   .met-chapitre { margin-top: 6px; }
   /* duo */
   .express.duo { margin-top: 10px; background: #6C4CF1; color: #fff; }
@@ -7383,7 +7409,7 @@
   }
   function ateliersNiveau(n) {
     function vis(champ) { return listeMet(champ).filter(function (x) { return atelierVisible(x, n); }); }
-    return { dcs: vis("dcs"), compos: vis("compos"), docs: vis("docs"), figures: vis("figures") };
+    return { dcs: vis("dcs"), compos: vis("compos"), docs: vis("docs"), figures: vis("figures"), taches: vis("taches") };
   }
   function fichesNiveau(n) { return listeMet("fiches").filter(function (f) { return pourNiveau(f, n); }); }
   // la fiche méthode d'un genre d'atelier pour la classe n
@@ -7391,7 +7417,7 @@
     var f = fichesNiveau(n).filter(function (x) { return x.atelier === genre; })[0];
     return f ? f.id : defaut;
   }
-  function nbAteliers(a) { return a.dcs.length + a.compos.length + a.docs.length + a.figures.length; }
+  function nbAteliers(a) { return a.dcs.length + a.compos.length + a.docs.length + a.figures.length + a.taches.length; }
   function cleFigures(f) { return "figures" + (f.n ? ":" + f.n : ""); }
   function trouverMet(liste, id) { return liste.filter(function (x) { return x.id === id; })[0] || null; }
   function titreMethode() { return MET.titre || "Les ateliers de méthode"; }
@@ -7420,7 +7446,8 @@
     var faits = a.dcs.filter(function (c) { return ("dc:" + c.id) in scoresMethode; }).length
       + a.compos.filter(function (c) { return ("compo:" + c.id) in scoresMethode; }).length
       + a.docs.filter(function (d) { return ("doc:" + d.id) in scoresMethode; }).length
-      + a.figures.filter(function (f) { return cleFigures(f) in scoresMethode; }).length;
+      + a.figures.filter(function (f) { return cleFigures(f) in scoresMethode; }).length
+      + a.taches.filter(function (t) { return ("tache:" + t.id) in scoresMethode; }).length;
     var x = el("a", { class: "entree-methode", href: "#/methode/" + n });
     var fig = el("span", { class: "em-fig", "aria-hidden": "true" });
     fig.innerHTML = SVG_METHODE;
@@ -7439,6 +7466,7 @@
     if (sous === "compo" && (f = trouverMet(a.compos, id))) return vueAtelierCompo(n, f);
     if (sous === "doc" && (f = trouverMet(a.docs, id))) return vueAtelierDoc(n, f);
     if (sous === "figures" && a.figures.length) return vueAtelierFigures(n, a.figures[0]);
+    if (sous === "tache" && (f = trouverMet(a.taches, id))) return vueAtelierTache(n, f);
     vueAccueilMethode(n);
   }
 
@@ -7460,6 +7488,7 @@
     a.dcs.forEach(function (c) { if (!chapitreSeul || c.chapitre === chapitreSeul) t.push(ligneAtelier("#/methode/" + n + "/dc/" + c.id, "dc:" + c.id, (chapitreSeul ? "Développement construit : " : "") + c.sujet, chapitreSeul ? null : etiquetteChapitre(c.chapitre), (chapitre(c.chapitre) || {}).d)); });
     a.compos.forEach(function (c) { if (!chapitreSeul || c.chapitre === chapitreSeul) t.push(ligneAtelier("#/methode/" + n + "/compo/" + c.id, "compo:" + c.id, (chapitreSeul ? "Composition : " : "") + c.sujet, chapitreSeul ? null : etiquetteChapitre(c.chapitre), (chapitre(c.chapitre) || {}).d)); });
     a.docs.forEach(function (x) { if (!chapitreSeul || x.chapitre === chapitreSeul) t.push(ligneAtelier("#/methode/" + n + "/doc/" + x.id, "doc:" + x.id, (chapitreSeul ? "Analyse de document : " : "") + x.doc.titre, chapitreSeul ? null : etiquetteChapitre(x.chapitre), (chapitre(x.chapitre) || {}).d)); });
+    a.taches.forEach(function (x) { if (!chapitreSeul || x.chapitre === chapitreSeul) t.push(ligneAtelier("#/methode/" + n + "/tache/" + x.id, "tache:" + x.id, x.titre, x.sous, "geo")); });
     a.figures.forEach(function (f) { if (!chapitreSeul || f.chapitre === chapitreSeul) t.push(ligneAtelier("#/methode/" + n + "/figures", cleFigures(f), f.titre, f.sous, "geo")); });
     return t;
   }
@@ -7499,6 +7528,10 @@
     if (a.docs.length) {
       app.appendChild(el("div", { class: "etiq", text: "Ateliers · l'analyse de document" }));
       a.docs.forEach(function (x) { app.appendChild(ligneAtelier("#/methode/" + n + "/doc/" + x.id, "doc:" + x.id, x.doc.titre, etiquetteChapitre(x.chapitre), (chapitre(x.chapitre) || {}).d)); });
+    }
+    if (a.taches.length) {
+      app.appendChild(el("div", { class: "etiq", text: "Tâche finale · le croquis" }));
+      a.taches.forEach(function (x) { app.appendChild(ligneAtelier("#/methode/" + n + "/tache/" + x.id, "tache:" + x.id, x.titre, x.sous, "geo")); });
     }
     if (a.figures.length) {
       app.appendChild(el("div", { class: "etiq", text: "Atelier · le croquis" }));
@@ -7586,11 +7619,11 @@
       ]));
     }
     var a = ateliersNiveau(n);
-    var vide = { dcs: [], compos: [], docs: [], figures: [] };
+    var vide = { dcs: [], compos: [], docs: [], figures: [], taches: [] };
     if (f.atelier === "dc") vide.dcs = a.dcs;
     if (f.atelier === "compo") vide.compos = a.compos;
     if (f.atelier === "doc") vide.docs = a.docs;
-    if (f.atelier === "figures") vide.figures = a.figures;
+    if (f.atelier === "figures") { vide.figures = a.figures; vide.taches = a.taches; }
     var liens = lignesAteliers(n, vide);
     if (liens.length) {
       app.appendChild(el("div", { class: "etiq", text: "S'entraîner" }));
@@ -7968,6 +8001,190 @@
             cadre.appendChild(planDetaille(lg.parties, "items"));
             cadre.appendChild(boutonSuite("Voir mon score", function () { fini(justes, total); }));
           });
+        } }
+      ]
+    });
+  }
+
+  // ----- tâche finale : du texte au croquis, comme la fiche de la classe (surligner, figurés et couleurs, légende, réalisation, corrigé) -----
+  // des tuiles à toucher dans l'ordre
+  function suiteOrdre(zone, items, fini, expl, texteSuite) {
+    var ordre = 0, erreurs = 0;
+    var liste = el("ol", { class: "met-plan-fait" });
+    var tuiles = el("div", { class: "met-tuiles" });
+    melanger(items.map(function (t, i) { return { t: t, i: i }; })).forEach(function (x) {
+      var b = el("button", { class: "tuile", type: "button", text: x.t });
+      b.addEventListener("click", function () {
+        if (x.i !== ordre) { erreurs++; b.classList.remove("erreur"); void b.offsetWidth; b.classList.add("erreur"); return; }
+        ordre++;
+        b.remove();
+        liste.appendChild(el("li", { text: x.t }));
+        if (ordre < items.length) return;
+        if (expl) zone.appendChild(el("p", { class: "met-expl " + (erreurs ? "ko" : "ok") }, [el("strong", { text: erreurs ? "Remis dans l'ordre. " : "Bon ordre. " }), expl]));
+        zone.appendChild(boutonSuite(texteSuite || "Étape suivante", function () { fini(erreurs ? 0 : 1, 1); }));
+      });
+      tuiles.appendChild(b);
+    });
+    zone.appendChild(liste);
+    zone.appendChild(tuiles);
+  }
+  // plusieurs exercices à la suite dans une même étape : chacun dans son cadre, les scores s'additionnent
+  function enchainer(zone, suites, fini) {
+    var justes = 0, total = 0, k = 0;
+    function suivante() {
+      if (k >= suites.length) return fini(justes, total);
+      var cadre = el("div");
+      zone.appendChild(cadre);
+      suites[k++](cadre, function (j, t) { justes += j || 0; total += t || 0; cadre.remove(); suivante(); });
+    }
+    suivante();
+  }
+  var TYPES_TACHE = [{ id: "surfacique", nom: "Surface", fig: "aplat" }, { id: "lineaire", nom: "Ligne", fig: "trait" }, { id: "ponctuel", nom: "Point", fig: "cercle" }];
+  function partieDe(cq, i) {
+    var cumul = 0;
+    for (var p = 0; p < cq.parties.length; p++) { cumul += cq.parties[p].nb; if (i < cumul) return p; }
+    return cq.parties.length - 1;
+  }
+  function legendeCroquis(cq, d) {
+    var g = el("div", { class: "met-legende" });
+    cq.parties.forEach(function (p, k) {
+      g.appendChild(el("h3", { text: ["I", "II", "III", "IV"][k] + ". " + p.titre }));
+      cq.elements.forEach(function (e, i) {
+        if (partieDe(cq, i) === k) g.appendChild(el("div", { class: "met-legende-ligne" }, [d.figure(i), el("span", { text: e.nom })]));
+      });
+    });
+    return g;
+  }
+  function vueAtelierTache(n, x) {
+    document.title = x.titre + " — " + nomNiveau(n);
+    var cq = chercherParId(x.chapitre, "croquis", x.croquis), d = cq ? dessinCroquis(cq) : null;
+    if (!d || !cq.parties) { app.appendChild(lienRetour("#/methode/" + n, titreMethode())); app.appendChild(el("p", { class: "vide", text: "Ce croquis n'est pas disponible." })); return; }
+    atelier(n, {
+      genre: "Tâche finale · le croquis", titre: x.titre, cle: "tache:" + x.id, fiche: ficheDe(n, "figures", "croquis"), chapitre: x.chapitre,
+      conseil: x.conseil,
+      etapes: [
+        { nom: "Je surligne", aide: "Touche les éléments du texte que l'on peut, et que l'on doit, représenter sur le croquis : je ne garde que ce que je peux localiser sur une carte.", faire: function (zone, fini) {
+          var segs = [];
+          var bloc = el("div", { class: "met-texte" }, [el("p", { class: "met-doc-titre", text: x.texte.titre })]);
+          x.texte.paragraphes.forEach(function (par) {
+            var p = el("p");
+            par.forEach(function (s) {
+              if (typeof s === "string") { p.appendChild(document.createTextNode(s)); return; }
+              // un passage du texte (pas un bouton) : il passe à la ligne comme le reste du texte
+              var g = { s: s, choisi: false, b: el("span", { class: "met-seg", role: "button", tabindex: "0", text: s.t, "aria-pressed": "false" }) };
+              var basculer = function () {
+                if (g.b.getAttribute("aria-disabled") === "true") return;
+                g.choisi = !g.choisi; g.b.classList.toggle("choisi", g.choisi); g.b.setAttribute("aria-pressed", String(g.choisi)); maj();
+              };
+              g.b.addEventListener("click", basculer);
+              g.b.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); basculer(); } });
+              segs.push(g);
+              p.appendChild(g.b);
+            });
+            bloc.appendChild(p);
+          });
+          bloc.appendChild(el("p", { class: "met-doc-source", text: x.texte.source }));
+          var compteur = el("p", { class: "met-compteur" });
+          function maj() {
+            var nb = segs.filter(function (g) { return g.choisi; }).length;
+            compteur.textContent = pluriel(nb, "élément") + " surligné" + (nb > 1 ? "s" : "") + " · " + x.texte.conseil;
+          }
+          maj();
+          zone.appendChild(compteur);
+          zone.appendChild(bloc);
+          var verifier = boutonSuite("Vérifier", function () {
+            verifier.remove();
+            var justes = 0, retours = [];
+            segs.forEach(function (g) {
+              var garder = g.s.e != null, ok = g.choisi === garder;
+              g.b.setAttribute("aria-disabled", "true");
+              g.b.removeAttribute("tabindex");
+              g.b.classList.remove("choisi");
+              if (garder) g.b.classList.add(g.choisi ? "bien" : "manque");
+              else if (g.choisi) g.b.classList.add("faux");
+              if (ok) justes++;
+              else retours.push(el("li", { class: garder ? "manque" : "faux" }, [el("strong", { text: "« " + g.s.t + " » : " }),
+                garder ? "à représenter sur le croquis (" + cq.elements[g.s.e].nom + ")." : g.s.expl]));
+            });
+            zone.appendChild(el("div", { class: "met-cle" }, [
+              el("span", { style: "--c: var(--ok)", text: "bien surligné" }), el("span", { style: "--c: var(--warn)", text: "oublié" }), el("span", { style: "--c: var(--ko)", text: "à ne pas surligner" })]));
+            zone.appendChild(el("p", { class: "met-expl " + (justes === segs.length ? "ok" : "ko") }, [el("strong", { text: justes + " / " + segs.length + ". " }), x.texte.bilan]));
+            if (retours.length) zone.appendChild(el("ul", { class: "met-retours" }, retours));
+            zone.appendChild(boutonSuite("Étape suivante", function () { fini(justes, segs.length); }));
+          });
+          zone.appendChild(verifier);
+        } },
+        { nom: "Figurés et couleurs", aide: "Pour chaque élément : un figuré de surface, une ligne ou un point ? Puis une couleur chaude ou froide.", faire: function (zone, fini) {
+          enchainer(zone, [
+            function (cadre, suite) {
+              var k = 0, justes = 0, ici = el("div");
+              cadre.appendChild(ici);
+              function poser() {
+                ici.innerHTML = "";
+                if (k >= x.elements.length) return suite(justes, x.elements.length);
+                var it = x.elements[k];
+                ici.appendChild(el("p", { class: "petit", text: "Élément " + (k + 1) + " / " + x.elements.length }));
+                ici.appendChild(el("p", { class: "met-argument", text: it.texte }));
+                ici.appendChild(el("p", { class: "q-enonce", text: "Quel type de figuré ?" }));
+                var opts = el("div", { class: "met-figchoix" });
+                var boutons = TYPES_TACHE.map(function (t) {
+                  var b = el("button", { class: "option", type: "button" }, [figureSvg(t.fig), el("span", { text: t.nom })]);
+                  b.addEventListener("click", function () {
+                    boutons.forEach(function (y) { y.disabled = true; });
+                    var bon = TYPES_TACHE.map(function (z) { return z.id; }).indexOf(it.type), ok = t.id === it.type;
+                    boutons[bon].classList.add("juste");
+                    if (ok) justes++; else b.classList.add("faux");
+                    ici.appendChild(el("div", { class: "met-expl " + (ok ? "ok" : "ko") }, [d.figure(k), el("span", null, [el("strong", { text: cq.elements[k].nom + ". " }), it.expl])]));
+                    ici.appendChild(boutonSuite(k + 1 < x.elements.length ? "Élément suivant" : "Continuer", function () { k++; poser(); }));
+                  });
+                  opts.appendChild(b);
+                  return b;
+                });
+                ici.appendChild(opts);
+              }
+              poser();
+            },
+            function (cadre, suite) {
+              cadre.appendChild(el("p", { class: "q-enonce", text: "Couleur froide ou couleur chaude ?" }));
+              var items = [];
+              x.elements.forEach(function (it, i) { if (it.couleur) items.push({ t: cq.elements[i].nom, i: it.couleur === "chaude" ? 1 : 0, expl: it.couleurExpl }); });
+              suiteRanger(cadre, melanger(items), ["Froide : le milieu naturel, l'eau, ce qui est préservé", "Chaude : ce qui est exploité, ce qui menace, ce qui change vite"], "Élément", suite, null, ["F", "C"]);
+            }
+          ], fini);
+        } },
+        { nom: "La légende", aide: "Trois parties, dans l'ordre du texte ; un figuré = une seule information.", faire: function (zone, fini) {
+          enchainer(zone, [
+            function (cadre, suite) {
+              cadre.appendChild(el("p", { class: "q-enonce", text: "Touche les trois parties de la légende dans l'ordre." }));
+              suiteOrdre(cadre, cq.parties.map(function (p) { return p.titre; }), suite, x.ordreParties, "Continuer");
+            },
+            function (cadre, suite) {
+              var items = cq.elements.map(function (e, i) { return { t: e.nom, i: partieDe(cq, i) }; });
+              suiteRanger(cadre, melanger(items), cq.parties.map(function (p) { return p.titre; }), "Élément", suite, function (ici, justes, total) {
+                ici.appendChild(el("div", { class: "etiq", text: "La légende complète" }));
+                ici.appendChild(legendeCroquis(cq, d));
+                ici.appendChild(boutonSuite("Étape suivante", function () { suite(justes, total); }));
+              });
+            }
+          ], fini);
+        } },
+        { nom: "Je réalise", aide: "L'ordre de réalisation, puis les vérifications avant de rendre le croquis.", faire: function (zone, fini) {
+          enchainer(zone, [
+            function (cadre, suite) {
+              cadre.appendChild(el("p", { class: "q-enonce", text: "Dans quel ordre réaliser le croquis ?" }));
+              suiteOrdre(cadre, x.realiser.ordre, suite, x.realiser.explOrdre, "Continuer");
+            },
+            function (cadre, suite) { suiteQcm(cadre, x.realiser.qcm, suite); }
+          ], fini);
+        } },
+        { nom: "Le corrigé", aide: "Compare avec ton croquis : figurés, couleurs, légende, nomenclature.", faire: function (zone, fini) {
+          var d2 = dessinCroquis(cq);
+          zone.appendChild(el("figure", { class: "met-croquis" }, [el("figcaption", { text: cq.titre }), d2.svg, legendeCroquis(cq, d2)]));
+          zone.appendChild(el("div", { class: "etiq", text: "Nomenclature à placer" }));
+          zone.appendChild(el("ul", { class: "met-retours" }, x.nomenclature.map(function (t) { return el("li", { text: t }); })));
+          zone.appendChild(el("div", { class: "etiq", text: "Je vérifie mon croquis" }));
+          zone.appendChild(el("ul", { class: "met-verifier" }, x.verifier.map(function (t) { return el("li", { text: t }); })));
+          zone.appendChild(boutonSuite("Voir mon score", function () { fini(0, 0); }));
         } }
       ]
     });
