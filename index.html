@@ -142,7 +142,8 @@ const {
   useEffect,
   useRef,
   useCallback,
-  useMemo
+  useMemo,
+  useContext
 } = React;
 
 /* ---------- design tokens ---------- */
@@ -618,6 +619,9 @@ function withDefaults(raw) {
   if (!Array.isArray(data.fiches)) data.fiches = [];
   if (!Array.isArray(data.evaluations)) data.evaluations = [];
   if (!Array.isArray(data.supports)) data.supports = DEFAULT_SUPPORTS();
+  // Supports de départ créés sur plusieurs appareils avant la synchro : un seul par lien
+  { const seenUrl = new Set(); data.supports = data.supports.filter(sp => sp && !(sp.url && seenUrl.has(sp.url)) && (seenUrl.add(sp.url), true)); }
+  if (!Array.isArray(data.classTasks)) data.classTasks = [];
   if (!Array.isArray(data.agenda)) data.agenda = DEFAULT_AGENDA();
   if (!data.cahier || typeof data.cahier !== "object") data.cahier = {};
   if (!data.calendrier || typeof data.calendrier !== "object") data.calendrier = {};
@@ -2031,6 +2035,59 @@ function findChapter(data, classId, chapterId) {
   return null;
 }
 
+/* ---------- Tâches par classe ----------
+   Une tâche appartient à une classe (photocopies, copies à rendre, élève à relancer…).
+   Elle s'affiche dans chaque cours de cette classe tant qu'elle n'est pas faite ;
+   cochée, elle reste visible barrée le jour même puis disparaît. */
+const TaskCtx = React.createContext(null);
+function openTasksFor(data, classId, iso) {
+  return (data.classTasks || []).filter(t => t.classId === classId && (!t.done || t.doneOn === iso))
+    .sort((a, b) => (a.done - b.done) || String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
+}
+function ClassTasks({ data, classId, iso, compact, big }) {
+  const h = React.createElement;
+  const api = useContext(TaskCtx);
+  const [text, setText] = useState("");
+  const [adding, setAdding] = useState(false);
+  if (!api || !classId) return null;
+  const tasks = openTasksFor(data, classId, iso || localISO(new Date()));
+  const fs = big ? 14 : 12.5;
+  const add = () => { const t = text.trim(); if (!t) return; api.add(classId, t); setText(""); };
+  const stop = e => e.stopPropagation();
+  if (compact && !tasks.length) return null;
+  return h("div", { onClick: stop, style: { display: "flex", flexDirection: "column", gap: 4 } },
+    !compact && h("div", { style: { ...labelStyle, marginBottom: 2 } }, "Tâches pour cette classe"),
+    tasks.map(t => h("div", { key: t.id, style: { display: "flex", alignItems: "flex-start", gap: 8 } },
+      h("button", { onClick: () => api.toggle(t.id), role: "checkbox", "aria-checked": !!t.done, "aria-label": t.done ? `Remettre « ${t.text} » à faire` : `Marquer « ${t.text} » comme fait`,
+        style: { flexShrink: 0, marginTop: 1, width: big ? 22 : 18, height: big ? 22 : 18, borderRadius: 5, border: `1.5px solid ${t.done ? COLORS.done : COLORS.wip}`, background: t.done ? COLORS.done : "transparent", color: COLORS.bg, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center" } },
+        t.done && h(IconCheck, { size: big ? 13 : 11 })),
+      h("span", { style: { fontFamily: "Inter, sans-serif", fontSize: fs, lineHeight: 1.4, color: t.done ? COLORS.faint : COLORS.ink, textDecoration: t.done ? "line-through" : "none", flex: 1, minWidth: 0, overflowWrap: "anywhere" } }, t.text),
+      !compact && h("button", { onClick: () => api.remove(t.id), "aria-label": `Supprimer « ${t.text} »`, title: "Supprimer", style: { background: "none", border: "none", color: COLORS.faint, cursor: "pointer", padding: 2, flexShrink: 0, display: "flex" } }, h(IconX, { size: 12 })))),
+    !compact && (adding || tasks.length === 0 || big
+      ? h("div", { style: { display: "flex", gap: 6, marginTop: 2 } },
+          h("input", { value: text, autoFocus: adding, onChange: e => setText(e.target.value), onKeyDown: e => { if (e.key === "Enter") { e.preventDefault(); add(); } if (e.key === "Escape") setAdding(false); },
+            placeholder: "Ex. photocopier la fiche, rendre les copies, relancer un élève…", "aria-label": "Nouvelle tâche pour cette classe", style: { ...inputStyle, fontSize: big ? 14 : 13, padding: big ? "9px 10px" : inputStyle.padding } }),
+          h("button", { onClick: add, "aria-label": "Ajouter la tâche", style: { ...btnCircle, width: big ? 36 : 30, height: big ? 36 : 30, flexShrink: 0, alignSelf: "center" } }, h(IconPlus, { size: 13 })))
+      : h("button", { onClick: () => setAdding(true), style: { alignSelf: "flex-start", background: "none", border: "none", padding: "2px 0", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: 12, color: COLORS.accent, display: "inline-flex", alignItems: "center", gap: 4 } }, h(IconPlus, { size: 11 }), "Ajouter une tâche")));
+}
+
+/* ---------- Report de ce qui n'est pas fini ----------
+   « Pas fini » d'une séance s'affiche en tête du cours suivant de la même classe
+   (même matière, même demi-groupe), comme le travail donné. */
+function carryOverFor(data, classId, iso, slot) {
+  return cahierEntriesFor(data, classId).filter(e => e.reste && e.reste.trim() && e.date < iso && (!slot || sameCourse(e.slot, slot)) && nextSessionDate(data, classId, e.date, e.slot) === iso);
+}
+function CarryOver({ items, onTake, big }) {
+  const h = React.createElement;
+  if (!items.length) return null;
+  return h("div", { style: { display: "flex", flexDirection: "column", gap: 6 } },
+    items.map(e => h("div", { key: e.key, onClick: ev => ev.stopPropagation(), style: { display: "flex", alignItems: "flex-start", gap: 8, padding: big ? "9px 11px" : "6px 9px", borderRadius: 7, background: COLORS.wipSoft, borderLeft: `3px solid ${COLORS.wip}` } },
+      h("div", { style: { flex: 1, minWidth: 0, fontFamily: "Inter, sans-serif", fontSize: big ? 13.5 : 12, lineHeight: 1.45, color: COLORS.ink } },
+        h("strong", { style: { color: COLORS.wipInk } }, `Reporté du ${longDate(e.date)} : `), e.reste),
+      onTake && h("button", { onClick: () => onTake(e), title: "Ajouter au début de ce qui est prévu pour cette séance", style: { flexShrink: 0, background: "none", border: `1px solid ${COLORS.wip}`, color: COLORS.wipInk, borderRadius: 6, padding: big ? "6px 10px" : "3px 8px", fontFamily: "Inter, sans-serif", fontSize: big ? 12.5 : 11.5, fontWeight: 600, cursor: "pointer" } }, "Reprendre"))));
+}
+const prependTaken = (seance, e) => { const t = e.reste.trim(); return seance && seance.includes(t) ? seance : [t, seance].filter(Boolean).join("\n"); };
+
 function SlotCard({ data, slot, date, entry, onSave, evals }) {
   const h = React.createElement;
   const cls = data.classes[slot.classId];
@@ -2043,6 +2100,9 @@ function SlotCard({ data, slot, date, entry, onSave, evals }) {
   const type = patch => { const n = { ...draft, ...patch }; setDraft(n); typed(n); };
   const commit = patch => { typed.cancel(); const n = { ...draft, ...patch }; setDraft(n); onSave(n); };
   const txt = { fontFamily: "Inter, sans-serif", fontSize: 12.5, color: COLORS.ink, lineHeight: 1.45 };
+  const carry = carryOverFor(data, slot.classId, date, slot);
+  const nTasks = openTasksFor(data, slot.classId, date).length;
+  const nextISO = nextSessionDate(data, slot.classId, date, slot);
   return h("div", { style: { background: COLORS.panel, border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${color}`, boxShadow: CARD_SHADOW, borderRadius: 8, overflow: "hidden" } },
     h("div", { onClick: () => setOpen(!open), style: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", cursor: "pointer", flexWrap: "wrap" } },
       h("span", { style: { fontFamily: "IBM Plex Mono, monospace", fontSize: 11.5, color: COLORS.sub, width: 82, flexShrink: 0 } }, `${slot.start}–${slot.end}`),
@@ -2055,19 +2115,26 @@ function SlotCard({ data, slot, date, entry, onSave, evals }) {
           style: { width: 22, height: 22, borderRadius: 11, border: `1.5px solid ${draft.done ? COLORS.done : COLORS.line}`, background: draft.done ? COLORS.done : "transparent", color: COLORS.bg, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center" } },
           draft.done && h(IconCheck, { size: 12 })),
         h(open ? IconChevronDown : IconChevronRight, { size: 14, style: { color: COLORS.faint } }))),
-    !open && (draft.seance || draft.devoirs || found) && h("div", { onClick: () => setOpen(true), style: { padding: "0 12px 10px 104px", cursor: "pointer" } },
+    !open && !!(draft.seance || draft.devoirs || found || draft.reste || carry.length > 0 || nTasks > 0) && h("div", { onClick: () => setOpen(true), className: "slot-sum", style: { padding: "0 12px 10px 104px", cursor: "pointer", display: "flex", flexDirection: "column", gap: 4 } },
+      h(CarryOver, { items: carry }),
       found && h("div", { style: { ...txt, fontSize: 11.5, color: COLORS.sub, fontStyle: "italic" } }, found.chapter.title),
       draft.seance && h("div", { style: txt }, draft.seance),
-      draft.devoirs && h("div", { style: { ...txt, color: COLORS.histoire } }, h("strong", null, "Pour la suite : "), draft.devoirs)),
+      draft.reste && h("div", { style: { ...txt, color: COLORS.wipInk } }, h("strong", null, "Pas fini, reporté : "), draft.reste),
+      draft.devoirs && h("div", { style: { ...txt, color: COLORS.histoire } }, h("strong", null, "Pour la suite : "), draft.devoirs),
+      h(ClassTasks, { data, classId: slot.classId, iso: date, compact: true })),
     open && h("div", { style: { padding: "4px 12px 12px", display: "flex", flexDirection: "column", gap: 9, borderTop: `1px dashed ${COLORS.line}` } },
+      carry.length > 0 && h("div", { style: { paddingTop: 6 } }, h(CarryOver, { items: carry, onTake: e => commit({ seance: prependTaken(draft.seance, e) }) })),
       h("div", null, h("label", { style: labelStyle }, "Chapitre"),
         h("select", { style: inputStyle, value: draft.chapterId, onChange: e => commit({ chapterId: e.target.value }) },
           h("option", { value: "" }, "—"),
           cls && cls.themes.map(th => h("optgroup", { key: th.id, label: th.title }, th.chapters.map(ch => h("option", { key: ch.id, value: ch.id }, ch.title)))))),
       h("div", null, h("label", { style: labelStyle }, "Séance (prévu / fait)"),
         h("textarea", { style: { ...inputStyle, minHeight: 54, resize: "vertical" }, value: draft.seance, placeholder: "Ex. I. b) EDC Saint-Martin — docs 1 à 3, trace écrite", onChange: e => type({ seance: e.target.value }), onBlur: typed.flush })),
+      h("div", null, h("label", { style: labelStyle }, nextISO ? `Pas fini · reporté au ${longDate(nextISO)}` : "Pas fini · reporté au prochain cours"),
+        h("input", { style: inputStyle, value: draft.reste || "", placeholder: "Ex. Trace écrite du II à finir, doc 3 pas étudié", onChange: e => type({ reste: e.target.value }), onBlur: typed.flush })),
       h("div", null, h("label", { style: labelStyle }, "Travail donné"),
         h("input", { style: inputStyle, value: draft.devoirs, placeholder: "Ex. Apprendre les notions aléa / vulnérabilité", onChange: e => type({ devoirs: e.target.value }), onBlur: typed.flush })),
+      h("div", { style: { borderTop: `1px dashed ${COLORS.line}`, paddingTop: 9 } }, h(ClassTasks, { data, classId: slot.classId, iso: date })),
       h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, margin: 0 } },
         "Cocher « faite » avec un chapitre choisi ajoute la séance au journal du chapitre et fait avancer sa progression.")));
 }
@@ -2269,8 +2336,10 @@ function MyDay({ data, setView, onClassMode }) {
               s.room && h("span", { style: { ...txt, fontSize: 11.5, color: COLORS.faint } }, "Salle " + s.room),
               current && h("span", { style: { ...txt, fontSize: 11, fontWeight: 700, color: COLORS.accent } }, "en cours"),
               e.done && h("span", { style: { color: COLORS.done, display: "flex" } }, h(IconCheck, { size: 13 }))),
+            h(CarryOver, { items: carryOverFor(data, s.classId, dayISO, s) }),
             f && h("div", { style: { ...txt, fontSize: 11.5, color: COLORS.sub, fontStyle: "italic" } }, f.chapter.title),
             e.seance ? h("div", { style: { ...txt, color: COLORS.ink } }, e.seance) : h("div", { style: { ...txt, color: COLORS.faint } }, "Séance pas encore préparée"),
+            h(ClassTasks, { data, classId: s.classId, iso: dayISO, compact: true }),
             due.map(d => h("div", { key: d.key, style: { ...txt, fontSize: 12, color: COLORS.histoire } }, h("strong", null, "À relever : "), d.devoirs)),
             evals.map(ev => h("div", { key: ev.id, style: { ...txt, fontSize: 12, fontWeight: 600, color: COLORS.wipInk } }, "Évaluation : " + ev.title))));
       })));
@@ -4918,7 +4987,7 @@ const DEFAULT_SUPPORTS = () => [
   ["La table de Vienne (PPO Metternich)", "1re", "H", "Thème 1 · ch. 2", "jeu", "Hw57GCiwZvWEEjRoNtjkqX"],
   ["Entrer dans La Liberté (1830-1848)", "1re", "H", "Thème 1 · ch. 2", "outil", "VWSq3XUMrDY2fXAqZmtAiE"],
   ["La métropolisation · 1re", "1re", "G", "Thème 1", "présentation animée", "MwkHxmvRtHhouTzfedK4LZ"]
-].map(([titre, niveau, disc, chapitre, type, id]) => ({ id: uid(), titre, niveau, disc, chapitre, chapitreTitre: "", type, url: "https://claude.ai/artifact/" + id }));
+].map(([titre, niveau, disc, chapitre, type, id]) => ({ id: "sp-" + id, titre, niveau, disc, chapitre, chapitreTitre: "", type, url: "https://claude.ai/artifact/" + id }));
 
 // Niveau d'une classe d'après son nom : « Seconde 3 » → 2de, « 5ème1 » → 5e, « Première 4 » → 1re
 function classLevel(cls) {
@@ -5902,7 +5971,7 @@ function merge3(base, mine, theirs, prefer = "mine") {
 }
 // Titre (et classe, date) d'un élément : sert à reconnaître le même élément créé des deux côtés
 function naturalKey(x) {
-  const t = x.title ?? x.text ?? x.name ?? x.label;
+  const t = x.title ?? x.text ?? x.name ?? x.label ?? x.titre;
   return typeof t === "string" && t.trim() ? JSON.stringify([x.classId ?? null, x.date ?? null, t.trim()]) : null;
 }
 // Listes d'éléments avec id (classes, chapitres, évaluations…) : élément par élément.
@@ -6521,6 +6590,8 @@ function ClassMode({ data, onClose, onObserve, onSaveEntry }) {
           cls && cls.themes.map(th => h("optgroup", { key: th.id, label: th.title }, th.chapters.map(c => h("option", { key: c.id, value: c.id }, c.title)))))),
       h("div", null, h("label", { style: labelStyle, htmlFor: "ec-seance" }, "Ce qui a été fait"),
         h("textarea", { id: "ec-seance", style: { ...inputStyle, fontSize: 14, minHeight: 70, resize: "vertical", lineHeight: 1.45 }, value: (entry && entry.seance) || "", placeholder: "Ex. I. b) Étude de cas : docs 1 à 3, trace écrite", onChange: e => type({ seance: e.target.value }), onBlur: typed.flush })),
+      h("div", null, h("label", { style: labelStyle, htmlFor: "ec-reste" }, next ? `Pas fini · reporté au ${longDate(next)}` : "Pas fini · reporté au prochain cours"),
+        h("input", { id: "ec-reste", style: { ...inputStyle, fontSize: 14, padding: "9px 10px" }, value: (entry && entry.reste) || "", placeholder: "Ex. Trace écrite du II à finir, doc 3 pas étudié", onChange: e => type({ reste: e.target.value }), onBlur: typed.flush })),
       h("div", null, h("label", { style: labelStyle, htmlFor: "ec-devoirs" }, next ? `Travail pour le ${longDate(next)}` : "Travail donné"),
         h("input", { id: "ec-devoirs", style: { ...inputStyle, fontSize: 14, padding: "9px 10px" }, value: (entry && entry.devoirs) || "", placeholder: "Ex. Apprendre la leçon, finir l'exercice 2", onChange: e => type({ devoirs: e.target.value }), onBlur: typed.flush })),
       h("button", { onClick: () => commit({ done: !done }), "aria-pressed": done, style: { ...primaryBtn, fontSize: 15, padding: "13px 16px", borderRadius: 10, background: done ? COLORS.done : COLORS.accent, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 } },
@@ -6556,7 +6627,9 @@ function ClassMode({ data, onClose, onObserve, onSaveEntry }) {
           slot && slot.room && h("span", { style: { ...txt, fontSize: 12 } }, "Salle " + slot.room)),
         ch && h("div", { style: { ...txt, color: COLORS.ink, marginTop: 4 } }, ch.title, h("span", { style: { color: COLORS.sub } }, ` · séance\u00a0${seanceN}\u00a0sur\u00a0${total}`)),
         entry && entry.seance && !done && h("div", { style: { ...txt, fontSize: 12.5, marginTop: 4 } }, h("strong", null, "Prévu : "), entry.seance),
-        done && h("div", { style: { ...txt, fontSize: 12.5, marginTop: 4, color: COLORS.doneInk, fontWeight: 600 } }, "Séance faite")),
+        done && h("div", { style: { ...txt, fontSize: 12.5, marginTop: 4, color: COLORS.doneInk, fontWeight: 600 } }, "Séance faite"),
+        slot && h("div", { style: { marginTop: 8 } }, h(CarryOver, { big: true, items: carryOverFor(data, classId, todayISO, slot), onTake: e => commit({ seance: prependTaken((entry && entry.seance) || "", e) }) })),
+        h("div", { style: { marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${COLORS.line}` } }, h(ClassTasks, { data, classId, iso: todayISO, big: true }))),
       // Onglets
       h("div", { role: "tablist", style: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, background: COLORS.encadre, borderRadius: 10, padding: 4, marginBottom: 12 } },
         TABS.map(([id, lab]) => h("button", { key: id, role: "tab", "aria-selected": tab === id, onClick: () => setTab(id),
@@ -7093,6 +7166,11 @@ function App() {
     persist(next);
     if (activeClass === id) setActiveClass(next.order[0] || null);
   };
+  const taskApi = {
+    add: (classId, text) => persist({ ...data, classTasks: [...(data.classTasks || []), { id: uid(), classId, text, done: false, createdAt: new Date().toISOString() }] }),
+    toggle: id => persist({ ...data, classTasks: (data.classTasks || []).map(t => t.id === id ? { ...t, done: !t.done, doneOn: !t.done ? localISO(new Date()) : null } : t) }),
+    remove: id => persist({ ...data, classTasks: (data.classTasks || []).filter(t => t.id !== id) })
+  };
   const addTodo = text => persist({
     ...data,
     todos: [...data.todos, {
@@ -7407,7 +7485,7 @@ function App() {
     };
     persist(next);
   };
-  return /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement(TaskCtx.Provider, { value: taskApi }, /*#__PURE__*/React.createElement("div", {
     className: view === "home" ? "has-rail" : "",
     style: {
       minHeight: "100vh",
@@ -7843,7 +7921,7 @@ function App() {
   }, /*#__PURE__*/React.createElement(PrintSheet, {
     data: data,
     cid: printing
-  })), document.body));
+  })), document.body)));
 }
 ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(App, null));
 if ("serviceWorker" in navigator) {

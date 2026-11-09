@@ -1,4 +1,4 @@
-const CACHE = "cahier-hg-v14";
+const CACHE = "cahier-hg-v15";
 const ASSETS = [
   "./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png",
   // React, hébergé dans le dépôt : sans lui en cache, l'app reste blanche hors connexion.
