@@ -15,6 +15,8 @@
               — les documents sont ceux des points de passage de cours.js ou des dossiers du professeur, recopiés à l'identique
    figures  [{ n, chapitre, titre, sous, nb, items: [{ txt, type: "ponctuel" | "lineaire" | "surfacique", fig, expl }],
               legende: { sujet, parties: [{ titre, items }] } }]
+   taches   tâche finale de croquis : { id, chapitre, croquis (id du croquis de cours.js, avec ses parties), titre, sous, texte, elements,
+              ordreParties, realiser: { ordre, explOrdre, qcm }, nomenclature, verifier }
    Un atelier n'apparaît que pour la classe de son chapitre, et seulement si ce chapitre est ouvert aux élèves. */
 const METHODE = (function () {
   var FIGURES = [
@@ -1110,9 +1112,10 @@ const METHODE = (function () {
         legende: {
           sujet: "Croquis : l'Amazonie, un espace riche en ressources, convoité et menacé",
           parties: [
-            { titre: "Un environnement exceptionnel", items: ["Forêt tropicale", "L'Amazone et ses affluents"] },
-            { titre: "Des ressources convoitées et exploitées", items: ["Grande ville (Manaus, Belém)", "Agriculture d'exportation (soja, élevage)", "Mine (Carajás)", "Grand barrage (Belo Monte, Tucuruí)", "Grande route (Transamazonienne)"] },
-            { titre: "Des risques qui fragilisent la région", items: ["Front pionnier", "Arc de déforestation", "Orpaillage et pollution au mercure"] }
+            // la légende du corrigé de la tâche finale (activité 5)
+            { titre: "Un environnement exceptionnel", items: ["Forêt tropicale humide", "L'Amazone et ses affluents", "Grandes villes (Manaus, Belém, Iquitos)"] },
+            { titre: "Des ressources convoitées et exploitées", items: ["Agriculture d'exportation (soja, élevage)", "Mines (fer, bauxite, or)", "Barrages hydroélectriques", "Routes (Transamazonienne, BR-163, BR-319)", "Avancée des fronts pionniers"] },
+            { titre: "Des risques qui fragilisent la région", items: ["Déforestation et incendies (« arc de déforestation »)", "Sécheresses et crues extrêmes des fleuves"] }
           ]
         }
       },
@@ -1140,6 +1143,80 @@ const METHODE = (function () {
             { titre: "Deux géants démographiques", items: ["L'Inde, pays le plus peuplé du monde", "Le Nigeria, pays le plus peuplé d'Afrique"] }
           ]
         }
+      }
+    ],
+
+    // tâche finale : du texte au croquis, comme la fiche de la classe ; le corrigé est le croquis de cours.js (son id : croquis),
+    // et elements suit l'ordre de ses éléments ; dans le texte, un passage à surligner porte e (le rang de l'élément), un piège porte expl
+    taches: [
+      {
+        id: "croquis-amazonie", chapitre: "2de-g1-c12", croquis: "amazonie",
+        titre: "Tâche finale : le croquis de l'Amazonie",
+        sous: "Du texte au croquis, comme l'activité 5 : surligner, choisir les figurés, construire la légende",
+        conseil: "refais le croquis sur un fond de carte vierge, sans regarder, en 20 minutes, puis compare avec le corrigé.",
+        texte: {
+          titre: "L'Amazonie : un environnement exceptionnel, convoité et menacé",
+          source: "Texte : synthèse de l'étude de cas sur l'Amazonie (trace écrite du cours).",
+          conseil: "un élément surligné = un figuré sur le croquis",
+          bilan: "On surligne les lieux et les phénomènes que l'on peut localiser : chacun deviendra un figuré de la légende.",
+          paragraphes: [
+            ["L'Amazonie est ", { t: "la plus grande forêt tropicale du monde", e: 0 }, " et ",
+              { t: "un élément essentiel du climat planétaire", expl: "une idée importante, mais qu'on ne peut pas localiser : pas de figuré." },
+              ". Sa végétation dense abrite ", { t: "une biodiversité unique", expl: "elle est déjà représentée par la forêt tropicale : pas de figuré à part." },
+              ". Elle est traversée par ", { t: "un réseau fluvial exceptionnel dominé par le fleuve Amazone", e: 1 },
+              ". L'Amazonie brésilienne compte ", { t: "près de 30 millions d'habitants", expl: "un chiffre pour toute la région : on représente plutôt les grandes villes." },
+              ", en majorité urbains, avec ", { t: "des villes comme Manaus", e: 2 }, " (2,1 millions d'habitants)."],
+            ["L'Amazonie regorge de ressources naturelles : sols mis en valeur par ", { t: "l'agriculture d'exportation (soja, élevage)", e: 3 },
+              ", sous-sol riche en ", { t: "minerais (or, bauxite, fer)", e: 4 }, ", et fleuves permettant la construction de ", { t: "grands barrages hydroélectriques", e: 5 },
+              ". Ces richesses attirent de nombreux acteurs — ", { t: "entreprises, agriculteurs, États", expl: "les acteurs comptent, mais ils ne se localisent pas : on les voit sur le croquis à travers leurs activités (agriculture, mines, barrages)." },
+              " — qui y développent leurs activités. Mais cette exploitation croissante exerce de fortes pressions sur les milieux. ",
+              { t: "L'avancée des fronts pionniers", e: 7 }, ", ", { t: "l'ouverture de routes", e: 6 },
+              ", l'extension des zones agricoles et la multiplication des mines modifient les paysages et créent ",
+              { t: "des conflits d'usage avec les populations locales", expl: "une idée à expliquer à l'écrit : elle ne se localise pas précisément sur la carte." }, "."],
+            ["L'Amazonie fait face à des risques de plus en plus nombreux. Certains sont naturels, comme ", { t: "les sécheresses sévères ou les inondations extrêmes", e: 9 },
+              ". D'autres sont directement liés aux activités humaines : ", { t: "la déforestation fragilise les sols et favorise les incendies", e: 8 },
+              ". Les barrages modifient les équilibres des fleuves et peuvent aggraver certaines inondations. L'ensemble de ces transformations accroît ",
+              { t: "la vulnérabilité de la région", expl: "c'est une notion : elle se lit dans toute la troisième partie de la légende, mais n'a pas de figuré à elle." },
+              " et menace durablement cet environnement exceptionnel."]
+          ]
+        },
+        elements: [
+          { texte: "« la plus grande forêt tropicale du monde »", type: "surfacique", couleur: "froide", expl: "Un aplat vert : la forêt couvre presque tout le bassin de l'Amazone.", couleurExpl: "Vert : le milieu naturel." },
+          { texte: "« un réseau fluvial exceptionnel dominé par le fleuve Amazone »", type: "lineaire", couleur: "froide", expl: "Un trait bleu qui suit l'Amazone et ses affluents.", couleurExpl: "Bleu : l'eau." },
+          { texte: "« des villes comme Manaus »", type: "ponctuel", expl: "Un rond pour chaque grande ville : Manaus, Belém, Iquitos." },
+          { texte: "« l'agriculture d'exportation (soja, élevage) »", type: "surfacique", couleur: "chaude", expl: "Un aplat jaune-orangé : les terres de soja et d'élevage, au sud du bassin.", couleurExpl: "Jaune-orangé : un espace exploité." },
+          { texte: "« minerais (or, bauxite, fer) »", type: "ponctuel", expl: "Un triangle à l'emplacement des grandes mines : Carajás (fer), Trombetas (bauxite), l'or du Tapajós et du Roraima." },
+          { texte: "« grands barrages hydroélectriques »", type: "ponctuel", expl: "Un carré sur le fleuve : Belo Monte, Tucuruí, Jirau." },
+          { texte: "« l'ouverture de routes »", type: "lineaire", expl: "Un trait : la Transamazonienne, la BR-163, la BR-319." },
+          { texte: "« l'avancée des fronts pionniers »", type: "lineaire", couleur: "chaude", expl: "Une flèche, du sud vers le nord : le front pionnier avance dans la forêt.", couleurExpl: "Rouge : un phénomène qui change vite et menace la forêt." },
+          { texte: "« la déforestation fragilise les sols et favorise les incendies »", type: "surfacique", couleur: "chaude", expl: "Des hachures rouges sur l'arc de déforestation, au sud et à l'est du bassin.", couleurExpl: "Rouge : une menace." },
+          { texte: "« les sécheresses sévères ou les inondations extrêmes »", type: "surfacique", couleur: "chaude", expl: "Des hachures orange le long des grands fleuves.", couleurExpl: "Orange : un risque." }
+        ],
+        ordreParties: "Comme le texte : le milieu, puis les ressources et leur exploitation, puis les risques.",
+        realiser: {
+          ordre: ["Les surfaces (aplats, hachures)", "Les lignes (fleuves, routes, flèches)", "Les points (villes, mines, barrages)", "Les noms (océans, pays, villes)"],
+          explOrdre: "Les surfaces d'abord, les noms à la fin : ainsi, rien n'est masqué.",
+          qcm: [
+            { q: "Que veut dire le « E » de T.O.L.E.C. ?", r: "Échelle", faux: ["Encadré", "Explication", "Espace"], expl: "T.O.L.E.C. : titre, orientation, légende, échelle, cadre." },
+            { q: "Dans quel sens tracer les flèches des fronts pionniers ?", r: "Du sud vers le nord, sur l'arc de déforestation", faux: ["Du nord vers le sud, depuis l'océan", "D'ouest en est, le long de l'Amazone", "Vers les villes du littoral"], expl: "Le front pionnier avance du sud du bassin vers le cœur de la forêt." },
+            { q: "Comment écrire la nomenclature ?", r: "À l'horizontale, lisiblement, sans masquer les figurés", faux: ["En diagonale, pour gagner de la place", "Uniquement dans la légende", "En tout petit, au crayon à papier"], expl: "Océans, pays, fleuve et villes : des noms lisibles, qui ne cachent pas les figurés." },
+            { q: "Quel titre convient au croquis ?", r: "L'Amazonie, un espace riche en ressources, convoité et menacé", faux: ["La carte de l'Amazonie", "Le Brésil", "Les fleuves d'Amérique du Sud"], expl: "Le titre répond au sujet : les ressources, les convoitises et les menaces." }
+          ]
+        },
+        nomenclature: [
+          "Océans : Pacifique, Atlantique",
+          "Pays : Brésil, Pérou, Colombie, Équateur, Bolivie, Venezuela, Guyana, Suriname, Guyane (France)",
+          "Fleuve : Amazone",
+          "Villes : Manaus, Belém, Iquitos"
+        ],
+        verifier: [
+          "Le titre répond au sujet : ressources, convoitises, menaces.",
+          "La légende est organisée en 3 parties ; un figuré = une seule information.",
+          "Les 3 types de figurés sont utilisés : surfaces, lignes, points.",
+          "Les couleurs sont logiques : vert et bleu pour le milieu, couleurs chaudes pour l'exploitation et les menaces.",
+          "La nomenclature est écrite à l'horizontale, lisible, sans masquer les figurés.",
+          "T.O.L.E.C. : titre, orientation, légende, échelle, cadre."
+        ]
       }
     ]
   };
