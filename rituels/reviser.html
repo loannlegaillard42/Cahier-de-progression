@@ -1251,11 +1251,9 @@
   .duo-final { font-size: 17px; }
   .duo-final strong { margin: 0 6px; font-size: 28px; }
   /* ---------- La carte de l'année : une route, un monument par chapitre ---------- */
-  .md-haut-titre { flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .md-bilan { background: linear-gradient(135deg, #3348C4, #1D2A8C); box-shadow: 0 5px 0 #141D66; }
-  .md-bilan .av-compteurs { justify-content: flex-start; gap: 6px; }
-  .md-bilan .av-compteur { background: rgba(0, 0, 0, .28); box-shadow: none; font-size: 12.5px; font-weight: 700; padding: 4px 10px 4px 6px; }
-  .md-bilan .av-sym { width: 16px; height: 16px; }
+  .md-bilan .md-bilan-bas { opacity: .9; }
+  .md-bilan .av-barre { margin-bottom: 7px; }
   .md-aide { width: calc(100% - 32px); max-width: 520px; margin: 12px auto 0; padding: 12px 14px; border-radius: 18px; background: #23265A; border: 2px solid #4A50A0; }
   .md-aide .jeu-guide { margin-bottom: 8px; }
   .md-aide .av-mini-btn { display: block; margin-left: auto; }
@@ -1320,6 +1318,10 @@
   .md-c-txt strong { display: block; font-size: 15px; line-height: 1.2; }
   .md-continuer .jeu-valider { width: auto; flex: none; padding: 13px 18px; font-size: 16px; }
   .md .md-or { filter: drop-shadow(0 0 3px rgba(255, 200, 61, .8)); }
+  .md-reflet { animation: md-reflet 1.5s linear infinite; }
+  @keyframes md-reflet { from { stroke-dashoffset: 30; } to { stroke-dashoffset: 0; } }
+  .md-nuage { animation: md-nuage 80s linear infinite; }
+  @keyframes md-nuage { from { transform: translateX(-90px); } to { transform: translateX(calc(var(--large, 400px) + 90px)); } }
   /* les monuments s'animent un peu : drapeaux, fumées, bateaux, éoliennes */
   .md-flotte { transform-box: fill-box; transform-origin: left center; animation: md-flotte 1.8s ease-in-out infinite; }
   @keyframes md-flotte { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(-9deg) scaleX(.88); } }
@@ -6309,7 +6311,7 @@
     noeuds.forEach(function (n) {
       if (n.unite && n.unite !== uniteCourante) {
         uniteCourante = n.unite;
-        chemin.appendChild(el("div", { class: "av-unite u" + ((n.unite.num - 1) % 4) }, [el("small", { text: n.unite.petit }), el("strong", { text: n.unite.nom })]));
+        if (!carte || route.unites.length > 1) chemin.appendChild(el("div", { class: "av-unite u" + ((n.unite.num - 1) % 4) }, [el("small", { text: n.unite.petit }), el("strong", { text: n.unite.nom })]));
       }
       if (n.type === "defi") chemin.appendChild(el("div", { class: "av-unite defi" }, [el("small", { text: "Pour finir" }), el("strong", { text: n.nom })]));
       chemin.appendChild(ile(n));
@@ -6402,7 +6404,7 @@
     // on arrive sur l'île du moment ; si c'est un coffre, sa bulle s'ouvre toute seule
     var ici = chemin.querySelector(".av-ile.actuelle");
     if (ici) {
-      if (ici.getBoundingClientRect().bottom > window.innerHeight - 40) ici.scrollIntoView({ block: "center" });
+      if (ici.getBoundingClientRect().bottom > window.innerHeight - (carte ? 120 : 40)) ici.scrollIntoView({ block: "center" });
       var n0 = noeuds[actuel];
       if (n0 && n0.type === "coffre") basculer(ici, ici.querySelector(".av-noeud"), n0, true, false);
     }
@@ -6690,7 +6692,7 @@
           : { href: lienAventure(ch, "jeu/" + apres.i), texte: "Étape suivante : " + apres.nom };
       }
       var chemin = el("a", { class: reussi ? "jeu-continuer" : "jeu-secondaire", href: suite ? suite.href : retour,
-        text: suite ? suite.texte : reussi ? "Continuer" : route && route.haltes ? "Revenir à la carte" : "Revenir au chemin" });
+        text: suite ? suite.texte : route && route.haltes ? (reussi ? "Retour à la carte" : "Revenir à la carte") : reussi ? "Continuer" : "Revenir au chemin" });
       var encore = ileErreurs ? null : el("button", { class: reussi ? "jeu-secondaire" : "jeu-continuer", type: "button", text: defi ? "Retenter le défi" : seance ? "Refaire une séance" : "Rejouer ce niveau", onclick: function () { rendre(); } });
       var boutons = reussi ? [chemin, encore] : [encore, chemin];
       if (suite && !defi) boutons.push(el("a", { class: "jeu-lien", href: retour, text: "Revenir au chemin du chapitre" }));
@@ -7790,21 +7792,19 @@
     lien.innerHTML = icone("retour");
     var moi = el("a", { class: "av-moi", href: lienAventure(pseudo, "perso"), "aria-label": "Mon personnage, la boutique, mes badges et mon musée" });
     moi.innerHTML = dessinPerso(av.perso, true);
-    ecran.appendChild(el("div", { class: "av-haut" }, [lien, el("strong", { class: "av-haut-titre md-haut-titre", text: "La carte de l'année" }), boutonQuetes(), moi]));
-
-    // le bilan : où j'en suis dans l'année
+    // le bilan : où j'en suis dans l'année (les mêmes compteurs, en haut, que dans un chapitre)
     var etoiles = 0, max = 0, finis = 0;
     m.ouverts.forEach(function (l) { etoiles += l.etat.etoiles; max += l.etat.max; if (l.etat.fini) finis++; });
     var serie = serieActuelle();
+    var compteurs = el("div", { class: "av-compteurs", role: "group", "aria-label": (serie ? pluriel(serie, "jour") + " de suite, " : "") + pluriel(av.ducats, "ducat") + ", " + pluriel(etoiles, "étoile") }, [
+      avecSymbole("flamme", String(serie)), avecSymbole("ducat", String(av.ducats)), avecSymbole("etoile", String(etoiles))
+    ]);
+    ecran.appendChild(el("div", { class: "av-haut" }, [lien, compteurs, boutonQuetes(), moi]));
     ecran.appendChild(el("div", { class: "av-route md-bilan" }, [
-      el("small", { text: nomNiveau(n) + " · " + (m.ouverts.length ? pluriel(m.ouverts.length, "chapitre ouvert", "chapitres ouverts") + " sur " + m.total : "les chapitres ouvrent au fil de l'année") }),
-      el("strong", { text: finis ? pluriel(finis, "chapitre terminé", "chapitres terminés") + " sur " + m.ouverts.length : "Ton voyage à travers l'année" }),
+      el("small", { text: "La carte de l'année · " + nomNiveau(n) }),
+      el("strong", { text: finis ? pluriel(finis, "chapitre terminé", "chapitres terminés") + " sur " + m.ouverts.length : m.ouverts.length ? "Ton voyage à travers l'année" : "Les chapitres ouvrent au fil de l'année" }),
       barreProgres(max ? etoiles / max : 0),
-      el("div", { class: "av-compteurs" }, [
-        avecSymbole("etoile", etoiles + " / " + max + " étoiles"),
-        avecSymbole("flamme", serie ? pluriel(serie, "jour") + " de suite" : "Joue chaque jour"),
-        avecSymbole("ducat", pluriel(av.ducats, "ducat"))
-      ])
+      m.ouverts.length ? el("small", { class: "md-bilan-bas", text: pluriel(etoiles, "étoile") + " sur " + max + " · " + pluriel(m.ouverts.length, "chapitre ouvert", "chapitres ouverts") + " sur " + m.total }) : null
     ]));
     if (estProf()) ecran.appendChild(el("p", { class: "av-note", text: "Aperçu professeur : vous voyez aussi les chapitres fermés aux élèves, et toutes les étapes sont ouvertes." }));
     else if (DEMO) ecran.appendChild(el("p", { class: "av-note", text: "Démonstration : toutes les étapes sont ouvertes. Un élève les débloque dans l'ordre." }));
@@ -7840,7 +7840,7 @@
     var dues = erreursDues().length;
     var ileE = el(dues ? "a" : "div", { class: "md-extra" + (dues ? " du" : " vide"), href: dues ? lienAventure(pseudo, "erreurs") : null });
     var figE = el("span", { class: "md-extra-fig", "aria-hidden": "true" });
-    figE.innerHTML = svgIle(2, ["palmier", "palmier"], !dues);
+    figE.innerHTML = svgIle(2, ["palmier", "palmier"]);
     ajouter(ileE, [figE, el("span", {}, [el("strong", { text: "L'île des erreurs" }), el("small", { text: dues ? pluriel(dues, "question") + " à revoir aujourd'hui" : "Rien à revoir aujourd'hui" })])]);
     extras.appendChild(ileE);
     carte.appendChild(extras);
@@ -7863,7 +7863,7 @@
       var etat = !l.ouvert ? "avenir" : e.fini ? "fini" : e.faits ? "encours" : "nouveau";
       var a = el(l.ouvert ? "a" : "div", { class: "md-lieu " + cote() + " " + etat + (estIci ? " ici" : ""), href: l.ouvert ? lienAventure(l.ch) : null,
         "data-ancre": !l.ouvert ? "avenir" : e.fini ? "fini" : "ouvert" });
-      var chip = estIci ? "Tu es ici" : etat === "fini" ? "Terminé" : etat === "nouveau" ? "Nouveau" : etat === "avenir" ? (l.ch ? "Bientôt" : "À venir") : null;
+      var chip = estIci ? "Tu es ici" : etat === "fini" ? "Terminé" : etat === "nouveau" ? "Nouveau" : etat === "avenir" ? "À venir" : null;
       var plaque = el("span", { class: "md-plaque" }, [
         el("span", { class: "md-num" }, [el("span", { text: l.num }), chip ? el("i", { class: "md-chip", text: chip }) : null]),
         el("strong", { class: "md-titre", text: l.titre }),
@@ -7980,7 +7980,15 @@
       // la route : une piste claire ; dorée après chaque lieu terminé
       if (route) s += '<path d="' + route + '" fill="none" stroke="#C9B37A" stroke-width="11" stroke-linecap="round"/><path d="' + route + '" fill="none" stroke="#F3E6BE" stroke-width="7" stroke-linecap="round"/>' +
         '<path d="' + route + '" fill="none" stroke="#C9B37A" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 9"/>';
-      for (i = 1; i < pts.length; i++) if (pts[i - 1].etat === "fini") s += '<path class="md-or" d="' + troncon(pts[i - 1], pts[i]) + '" fill="none" stroke="#FFC83D" stroke-width="7" stroke-linecap="round"/>';
+      for (i = 1; i < pts.length; i++) if (pts[i - 1].etat === "fini") s += '<path class="md-or" d="' + troncon(pts[i - 1], pts[i]) + '" fill="none" stroke="#FFC83D" stroke-width="7" stroke-linecap="round"/>' +
+        '<path class="md-reflet" d="' + troncon(pts[i - 1], pts[i]) + '" fill="none" stroke="#FFF6D5" stroke-width="3" stroke-linecap="round" stroke-dasharray="3 27"/>';
+      // des nuages passent lentement au-dessus de la carte
+      for (i = 0; i * 520 < H; i++) {
+        var yN = 150 + i * 520 + (i % 2) * 90, dur = 70 + (i % 3) * 22;
+        s += '<g class="md-nuage" style="animation-duration:' + dur + "s;animation-delay:-" + ((i * 23) % dur) + 's"><g transform="translate(0 ' + yN + ')" fill="#fff" opacity=".5">' +
+          '<ellipse cx="0" cy="0" rx="34" ry="13"/><ellipse cx="-22" cy="6" rx="24" ry="10"/><ellipse cx="24" cy="7" rx="26" ry="10"/><ellipse cx="6" cy="-9" rx="20" ry="11"/></g></g>';
+      }
+      terre.style.setProperty("--large", W + "px");
       terre.innerHTML = s;
     }
     dessiner();
