@@ -2104,6 +2104,7 @@
         nbAteliers(atel) ? { href: "#/methode/" + niveau, icone: "document", nom: titreMethode(), info: pluriel(nbFiches, "fiche") + " et " + pluriel(nbAteliers(atel), "atelier") } : null,
         { href: "#/controle/" + niveau, icone: "point", nom: "Je prépare mon contrôle",
           info: planC && planC.date >= aujC ? "Contrôle le " + dateLongue(planC.date) + (planC.date > aujC ? " · J-" + joursEntre(aujC, planC.date) : " · c'est aujourd'hui") : "Une petite séance par jour jusqu'au jour J" },
+        av.perso ? { href: "#/carte/" + niveau, icone: "bouclier", nom: "Ma carte d'aventurier", info: "À montrer à ton professeur" } : null,
         defiDispo() ? { href: "#/defi/" + niveau, icone: "plein", nom: "Défi de classe", info: "À projeter, par équipes (professeur)" } : null
       ]));
     }
@@ -7695,7 +7696,7 @@
   // les repères, l'île des erreurs) : une seule entrée pour le jeu, une seule progression, un bouton « Continuer ».
   // D'abord en aperçu : pour le professeur, en démonstration, ou avec ?carte dans l'adresse. Les élèves gardent l'ancien
   // accueil du jeu tant que CARTE_POUR_TOUS est faux.
-  var CARTE_POUR_TOUS = false;
+  var CARTE_POUR_TOUS = true;
   var APERCU_CARTE = /[?&]carte(=|&|$)/.test(location.search);
   function carteActive() { return CARTE_POUR_TOUS || APERCU_CARTE || estProf() || DEMO; }
   function lienMonde(n) { return "#/monde/" + encodeURIComponent(n); }
