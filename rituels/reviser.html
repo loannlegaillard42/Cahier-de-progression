@@ -896,6 +896,7 @@
   .jeu-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1 1 0; min-width: 70px; max-width: 110px; padding: 11px 6px; border-radius: 16px; background: #2A2E64; border: 2px solid #3E4384; font-weight: 800; font-size: 16px; text-align: center; }
   .jeu-stat .av-sym { width: 26px; height: 26px; }
   .jeu-fin-btns { display: flex; flex-direction: column; gap: 10px; }
+  .jeu-lien { display: block; padding: 6px; text-align: center; font-size: 14px; font-weight: 700; color: #C9D2FF; }
   .jeu-secondaire { display: block; width: 100%; padding: 13px; border-radius: 16px; border: 2px solid #4A50A0; background: transparent; color: #F4F2FF; font-weight: 700; font-size: 15.5px; text-align: center; text-decoration: none; }
 
   /* confettis, coffre */
@@ -1249,6 +1250,124 @@
   .duo-medaille .av-sym { width: 100%; height: 100%; }
   .duo-final { font-size: 17px; }
   .duo-final strong { margin: 0 6px; font-size: 28px; }
+  /* ---------- La carte de l'année : une route, un monument par chapitre ---------- */
+  .md-haut-titre { flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .md-bilan { background: linear-gradient(135deg, #3348C4, #1D2A8C); box-shadow: 0 5px 0 #141D66; }
+  .md-bilan .av-compteurs { justify-content: flex-start; gap: 6px; }
+  .md-bilan .av-compteur { background: rgba(0, 0, 0, .28); box-shadow: none; font-size: 12.5px; font-weight: 700; padding: 4px 10px 4px 6px; }
+  .md-bilan .av-sym { width: 16px; height: 16px; }
+  .md-aide { width: calc(100% - 32px); max-width: 520px; margin: 12px auto 0; padding: 12px 14px; border-radius: 18px; background: #23265A; border: 2px solid #4A50A0; }
+  .md-aide .jeu-guide { margin-bottom: 8px; }
+  .md-aide .av-mini-btn { display: block; margin-left: auto; }
+  .md-carte { position: relative; max-width: 460px; margin: 0 auto; padding: 6px 0 30px; }
+  .md-terre { position: absolute; left: 0; top: 0; width: 100%; z-index: 0; pointer-events: none; overflow: visible; }
+  .md-extras { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 8px 14px 4px; }
+  .md-extra { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 5px 10px 5px 4px; border-radius: 16px; background: rgba(20, 27, 96, .9); box-shadow: 0 4px 0 rgba(0, 0, 0, .25); text-decoration: none; color: #fff; }
+  .md-extra-fig { width: 56px; flex: none; }
+  .md-extra svg { display: block; width: 100%; height: auto; }
+  .md-extra .av-ile-svg { position: static; }
+  .md-extra strong { display: block; font-size: 13px; line-height: 1.2; }
+  .md-extra small { display: block; margin-top: 2px; font-size: 11.5px; line-height: 1.25; color: #C9D2FF; }
+  .md-extra.vide { opacity: .75; box-shadow: none; }
+  .md-extra.du { background: #C2511F; }
+  .md-extra.du small { color: #FFE1CF; }
+  .md-theme { position: relative; z-index: 2; width: calc(100% - 40px); max-width: 400px; margin: 22px auto 10px; padding: 7px 14px 9px; border-radius: 14px; text-align: center; background: #6C4CF1; box-shadow: 0 4px 0 rgba(0, 0, 0, .28); }
+  .md-theme.geo { background: #0E9384; }
+  .md-theme small { display: block; font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; opacity: .88; }
+  .md-theme strong { display: block; font-size: 14px; line-height: 1.25; }
+  .md-lieu { position: relative; z-index: 1; display: flex; align-items: center; gap: 2px; min-height: 136px; margin: 4px 0; padding: 0 10px; text-decoration: none; color: #fff; }
+  .md-lieu.d { flex-direction: row-reverse; }
+  .md-fig { position: relative; display: block; width: 44%; max-width: 172px; flex: none; }
+  .md-mon { display: block; width: 100%; height: auto; overflow: visible; }
+  .md-plaque { position: relative; z-index: 2; display: block; flex: 1; min-width: 0; padding: 8px 11px 9px; border-radius: 16px; background: rgba(20, 27, 96, .9); border: 2px solid transparent; box-shadow: 0 4px 0 rgba(0, 0, 0, .25); }
+  a.md-lieu:active .md-plaque { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, .25); }
+  .md-num { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #C9D2FF; }
+  .md-chip { padding: 1px 7px; border-radius: 999px; background: #FFD34D; color: #3A2A00; font-style: normal; letter-spacing: 0; text-transform: none; font-size: 11px; }
+  .md-titre { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; margin: 2px 0 0; font-size: 14px; line-height: 1.25; }
+  .md-nom { display: block; margin-top: 3px; font-size: 11.5px; line-height: 1.25; color: #C9D2FF; }
+  .md-prog { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
+  .md-prog > .av-sym { width: 18px; height: 18px; }
+  .md-points { display: flex; flex-wrap: wrap; gap: 3px; }
+  .md-points i { width: 9px; height: 9px; border-radius: 50%; background: #3E4489; }
+  .md-points i.fait { background: #FFC83D; }
+  .md-points i.actuel { background: #fff; box-shadow: 0 0 0 2px rgba(255, 255, 255, .35); }
+  .md-et { display: inline-flex; align-items: center; gap: 3px; flex: none; font-size: 12.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .md-et .av-sym { width: 15px; height: 15px; }
+  .md-ferme { display: block; margin-top: 4px; font-size: 11px; font-weight: 700; color: #FFB86B; }
+  .md-lieu.halte .md-prog { justify-content: flex-start; gap: 2px; }
+  .md-lieu.ici .md-plaque { border-color: #fff; }
+  .md-lieu.fini .md-plaque { border-color: #F5B82E; }
+  .md-lieu.fini .md-chip { background: #22C55E; color: #fff; }
+  .md-coche { position: absolute; right: 12%; top: 2%; width: 30px; height: 30px; border-radius: 50%; box-shadow: 0 3px 0 rgba(0, 0, 0, .25); }
+  .md-coche .av-sym { width: 100%; height: 100%; }
+  .md-perso { position: absolute; right: -2%; bottom: 6%; width: 30%; pointer-events: none; animation: av-flotte 2.4s ease-in-out infinite; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .25)); }
+  .md-lieu.d .md-perso { right: auto; left: -2%; }
+  .md-perso svg { display: block; width: 100%; height: auto; }
+  .md-lieu.ici .md-fig::before { content: ""; position: absolute; left: 12%; right: 12%; bottom: 3%; height: 22%; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .9); animation: av-pouls 1.6s ease-out infinite; }
+  /* un chapitre à venir : plus petit, dans la brume */
+  .md-lieu.avenir, .md-lieu.verrou { min-height: 0; }
+  .md-lieu.avenir .md-fig { width: 30%; max-width: 116px; margin: 0 7%; filter: grayscale(.9) brightness(1.04); opacity: .78; }
+  .md-lieu.verrou .md-fig { filter: grayscale(.9); opacity: .8; }
+  .md-lieu.avenir .md-plaque, .md-lieu.verrou .md-plaque { background: rgba(20, 27, 96, .58); box-shadow: none; }
+  .md-lieu.avenir .md-titre { font-size: 12.5px; font-weight: 600; color: #D5D9F5; }
+  .md-lieu.avenir .md-chip { background: #3E4489; color: #C9D2FF; }
+  .md-lieu.halte .md-fig { width: 30%; max-width: 116px; margin: 0 7%; }
+  /* la barre du bas : la prochaine étape à jouer */
+  .md-continuer { position: sticky; bottom: 0; z-index: 7; display: flex; align-items: center; gap: 10px; padding: 9px 14px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(22, 30, 110, .95); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 -4px 0 rgba(0, 0, 0, .18); }
+  .md-c-fig { width: 56px; flex: none; }
+  .md-c-txt { flex: 1; min-width: 0; }
+  .md-c-txt small { display: block; font-size: 12px; font-weight: 700; color: #C9D2FF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .md-c-txt strong { display: block; font-size: 15px; line-height: 1.2; }
+  .md-continuer .jeu-valider { width: auto; flex: none; padding: 13px 18px; font-size: 16px; }
+  .md .md-or { filter: drop-shadow(0 0 3px rgba(255, 200, 61, .8)); }
+  /* les monuments s'animent un peu : drapeaux, fumées, bateaux, éoliennes */
+  .md-flotte { transform-box: fill-box; transform-origin: left center; animation: md-flotte 1.8s ease-in-out infinite; }
+  @keyframes md-flotte { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(-9deg) scaleX(.88); } }
+  .md-tangue { transform-box: fill-box; transform-origin: center bottom; animation: md-tangue 3.4s ease-in-out infinite; }
+  @keyframes md-tangue { 0%, 100% { transform: rotate(-1.6deg) translateY(0); } 50% { transform: rotate(1.6deg) translateY(1.5px); } }
+  .md-fumee circle { animation: md-fumee 3s ease-out infinite; }
+  .md-fumee circle:nth-child(2) { animation-delay: .9s; }
+  .md-fumee circle:nth-child(3) { animation-delay: 1.8s; }
+  @keyframes md-fumee { from { transform: translate(0, 4px); opacity: 0; } 30% { opacity: .75; } to { transform: translate(5px, -10px); opacity: 0; } }
+  .md-tourne { animation: av-tourne 6s linear infinite; }
+  .md-faisceau { animation: md-faisceau 2.6s ease-in-out infinite; }
+  @keyframes md-faisceau { 0%, 100% { opacity: .15; } 50% { opacity: .65; } }
+  .md-flamme { transform-box: fill-box; transform-origin: center bottom; animation: md-flamme .7s ease-in-out infinite alternate; }
+  @keyframes md-flamme { from { transform: scale(1, 1); } to { transform: scale(.88, 1.14); } }
+  .md-clignote { animation: md-faisceau 1.4s steps(2) infinite; }
+  .md-brille { transform-box: fill-box; transform-origin: center; animation: md-brille 2.4s ease-in-out infinite; }
+  @keyframes md-brille { 0%, 100% { transform: translateY(0); filter: none; } 50% { transform: translateY(-2px); filter: drop-shadow(0 0 4px rgba(255, 224, 138, .9)); } }
+  .md-vague { animation: md-vague 2.8s ease-in-out infinite alternate; }
+  @keyframes md-vague { from { transform: translateX(-2px); } to { transform: translateX(2px); } }
+  .md-brume { animation: md-vague 5s ease-in-out infinite alternate; }
+  /* l'entrée de la carte sur l'accueil d'une classe */
+  .entree-carte { display: flex; align-items: center; gap: 10px; margin: 18px 0 6px; padding: 10px 14px 12px 6px; border-radius: 20px; text-decoration: none; color: #fff; background: linear-gradient(135deg, #2446C0, #6C4CF1); box-shadow: 0 6px 0 #2A1F8A; }
+  .entree-carte:active { transform: translateY(3px); box-shadow: 0 3px 0 #2A1F8A; }
+  .ec-fig { position: relative; width: 38%; max-width: 150px; flex: none; }
+  .ec-fig svg { display: block; width: 100%; height: auto; }
+  .ec-perso { position: absolute; right: 0; bottom: 6%; width: 30%; }
+  .ec-txt { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+  .ec-txt strong { font-size: 19px; font-weight: 800; line-height: 1.2; }
+  .ec-txt > span { font-size: 13.5px; line-height: 1.3; opacity: .95; }
+  .ec-txt small { font-size: 12px; font-weight: 700; color: #FFD34D; }
+  .ec-txt .av-barre { margin: 4px 0 0; height: 9px; }
+  .ec-bas { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+  .ec-et { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 13.5px; }
+  .ec-bas b { padding: 7px 14px; border-radius: 12px; background: #fff; color: #4E33C4; font-size: 14.5px; font-weight: 800; box-shadow: 0 3px 0 #CFC3FF; }
+  .tuiles-accueil { margin-top: 12px; }
+  .ea-fig.ea-monument { width: 104px; height: auto; }
+  .ea-monument svg { display: block; width: 100%; height: auto; }
+  /* dans un chapitre : l'en-tête au monument, les étapes nommées, le bouton « Continuer » */
+  .md-tete { display: flex; align-items: center; gap: 10px; padding-left: 8px; }
+  .md-tete-fig { width: 86px; flex: none; }
+  .md-tete-fig svg { display: block; width: 100%; height: auto; }
+  .md-tete-txt { flex: 1; min-width: 0; }
+  .md-tete-lien { display: inline-block; margin-top: 4px; font-size: 12.5px; font-weight: 700; color: #FFE08A; }
+  .av-ile-nom { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 2; padding: 3px 10px; border-radius: 999px; background: rgba(20, 27, 96, .9); color: #fff; font-size: 12.5px; font-weight: 800; white-space: nowrap; pointer-events: none; }
+  .av-ile-nom.verrou { color: #A9ACCB; font-weight: 600; }
+  .av-ile-nom.fait { background: #F5B82E; color: #5A3B00; }
+  .av-chemin.nomme .av-ile { margin-bottom: 12px; }
+
   /* carte d'aventurier */
   .cv-page { max-width: 470px; }
   .cv-carte {
@@ -1837,6 +1956,7 @@
     if (p[0] === "controle") return { vue: "controle", niveau: p[1], sous: p[2] };
     if (p[0] === "defi") return { vue: "defi", niveau: p[1], sous: p[2] };
     if (p[0] === "carte") return { vue: "carte", niveau: p[1] };
+    if (p[0] === "monde") return { vue: "monde", niveau: p[1] };
     if (p[0] === "verifier") return { vue: "verifier", code: p[1] };
     if (p[0] === "express") return { vue: "express", niveau: p[1] };
     if (p[0] === "methode") return { vue: "methode", niveau: p[1], sous: p[2], x: p[3] };
@@ -1876,6 +1996,10 @@
       return;
     }
     if (r.vue === "verifier") { vueVerifierCarte(r.code); return; }
+    if (r.vue === "monde") {
+      if (rangNiveau(r.niveau) >= 0 && aventureDispo(r.niveau) && carteActive()) vueMonde(r.niveau); else vueAccueil();
+      return;
+    }
     if (r.vue === "methode") { if (rangNiveau(r.niveau) >= 0) vueMethode(r.niveau, r.sous, r.x); else vueAccueil(); return; }
     if (r.vue === "duo") { if (rangNiveau(r.niveau) >= 0) vueDuo(r.niveau); else vueAccueil(); return; }
     if (r.vue === "aventure") {
@@ -1963,7 +2087,25 @@
         : "Les chapitres arrivent au fil de l'année : reviens bientôt !" }));
     }
 
-    if (chaps.length) {
+    // avec la carte de l'année : une seule entrée pour le jeu, puis les autres façons de réviser en tuiles
+    var avecCarte = carteActive() && aventureDispo(niveau);
+    if (avecCarte) {
+      var cartesN = [];
+      chaps.forEach(function (ch) { cartesN = cartesN.concat(cartesChapitre(ch)); });
+      var aRev = aRevoir(cartesN), nbFiches = fichesNiveau(niveau).length, atel = ateliersNiveau(niveau);
+      var planC = av.controles[niveau], aujC = isoJour(Date.now());
+      app.appendChild(entreeCarte(niveau));
+      app.appendChild(el("div", { class: "etiq", text: "Réviser autrement" }));
+      app.appendChild(tuilesAccueil(niveau, [
+        chaps.length ? { href: "#/express/" + niveau, icone: "eclair", nom: "Révision express", info: aRev ? pluriel(aRev, "carte") + " à revoir aujourd'hui" : "Des cartes de tous tes chapitres" } : null,
+        chaps.length ? { href: "#/duo/" + niveau, icone: "duo", nom: "Réviser à deux", info: "Chacun son tour sur le même téléphone" } : null,
+        nbAteliers(atel) ? { href: "#/methode/" + niveau, icone: "document", nom: titreMethode(), info: pluriel(nbFiches, "fiche") + " et " + pluriel(nbAteliers(atel), "atelier") } : null,
+        { href: "#/controle/" + niveau, icone: "point", nom: "Je prépare mon contrôle",
+          info: planC && planC.date >= aujC ? "Contrôle le " + dateLongue(planC.date) + (planC.date > aujC ? " · J-" + joursEntre(aujC, planC.date) : " · c'est aujourd'hui") : "Une petite séance par jour jusqu'au jour J" },
+        defiDispo() ? { href: "#/defi/" + niveau, icone: "plein", nom: "Défi de classe", info: "À projeter, par équipes (professeur)" } : null
+      ]));
+    }
+    if (chaps.length && !avecCarte) {
       var toutes = [];
       chaps.forEach(function (ch) { toutes = toutes.concat(cartesChapitre(ch)); });
       var nbRevoir = aRevoir(toutes);
@@ -1984,9 +2126,9 @@
       ]));
       app.appendChild(duoE);
     }
-    var methodeE = entreeMethode(niveau);
+    var methodeE = avecCarte ? null : entreeMethode(niveau);
     if (methodeE) app.appendChild(methodeE);
-    var parcours = aventureDispo(niveau) ? entreesParcours(niveau) : null;
+    var parcours = aventureDispo(niveau) && !avecCarte ? entreesParcours(niveau) : null;
     if (parcours) app.appendChild(parcours);
 
     ["histoire", "geo"].forEach(function (d) {
@@ -5127,6 +5269,381 @@
     s += '<rect x="53" y="60" width="14" height="16" rx="3" fill="#E8C547" stroke="#B8941F" stroke-width="2"/><circle cx="60" cy="67" r="2.4" fill="#7A5534"/></svg>';
     return s;
   }
+  // ----- Les monuments de la carte de l'année : un par chapitre, dessinés en relief (façade, côté droit, dessus) -----
+  // viewBox 160 × 130, le sol est à y = 116. Chaque dessin tient en quelques formes : on doit le reconnaître en petit.
+  var MO_MAT = {
+    pierre: { f: "#EDE3CC", o: "#C9BB9C", h: "#FAF4E4" }, marbre: { f: "#F6F2E9", o: "#D5CCBA", h: "#FFFFFF" },
+    ocre: { f: "#EBCB8B", o: "#C7A45E", h: "#F7E1AE" }, rose: { f: "#E6B49B", o: "#C28E74", h: "#F4D2C0" },
+    brique: { f: "#D98C63", o: "#B36A45", h: "#EBAA88" }, gris: { f: "#C5CAD3", o: "#9CA4B1", h: "#E2E6EB" },
+    tuile: { f: "#D4563C", o: "#A53D29", h: "#E8755C" }, ardoise: { f: "#5F7396", o: "#445572", h: "#8196B6" },
+    plomb: { f: "#9DB0C4", o: "#7389A1", h: "#C4D2E0" }, or: { f: "#F5C842", o: "#C9971B", h: "#FFE08A" },
+    turquoise: { f: "#3FA796", o: "#2B7F71", h: "#6CCBBB" }, bois: { f: "#A9713C", o: "#7F5128", h: "#C68F58" },
+    verre: { f: "#7FC4E8", o: "#4C97C2", h: "#B8E2F7" }, verre2: { f: "#6FA8DC", o: "#4A7FB5", h: "#A5CBEE" },
+    creme: { f: "#F7EBD0", o: "#DCC9A2", h: "#FFF8E6" }, jaune: { f: "#F2D36B", o: "#CFAC45", h: "#FBE79C" }
+  };
+  var MO_NUIT = "#3A4664";
+  function moR(x, y, w, h, c, rx) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"' + (rx ? ' rx="' + rx + '"' : "") + ' fill="' + c + '"/>'; }
+  function moP(d, c, plus) { return '<path d="' + d + '" fill="' + c + '"' + (plus || "") + "/>"; }
+  function moC(cx, cy, r, c, plus) { return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="' + c + '"' + (plus || "") + "/>"; }
+  function moE(cx, cy, rx, ry, c, plus) { return '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="' + c + '"' + (plus || "") + "/>"; }
+  function moL(d, c, w, plus) { return '<path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="' + w + '" stroke-linecap="round" stroke-linejoin="round"' + (plus || "") + "/>"; }
+  // un bloc : (x, y) est le coin bas gauche de la façade ; p, la profondeur visible à droite
+  function moBloc(x, y, w, h, m, p) {
+    p = p === undefined ? 8 : p;
+    var q = p / 2;
+    return (p ? moP("M" + (x + w) + " " + y + "l" + p + " " + (-q) + "v" + (-h) + "l" + (-p) + " " + q + "Z", m.o) +
+      moP("M" + x + " " + (y - h) + "l" + p + " " + (-q) + "h" + w + "l" + (-p) + " " + q + "Z", m.h) : "") + moR(x, y - h, w, h, m.f);
+  }
+  // un toit à deux pentes, pignon de face : (x, y) est le coin bas gauche du pignon
+  function moPignon(x, y, w, hh, m, p) {
+    p = p === undefined ? 8 : p;
+    return moP("M" + (x + w) + " " + y + "L" + (x + w / 2) + " " + (y - hh) + "l" + p + " " + (-p / 2) + "L" + (x + w + p) + " " + (y - p / 2) + "Z", m.o) +
+      moP("M" + x + " " + y + "L" + (x + w / 2) + " " + (y - hh) + "L" + (x + w) + " " + y + "Z", m.f);
+  }
+  // un toit à deux pentes, faîte parallèle à la façade (on voit une pente et le pignon de droite)
+  function moToit(x, y, w, hh, m, p) {
+    p = p === undefined ? 8 : p;
+    return moP("M" + (x + w) + " " + y + "l" + p + " " + (-p / 2) + "L" + (x + w + p / 2) + " " + (y - hh - p / 4) + "Z", m.o) +
+      moP("M" + (x - 2) + " " + y + "H" + (x + w + 1) + "L" + (x + w + p / 2) + " " + (y - hh - p / 4) + "H" + (x + p / 2) + "Z", m.f);
+  }
+  function moCone(cx, y, r, hh, m) {
+    return moP("M" + (cx - r) + " " + y + "L" + cx + " " + (y - hh) + "L" + (cx + r) + " " + y + "Z", m.f) +
+      moP("M" + cx + " " + (y - hh) + "L" + (cx + r) + " " + y + "H" + (cx + r * .15) + "Z", m.o);
+  }
+  // une tour ronde : la lumière vient de la gauche
+  function moRonde(cx, y, r, h, m) {
+    return moR(cx - r, y - h, 2 * r, h, m.f) + moR(cx + r * .3, y - h, r * .7, h, m.o) + moR(cx - r, y - h, r * .28, h, m.h);
+  }
+  // des créneaux : n merlons sur la largeur w, posés à la hauteur y
+  function moCren(x, y, w, n, m, hh) {
+    var s = "", pas = w / (2 * n - 1);
+    for (var k = 0; k < n; k++) s += moR(x + 2 * k * pas, y - (hh || 4), pas, hh || 4, m.f);
+    return s;
+  }
+  function moDome(cx, y, rx, ry, m) {
+    return moP("M" + (cx - rx) + " " + y + "A" + rx + " " + ry + " 0 0 1 " + (cx + rx) + " " + y + "Z", m.f) +
+      moP("M" + (cx + rx) + " " + y + "A" + rx + " " + ry + " 0 0 0 " + cx + " " + (y - ry) + "A" + rx * .55 + " " + ry + " 0 0 1 " + (cx + rx * .45) + " " + y + "Z", m.o) +
+      moE(cx - rx * .38, y - ry * .55, rx * .2, ry * .16, "#fff", ' opacity=".45"');
+  }
+  function moFen(x, y, w, h, c) { return moP("M" + x + " " + (y + h) + "V" + (y + w / 2) + "A" + w / 2 + " " + w / 2 + " 0 0 1 " + (x + w) + " " + (y + w / 2) + "V" + (y + h) + "Z", c || MO_NUIT); }
+  function moOgive(x, y, w, h, c) { return moP("M" + x + " " + (y + h) + "V" + (y + w * .7) + "Q" + x + " " + (y + w * .15) + " " + (x + w / 2) + " " + y + "Q" + (x + w) + " " + (y + w * .15) + " " + (x + w) + " " + (y + w * .7) + "V" + (y + h) + "Z", c || MO_NUIT); }
+  function moFens(x, y, w, h, n, pas, c, ogive) {
+    var s = "";
+    for (var k = 0; k < n; k++) s += (ogive ? moOgive : moFen)(x + k * pas, y, w, h, c);
+    return s;
+  }
+  // un drapeau qui flotte au bout de son mât (c2 et c3 : bandes verticales, pour le drapeau tricolore)
+  function moDrapeau(x, y, h, c, c2, c3) {
+    var haut = y - h, s = moR(x - .8, haut, 1.6, h, "#6B5335") + moC(x, haut, 1.6, "#F5C842");
+    var f = "";
+    if (c2) f = moR(x + .8, haut + 1.5, 5, 9, c) + moR(x + 5.8, haut + 1.5, 5, 9, c2) + moR(x + 10.8, haut + 1.5, 5, 9, c3 || c);
+    else f = moP("M" + (x + .8) + " " + (haut + 1.5) + "q4 -2.5 8 0t7 0v8.5q-3.5 -2.5 -7 0t-8 0Z", c);
+    return s + '<g class="md-flotte">' + f + "</g>";
+  }
+  function moArbre(x, y, s, c) {
+    s = s || 1;
+    return moR(x - 1.6 * s, y - 9 * s, 3.2 * s, 9 * s, "#7A5534") + moC(x, y - 15 * s, 9 * s, c || "#3F8F3A") + moC(x - 3 * s, y - 18 * s, 4 * s, "#57A84A") + moC(x + 4.5 * s, y - 11.5 * s, 4.5 * s, "#2F7A2D");
+  }
+  function moCypres(x, y, h) { return moR(x - 1, y - 5, 2, 5, "#6B5335") + moE(x, y - 4 - h / 2, h * .17, h / 2, "#2E6B3A") + moE(x - h * .05, y - 4 - h / 2, h * .07, h * .38, "#3F8A4B"); }
+  function moPalmier(x, y, s) {
+    s = s || 1;
+    var hx = x + 2 * s, hy = y - 24 * s;
+    return moL("M" + x + " " + y + "Q" + (x + 5 * s) + " " + (y - 12 * s) + " " + hx + " " + hy, "#8C6A45", 3 * s) +
+      moP("M" + hx + " " + hy + "q-11 -5 -16 4q9 -5 16 -4Z M" + hx + " " + hy + "q11 -5 16 4q-9 -5 -16 -4Z", "#3F8F3A") +
+      moP("M" + hx + " " + hy + "q-4 -12 -11 -10q8 2 11 10Z M" + hx + " " + hy + "q6 -12 13 -8q-9 1 -13 8Z", "#57A84A");
+  }
+  function moFumee(x, y) {
+    return '<g class="md-fumee">' + moC(x, y, 3.2, "#fff", ' opacity=".8"') + moC(x + 3, y - 6, 4.2, "#fff", ' opacity=".6"') + moC(x - 1, y - 13, 5.2, "#fff", ' opacity=".4"') + "</g>";
+  }
+  function moVagues(y, x1, x2) {
+    var d = "M" + x1 + " " + y;
+    for (var x = x1; x < x2; x += 10) d += "q2.5 -3 5 0t5 0";
+    return moL(d, "#fff", 1.8, ' opacity=".75" class="md-vague"');
+  }
+  function moEau(d) { return moP(d, "#4F9BE0") + moP(d, "#fff", ' opacity=".12"'); }
+  function moOmbre(cx, rx) { return moE(cx, 117, rx, 5, "#000", ' opacity=".16"'); }
+  function moCroix(x, y, c) { return moR(x - .9, y - 8, 1.8, 8, c || "#F5C842") + moR(x - 3, y - 6, 6, 1.8, c || "#F5C842"); }
+  function moCroissant(x, y) { return moR(x - .7, y - 6, 1.4, 6, "#F5C842") + moP("M" + (x + 2.2) + " " + (y - 10.5) + "a3.6 3.6 0 1 0 0 6.6a2.9 2.9 0 1 1 0 -6.6Z", "#F5C842"); }
+  // des rangées de fenêtres carrées (immeubles)
+  function moGrille(x, y, w, h, cols, rangs, c) {
+    var s = "", pw = w / cols, ph = h / rangs;
+    for (var i = 0; i < cols; i++) for (var j = 0; j < rangs; j++) s += moR(x + i * pw + pw * .22, y + j * ph + ph * .22, pw * .56, ph * .56, c);
+    return s;
+  }
+
+  var MONUMENTS = {
+    // Sainte-Sophie : la grande coupole sur son tambour, ses demi-coupoles
+    basilique: function () {
+      var m = MO_MAT.rose, d = MO_MAT.plomb;
+      return moOmbre(80, 62) + moCypres(22, 116, 34) + moCypres(140, 116, 28) +
+        moBloc(28, 116, 96, 30, m) + moFens(36, 96, 7, 12, 3, 11, MO_NUIT) + moFens(92, 96, 7, 12, 3, 11, MO_NUIT) + moFen(72, 94, 14, 22, "#5B3A29") +
+        moDome(46, 86, 17, 13, d) + moDome(108, 86, 17, 13, d) +
+        moBloc(52, 86, 50, 18, m) + moFens(57, 73, 5, 9, 6, 7.4, MO_NUIT) +
+        moR(56, 60, 42, 8, m.o) + moR(56, 60, 42, 2.5, m.h) + moDome(77, 60, 24, 21, d) + moCroix(77, 39);
+    },
+    // la Grande Mosquée de Damas : la cour à arcades, le pignon à mosaïques d'or, la coupole, les minarets
+    mosquee: function () {
+      var m = MO_MAT.pierre, t = MO_MAT.turquoise;
+      return moOmbre(80, 64) + moPalmier(140, 116, 1) +
+        moBloc(120, 116, 11, 62, m, 5) + moR(118, 62, 16, 3, m.o) + moBloc(122, 59, 7, 9, m, 4) + moCone(127, 50, 5.5, 11, t) + moCroissant(127, 39) +
+        moBloc(26, 116, 12, 74, m, 5) + moR(24, 56, 17, 3, m.o) + moR(24, 74, 17, 2.5, m.o) + moBloc(28, 53, 8, 10, m, 4) + moCone(33.5, 43, 6, 12, t) + moCroissant(33.5, 31) +
+        moBloc(60, 92, 44, 22, m) + moPignon(60, 70, 44, 13, MO_MAT.or) + moFens(68, 76, 6, 12, 4, 8, MO_NUIT) +
+        moR(72, 55, 22, 6, m.o) + moDome(83, 55, 12, 12, t) + moCroissant(83, 43) +
+        moBloc(36, 116, 86, 24, m) + moFens(42, 99, 9, 17, 7, 11.4, "#5A4A3A");
+    },
+    // le château fort : le donjon, la courtine, les tours, le pont-levis
+    chateau: function (o) {
+      var m = MO_MAT[o && o.teinte] || MO_MAT.pierre, a = MO_MAT[o && o.toit] || MO_MAT.ardoise;
+      return moOmbre(80, 64) + moArbre(146, 116, .8) +
+        moBloc(62, 96, 34, 48, m) + moCren(62, 48, 34, 4, m) + moR(75, 58, 5, 11, MO_NUIT) + moDrapeau(84, 44, 20, "#D4563C") +
+        moBloc(40, 116, 82, 28, m) + moCren(40, 88, 82, 8, m) + moFen(70, 94, 18, 22, "#4A3526") + moL("M74 100v16M79 96v20M84 100v16M71 104h16M71 110h16", "#8C6A45", 1.2) +
+        moR(66, 114, 26, 4, MO_MAT.bois.f) +
+        moRonde(34, 116, 12, 46, m) + moCone(34, 70, 15, 20, a) + moR(31.5, 84, 4, 9, MO_NUIT) +
+        moRonde(126, 116, 12, 46, m) + moCone(126, 70, 15, 20, a) + moR(123.5, 84, 4, 9, MO_NUIT) + moC(34, 50, 1.6, "#F5C842") + moC(126, 50, 1.6, "#F5C842");
+    },
+    // la ville médiévale : le beffroi et son horloge, les maisons à pans de bois des marchands
+    beffroi: function () {
+      var m = MO_MAT.pierre, c = MO_MAT.creme, t = MO_MAT.tuile;
+      return moOmbre(80, 62) +
+        moBloc(26, 116, 36, 30, c) + moL("M26 100h36M38 86v30M50 86v30M26 86l12 14M50 100l12 -14", "#8C5A2B", 1.6) + moPignon(26, 86, 36, 18, t) + moR(41, 103, 8, 13, "#6B4226") + moR(29, 90, 6, 7, "#8FC3D9") +
+        moBloc(100, 116, 32, 26, MO_MAT.ocre) + moL("M100 103h32M116 90v26", "#8C5A2B", 1.6) + moPignon(100, 90, 32, 16, MO_MAT.ardoise) + moR(104, 106, 7, 10, "#6B4226") + moR(120, 94, 6, 6, "#8FC3D9") + moR(112, 107, 14, 3, "#D4563C") +
+        moBloc(66, 116, 28, 62, m) + moFen(75, 100, 10, 16, "#4A3526") + moC(80, 74, 8.5, "#F5C842") + moC(80, 74, 6.6, "#FFFDF5") + moL("M80 74v-4.5M80 74l3.2 2", "#3A4664", 1.3) + moR(72, 86, 4, 7, MO_NUIT) + moR(84, 86, 4, 7, MO_NUIT) +
+        moR(63, 52, 34, 4, m.o) + moBloc(70, 52, 20, 12, m, 6) + moFens(73, 43, 4, 7, 3, 5.4, MO_NUIT) + moCone(83, 40, 13, 24, MO_MAT.ardoise) + moDrapeau(83, 18, 12, "#F5C842");
+    },
+    // la cathédrale gothique : deux tours, la rosace, les trois portails
+    cathedrale: function () {
+      var m = MO_MAT.pierre;
+      function tour(x) {
+        return moBloc(x, 116, 24, 70, m, 6) + moOgive(x + 5, 52, 5, 16) + moOgive(x + 14, 52, 5, 16) + moOgive(x + 8, 78, 8, 14) + moR(x - 1, 72, 26, 2.5, m.o) +
+          moP("M" + x + " 46l3 -9l3 9ZM" + (x + 9) + " 46l3 -11l3 11ZM" + (x + 18) + " 46l3 -9l3 9Z", m.f) + moOgive(x + 7, 96, 10, 20, "#4A3526");
+      }
+      return moOmbre(80, 60) + moBloc(62, 116, 36, 50, m, 6) + moPignon(62, 66, 36, 18, MO_MAT.ardoise, 6) + moCroix(80, 48) +
+        moC(80, 80, 10.5, m.o) + moC(80, 80, 8.6, "#3F6FB6") + moC(80, 80, 4.2, "#D4563C") + moC(80, 80, 1.8, "#F5C842") + moL("M80 71.4v17.2M71.4 80h17.2M74 74l12 12M86 74l-12 12", m.h, .8) +
+        moOgive(71, 92, 18, 24, "#4A3526") + moL("M80 96v20", "#8C6A45", 1) + tour(38) + tour(98) + moArbre(22, 116, .8) + moArbre(142, 116, .7);
+    },
+    // la caravelle : la coque, les voiles carrées à croix rouge, la voile latine
+    caravelle: function () {
+      var b = MO_MAT.bois;
+      return moEau("M10 108q70 -12 140 0v14h-140Z") + '<g class="md-tangue">' +
+        moL("M62 96V34M90 98V22M116 94V44", "#6B4A2B", 2.4) +
+        moP("M26 86q2 22 26 24h58q20 -2 26 -30l-14 8h-84Z", b.f) + moP("M30 94q3 12 22 14h58q14 -2 21 -18q-10 9 -22 9h-60q-12 0 -19 -5Z", b.o) + moL("M30 90h96", b.h, 1.4) +
+        moP("M118 88v-12h18v6Z", b.o) + moR(119, 72, 16, 4, b.f) +
+        moP("M72 28q18 6 36 0l2 34q-20 7 -40 0Z", "#FFF8EA") + moP("M90 30.5v32.5", "none", ' stroke="#E8DCC2" stroke-width="1"') + moP("M88 40h4v6h6v4h-6v8h-4v-8h-6v-4h6Z", "#D4563C") +
+        moP("M50 44q12 4 24 0l1 24q-13 5 -26 0Z", "#FFF8EA") + moP("M60 50h3v4h4v3h-4v6h-3v-6h-4v-3h4Z", "#D4563C") +
+        moP("M116 46l22 34l-24 4Z", "#FFF8EA") + moDrapeau(90, 22, 9, "#D4563C") + "</g>" + moVagues(113, 16, 144);
+    },
+    // la galère de Venise : la coque basse, les rames, la voile latine, l'étendard rouge
+    galere: function () {
+      var b = MO_MAT.bois, rames = "";
+      for (var k = 0; k < 9; k++) rames += moL("M" + (42 + k * 8.5) + " 99l-7 13", "#C68F58", 1.5);
+      return moEau("M10 108q70 -12 140 0v14h-140Z") + '<g class="md-tangue">' +
+        moL("M76 96V30", "#6B4A2B", 2.4) + moP("M48 40L112 63L76 92Z", "#FFF8EA") + moP("M60 44.4L72 48.7L76 92Z", "#D4563C") + moP("M86 53.7L98 58L76 92Z", "#D4563C") + moL("M46 39L114 64", "#6B4A2B", 2.2) +
+        rames + moP("M14 90q10 14 32 16h68q16 -2 28 -20l-14 7h-98Z", b.f) + moP("M22 98q8 7 24 8h68q12 -1 21 -11q-9 5 -21 5h-72q-12 0 -20 -2Z", b.o) + moL("M20 93h108", "#F5C842", 1.6) +
+        moP("M116 91v-9q10 -5 20 0v3l-6 6Z", "#C8553D") + moDrapeau(76, 30, 10, "#C8102E") + moC(82, 25, 1.6, "#F5C842") + "</g>" + moVagues(113, 14, 146);
+    },
+    // le dôme de Florence : la coupole de Brunelleschi, le campanile
+    coupole: function () {
+      var m = MO_MAT.marbre, t = MO_MAT.tuile;
+      return moOmbre(80, 62) + moCypres(18, 116, 26) +
+        moBloc(112, 116, 18, 86, m, 6) + moL("M112 100h18M112 84h18M112 68h18M112 52h18", "#7FA58A", 1.3) + moFens(116, 56, 4, 9, 2, 7, MO_NUIT) + moFens(116, 88, 4, 9, 2, 7, MO_NUIT) + moFen(116, 36, 10, 12, MO_NUIT) + moR(110, 28, 22, 3, m.o) +
+        moBloc(26, 116, 80, 34, m) + moL("M26 104h80M26 92h80", "#7FA58A", 1.3) + moFen(58, 96, 14, 20, "#5B3A29") + moC(40, 96, 4.5, MO_NUIT) + moC(92, 96, 4.5, MO_NUIT) + moPignon(26, 82, 30, 9, m) +
+        moBloc(44, 82, 50, 14, m) + moC(56, 75, 3.2, MO_NUIT) + moC(69, 75, 3.2, MO_NUIT) + moC(82, 75, 3.2, MO_NUIT) +
+        moP("M44 68Q46 34 71 24Q96 34 98 68Z", t.f) + moP("M98 68Q96 34 71 24Q84 40 84 68Z", t.o) + moL("M71 24Q58 40 57 68M71 24Q84 40 85 68M71 24v44", "#FFF8EA", 1.5) +
+        moR(67, 15, 8, 10, m.f) + moR(71.5, 15, 3.5, 10, m.o) + moCone(71, 15, 6, 7, t) + moC(71, 7, 2.2, "#F5C842");
+    },
+    // le château de la Renaissance (Chambord) : les tours rondes, la forêt de cheminées et de lanternons
+    palais: function (o) {
+      var m = MO_MAT[o && o.teinte] || MO_MAT.marbre, a = MO_MAT.ardoise;
+      return moOmbre(80, 66) + moArbre(16, 116, .8) +
+        moBloc(40, 116, 80, 32, m) + moFens(47, 90, 6, 10, 6, 12, MO_NUIT) + moR(40, 101, 80, 2, m.o) + moFen(73, 100, 14, 16, "#5B3A29") +
+        moToit(40, 84, 80, 14, a) +
+        moR(52, 60, 5, 14, m.f) + moCone(54.5, 60, 4.5, 8, a) + moR(102, 60, 5, 14, m.f) + moCone(104.5, 60, 4.5, 8, a) +
+        moR(64, 54, 6, 20, m.f) + moCone(67, 54, 5.5, 10, a) + moR(90, 54, 6, 20, m.f) + moCone(93, 54, 5.5, 10, a) +
+        moRonde(80, 72, 7, 26, m) + moFen(77.5, 52, 5, 9, MO_NUIT) + moCone(80, 46, 9, 16, a) + moC(80, 29, 2, "#F5C842") +
+        moRonde(34, 116, 13, 40, m) + moFens(27, 86, 5, 9, 2, 9, MO_NUIT) + moCone(34, 76, 16, 24, a) + moC(34, 51, 1.8, "#F5C842") +
+        moRonde(126, 116, 13, 40, m) + moFens(119, 86, 5, 9, 2, 9, MO_NUIT) + moCone(126, 76, 16, 24, a) + moC(126, 51, 1.8, "#F5C842");
+    },
+    // Versailles : le corps central et ses ailes, les toits bleus, la grille dorée
+    versailles: function () {
+      var m = MO_MAT.creme, a = MO_MAT.ardoise;
+      return moOmbre(80, 68) +
+        moBloc(18, 116, 34, 26, m, 6) + moFens(22, 96, 5, 10, 4, 7.6, MO_NUIT) + moToit(18, 90, 34, 9, a, 6) +
+        moBloc(110, 116, 34, 26, m, 6) + moFens(114, 96, 5, 10, 4, 7.6, MO_NUIT) + moToit(110, 90, 34, 9, a, 6) +
+        moBloc(46, 112, 68, 36, m) + moFens(51, 84, 5, 10, 8, 8, MO_NUIT) + moFens(51, 98, 5, 12, 8, 8, MO_NUIT) + moR(46, 95, 68, 1.8, m.o) + moToit(46, 76, 68, 11, a) +
+        moBloc(68, 112, 24, 42, m, 6) + moPignon(68, 70, 24, 9, MO_MAT.or, 6) + moFen(75, 92, 10, 20, "#5B3A29") + moC(80, 80, 3.6, "#F5C842") + moC(80, 80, 2.4, "#FFFDF5") + moDrapeau(80, 61, 14, "#FFFDF5") +
+        moL("M30 116v-9M40 116v-9M50 116v-9M60 116v-9M100 116v-9M110 116v-9M120 116v-9M130 116v-9M26 108h40M94 108h40", "#F5C842", 1.4) + moL("M66 116v-13q14 -8 28 0v13", "#F5C842", 1.6);
+    },
+    // le temple grec (le Parthénon) : les marches, la colonnade, le fronton
+    temple: function (o) {
+      var m = MO_MAT.marbre, s = "";
+      for (var k = 0; k < 6; k++) s += moR(37 + k * 15.4, 64, 8, 38, m.f) + moR(42.4 + k * 15.4, 64, 2.6, 38, m.o) + moR(36 + k * 15.4, 62, 10, 3, m.h);
+      return moOmbre(80, 64) + (o && o.drapeau ? "" : moArbre(144, 116, .8, "#6E9B52")) +
+        moBloc(24, 116, 112, 5, m, 6) + moBloc(28, 111, 104, 5, m, 6) + moBloc(32, 106, 96, 4, m, 6) + moR(38, 66, 84, 36, "#B9AE98") + s +
+        moBloc(32, 62, 96, 8, m, 6) + moL("M34 58h92", "#C9A24A", 1.4) + moPignon(30, 54, 100, 20, m, 6) + moP("M40 52L80 38L120 52Z", (o && o.fronton) || "#6FA8DC") + moC(80, 33, 2.4, "#F5C842") +
+        (o && o.drapeau ? moDrapeau(80, 33, 16, o.drapeau[0], o.drapeau[1], o.drapeau[2]) : "");
+    },
+    // la tour du temps : quatre étages pour les quatre grandes périodes, et l'horloge
+    horloge: function () {
+      var et = [["#E9B44C", "#C4912F", "#F6D386"], ["#5FA868", "#3F8249", "#8CC993"], ["#4F86C6", "#3564A0", "#86B1E3"], ["#D96C75", "#B34A54", "#EB9AA1"]], s = "";
+      for (var k = 0; k < 4; k++) s += moBloc(60 + k * 2, 116 - k * 18, 40 - k * 4, 18, { f: et[k][0], o: et[k][1], h: et[k][2] }) + moFen(76, 104 - k * 18, 8, k ? 8 : 12, k ? MO_NUIT : "#5B3A29");
+      return moOmbre(80, 50) + moArbre(36, 116, 1) + moArbre(128, 116, .85) + s +
+        moBloc(64, 44, 32, 22, MO_MAT.creme) + moC(80, 33, 9.5, "#F5C842") + moC(80, 33, 7.6, "#FFFDF5") + moL("M80 33v-5.5M80 33l4 2.4", "#3A4664", 1.4) + moCone(84, 22, 20, 18, MO_MAT.ardoise) + moDrapeau(84, 5, 2, "#F5C842");
+    },
+    // le Parlement de Londres : la longue façade gothique et la tour de l'horloge
+    parlement: function () {
+      var m = MO_MAT.ocre, a = MO_MAT.ardoise, s = "";
+      for (var k = 0; k < 9; k++) s += moP("M" + (30 + k * 9) + " 82l2 -7l2 7Z", m.f);
+      return moEau("M10 112q70 -8 140 0v10h-140Z") + moOmbre(80, 62) +
+        moBloc(24, 114, 22, 54, m, 6) + moFens(28, 68, 4, 12, 3, 5.6, MO_NUIT, true) + moFens(28, 90, 4, 12, 3, 5.6, MO_NUIT, true) + moCren(24, 60, 22, 4, m, 5) + moDrapeau(35, 56, 16, "#2F5DA8", "#FFFDF5", "#D4563C") +
+        moBloc(28, 114, 80, 30, m) + s + moFens(48, 90, 4, 14, 9, 6.4, MO_NUIT, true) + moR(28, 100, 80, 1.6, m.o) + moToit(46, 84, 62, 6, a) +
+        moBloc(112, 114, 18, 70, m, 6) + moL("M116 106v-36M121 106v-36M126 106v-36", m.o, 1.2) + moR(110, 60, 22, 3, m.o) + moC(121, 52, 7.4, "#F5C842") + moC(121, 52, 5.8, "#FFFDF5") + moL("M121 52v-4M121 52l3 1.5", "#3A4664", 1.2) +
+        moR(112, 42, 18, 3, m.o) + moCone(124, 44, 12, 24, a) + moC(124, 19, 1.8, "#F5C842") + moVagues(118, 16, 144);
+    },
+    // la métropole : les gratte-ciel du quartier d'affaires (o.arche : la Grande Arche de la Défense)
+    metropole: function (o) {
+      var v = MO_MAT.verre, w = MO_MAT.verre2, g = MO_MAT.gris;
+      return moOmbre(80, 66) +
+        moBloc(22, 116, 22, 52, g, 7) + moGrille(22, 66, 22, 48, 3, 8, "#6E8296") +
+        moBloc(112, 116, 26, 62, w, 7) + moGrille(112, 56, 26, 58, 4, 9, "#DCEEFB") +
+        moBloc(46, 116, 26, 78, v, 7) + moGrille(46, 40, 26, 74, 4, 11, "#E9F6FD") + moBloc(52, 38, 14, 8, v, 5) + moL("M59 30V16", "#8A97A6", 1.6) + moC(59, 15, 2, "#FF5A6E", ' class="md-clignote"') +
+        moBloc(86, 116, 22, 92, g, 7) + moGrille(86, 26, 22, 88, 3, 13, "#5E7389") + moP("M86 24l11 -10l11 10Z", g.h) +
+        (o && o.arche ? moBloc(58, 116, 44, 40, MO_MAT.marbre, 9) + moR(66, 84, 28, 32, "#9FC6E8") + moP("M66 84h28l5 -3h-28Z", "#7FA9CC")
+          : moBloc(70, 116, 18, 34, MO_MAT.creme, 6) + moGrille(70, 84, 18, 30, 3, 5, "#8A97A6")) +
+        moArbre(14, 116, .6) + moArbre(146, 116, .6);
+    },
+    // la ville des contrastes : les tours du quartier d'affaires derrière les toits du bidonville
+    contrastes: function () {
+      var v = MO_MAT.verre, g = MO_MAT.gris, s = "";
+      var toits = ["#4F86C6", "#B36A45", "#5FA868", "#C5CAD3", "#D4563C", "#E9B44C", "#8A97A6"];
+      for (var k = 0; k < 7; k++) {
+        var x = 20 + k * 17 + (k % 2) * 3, y = 116 - (k % 3) * 3, h = 12 + (k % 2) * 4;
+        s += moBloc(x, y, 16, h, k % 2 ? MO_MAT.brique : MO_MAT.ocre, 5) + moP("M" + (x - 2) + " " + (y - h) + "l6 -3h17l-3 3Z", toits[k]) + moR(x + 3, y - 8, 4, 8, "#5B3A29") + moR(x + 10, y - h + 3, 3.4, 3.4, "#3A4664");
+      }
+      return moOmbre(80, 66) +
+        moBloc(34, 100, 22, 60, v, 7) + moGrille(34, 42, 22, 56, 3, 9, "#E9F6FD") + moBloc(62, 100, 20, 78, g, 7) + moGrille(62, 24, 20, 74, 3, 12, "#5E7389") + moL("M72 22V10", "#8A97A6", 1.6) +
+        moBloc(88, 100, 26, 50, MO_MAT.verre2, 7) + moGrille(88, 52, 26, 46, 4, 7, "#DCEEFB") + moBloc(118, 100, 14, 36, g, 6) + moGrille(118, 66, 14, 32, 2, 6, "#6E8296") +
+        s + moL("M24 96q14 5 28 0", "#fff", 1, ' opacity=".8"') + moR(30, 97.5, 3, 4, "#D4563C") + moR(37, 98.5, 3, 4, "#4F86C6") + moR(44, 97.5, 3, 4, "#F5C842");
+    },
+    // la grande ville d'un pays très peuplé (New Delhi) : la Porte de l'Inde devant les immeubles serrés
+    villedense: function () {
+      var o = MO_MAT.ocre, s = "", c = [MO_MAT.rose, MO_MAT.creme, MO_MAT.brique, MO_MAT.jaune, MO_MAT.gris, MO_MAT.rose, MO_MAT.creme];
+      for (var k = 0; k < 7; k++) {
+        var x = 18 + k * 18, h = 34 + ((k * 7) % 5) * 7;
+        s += moBloc(x, 110, 17, h, c[k], 6) + moGrille(x, 112 - h, 17, h - 6, 3, Math.round(h / 7), "#5E6B84");
+      }
+      var foule = "";
+      for (var i = 0; i < 12; i++) foule += moC(26 + i * 10 + (i % 2) * 3, 112 + (i % 3) * 2, 2, ["#D4563C", "#F5C842", "#4F86C6", "#5FA868"][i % 4]);
+      return moOmbre(80, 66) + s + moDome(36, 68, 7, 7, MO_MAT.turquoise) + moDome(126, 60, 7, 7, MO_MAT.or) +
+        moBloc(58, 116, 44, 44, o) + moFen(70, 82, 20, 34, "#7A5C3A") + moR(56, 70, 50, 4, o.h) + moBloc(66, 72, 28, 7, o, 6) + moR(62, 100, 6, 2, o.o) + moR(92, 100, 6, 2, o.o) + moDrapeau(80, 65, 13, "#F2994A", "#FFFDF5", "#3F9B4B") + foule;
+    },
+    // la forêt amazonienne : la canopée, le fleuve et sa pirogue, une parcelle défrichée
+    foret: function () {
+      var s = "", v = ["#2F7A2D", "#3F8F3A", "#57A84A", "#2A6B3C"];
+      var pts = [[30, 84, 13], [48, 74, 15], [70, 68, 16], [92, 72, 15], [112, 80, 14], [130, 90, 12], [38, 96, 12], [60, 90, 14], [84, 88, 15], [106, 94, 13], [22, 100, 10]];
+      pts.forEach(function (p, k) { s += moC(p[0], p[1], p[2], v[k % 4]) + moC(p[0] - p[2] * .3, p[1] - p[2] * .3, p[2] * .4, "#6FBF5A", ' opacity=".7"'); });
+      return moOmbre(80, 68) + moR(68, 50, 3, 24, "#7A5534") + moC(69.5, 46, 11, "#2F7A2D") + moC(66, 43, 5, "#57A84A") + moR(101, 58, 3, 20, "#7A5534") + moC(102.5, 54, 9, "#3F8F3A") + s +
+        moPalmier(134, 106, .9) + moEau("M8 110q30 -14 62 -6t80 -6v24h-142Z") +
+        moP("M40 111q10 4 22 0l-2 4h-18Z", "#8C5A2B") + moL("M51 110v-7", "#6B4A2B", 1.4) + moC(51, 101.5, 2.2, "#E6B49B") +
+        moP("M112 104h30v6h-30Z", "#C9A66B") + moR(118, 100, 4, 4, "#8C5A2B") + moR(128, 100.5, 4, 3.5, "#8C5A2B") + moR(136, 100, 3.6, 4, "#8C5A2B") + moVagues(115, 14, 108);
+    },
+    // les milieux de France : la montagne enneigée, le littoral et son phare
+    littoral: function () {
+      return moOmbre(80, 68) + moP("M20 108L58 40L78 74L96 52L140 108Z", "#8FA3B8") + moP("M58 40L78 74L70 108H52Z", "#7389A1") + moP("M58 40l-9 16l7 -3l5 5l4 -6Z", "#FFFFFF") + moP("M96 52l-7 9l6 -2l5 4l3 -3Z", "#FFFFFF") +
+        moP("M14 116q30 -26 62 -16t70 16Z", "#6CBF4A") + moArbre(34, 108, .7) + moArbre(48, 104, .6, "#2F7A2D") + moCypres(60, 104, 14) +
+        moEau("M70 112q40 -12 82 -4v14h-82Z") + moP("M96 116q6 -12 20 -12t18 12Z", "#A99477") +
+        moP("M110 104l2 -40h8l2 40Z", "#FFFDF5") + moP("M111.4 92h9.2l-.5 -10h-8.2ZM112.2 72h7.6l-.3 -8h-7Z", "#D4563C") + moP("M118 64l1 40h3l-2 -40Z", "#000", ' opacity=".12"') +
+        moR(109, 58, 14, 6, "#3A4664") + moR(112, 59.5, 8, 3.5, "#FFE08A", 1) + moP("M108 58l8 -7l8 7Z", "#D4563C") + moP("M124 61l26 -8v16Z", "#FFE08A", ' opacity=".5" class="md-faisceau"') +
+        moVagues(114, 74, 150) + moP("M78 108l6 -12l6 12Z", "#FFFDF5", ' class="md-tangue"');
+    },
+    // la Bastille : la forteresse aux tours rondes, le drapeau tricolore
+    bastille: function () {
+      var m = MO_MAT.gris;
+      function t(x, h) { return moRonde(x, 116, 10, h, m) + moCren(x - 10, 116 - h, 20, 3, m, 4) + moR(x - 1.5, 116 - h + 12, 3, 8, MO_NUIT) + moR(x - 1.5, 116 - h + 30, 3, 8, MO_NUIT); }
+      return moOmbre(80, 62) + t(52, 66) + t(108, 66) +
+        moBloc(32, 116, 96, 50, m) + moCren(32, 66, 96, 9, m, 4) + moFen(72, 94, 16, 22, "#4A3526") + moL("M76 98v18M80 95v21M84 98v18", "#8C6A45", 1.2) +
+        moR(46, 84, 4, 8, MO_NUIT) + moR(110, 84, 4, 8, MO_NUIT) + t(32, 62) + t(80, 72) + t(128, 62) + moDrapeau(80, 40, 18, "#2F5DA8", "#FFFDF5", "#D4563C");
+    },
+    // l'Hôtel de Ville : le pavillon de l'horloge, les ailes, les drapeaux tricolores
+    hoteldeville: function () {
+      var m = MO_MAT.creme, a = MO_MAT.ardoise;
+      return moOmbre(80, 68) +
+        moBloc(20, 116, 120, 34, m) + moFens(26, 88, 6, 11, 4, 9, MO_NUIT) + moFens(104, 88, 6, 11, 4, 9, MO_NUIT) + moFens(26, 104, 6, 12, 4, 9, "#5B3A29") + moFens(104, 104, 6, 12, 4, 9, "#5B3A29") + moR(20, 100, 120, 1.8, m.o) +
+        moToit(20, 82, 42, 12, a) + moToit(98, 82, 42, 12, a) + moR(30, 70, 4, 8, m.f) + moR(48, 70, 4, 8, m.f) + moR(110, 70, 4, 8, m.f) + moR(128, 70, 4, 8, m.f) +
+        moBloc(60, 116, 40, 50, m) + moFen(73, 94, 14, 22, "#5B3A29") + moFens(65, 74, 5, 11, 4, 8.4, MO_NUIT) + moR(60, 90, 40, 1.8, m.o) +
+        moPignon(60, 66, 40, 10, m) + moC(80, 61, 5.4, "#F5C842") + moC(80, 61, 4, "#FFFDF5") + moL("M80 61v-2.6M80 61l2 1", "#3A4664", 1) +
+        moBloc(72, 56, 16, 12, m, 5) + moCone(82, 44, 11, 16, a) + moC(82, 27, 1.8, "#F5C842") +
+        moDrapeau(66, 66, 16, "#2F5DA8", "#FFFDF5", "#D4563C") + moDrapeau(102, 66, 16, "#2F5DA8", "#FFFDF5", "#D4563C");
+    },
+    // l'usine : les toits en dents de scie, les cheminées qui fument
+    usine: function () {
+      var b = MO_MAT.brique, s = "";
+      for (var k = 0; k < 4; k++) s += moP("M" + (30 + k * 22) + " 84v-14l22 14Z", "#8FC3D9") + moP("M" + (30 + k * 22) + " 84v-14l3 -1.5v15.5Z", b.o);
+      return moOmbre(80, 66) + moFumee(47, 22) + moFumee(123, 34) +
+        moBloc(40, 116, 12, 84, b, 5) + moR(39, 44, 14, 3, b.o) + moR(39, 32, 14, 4, "#FFFDF5") +
+        moBloc(116, 116, 12, 72, b, 5) + moR(115, 54, 14, 3, b.o) + moR(115, 44, 14, 4, "#FFFDF5") +
+        moBloc(30, 116, 88, 32, b) + s + moGrille(34, 90, 80, 14, 8, 1, "#3A4664") + moR(68, 102, 14, 14, "#5B3A29") + moR(30, 100, 88, 1.6, b.o) +
+        moBloc(124, 116, 18, 20, MO_MAT.gris, 6) + moR(128, 104, 6, 12, "#5B3A29");
+    },
+    // l'eau et l'énergie : le barrage et sa retenue, les éoliennes
+    barrage: function () {
+      function eol(x, y, s) {
+        return moR(x - 1, y - 34 * s, 2, 34 * s, "#F6F2E9") + '<g class="md-tourne" style="transform-origin:' + x + "px " + (y - 34 * s) + 'px">' +
+          moP("M" + x + " " + (y - 34 * s) + "l-2 -" + 14 * s + "h4Z M" + x + " " + (y - 34 * s) + "l" + 13 * s + " " + 6 * s + "l-2 3Z M" + x + " " + (y - 34 * s) + "l-" + 13 * s + " " + 6 * s + "l2 3Z", "#FFFFFF") + "</g>" + moC(x, y - 34 * s, 1.8, "#C5CAD3");
+      }
+      return moOmbre(80, 68) + moP("M10 116q10 -46 40 -52l14 52Z", "#5FA868") + moP("M150 116q-8 -50 -36 -58l-18 58Z", "#4C9457") +
+        moEau("M48 70h62l6 14h-74Z") + moP("M40 84h78l-8 32h-62Z", "#C5CAD3") + moP("M118 84l-8 32h8l6 -30Z", "#9CA4B1") + moR(40, 82, 80, 4, "#E2E6EB") +
+        moL("M58 90v22M70 90v24M82 90v24M94 90v22", "#fff", 3, ' opacity=".85" class="md-vague"') + moEau("M44 112q36 -6 72 0v8h-72Z") +
+        eol(26, 78, 1) + eol(134, 70, .85) + moArbre(14, 116, .6);
+    },
+    // nourrir les hommes : les champs, la grange, le silo et le moulin
+    ferme: function () {
+      return moOmbre(80, 68) + moP("M12 116q20 -22 68 -22t68 22Z", "#F2D36B") + moL("M30 112q50 -18 100 0M24 106q56 -16 112 0", "#D9B54A", 1.5) + moP("M12 116q14 -12 40 -16l-10 16Z", "#6CBF4A") + moP("M148 116q-14 -12 -40 -16l10 16Z", "#57A84A") +
+        moBloc(54, 104, 34, 20, { f: "#C8553D", o: "#9E3E2A", h: "#E07A62" }) + moPignon(54, 84, 34, 14, MO_MAT.gris) + moR(66, 90, 10, 14, "#FFFDF5") + moL("M66 90l10 14M76 90l-10 14", "#C8553D", 1.2) +
+        moRonde(100, 104, 8, 34, MO_MAT.gris) + moDome(100, 70, 8, 6, MO_MAT.plomb) +
+        moBloc(118, 108, 12, 26, MO_MAT.creme, 5) + moCone(126, 82, 10, 10, MO_MAT.tuile) + '<g class="md-tourne" style="transform-origin:124px 86px">' + moL("M124 86l-13 -9M124 86l13 9M124 86l9 -13M124 86l-9 13", "#8C5A2B", 2) + "</g>" + moC(124, 86, 2, "#5B3A29") +
+        moArbre(30, 104, .7);
+    },
+    // le port : le porte-conteneurs à quai, les grues
+    port: function () {
+      var cs = ["#D4563C", "#4F86C6", "#F5C842", "#5FA868", "#E08A3C", "#8A6FD1"], s = "";
+      for (var i = 0; i < 6; i++) for (var j = 0; j < 3 - (i > 3 ? 1 : 0); j++) s += moR(34 + i * 12, 86 - j * 7, 11, 6, cs[(i + j * 2) % 6]) + moR(34 + i * 12, 86 - j * 7, 11, 1.5, "#fff", 0) ;
+      function grue(x) { return moL("M" + x + " 116V52M" + (x + 10) + " 116V52M" + x + " 96h10M" + x + " 76h10M" + (x - 22) + " 52h44M" + (x + 5) + " 52v-12l-27 12M" + (x + 5) + " 40l17 12", "#E9B44C", 2.2) + moL("M" + (x - 14) + " 52v14", "#5B4A3A", 1.2) + moR(x - 18, 66, 8, 5, "#4F86C6"); }
+      return moEau("M8 106q72 -10 144 0v16h-144Z") + grue(126) + '<g class="md-tangue">' +
+        moP("M20 92h92l10 -6v10q-4 14 -16 16h-74q-10 -4 -12 -20Z", "#2F4A7A") + moP("M24 104h94q-4 7 -12 8h-74q-6 -2 -8 -8Z", "#C8553D") + s +
+        moBloc(96, 92, 14, 24, MO_MAT.marbre, 5) + moR(98, 72, 10, 4, MO_NUIT) + moR(101, 62, 4, 6, "#D4563C") + "</g>" + moVagues(115, 12, 150);
+    },
+    // le phare des repères
+    phare: function () {
+      return moEau("M14 108q66 -10 132 0v14h-132Z") + moP("M46 116q8 -16 34 -16t34 16Z", "#A99477") + moP("M60 104q8 -6 20 -6t20 6Z", "#C2AE90") +
+        moP("M70 102l4 -52h12l4 52Z", "#FFFDF5") + moP("M71.2 86h17.6l-1 -13h-15.6ZM73 60h14l-.7 -10h-12.6Z", "#D4563C") + moP("M84 50l2 52h4l-4 -52Z", "#000", ' opacity=".12"') +
+        moR(68, 42, 24, 8, "#3A4664") + moR(72, 44, 16, 4.5, "#FFE08A", 1) + moP("M66 42l14 -11l14 11Z", "#D4563C") + moC(80, 29, 2, "#F5C842") +
+        moP("M92 46l44 -14v28Z", "#FFE08A", ' opacity=".55" class="md-faisceau"') + moP("M68 46l-44 -14v28Z", "#FFE08A", ' opacity=".3" class="md-faisceau"') + moR(76, 92, 8, 10, "#5B3A29") + moVagues(114, 18, 142);
+    },
+    // la halte de révision : la tente et le feu de camp
+    camp: function () {
+      return moOmbre(80, 50) + moArbre(128, 116, .9) + moArbre(30, 114, .7, "#2F7A2D") +
+        moP("M44 116L74 62L104 116Z", "#F2994A") + moP("M74 62L104 116H88Z", "#C96F25") + moP("M66 116L74 86L82 116Z", "#5B3A29") + moL("M74 62v-8", "#6B5335", 1.6) + moP("M74.8 54q4 -2 7 0v6q-3 -2 -7 0Z", "#F5C842", ' class="md-flotte"') +
+        moL("M108 116l10 -5M120 116l-10 -5", "#8C5A2B", 3) + '<g class="md-flamme">' + moP("M114 110q-7 -8 0 -18q7 10 0 18Z", "#FF8A3D") + moP("M114 110q-3.5 -5 0 -10q3.5 5 0 10Z", "#FFD166") + "</g>";
+    },
+    // le grand défi de l'année : le sommet et sa coupe
+    sommet: function () {
+      return moOmbre(80, 66) + moP("M16 116L62 44L80 70L96 54L144 116Z", "#7E8DB8") + moP("M62 44L80 70L72 116H50Z", "#6577A6") + moP("M62 44l-10 16l8 -3l5 5l5 -6Z", "#FFFFFF") + moP("M96 54l-7 9l6 -2l5 4l4 -3Z", "#FFFFFF") +
+        moL("M40 116q10 -14 22 -18t12 -18", "#F2E3B0", 2, ' stroke-dasharray="1 5"') +
+        '<g class="md-brille">' + moP("M52 20h20v8q0 12 -10 14q-10 -2 -10 -14Z", "#F5C842") + moP("M62 20h10v8q0 12 -10 14Z", "#C9971B") + moL("M52 23h-5q0 9 7 10M72 23h5q0 9 -7 10", "#F5C842", 2.2) + moR(59.5, 42, 5, 5, "#C9971B") + moR(55, 47, 14, 3.5, "#F5C842", 1) + "</g>" +
+        moDrapeau(96, 54, 16, "#D4563C");
+    },
+    // un chapitre à venir : une silhouette dans la brume
+    mystere: function () {
+      return moOmbre(80, 44) + moBloc(58, 116, 44, 34, { f: "#8E98B0", o: "#727C96", h: "#A9B2C6" }) + moPignon(58, 82, 44, 18, { f: "#727C96", o: "#5D6780" }) + moFen(74, 96, 12, 20, "#5D6780") +
+        '<g class="md-brume">' + moE(52, 98, 26, 11, "#fff", ' opacity=".85"') + moE(104, 104, 30, 11, "#fff", ' opacity=".8"') + moE(78, 110, 34, 9, "#fff", ' opacity=".9"') + "</g>";
+    }
+  };
+  // le dessin d'un monument : type, puis options éventuelles ({ type: "temple", fronton: "#C8553D" })
+  function svgMonument(mo, cls) {
+    var f = MONUMENTS[mo && mo.type] || MONUMENTS.mystere;
+    return '<svg viewBox="0 0 160 130" class="md-mon' + (cls ? " " + cls : "") + '" aria-hidden="true" focusable="false">' + f(mo || {}) + "</svg>";
+  }
+
   var AV_SYMBOLES = {
     flamme: '<path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-3-1-6 1-9z" fill="#FF8A3D"/><path d="M12 13c1 1.5 2.5 2.5 2.5 4.5a2.5 2.5 0 0 1-5 0c0-1.5 1.5-2.5 2.5-4.5z" fill="#FFD166"/>',
     eclair: '<path d="M13 2L4 14h7l-1 8 9-12h-7z" fill="#FFC83D"/>',
@@ -5469,10 +5986,28 @@
     if (rangNiveau(m[2]) < 0) return null;
     return m[1] === "annee" ? parcoursAnnee(m[2]) : parcoursReperes(m[2]);
   }
-  function retourAventure(ch) { return ch.special ? "#/niveau/" + ch.n : lienChapitre(ch); }
+  // d'un chemin, on revient à la carte de l'année quand elle est en service
+  function retourAventure(ch) { return carteActive() ? lienMonde(ch.n) : ch.special ? "#/niveau/" + ch.n : lienChapitre(ch); }
+  function chapitreFini(id) { return !!av.niveaux[id + "|defi"]; }
 
+  // sur la carte de l'année, le parcours de l'année se réduit à ses haltes de révision (une tous les deux chapitres ouverts,
+  // qui mélange les chapitres déjà vus) et au grand défi : les niveaux de chaque chapitre se jouent dans le chapitre
+  function routeHaltes(ch) {
+    var noeuds = [], unites = [];
+    blocs(ch).forEach(function (b) {
+      if (!MODELES_NIVEAUX.some(function (m) { return m.pool(ch, b).length >= 4; })) return;
+      var u = { bloc: b, num: unites.length + 1, nom: b.data.titre, petit: b.data.court };
+      unites.push(u);
+      if (unites.length % 2 === 0) noeuds.push({ type: "revision", cle: ch.id + "|rev|" + b.id, unite: u, jusque: unites.length - 1, apres: b.id,
+        nom: "Halte de révision : les " + unites.length + " premiers chapitres", icone: "eclair" });
+    });
+    if (unites.length >= 2) noeuds.push({ type: "defi", cle: ch.id + "|defi", unite: null, icone: "bouclier", nom: "Le grand défi de l'année" });
+    noeuds.forEach(function (n, i) { n.i = i; });
+    return { noeuds: noeuds, unites: unites, parUnite: true, haltes: true };
+  }
   // le chemin : niveaux et coffre de chaque unité (plus une île de révision par chapitre dans le parcours de l'année), puis le défi
   function routeAventure(ch) {
+    if (ch.special === "annee" && carteActive()) return routeHaltes(ch);
     var noeuds = [], unites = [];
     blocs(ch).forEach(function (b) {
       var niv = MODELES_NIVEAUX.filter(function (m) { return m.pool(ch, b).length >= 4; });
@@ -5500,6 +6035,8 @@
   // les étapes s'enchaînent ; dans les grands parcours, chaque unité (un chapitre, un thème) s'ouvre sans attendre les autres
   function noeudOuvert(route, n) {
     if (toutOuvert()) return true;
+    // sur la carte : une halte est toujours ouverte ; le grand défi attend que tous les chapitres ouverts soient finis
+    if (route.haltes) return n.type !== "defi" || route.unites.every(function (u) { return chapitreFini(u.bloc.id); });
     for (var i = 0; i < n.i; i++) {
       var x = route.noeuds[i];
       if (route.parUnite && n.unite && x.unite !== n.unite) continue;
@@ -5673,6 +6210,8 @@
       var n = route.noeuds[Number(x)];
       if (n && n.type !== "coffre" && noeudOuvert(route, n)) { vueNiveau(ch, route, n); return; }
     }
+    // les haltes de révision n'ont pas de chemin à elles : elles sont sur la carte de l'année
+    if (route.haltes) { location.replace(lienMonde(ch.n)); return; }
     vueChemin(ch, route);
   }
 
@@ -5708,8 +6247,9 @@
   function vueChemin(ch, route) {
     var noeuds = route.noeuds;
     var actuel = etapeDuMoment(route);
+    var carte = carteActive(); // avec la carte de l'année : étapes numérotées et nommées, bouton « Continuer »
     var ecran = ecranAventure("av-mer");
-    var lien = el("a", { class: "av-btn-rond", href: retourAventure(ch), "aria-label": ch.special ? "Retour à l'accueil" : "Retour au chapitre" });
+    var lien = el("a", { class: "av-btn-rond", href: retourAventure(ch), "aria-label": carte ? "Retour à la carte de l'année" : ch.special ? "Retour à l'accueil" : "Retour au chapitre" });
     lien.innerHTML = icone("retour");
     var moi = el("a", { class: "av-moi", href: lienAventure(ch, "perso"), "aria-label": "Mon personnage, la boutique, mes badges et mon musée" });
     moi.innerHTML = dessinPerso(av.perso, true);
@@ -5724,13 +6264,21 @@
       moi
     ]));
     var faits = noeuds.filter(noeudFait).length;
-    ecran.appendChild(el("div", { class: "av-route" + (ch.special ? " " + ch.special : "") }, [
+    var entete = [
       el("small", { text: ch.special ? nomNiveau(ch.n) + " · difficulté " + difficulte(ch).nom.toLowerCase() : nomNiveau(ch.n) + " · " + ch.num }),
       el("strong", { text: ch.titre }),
       barreProgres(noeuds.length ? faits / noeuds.length : 0),
       el("span", { class: "av-route-info", text: faits + " étape" + (faits > 1 ? "s" : "") + " sur " + noeuds.length + (route.parUnite ? " · chaque unité s'ouvre dès le départ" : "") })
-    ]));
-    if (estProf()) ecran.appendChild(el("p", { class: "av-note", text: "Essai professeur : ce mode n'est visible que par vous, et toutes les étapes sont ouvertes. Un élève les débloque dans l'ordre." }));
+    ];
+    if (carte) {
+      // l'en-tête porte le monument du chapitre, et un lien vers sa fiche pour réviser avant de jouer
+      var figTete = el("span", { class: "md-tete-fig", "aria-hidden": "true" });
+      figTete.innerHTML = svgMonument(ch.special ? { type: "phare" } : monumentDe(ch));
+      if (!ch.special) entete.push(el("a", { class: "md-tete-lien", href: lienChapitre(ch), text: "Revoir la fiche du chapitre" }));
+      ecran.appendChild(el("div", { class: "av-route md-tete" + (ch.special ? " " + ch.special : "") }, [figTete, el("div", { class: "md-tete-txt" }, entete)]));
+    } else ecran.appendChild(el("div", { class: "av-route" + (ch.special ? " " + ch.special : "") }, entete));
+    if (estProf() && carte) ecran.appendChild(el("p", { class: "av-note", text: "Aperçu professeur : toutes les étapes sont ouvertes. Un élève les débloque dans l'ordre, en réussissant chaque niveau." }));
+    else if (estProf()) ecran.appendChild(el("p", { class: "av-note", text: "Essai professeur : ce mode n'est visible que par vous, et toutes les étapes sont ouvertes. Un élève les débloque dans l'ordre." }));
     else if (DEMO) ecran.appendChild(el("p", { class: "av-note", text: "Démonstration : toutes les étapes sont ouvertes. Un élève les débloque dans l'ordre, en réussissant chaque niveau." }));
     if (!noeuds.length) {
       ecran.appendChild(el("p", { class: "av-note", text: ch.special === "annee" ? "Aucun chapitre n'est encore ouvert pour cette classe." : "Ce chapitre n'a pas encore assez de contenu pour une aventure." }));
@@ -5739,7 +6287,7 @@
 
     var largeur = Math.min(window.innerWidth || 360, 560);
     var ampleur = Math.max(0, Math.min(84, (largeur - 210) / 2 - 6));
-    var chemin = el("div", { class: "av-chemin" });
+    var chemin = el("div", { class: "av-chemin" + (carte ? " nomme" : "") });
     var bulleOuverte = null;
     // l'île des erreurs, en tête du chemin, quand des questions ratées sont à revoir aujourd'hui
     var dues = erreursDues().length;
@@ -5788,6 +6336,7 @@
         p.innerHTML = dessinPerso(av.perso);
         wrap.appendChild(p);
       }
+      if (carte) wrap.appendChild(el("div", { class: "av-ile-nom" + (fait ? " fait" : ouvert ? "" : " verrou"), "aria-hidden": "true", text: (n.i + 1) + " · " + n.nom }));
       b.addEventListener("click", function () { son("clic"); basculer(wrap, b, n, ouvert, fait); });
       return wrap;
     }
@@ -5836,6 +6385,20 @@
       if (r.bottom > window.innerHeight - 10) ecran.scrollBy({ top: r.bottom - window.innerHeight + 24, behavior: "smooth" });
     }
     surToucheVue = function (e) { if (e.key === "Escape") fermerBulle(); };
+    // avec la carte de l'année : la barre du bas lance tout de suite l'étape à jouer
+    if (carte) {
+      var cible = actuel >= 0 ? noeuds[actuel] : null;
+      var bas = el("div", { class: "md-continuer" });
+      if (cible) {
+        bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: "Étape " + (actuel + 1) + " sur " + noeuds.length }), el("strong", { text: cible.nom })]));
+        if (cible.type === "coffre") bas.appendChild(el("button", { class: "jeu-valider", type: "button", text: "Ouvrir le coffre", onclick: function () { fermerBulle(); modalCoffre(ch, cible); } }));
+        else bas.appendChild(el("a", { class: "jeu-valider", href: lienAventure(ch, "jeu/" + cible.i), text: cible.type === "defi" ? "Relever le défi" : faits ? "Continuer" : "Commencer" }));
+      } else {
+        bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: pluriel(etoilesRoute(route), "étoile") + " gagnées" }), el("strong", { text: ch.special ? "Parcours terminé !" : "Chapitre terminé !" })]));
+        bas.appendChild(el("a", { class: "jeu-valider", href: lienMonde(ch.n), text: "Retour à la carte" }));
+      }
+      ecran.appendChild(bas);
+    }
     // on arrive sur l'île du moment ; si c'est un coffre, sa bulle s'ouvre toute seule
     var ici = chemin.querySelector(".av-ile.actuelle");
     if (ici) {
@@ -5928,7 +6491,9 @@
     var diff = difficulte(ch);
     var defi = n.type === "defi", ileErreurs = n.type === "erreurs", seance = n.type === "controle";
     // une séance de contrôle arrive avec ses questions toutes prêtes ; retour : où revenir à la fin
-    var retour = n.retour || lienAventure(ch);
+    var retour = n.retour || (route && route.haltes ? lienMonde(ch.n) : lienAventure(ch));
+    // sur la carte de l'année, le personnage se tient devant le dernier chapitre joué
+    if (!ch.special && n.type !== "controle" && n.type !== "erreurs") { av.ici = av.ici || {}; av.ici[ch.n] = ch.id; }
     var qs = n.questions ? n.questions : ileErreurs ? melanger(erreursDues()).slice(0, 8).map(restaurerErreur).filter(Boolean)
       : composer(poolNoeud(ch, route, n), defi ? diff.defi : n.type === "revision" ? diff.nb + 2 : diff.nb, diff);
     // le guide : Ératosthène pour une unité de géographie, Hérodote sinon
@@ -6116,9 +6681,19 @@
       ]);
       corps.appendChild(bloc);
       // réussi : on continue le chemin ; sinon, on rejoue d'abord
-      var chemin = el("a", { class: reussi ? "jeu-continuer" : "jeu-secondaire", href: retour, text: reussi ? "Continuer" : "Revenir au chemin" });
+      // avec la carte de l'année, on enchaîne sur l'étape suivante du chapitre, et l'on revient à la carte quand il est fini
+      var suite = null;
+      if (carteActive() && reussi && !ileErreurs && !seance && route && !route.haltes && typeof n.i === "number") {
+        var apres = route.noeuds[n.i + 1];
+        if (defi) suite = { href: lienMonde(ch.n), texte: "Retour à la carte" };
+        else if (apres && noeudOuvert(route, apres)) suite = apres.type === "coffre" ? { href: lienAventure(ch), texte: "Ouvrir le coffre" }
+          : { href: lienAventure(ch, "jeu/" + apres.i), texte: "Étape suivante : " + apres.nom };
+      }
+      var chemin = el("a", { class: reussi ? "jeu-continuer" : "jeu-secondaire", href: suite ? suite.href : retour,
+        text: suite ? suite.texte : reussi ? "Continuer" : route && route.haltes ? "Revenir à la carte" : "Revenir au chemin" });
       var encore = ileErreurs ? null : el("button", { class: reussi ? "jeu-secondaire" : "jeu-continuer", type: "button", text: defi ? "Retenter le défi" : seance ? "Refaire une séance" : "Rejouer ce niveau", onclick: function () { rendre(); } });
       var boutons = reussi ? [chemin, encore] : [encore, chemin];
+      if (suite && !defi) boutons.push(el("a", { class: "jeu-lien", href: retour, text: "Revenir au chemin du chapitre" }));
       pied.appendChild(el("div", { class: "jeu-fin-btns" }, boutons));
       if (reussi && !ileErreurs) confettis(ecran);
       annoncer(titre + (message ? " " + message : ""));
@@ -6699,13 +7274,14 @@
     var g = guideDe(ch);
     var p = { peau: AV_PEAUX[1], coiffure: "court", cheveux: AV_CHEVEUX[1], barbe: "", tenue: "tunique", couleur: AV_TEINTES[0][0], chapeau: "", objet: "", compagnon: "" };
     var ecran = ecranAventure("av-nuit");
-    var lien = el("a", { class: "av-btn-rond", href: retourAventure(ch), "aria-label": "Retour" });
+    // avec la carte de l'année, on crée son personnage en arrivant sur la carte : le retour mène à l'accueil de la classe
+    var lien = el("a", { class: "av-btn-rond", href: carteActive() ? "#/niveau/" + ch.n : retourAventure(ch), "aria-label": "Retour" });
     lien.innerHTML = icone("retour");
     ecran.appendChild(el("div", { class: "av-haut" }, [lien, el("strong", { class: "av-haut-titre", text: "Mode aventure" }), boutonSon()]));
     var corps = el("div", { class: "av-page" });
     corps.appendChild(guideBulle(ch, [
       el("p", { text: "Bonjour ! Je suis " + g.nom + ", " + g.qui + "." }),
-      el("p", { text: "Je vais te guider d'île en île. Réponds bien pour gagner des étoiles, des ducats, des coffres, des badges et des surnoms." }),
+      el("p", { text: (carteActive() ? "Je vais te guider tout au long de l'année, de monument en monument." : "Je vais te guider d'île en île.") + " Réponds bien pour gagner des étoiles, des ducats, des coffres, des badges et des surnoms." }),
       el("p", {}, el("strong", { text: "Mais d'abord : à quoi ressembles-tu ?" }))
     ]));
     var ap = apercuPerso(p);
@@ -7042,6 +7618,18 @@
     var faits = route.noeuds.filter(noeudFait).length;
     var a = el("a", { class: "entree-aventure", href: lienAventure(ch) });
     var fig = el("span", { class: "ea-fig", "aria-hidden": "true" });
+    if (carteActive()) {
+      // avec la carte de l'année : le monument du chapitre, et l'étape où l'on en est
+      fig.className = "ea-fig ea-monument";
+      fig.innerHTML = svgMonument(monumentDe(ch));
+      var i = etapeDuMoment(route);
+      a.appendChild(fig);
+      a.appendChild(el("span", { class: "ea-txt" }, [
+        el("strong", { text: faits ? "Continuer l'aventure" : "Jouer ce chapitre" }),
+        el("span", { text: i < 0 ? "Chapitre terminé · " + pluriel(etoilesRoute(route), "étoile") : "Étape " + (i + 1) + " sur " + route.noeuds.length + " : " + route.noeuds[i].nom })
+      ]));
+      return a;
+    }
     fig.innerHTML = svgIle(0, ["temple", "arbre"]) + '<span class="ea-perso">' + dessinPerso(av.perso || GUIDES[ch.d === "geo" ? "geo" : "histoire"].perso) + "</span>";
     a.appendChild(fig);
     a.appendChild(el("span", { class: "ea-txt" }, [
@@ -7097,6 +7685,342 @@
       g.appendChild(dfi);
     }
     if (estProf() || DEMO) g.appendChild(el("p", { class: "ea-note", text: estProf() ? "Mode aventure : essai visible seulement par vous." : "Mode aventure : démonstration." }));
+    return g;
+  }
+
+  // ---------- La carte de l'année : tous les chapitres de l'année sur une seule route, un monument par chapitre ----------
+  // Elle réunit ce qui était dispersé sur l'accueil d'une classe (l'aventure de chaque chapitre, le parcours de l'année,
+  // les repères, l'île des erreurs) : une seule entrée pour le jeu, une seule progression, un bouton « Continuer ».
+  // D'abord en aperçu : pour le professeur, en démonstration, ou avec ?carte dans l'adresse. Les élèves gardent l'ancien
+  // accueil du jeu tant que CARTE_POUR_TOUS est faux.
+  var CARTE_POUR_TOUS = false;
+  var APERCU_CARTE = /[?&]carte(=|&|$)/.test(location.search);
+  function carteActive() { return CARTE_POUR_TOUS || APERCU_CARTE || estProf() || DEMO; }
+  function lienMonde(n) { return "#/monde/" + encodeURIComponent(n); }
+  function monumentDe(ch) {
+    if (ch && ch.monument && MONUMENTS[ch.monument.type]) return ch.monument;
+    return { type: ch && ch.d === "geo" ? "littoral" : "horloge", nom: "" };
+  }
+  // l'état d'un chapitre sur la carte : sa route, ses étapes faites, ses étoiles
+  function etatChapitre(ch) {
+    var route = routeAventure(ch), e = { route: route, faits: 0, total: route.noeuds.length, etoiles: 0, max: 0, fini: false };
+    route.noeuds.forEach(function (x) {
+      if (noeudFait(x)) { e.faits++; if (x.type === "defi") e.fini = true; }
+      if (x.type !== "coffre") { e.etoiles += Math.min(3, etoilesDe(x)); e.max += 3; }
+    });
+    e.actuel = etapeDuMoment(route);
+    return e;
+  }
+  // les lieux de la carte, dans l'ordre du plan de l'année : les thèmes, leurs chapitres (ouverts ou à venir),
+  // une halte de révision tous les deux chapitres ouverts, et le grand défi de l'année
+  function modeleMonde(n) {
+    var classe = PLAN.filter(function (c) { return c.id === n; })[0];
+    var annee = classe && Array.isArray(classe.annee) ? classe.annee : [];
+    var pseudo = parcoursAnnee(n), haltes = routeAventure(pseudo);
+    var m = { n: n, pseudo: pseudo, haltes: haltes, lieux: [], ouverts: [], total: 0 }, vus = {};
+    function lieu(c, ch, d) {
+      var ouvert = !!ch && (estVisible(ch) || estProf());
+      var e = ouvert ? etatChapitre(ch) : null;
+      if (e && !e.total) { e = null; ouvert = false; }
+      var l = { type: "chapitre", num: c.num, titre: ch ? ch.titre : c.titre, ch: ch, d: d, ouvert: ouvert, etat: e, ferme: ouvert && !estVisible(ch) };
+      m.lieux.push(l);
+      m.total++;
+      if (ouvert) m.ouverts.push(l);
+      if (ch) haltes.noeuds.forEach(function (x) { if (x.type === "revision" && x.apres === ch.id) m.lieux.push({ type: "halte", noeud: x }); });
+    }
+    annee.forEach(function (t) {
+      m.lieux.push({ type: "theme", d: t.d, nom: t.theme });
+      liste(t, "chapitres").forEach(function (c) {
+        var ch = c.fiche ? chapitre(c.fiche) : null;
+        if (ch && (ch.n !== n || vus[ch.id])) ch = null;
+        if (ch) vus[ch.id] = true;
+        lieu(c, ch, t.d);
+      });
+    });
+    // une fiche que le plan de l'année ne mentionne pas a aussi sa place sur la carte
+    var hors = tousChapitresNiveau(n).filter(function (c) { return !vus[c.id] && (estVisible(c) || estProf()); });
+    if (hors.length) {
+      m.lieux.push({ type: "theme", d: hors[0].d, nom: annee.length ? "Autres chapitres" : "Les chapitres" });
+      hors.forEach(function (c) { lieu({ num: c.num, titre: c.titre }, c, c.d); });
+    }
+    var defi = haltes.noeuds.filter(function (x) { return x.type === "defi"; })[0];
+    if (defi) m.lieux.push({ type: "sommet", noeud: defi });
+    return m;
+  }
+  // le chapitre où se tient le personnage : le dernier joué s'il n'est pas fini, sinon le premier qui reste à finir
+  function chapitreDuMoment(m) {
+    var id = av.ici && av.ici[m.n];
+    return m.ouverts.filter(function (l) { return l.ch.id === id && !l.etat.fini; })[0]
+      || m.ouverts.filter(function (l) { return !l.etat.fini; })[0] || m.ouverts[m.ouverts.length - 1] || null;
+  }
+  // l'étape à jouer dans un chapitre : là où mène le bouton « Continuer »
+  function suiteChapitre(ch, etat) {
+    var i = etat.actuel;
+    if (i < 0) return null;
+    var x = etat.route.noeuds[i];
+    return { noeud: x, rang: i + 1, href: x.type === "coffre" ? lienAventure(ch) : lienAventure(ch, "jeu/" + i) };
+  }
+  // l'ancien « Parcours de l'année » rejouait les niveaux des chapitres : ses étoiles sont reportées sur les chapitres (une fois)
+  function migrerParcours(n) {
+    av.migre = av.migre || {};
+    if (av.migre[n]) return;
+    av.migre[n] = 1;
+    var prefixe = "annee-" + n + "|";
+    Object.keys(av.niveaux).forEach(function (k) {
+      if (k.indexOf(prefixe) !== 0) return;
+      var p = k.split("|"), ch = p.length === 3 && p[1] !== "rev" ? chapitre(p[1]) : null;
+      if (!ch) return;
+      var cible = routeAventure(ch).noeuds.filter(function (x) { return x.type === "niveau" && x.m.id === p[2]; })[0];
+      if (!cible) return;
+      var v = av.niveaux[k], ancien = av.niveaux[cible.cle];
+      if (!ancien || (ancien.e || 0) < (v.e || 0)) av.niveaux[cible.cle] = { e: v.e, t: v.t };
+    });
+    sauverAventure();
+  }
+
+  function vueMonde(n) {
+    document.title = "La carte de l'année — " + nomNiveau(n);
+    journee();
+    if (!av.perso) { vueCreation(parcoursAnnee(n)); return; }
+    migrerParcours(n);
+    var m = modeleMonde(n), pseudo = m.pseudo;
+    var ici = chapitreDuMoment(m);
+    var ecran = ecranAventure("av-mer md");
+    var lien = el("a", { class: "av-btn-rond", href: "#/niveau/" + n, "aria-label": "Retour à l'accueil" });
+    lien.innerHTML = icone("retour");
+    var moi = el("a", { class: "av-moi", href: lienAventure(pseudo, "perso"), "aria-label": "Mon personnage, la boutique, mes badges et mon musée" });
+    moi.innerHTML = dessinPerso(av.perso, true);
+    ecran.appendChild(el("div", { class: "av-haut" }, [lien, el("strong", { class: "av-haut-titre md-haut-titre", text: "La carte de l'année" }), boutonQuetes(), moi]));
+
+    // le bilan : où j'en suis dans l'année
+    var etoiles = 0, max = 0, finis = 0;
+    m.ouverts.forEach(function (l) { etoiles += l.etat.etoiles; max += l.etat.max; if (l.etat.fini) finis++; });
+    var serie = serieActuelle();
+    ecran.appendChild(el("div", { class: "av-route md-bilan" }, [
+      el("small", { text: nomNiveau(n) + " · " + (m.ouverts.length ? pluriel(m.ouverts.length, "chapitre ouvert", "chapitres ouverts") + " sur " + m.total : "les chapitres ouvrent au fil de l'année") }),
+      el("strong", { text: finis ? pluriel(finis, "chapitre terminé", "chapitres terminés") + " sur " + m.ouverts.length : "Ton voyage à travers l'année" }),
+      barreProgres(max ? etoiles / max : 0),
+      el("div", { class: "av-compteurs" }, [
+        avecSymbole("etoile", etoiles + " / " + max + " étoiles"),
+        avecSymbole("flamme", serie ? pluriel(serie, "jour") + " de suite" : "Joue chaque jour"),
+        avecSymbole("ducat", pluriel(av.ducats, "ducat"))
+      ])
+    ]));
+    if (estProf()) ecran.appendChild(el("p", { class: "av-note", text: "Aperçu professeur : vous voyez aussi les chapitres fermés aux élèves, et toutes les étapes sont ouvertes." }));
+    else if (DEMO) ecran.appendChild(el("p", { class: "av-note", text: "Démonstration : toutes les étapes sont ouvertes. Un élève les débloque dans l'ordre." }));
+
+    // la première fois : le guide présente la carte
+    av.aides = av.aides || {};
+    if (!av.aides.carte) {
+      var aide = el("div", { class: "md-aide" });
+      aide.appendChild(guideBulle(pseudo, [
+        el("p", {}, el("strong", { text: "Voici la carte de ton année." })),
+        el("p", { text: "Chaque monument est un chapitre : il s'ouvre quand tu l'étudies en classe. Réussis ses étapes une à une, jusqu'au défi final." }),
+        el("p", { text: "Le bouton « Continuer », en bas, te ramène toujours là où tu en es." })
+      ]));
+      aide.appendChild(el("button", { class: "av-mini-btn", type: "button", text: "J'ai compris", onclick: function () { av.aides.carte = 1; sauverAventure(); aide.remove(); } }));
+      ecran.appendChild(aide);
+    }
+
+    var carte = el("div", { class: "md-carte" });
+    var terre = svgEl("svg", { class: "md-terre", "aria-hidden": "true", focusable: "false" });
+    carte.appendChild(terre);
+
+    // au large : le phare des repères et l'île des erreurs
+    var extras = el("div", { class: "md-extras" });
+    var chR = parcoursReperes(n), routeR = routeAventure(chR);
+    if (routeR.noeuds.length) {
+      var faitsR = routeR.noeuds.filter(noeudFait).length;
+      var phare = el("a", { class: "md-extra", href: lienAventure(chR) });
+      var figP = el("span", { class: "md-extra-fig", "aria-hidden": "true" });
+      figP.innerHTML = svgMonument({ type: "phare" });
+      ajouter(phare, [figP, el("span", {}, [el("strong", { text: "Le phare des repères" }), el("small", { text: faitsR ? faitsR + " étape" + (faitsR > 1 ? "s" : "") + " sur " + routeR.noeuds.length : "Périodes, siècles, dates, cartes" })])]);
+      extras.appendChild(phare);
+    }
+    var dues = erreursDues().length;
+    var ileE = el(dues ? "a" : "div", { class: "md-extra" + (dues ? " du" : " vide"), href: dues ? lienAventure(pseudo, "erreurs") : null });
+    var figE = el("span", { class: "md-extra-fig", "aria-hidden": "true" });
+    figE.innerHTML = svgIle(2, ["palmier", "palmier"], !dues);
+    ajouter(ileE, [figE, el("span", {}, [el("strong", { text: "L'île des erreurs" }), el("small", { text: dues ? pluriel(dues, "question") + " à revoir aujourd'hui" : "Rien à revoir aujourd'hui" })])]);
+    extras.appendChild(ileE);
+    carte.appendChild(extras);
+
+    // les lieux, tour à tour à gauche et à droite de la route
+    var rang = 0, lieuIci = null;
+    function cote() { return rang++ % 2 ? "d" : "g"; }
+    function prog(e, noeuds) {
+      var points = el("span", { class: "md-points", "aria-hidden": "true" });
+      noeuds.forEach(function (x, i) { points.appendChild(el("i", { class: noeudFait(x) ? "fait" : i === e.actuel ? "actuel" : null })); });
+      return el("span", { class: "md-prog" }, [points, avecSymbole("etoile", e.etoiles + " / " + e.max, "md-et")]);
+    }
+    function figure(mo, plus) {
+      var fig = el("span", { class: "md-fig", "aria-hidden": "true" });
+      fig.innerHTML = svgMonument(mo) + (plus || "");
+      return fig;
+    }
+    function lieuChapitre(l) {
+      var e = l.etat, mo = l.ch ? monumentDe(l.ch) : { type: "mystere", nom: "" }, estIci = l === ici;
+      var etat = !l.ouvert ? "avenir" : e.fini ? "fini" : e.faits ? "encours" : "nouveau";
+      var a = el(l.ouvert ? "a" : "div", { class: "md-lieu " + cote() + " " + etat + (estIci ? " ici" : ""), href: l.ouvert ? lienAventure(l.ch) : null,
+        "data-ancre": !l.ouvert ? "avenir" : e.fini ? "fini" : "ouvert" });
+      var chip = estIci ? "Tu es ici" : etat === "fini" ? "Terminé" : etat === "nouveau" ? "Nouveau" : etat === "avenir" ? (l.ch ? "Bientôt" : "À venir") : null;
+      var plaque = el("span", { class: "md-plaque" }, [
+        el("span", { class: "md-num" }, [el("span", { text: l.num }), chip ? el("i", { class: "md-chip", text: chip }) : null]),
+        el("strong", { class: "md-titre", text: l.titre }),
+        mo.nom && l.ouvert ? el("em", { class: "md-nom", text: mo.nom }) : null,
+        l.ouvert ? prog(e, e.route.noeuds) : null,
+        l.ferme ? el("small", { class: "md-ferme", text: "Fermé aux élèves" }) : null
+      ]);
+      ajouter(a, [figure(mo, (etat === "fini" ? '<span class="md-coche">' + symbole("coche") + "</span>" : "") + (estIci ? '<span class="md-perso">' + dessinPerso(av.perso) + "</span>" : "")), plaque]);
+      if (l.ouvert) a.setAttribute("aria-label", l.num + " : " + l.titre + ". " + e.faits + " étape" + (e.faits > 1 ? "s" : "") + " sur " + e.total + ", " + pluriel(e.etoiles, "étoile") + (e.fini ? ", chapitre terminé" : ""));
+      if (estIci) lieuIci = a;
+      return a;
+    }
+    function lieuHalte(x) {
+      var fait = noeudFait(x), rec = etoilesDe(x);
+      var a = el("a", { class: "md-lieu halte " + cote() + (fait ? " fini" : ""), href: lienAventure(pseudo, "jeu/" + x.i), "data-ancre": fait ? "fini" : "ouvert" });
+      var et = el("span", { class: "md-prog", "aria-hidden": "true" });
+      for (var k = 0; k < 3; k++) et.innerHTML += symbole(k < rec ? "etoile" : "vide");
+      ajouter(a, [figure({ type: "camp" }, fait ? '<span class="md-coche">' + symbole("coche") + "</span>" : ""), el("span", { class: "md-plaque" }, [
+        el("span", { class: "md-num" }, [el("span", { text: "Halte de révision" }), fait ? el("i", { class: "md-chip", text: "Réussie" }) : null]),
+        el("strong", { class: "md-titre", text: "Les " + (x.jusque + 1) + " premiers chapitres, mélangés" }), et
+      ])]);
+      a.setAttribute("aria-label", "Halte de révision : les " + (x.jusque + 1) + " premiers chapitres mélangés" + (rec ? ", " + pluriel(rec, "étoile") + " sur 3" : ""));
+      return a;
+    }
+    function lieuSommet(x) {
+      var ouvert = noeudOuvert(m.haltes, x), fait = noeudFait(x);
+      var a = el(ouvert ? "a" : "div", { class: "md-lieu sommet " + cote() + (fait ? " fini" : ouvert ? "" : " verrou"), href: ouvert ? lienAventure(pseudo, "jeu/" + x.i) : null, "data-ancre": fait ? "fini" : ouvert ? "ouvert" : "avenir" });
+      ajouter(a, [figure({ type: "sommet" }, fait ? '<span class="md-coche">' + symbole("coche") + "</span>" : ""), el("span", { class: "md-plaque" }, [
+        el("span", { class: "md-num" }, [el("span", { text: "Pour finir" }), fait ? el("i", { class: "md-chip", text: "Relevé" }) : null]),
+        el("strong", { class: "md-titre", text: x.nom }),
+        el("em", { class: "md-nom", text: ouvert ? "Des questions sur tous les chapitres ouverts, et " + VIES_DEFI + " vies." : "Termine tous les chapitres ouverts pour l'affronter." })
+      ])]);
+      return a;
+    }
+    m.lieux.forEach(function (l) {
+      if (l.type === "theme") {
+        var k = l.nom.indexOf(" · ");
+        carte.appendChild(el("div", { class: "md-theme" + (l.d === "geo" ? " geo" : "") }, [
+          el("small", { text: DISC[l.d] + (k > 0 ? " · " + l.nom.slice(0, k) : "") }), el("strong", { text: k > 0 ? l.nom.slice(k + 3) : l.nom })
+        ]));
+      } else carte.appendChild(l.type === "chapitre" ? lieuChapitre(l) : l.type === "halte" ? lieuHalte(l.noeud) : lieuSommet(l.noeud));
+    });
+    if (!m.ouverts.length) carte.appendChild(el("p", { class: "av-note", text: "Aucun chapitre n'est encore ouvert pour cette classe : reviens bientôt !" }));
+    ecran.appendChild(carte);
+
+    // la barre « Continuer » : toujours la prochaine étape à jouer
+    var bas = el("div", { class: "md-continuer" });
+    if (ici) {
+      var s = suiteChapitre(ici.ch, ici.etat);
+      var figB = el("span", { class: "md-c-fig", "aria-hidden": "true" });
+      figB.innerHTML = svgMonument(monumentDe(ici.ch));
+      bas.appendChild(figB);
+      if (s) {
+        bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: ici.num + " · étape " + s.rang + " sur " + ici.etat.total }), el("strong", { text: s.noeud.nom })]));
+        bas.appendChild(el("a", { class: "jeu-valider", href: s.href, text: ici.etat.faits ? "Continuer" : etoiles ? "Jouer" : "Commencer" }));
+      } else {
+        bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: "Bravo !" }), el("strong", { text: "Tous les chapitres ouverts sont terminés" })]));
+        if (routeR.noeuds.length) bas.appendChild(el("a", { class: "jeu-valider", href: lienAventure(chR), text: "Les repères" }));
+      }
+      ecran.appendChild(bas);
+    }
+
+    // la terre et la route, dessinées d'après la place des monuments (et redessinées si la mise en page change)
+    function blob(cx, cy, rx, ry, g) {
+      var nb = 10, pts = [], i;
+      for (i = 0; i < nb; i++) {
+        var a = i / nb * 2 * Math.PI, r = 1 + (((g * 37 + i * 61) % 17) / 17 - .5) * .2;
+        pts.push([cx + Math.cos(a) * rx * r, cy + Math.sin(a) * ry * r]);
+      }
+      var d = "M" + pts[0][0].toFixed(1) + " " + pts[0][1].toFixed(1);
+      for (i = 0; i < nb; i++) {
+        var p0 = pts[(i - 1 + nb) % nb], p1 = pts[i], p2 = pts[(i + 1) % nb], p3 = pts[(i + 2) % nb];
+        d += "C" + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + " " + (p1[1] + (p2[1] - p0[1]) / 6).toFixed(1) + " " +
+          (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + " " + (p2[1] - (p3[1] - p1[1]) / 6).toFixed(1) + " " + p2[0].toFixed(1) + " " + p2[1].toFixed(1);
+      }
+      return d + "Z";
+    }
+    function troncon(a, b) {
+      var dy = (b.y - a.y) / 2;
+      return "M" + a.x.toFixed(1) + " " + a.y.toFixed(1) + "C" + a.x.toFixed(1) + " " + (a.y + dy).toFixed(1) + " " + b.x.toFixed(1) + " " + (b.y - dy).toFixed(1) + " " + b.x.toFixed(1) + " " + b.y.toFixed(1);
+    }
+    var dernier = "";
+    function dessiner() {
+      if (!terre.isConnected) return;
+      var boite = carte.getBoundingClientRect(), W = Math.round(boite.width), H = Math.round(carte.scrollHeight);
+      var pts = [];
+      Array.prototype.forEach.call(carte.querySelectorAll("[data-ancre]"), function (e, k) {
+        var r = e.querySelector(".md-fig").getBoundingClientRect();
+        pts.push({ x: r.left - boite.left + r.width / 2, y: r.top - boite.top + r.height * .8, rx: r.width * .6, ry: r.height * .36, etat: e.getAttribute("data-ancre"), k: k + 1 });
+      });
+      var cle = W + "x" + H + ":" + pts.map(function (p) { return Math.round(p.x) + "," + Math.round(p.y); }).join(";");
+      if (cle === dernier) return;
+      dernier = cle;
+      terre.setAttribute("viewBox", "0 0 " + W + " " + H);
+      terre.style.height = H + "px";
+      if (!pts.length) { terre.innerHTML = ""; return; }
+      var L = 56, route = "", blobs = "", i;
+      for (i = 1; i < pts.length; i++) route += troncon(pts[i - 1], pts[i]);
+      pts.forEach(function (p) { blobs += blob(p.x, p.y, p.rx, p.ry, p.k); });
+      function couche(dy, couleur, plus) {
+        return '<g transform="translate(0 ' + dy + ')"' + (plus || "") + '><path d="' + blobs + '" fill="' + couleur + '"/>' +
+          (route ? '<path d="' + route + '" fill="none" stroke="' + couleur + '" stroke-width="' + L + '" stroke-linecap="round"/>' : "") + "</g>";
+      }
+      var s = '<g transform="translate(0 14)" opacity=".35"><path d="' + blobs + '" fill="#5E86F0" stroke="#5E86F0" stroke-width="22" stroke-linejoin="round"/>' +
+        (route ? '<path d="' + route + '" fill="none" stroke="#5E86F0" stroke-width="' + (L + 22) + '" stroke-linecap="round"/>' : "") + "</g>" +
+        couche(13, "#8E5F2E") + couche(7, "#B98243") + couche(0, "#EAD7A0");
+      var brume = function (p) { return p.etat === "avenir"; };
+      for (i = 1; i < pts.length; i++) s += '<path d="' + troncon(pts[i - 1], pts[i]) + '" fill="none" stroke="' + (brume(pts[i]) ? "#7C988E" : "#6CBF4A") + '" stroke-width="' + (L - 18) + '" stroke-linecap="round"/>';
+      pts.forEach(function (p) {
+        s += '<path d="' + blob(p.x, p.y, p.rx * .88, p.ry * .84, p.k) + '" fill="' + (brume(p) ? "#7C988E" : "#6CBF4A") + '"/>' +
+          '<ellipse cx="' + (p.x - p.rx * .42).toFixed(1) + '" cy="' + (p.y + p.ry * .42).toFixed(1) + '" rx="' + (p.rx * .2).toFixed(1) + '" ry="' + (p.ry * .13).toFixed(1) + '" fill="' + (brume(p) ? "#718C82" : "#5DAE3E") + '"/>' +
+          '<ellipse cx="' + (p.x + p.rx * .46).toFixed(1) + '" cy="' + (p.y - p.ry * .38).toFixed(1) + '" rx="' + (p.rx * .16).toFixed(1) + '" ry="' + (p.ry * .11).toFixed(1) + '" fill="' + (brume(p) ? "#718C82" : "#5DAE3E") + '"/>';
+      });
+      // la route : une piste claire ; dorée après chaque lieu terminé
+      if (route) s += '<path d="' + route + '" fill="none" stroke="#C9B37A" stroke-width="11" stroke-linecap="round"/><path d="' + route + '" fill="none" stroke="#F3E6BE" stroke-width="7" stroke-linecap="round"/>' +
+        '<path d="' + route + '" fill="none" stroke="#C9B37A" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 9"/>';
+      for (i = 1; i < pts.length; i++) if (pts[i - 1].etat === "fini") s += '<path class="md-or" d="' + troncon(pts[i - 1], pts[i]) + '" fill="none" stroke="#FFC83D" stroke-width="7" stroke-linecap="round"/>';
+      terre.innerHTML = s;
+    }
+    dessiner();
+    if (window.ResizeObserver) new ResizeObserver(function () { dessiner(); }).observe(carte);
+    else window.addEventListener("resize", function f() { if (!terre.isConnected) { window.removeEventListener("resize", f); return; } dessiner(); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(dessiner);
+    // on arrive sur le chapitre du moment
+    if (lieuIci && lieuIci.getBoundingClientRect().bottom > window.innerHeight - 110) lieuIci.scrollIntoView({ block: "center" });
+  }
+
+  // sur l'accueil d'une classe, quand la carte de l'année est en service : une seule entrée pour le jeu
+  function entreeCarte(n) {
+    var m = modeleMonde(n), ici = chapitreDuMoment(m);
+    var etoiles = 0, max = 0;
+    m.ouverts.forEach(function (l) { etoiles += l.etat.etoiles; max += l.etat.max; });
+    var a = el("a", { class: "entree-carte", href: lienMonde(n) });
+    var fig = el("span", { class: "ec-fig", "aria-hidden": "true" });
+    fig.innerHTML = svgMonument(ici ? monumentDe(ici.ch) : { type: "mystere" }) + (av.perso ? '<span class="ec-perso">' + dessinPerso(av.perso) + "</span>" : "");
+    var s = ici ? suiteChapitre(ici.ch, ici.etat) : null;
+    var sous = !ici ? "Les chapitres ouvrent au fil de l'année" : !av.perso || !etoiles ? "Un monument par chapitre : crée ton personnage et pars à l'aventure"
+      : s ? ici.num + " · étape " + s.rang + " sur " + ici.etat.total + " : " + s.noeud.nom : "Tous les chapitres ouverts sont terminés";
+    var barre = barreProgres(max ? etoiles / max : 0);
+    a.appendChild(fig);
+    a.appendChild(el("span", { class: "ec-txt" }, [
+      el("strong", { text: "La carte de l'année" }), el("span", { text: sous }), barre,
+      el("span", { class: "ec-bas" }, [avecSymbole("etoile", etoiles + " / " + max, "ec-et"), el("b", { text: etoiles ? "Continuer" : "Jouer" })]),
+      estProf() ? el("small", { text: "Aperçu : visible seulement par vous" }) : DEMO ? el("small", { text: "Démonstration" }) : null
+    ]));
+    return a;
+  }
+  // les autres façons de réviser, en tuiles (mêmes cartes que les outils d'un chapitre)
+  function tuilesAccueil(n, tuiles) {
+    var g = el("div", { class: "outils tuiles-accueil" });
+    tuiles.filter(Boolean).forEach(function (t) {
+      var x = el("a", { class: "outil" + (t.geo ? " geo" : ""), href: t.href });
+      x.appendChild(el("span", { class: "pastille", icone: t.icone }));
+      x.appendChild(el("strong", { text: t.nom }));
+      x.appendChild(el("span", { class: "info", text: t.info }));
+      g.appendChild(x);
+    });
     return g;
   }
 
