@@ -34,6 +34,7 @@
      intrus      { items (quatre), intrus, expl } — « Trouve l'intrus »
      trous       textes à compléter : { titre, texte } — les mots entre [crochets] sont à retrouver
      capable     « Je suis capable de… »
+     monument    le lieu emblématique du chapitre, dessiné sur la carte de l'année : { type (voir MONUMENTS dans reviser.html), nom }
      ppo         points de passage et d'ouverture, chacun avec ses propres champs :
                  { id, titre, court, question, branches: [{ titre, points }], reperes, notions, personnages, lieux,
                    documents, pieges, mots, reponse, trous, schema, capable }
@@ -158,6 +159,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "5e-h1-c1", n: "5e", d: "histoire",
+    monument: { type: "basilique", nom: "Sainte-Sophie, à Constantinople" },
     theme: "Chrétientés et islam (VIᵉ-XIIIᵉ siècle), des mondes en contact",
     rituel: "Chrétientés et islam (VIe-XIIIe s.)",
     num: "Chapitre 1",
@@ -247,6 +249,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "5e-h1-c2", n: "5e", d: "histoire",
+    monument: { type: "mosquee", nom: "La Grande Mosquée de Damas" },
     theme: "Chrétientés et islam (VIᵉ-XIIIᵉ siècle), des mondes en contact",
     rituel: "Chrétientés et islam (VIe-XIIIe s.)",
     num: "Chapitre 2",
@@ -344,6 +347,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "5e-h2-c3", n: "5e", d: "histoire", carte: "france",
+    monument: { type: "chateau", nom: "Le château du seigneur" },
     theme: "Société, Église et pouvoir politique dans l'Occident féodal (XIᵉ-XVᵉ siècle)",
     rituel: "Société, Église et pouvoir féodal (XIe-XVe s.)",
     num: "Chapitre 3",
@@ -438,6 +442,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "5e-h2-c4", n: "5e", d: "histoire", carte: "europe",
+    monument: { type: "beffroi", nom: "Le beffroi et les maisons des marchands" },
     theme: "Société, Église et pouvoir politique dans l'Occident féodal (XIᵉ-XVᵉ siècle)",
     rituel: "Société, Église et pouvoir féodal (XIe-XVe s.)",
     num: "Chapitre 4",
@@ -552,6 +557,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "5e-h2-c5", n: "5e", d: "histoire", carte: "france",
+    monument: { type: "cathedrale", nom: "La cathédrale de Reims, ville du sacre" },
     theme: "Société, Église et pouvoir politique dans l'Occident féodal (XIᵉ-XVᵉ siècle)",
     rituel: "Société, Église et pouvoir féodal (XIe-XVe s.)",
     num: "Chapitre 5",
@@ -685,6 +691,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "5e-h3-c6", n: "5e", d: "histoire", carte: ["mediterranee", "monde"],
+    monument: { type: "caravelle", nom: "Une caravelle, au temps de Christophe Colomb" },
     theme: "Transformations de l'Europe et ouverture sur le monde aux XVIᵉ et XVIIᵉ siècles",
     rituel: "Transformations de l'Europe (XVIe-XVIIe s.)",
     num: "Chapitre 6",
@@ -819,6 +826,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "5e-h3-c7", n: "5e", d: "histoire", carte: "europe",
+    monument: { type: "coupole", nom: "Le dôme de Florence" },
     theme: "Transformations de l'Europe et ouverture sur le monde aux XVIᵉ et XVIIᵉ siècles",
     rituel: "Transformations de l'Europe (XVIe-XVIIe s.)",
     num: "Chapitre 7",
@@ -956,6 +964,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "5e-h3-c8", n: "5e", d: "histoire", carte: "france",
+    monument: { type: "palais", nom: "Le château de Chambord" },
     theme: "Transformations de l'Europe et ouverture sur le monde aux XVIᵉ et XVIIᵉ siècles",
     rituel: "Transformations de l'Europe (XVIe-XVIIe s.)",
     num: "Chapitre 8",
@@ -1092,6 +1101,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "5e-g1-c1", carte: ["inde", "monde"], n: "5e", d: "geo",
+    monument: { type: "villedense", nom: "New Delhi, capitale de l'Inde" },
     theme: "La question démographique et l'inégal développement",
     rituel: "Question démographique et inégal développement",
     num: "Chapitre 1",
@@ -1247,6 +1257,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "5e-g1-c2", carte: "monde", n: "5e", d: "geo",
+    monument: { type: "contrastes", nom: "Une grande ville : richesse et pauvreté côte à côte" },
     theme: "La question démographique et l'inégal développement",
     rituel: "Question démographique et inégal développement",
     num: "Chapitre 2",
@@ -1390,6 +1401,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "2de-h0-intro", n: "2nde", d: "histoire",
+    monument: { type: "horloge", nom: "La tour du temps : les quatre grandes périodes" },
     theme: "Introduction",
     rituel: "Le monde méditerranéen : Antiquité et Moyen Âge",
     num: "Introduction",
@@ -1500,6 +1512,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "2de-h1-c1", n: "2nde", d: "histoire",
+    monument: { type: "temple", nom: "Le Parthénon, à Athènes" },
     theme: "Le monde méditerranéen : empreintes de l'Antiquité et du Moyen Âge",
     rituel: "Le monde méditerranéen : Antiquité et Moyen Âge",
     num: "Chapitre 1",
@@ -1600,6 +1613,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "2de-h1-c2", n: "2nde", d: "histoire", carte: "mediterranee",
+    monument: { type: "galere", nom: "Une galère de Venise" },
     theme: "Le monde méditerranéen : empreintes de l'Antiquité et du Moyen Âge",
     rituel: "Le monde méditerranéen : Antiquité et Moyen Âge",
     num: "Chapitre 2",
@@ -2028,6 +2042,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "2de-h2-c3", n: "2nde", d: "histoire", carte: ["europe", "monde"],
+    monument: { type: "caravelle", nom: "Une caravelle sur l'Atlantique" },
     theme: "XVᵉ-XVIᵉ siècles : un nouveau rapport au monde, un temps de mutation intellectuelle",
     rituel: "XVe-XVIe siècles : nouveau rapport au monde",
     num: "Chapitre 3",
@@ -2466,6 +2481,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "2de-h2-c4", n: "2nde", d: "histoire", carte: "europe",
+    monument: { type: "coupole", nom: "Le dôme de Florence" },
     theme: "XVᵉ-XVIᵉ siècles : un nouveau rapport au monde, un temps de mutation intellectuelle",
     rituel: "XVe-XVIe siècles : nouveau rapport au monde",
     num: "Chapitre 4",
@@ -2893,6 +2909,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "2de-h3-c5", n: "2nde", d: "histoire", carte: "france",
+    monument: { type: "versailles", nom: "Le château de Versailles" },
     theme: "L'État à l'époque moderne : France et Angleterre",
     rituel: "L'État à l'époque moderne : France et Angleterre",
     num: "Chapitre 5",
@@ -3396,6 +3413,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "2de-h3-c6", n: "2nde", d: "histoire", carte: "atlantique-nord",
+    monument: { type: "parlement", nom: "Westminster, où siège le Parlement" },
     theme: "L'État à l'époque moderne : France et Angleterre",
     rituel: "L'État à l'époque moderne : France et Angleterre",
     num: "Chapitre 6",
@@ -3817,6 +3835,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "2de-g1-c12", carte: ["amazonie", "monde"], n: "2nde", d: "geo",
+    monument: { type: "foret", nom: "La forêt amazonienne" },
     theme: "Sociétés et environnements : des équilibres fragiles",
     rituel: "Sociétés et environnements : équilibres fragiles",
     num: "Chapitres 1 et 2",
@@ -3954,6 +3973,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "2de-g1-c3", carte: "france", n: "2nde", d: "geo",
+    monument: { type: "littoral", nom: "Du littoral à la montagne : les milieux de France" },
     theme: "Sociétés et environnements : des équilibres fragiles",
     rituel: "Sociétés et environnements : équilibres fragiles",
     num: "Chapitre 3",
@@ -4065,6 +4085,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "1re-h1-c1", n: "1ere", d: "histoire",
+    monument: { type: "bastille", nom: "La Bastille, à Paris" },
     theme: "L'Europe face aux révolutions",
     rituel: "L'Europe face aux révolutions",
     num: "Chapitre 1",
@@ -4178,6 +4199,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "1re-h1-c2", n: "1ere", d: "histoire",
+    monument: { type: "palais", nom: "Un palais de Vienne, ville du Congrès", teinte: "jaune" },
     theme: "L'Europe face aux révolutions",
     rituel: "L'Europe face aux révolutions",
     num: "Chapitre 2",
@@ -4292,6 +4314,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "1re-h2-c3", n: "1ere", d: "histoire", carte: "france",
+    monument: { type: "hoteldeville", nom: "L'Hôtel de Ville de Paris" },
     theme: "La France dans l'Europe des nationalités : politique et société (1848-1871)",
     rituel: "La France dans l'Europe des nationalités (1848-1871)",
     num: "Chapitre 3",
@@ -4733,6 +4756,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "1re-g1-c12", n: "1ere", d: "geo", carte: "monde",
+    monument: { type: "metropole", nom: "Manhattan, à New York" },
     theme: "La métropolisation : un processus mondial différencié",
     rituel: "La métropolisation",
     num: "Questions 1 et 2",
@@ -4826,6 +4850,7 @@ const COURS = [
      ===================================================================== */
   {
     id: "1re-g1-qs", n: "1ere", d: "geo", carte: "france",
+    monument: { type: "metropole", nom: "La Défense, à Paris", arche: true },
     theme: "La métropolisation : un processus mondial différencié",
     rituel: "La métropolisation",
     num: "Question spécifique",
