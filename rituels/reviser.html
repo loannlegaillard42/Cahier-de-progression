@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Réviser — Histoire-Géographie</title>
 <meta name="description" content="La boîte à outils de la classe pour réviser ses cours d'histoire-géographie : l'essentiel, cartes mémoire, quiz, frise, textes à trous." />
-<meta name="theme-color" content="#1F4E5F" />
+<meta name="theme-color" content="#1B1E52" />
 <link rel="icon" type="image/png" href="../icon-192.png" />
 <link rel="apple-touch-icon" href="../icon-192.png" />
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
   :root {
     --bg: #FAF8F3; --panel: #FFFFFF; --ink: #22282A; --sub: #55605F; --faint: #736D63;
@@ -57,7 +57,7 @@
   /* ---------- En-tête ---------- */
   .entete { border-bottom: 1px solid var(--line); background: var(--bg); }
   .entete-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 56px; }
-  .marque { font-family: Fraunces, serif; font-weight: 600; font-size: 20px; color: var(--accent); text-decoration: none; letter-spacing: -.01em; display: inline-flex; align-items: center; gap: 8px; }
+  .marque { font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: 20px; color: var(--accent); text-decoration: none; letter-spacing: -.01em; display: inline-flex; align-items: center; gap: 8px; }
   .marque small { font-family: Inter, sans-serif; font-size: 12px; font-weight: 500; color: var(--faint); letter-spacing: 0; }
   .entete-actions { display: flex; gap: 4px; }
   .btn-icone {
@@ -73,7 +73,7 @@
   .ico svg { width: 100%; height: 100%; display: block; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
   /* ---------- Éléments communs ---------- */
-  h1, h2, h3 { font-family: Fraunces, serif; font-weight: 600; letter-spacing: -.01em; margin: 0; }
+  h1, h2, h3 { font-family: Inter, system-ui, sans-serif; font-weight: 600; letter-spacing: -.01em; margin: 0; }
   h1 { font-size: 26px; line-height: 1.2; color: var(--ink); }
   h2 { font-size: 19px; line-height: 1.3; }
   h3 { font-size: 16px; }
@@ -118,7 +118,7 @@
   }
   [data-theme="dark"] .express { color: #10181B; }
   .express .ico { width: 30px; height: 30px; }
-  .express strong { display: block; font-family: Fraunces, serif; font-size: 17px; font-weight: 600; }
+  .express strong { display: block; font-family: Inter, system-ui, sans-serif; font-size: 17px; font-weight: 600; }
   .express span.sous { font-size: 13px; opacity: .85; }
   .chap {
     display: block; text-decoration: none; color: inherit; margin-bottom: 10px;
@@ -127,11 +127,11 @@
   .chap.geo { border-left-color: var(--geo); }
   .chap:hover { border-color: var(--accent); }
   .chap-num { font-size: 12px; color: var(--faint); font-weight: 600; }
-  .chap-titre { font-family: Fraunces, serif; font-size: 17px; font-weight: 600; line-height: 1.3; margin: 2px 0 10px; }
+  .chap-titre { font-family: Inter, system-ui, sans-serif; font-size: 17px; font-weight: 600; line-height: 1.3; margin: 2px 0 10px; }
   .chap-prog { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--faint); }
   .chap-prog .barre { flex: 1; }
   .avancement { font-size: 13.5px; color: var(--sub); margin: 16px 0 0; }
-  .theme-titre { font-family: Fraunces, serif; font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--sub); margin: 18px 0 8px; }
+  .theme-titre { font-family: Inter, system-ui, sans-serif; font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--sub); margin: 18px 0 8px; }
   .chap.a-venir { background: transparent; border: 1px dashed var(--line); border-left: 4px solid var(--line); padding: 11px 16px; }
   .chap.a-venir:hover { border-color: var(--line); }
   .chap.a-venir .chap-titre { font-family: Inter, sans-serif; font-size: 14.5px; font-weight: 500; color: var(--faint); margin: 2px 0 0; }
@@ -185,7 +185,7 @@
   .chap-entete .meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
   .question {
     margin-top: 14px; padding: 12px 16px; border-left: 4px solid var(--accent); background: var(--accentSoft);
-    border-radius: 0 10px 10px 0; font-family: Fraunces, serif; font-size: 16px; line-height: 1.4;
+    border-radius: 0 10px 10px 0; font-family: Inter, system-ui, sans-serif; font-size: 16px; line-height: 1.4;
   }
   .question small { display: block; font-family: Inter, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); margin-bottom: 3px; }
   .outils { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 10px; }
@@ -200,7 +200,7 @@
   .outil span.info { font-size: 12.5px; color: var(--faint); line-height: 1.35; margin-top: auto; }
 
   /* ---------- L'essentiel ---------- */
-  .cle { font-family: Fraunces, serif; font-size: 18px; line-height: 1.45; padding: 16px 18px; border-radius: 12px; background: var(--okSoft); border-left: 4px solid var(--ok); }
+  .cle { font-family: Inter, system-ui, sans-serif; font-size: 18px; line-height: 1.45; padding: 16px 18px; border-radius: 12px; background: var(--okSoft); border-left: 4px solid var(--ok); }
   .plan { margin: 0; padding-left: 0; list-style: none; counter-reset: plan; }
   .plan li { counter-increment: plan; position: relative; padding: 6px 0 6px 38px; }
   .plan li::before {
@@ -235,7 +235,7 @@
   .reperes .date { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 13.5px; color: var(--accent); display: block; }
   .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
   .notion { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
-  .notion strong { display: block; font-family: Fraunces, serif; font-size: 16px; margin-bottom: 3px; color: var(--accent); }
+  .notion strong { display: block; font-family: Inter, system-ui, sans-serif; font-size: 16px; margin-bottom: 3px; color: var(--accent); }
   .notion p { margin: 0; font-size: 14px; color: var(--sub); }
   .notion .dates { font-size: 12px; color: var(--faint); margin-bottom: 4px; display: block; }
   table.regimes { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--panel); border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
@@ -270,7 +270,7 @@
   .face .cat { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
   .face .consigne { font-size: 13px; color: var(--sub); }
   .face .texte { display: block; font-size: 17px; line-height: 1.45; max-width: 520px; }
-  .face .texte.grand { font-family: Fraunces, serif; font-size: 30px; font-weight: 600; line-height: 1.2; }
+  .face .texte.grand { font-family: Inter, system-ui, sans-serif; font-size: 30px; font-weight: 600; line-height: 1.2; }
   .face .aide { font-size: 12px; color: var(--faint); }
   .face.verso .rappel { font-size: 13px; color: var(--accent); font-weight: 600; }
   .actions-flash { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
@@ -279,12 +279,12 @@
   .btn.savais { color: var(--ok); border-color: var(--ok); background: var(--okSoft); }
   .raccourcis { text-align: center; font-size: 12px; color: var(--faint); margin-top: 10px; }
   .bilan { text-align: center; padding: 28px 18px; }
-  .bilan .gros { font-family: Fraunces, serif; font-size: 44px; font-weight: 700; color: var(--accent); line-height: 1; }
+  .bilan .gros { font-family: Inter, system-ui, sans-serif; font-size: 44px; font-weight: 700; color: var(--accent); line-height: 1; }
   .bilan p { color: var(--sub); }
   .bilan .btns { justify-content: center; }
 
   /* ---------- Quiz ---------- */
-  .q-enonce { font-family: Fraunces, serif; font-size: 20px; line-height: 1.4; margin: 6px 0 16px; }
+  .q-enonce { font-family: Inter, system-ui, sans-serif; font-size: 20px; line-height: 1.4; margin: 6px 0 16px; }
   .q-enonce.grand { font-size: 28px; }
   .q-consigne { font-size: 13px; font-weight: 600; color: var(--accent); }
   .options { display: grid; gap: 9px; }
@@ -341,7 +341,7 @@
     text-align: left; padding: 11px 14px; border-radius: 11px; border: 1.5px solid var(--line); background: var(--panel);
     font-size: 14.5px; line-height: 1.4; min-height: 46px;
   }
-  .tuile.mot { font-weight: 600; font-family: Fraunces, serif; font-size: 16px; }
+  .tuile.mot { font-weight: 600; font-family: Inter, system-ui, sans-serif; font-size: 16px; }
   .tuile.choisie { border-color: var(--accent); background: var(--accentSoft); box-shadow: 0 0 0 2px var(--accent) inset; }
   .tuile.erreur { border-color: var(--ko); background: var(--koSoft); animation: secousse .35s; }
   .tuile.appariee { border-color: transparent; color: var(--ink); opacity: .9; }
@@ -387,7 +387,7 @@
   .niv[aria-pressed="true"].non { border-color: var(--ko); background: var(--koSoft); color: var(--ko); font-weight: 600; }
   .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
   .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
-  .stat b { display: block; font-family: Fraunces, serif; font-size: 26px; color: var(--accent); line-height: 1.1; }
+  .stat b { display: block; font-family: Inter, system-ui, sans-serif; font-size: 26px; color: var(--accent); line-height: 1.1; }
   .stat span { font-size: 12.5px; color: var(--faint); }
 
   /* ---------- Points de passage ---------- */
@@ -396,20 +396,20 @@
   @media (min-width: 600px) { .carte-mentale { grid-template-columns: 1fr 1fr; } }
   .cm-branche { border-radius: 14px; padding: 14px 16px; background: var(--p0); }
   .cm-branche.c1 { background: var(--p1); } .cm-branche.c2 { background: var(--p2); } .cm-branche.c3 { background: var(--p3); }
-  .cm-titre { display: flex; align-items: center; gap: 9px; font-family: Fraunces, serif; font-weight: 600; font-size: 16.5px; margin-bottom: 6px; }
+  .cm-titre { display: flex; align-items: center; gap: 9px; font-family: Inter, system-ui, sans-serif; font-weight: 600; font-size: 16.5px; margin-bottom: 6px; }
   .cm-num { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--bg); font: 700 12.5px Inter, sans-serif; display: flex; align-items: center; justify-content: center; }
   .cm-branche ul { margin: 0; padding-left: 18px; font-size: 14.5px; line-height: 1.45; }
   .cm-branche li { margin: 5px 0; }
   .doc { margin: 0 0 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
   .doc-titre { font-weight: 700; font-size: 14.5px; }
-  .doc blockquote { margin: 8px 0; padding: 2px 0 2px 12px; border-left: 3px solid var(--accent); font-family: Fraunces, serif; font-size: 15.5px; line-height: 1.5; }
+  .doc blockquote { margin: 8px 0; padding: 2px 0 2px 12px; border-left: 3px solid var(--accent); font-family: Inter, system-ui, sans-serif; font-size: 15.5px; line-height: 1.5; }
   .doc figcaption { font-size: 12.5px; color: var(--faint); }
   .doc-montre { margin: 8px 0 0; font-size: 14px; color: var(--sub); }
   .doc-montre strong { color: var(--ink); }
   .pieges { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
   .pieges li { padding: 11px 14px; border-radius: 10px; background: var(--warnSoft); border-left: 4px solid var(--warn); font-size: 14.5px; line-height: 1.45; }
   .eval { background: var(--accentSoft); border-radius: 14px; padding: 16px 18px; }
-  .eval .sujet { font-family: Fraunces, serif; font-size: 18px; line-height: 1.4; margin: 4px 0 12px; }
+  .eval .sujet { font-family: Inter, system-ui, sans-serif; font-size: 18px; line-height: 1.4; margin: 4px 0 12px; }
   .mots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
   .mot-cle { padding: 4px 11px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); font-size: 13.5px; font-weight: 600; }
   .reponse-modele { margin-top: 14px; padding: 13px 15px; border-radius: 0 10px 10px 0; background: var(--panel); border-left: 4px solid var(--ok); font-size: 15px; line-height: 1.6; }
@@ -420,7 +420,7 @@
   @media (min-width: 640px) { .cases { grid-template-columns: 1fr 1fr; } }
   .case { border: 1.5px dashed var(--line); border-radius: 14px; background: var(--panel); overflow: hidden; }
   .case-cible { display: block; width: 100%; text-align: left; padding: 11px 14px; border: none; background: var(--accentSoft); }
-  .case-cible strong { display: block; font-family: Fraunces, serif; font-size: 16px; }
+  .case-cible strong { display: block; font-family: Inter, system-ui, sans-serif; font-size: 16px; }
   .case-cible span { font-size: 12.5px; color: var(--sub); }
   .case-cible.prete { background: var(--accent); color: var(--bg); }
   .case-cible.prete span { color: inherit; opacity: .85; }
@@ -441,7 +441,7 @@
   .k-svg { display: block; width: 100%; height: auto; cursor: pointer; -webkit-user-select: none; user-select: none; }
   .k-mer { fill: var(--mer); }
   .k-terre { fill: var(--terre); stroke: var(--cote); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
-  .k-mer-txt { fill: var(--accent); opacity: .55; font-family: Fraunces, serif; font-style: italic; text-anchor: middle; }
+  .k-mer-txt { fill: var(--accent); opacity: .55; font-family: Inter, system-ui, sans-serif; font-style: italic; text-anchor: middle; }
   .k-fleuve { fill: none; stroke: var(--cote); stroke-width: 1.2px; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; opacity: .85; }
   .k-frontiere { fill: none; stroke: var(--cote); stroke-width: .9px; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; opacity: .75; }
   .k-fleuve-txt { fill: var(--accent); opacity: .6; font-family: Inter, sans-serif; font-style: italic; font-weight: 500; text-anchor: middle; }
@@ -467,7 +467,7 @@
     border: 1px solid var(--line); background: var(--panel); font-size: 13px; font-weight: 600; box-shadow: 0 1px 4px var(--ombre);
   }
   .k-question { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 4px 0 10px; }
-  .k-nom { font-family: Fraunces, serif; font-size: 25px; font-weight: 600; line-height: 1.2; }
+  .k-nom { font-family: Inter, system-ui, sans-serif; font-size: 25px; font-weight: 600; line-height: 1.2; }
   .k-statut { font-size: 13px; color: var(--faint); margin: 8px 2px 0; }
   .k-infos { margin-top: 10px; }
   .k-bloc { margin-bottom: 12px; }
@@ -485,7 +485,7 @@
   .doc-vignette:hover { border-color: var(--accent); }
   a.doc-vignette { text-decoration: none; color: inherit; }
   .doc-vignette img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; background: var(--line); }
-  .doc-texte-icone { display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; border-radius: 8px; background: var(--accentSoft); color: var(--accent); font-family: Fraunces, serif; font-size: 40px; }
+  .doc-texte-icone { display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; border-radius: 8px; background: var(--accentSoft); color: var(--accent); font-family: Inter, system-ui, sans-serif; font-size: 40px; }
   .doc-vignette strong { font-size: 14.5px; line-height: 1.3; }
   .doc-vignette .petit { font-size: 12px; line-height: 1.35; }
   .doc-score { font-size: 12px; color: var(--ok); font-weight: 600; }
@@ -510,7 +510,7 @@
   .marque-touche.juste { border-color: var(--ok); }
   .doc-credit { font-size: 12px; color: var(--faint); margin-top: 6px; line-height: 1.4; }
   .detail-info { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--accentSoft); }
-  .detail-info strong { display: flex; align-items: center; gap: 8px; font-family: Fraunces, serif; font-size: 16px; }
+  .detail-info strong { display: flex; align-items: center; gap: 8px; font-family: Inter, system-ui, sans-serif; font-size: 16px; }
   .detail-info p { margin: 6px 0 0; font-size: 14.5px; }
   dl.presentation { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; font-size: 14.5px; }
   dl.presentation dt { font-weight: 700; color: var(--accent); }
@@ -747,8 +747,8 @@
   .jeu-paires { display: grid; grid-template-columns: minmax(0, 36%) minmax(0, 1fr); gap: 10px; }
   .jeu-paires .col { display: flex; flex-direction: column; gap: 10px; }
   .jeu-paire {
-    flex: 1; min-height: 56px; padding: 10px 12px; border-radius: 14px; border: 2px solid #3E4384; border-bottom-width: 5px; background: #282C5E; color: #F4F2FF;
-    font-size: 13.5px; font-weight: 600; line-height: 1.35; text-align: left;
+    flex: 1 0 auto; min-height: 56px; padding: 10px 12px; border-radius: 14px; border: 2px solid #3E4384; border-bottom-width: 5px; background: #282C5E; color: #F4F2FF;
+    font-size: 14px; overflow-wrap: anywhere; hyphens: auto; font-weight: 600; line-height: 1.35; text-align: left;
   }
   .jeu-paires .col.g .jeu-paire { font-weight: 800; font-size: 15px; text-align: center; }
   .jeu-paire.choisi { border-color: #8B6CFF; background: #3B3192; }
@@ -893,9 +893,10 @@
   .jeu-fin h2 { margin: 6px 0 8px; font-size: 26px; font-weight: 800; }
   .jeu-fin p { max-width: 360px; margin: 0 auto 12px; color: #C9C6EA; }
   .jeu-stats { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-  .jeu-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1 1 0; min-width: 70px; max-width: 110px; padding: 11px 6px; border-radius: 16px; background: #2A2E64; border: 2px solid #3E4384; font-weight: 800; font-size: 16px; text-align: center; }
-  .jeu-stat .av-sym { width: 26px; height: 26px; }
-  .jeu-fin-btns { display: flex; flex-direction: column; gap: 10px; }
+  .jeu-stat { display: inline-flex; flex-direction: row; align-items: center; gap: 6px; padding: 6px 12px 6px 8px; border-radius: 999px; background: #2A2E64; font-weight: 800; font-size: 15px; box-shadow: 0 3px 0 #1D2052; }
+  .jeu-stat .av-sym { width: 22px; height: 22px; }
+  .jeu-fin-btns { display: flex; flex-direction: column; gap: 10px; position: relative; z-index: 60; }
+  .jeu-pied { position: relative; z-index: 60; }
   .jeu-lien { display: block; padding: 6px; text-align: center; font-size: 14px; font-weight: 700; color: #C9D2FF; }
   .jeu-secondaire { display: block; width: 100%; padding: 13px; border-radius: 16px; border: 2px solid #4A50A0; background: transparent; color: #F4F2FF; font-weight: 700; font-size: 15.5px; text-align: center; text-decoration: none; }
 
@@ -1145,7 +1146,7 @@
   .met-etape { display: flex; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
   .met-etape ul { margin: 6px 0 0; padding-left: 18px; font-size: 14px; color: var(--sub); line-height: 1.45; }
   .met-num { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--bg); font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-  .met-exemple { margin: 8px 0 0; padding: 8px 12px; border-radius: 8px; background: var(--accentSoft); font-family: Fraunces, serif; font-size: 14.5px; line-height: 1.45; }
+  .met-exemple { margin: 8px 0 0; padding: 8px 12px; border-radius: 8px; background: var(--accentSoft); font-family: Inter, system-ui, sans-serif; font-size: 14.5px; line-height: 1.45; }
   .met-exemple small, .met-morceau small { display: block; font-family: Inter, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); margin-bottom: 2px; }
   .met-duo { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 18px; }
   .met-col { padding: 12px 14px; border-radius: 12px; }
@@ -1157,8 +1158,8 @@
   .met-progres li::before { content: counter(met) ". "; }
   .met-progres li.actuel { background: var(--accent); border-color: var(--accent); color: var(--bg); }
   .met-progres li.fait { background: var(--okSoft); border-color: var(--okSoft); color: var(--ok); }
-  .met-titre-etape { font-family: Fraunces, serif; font-size: 22px; margin: 4px 0 2px; }
-  .met-sujet { font-family: Fraunces, serif; font-size: 19px; line-height: 1.4; padding: 14px 16px; border-radius: 12px; background: var(--histoireSoft); border-left: 4px solid var(--histoire); margin: 12px 0; }
+  .met-titre-etape { font-family: Inter, system-ui, sans-serif; font-size: 22px; margin: 4px 0 2px; }
+  .met-sujet { font-family: Inter, system-ui, sans-serif; font-size: 19px; line-height: 1.4; padding: 14px 16px; border-radius: 12px; background: var(--histoireSoft); border-left: 4px solid var(--histoire); margin: 12px 0; }
   .met-argument { font-size: 16px; line-height: 1.45; padding: 12px 14px; border-radius: 12px; background: var(--panel); border: 1.5px dashed var(--accent); margin: 6px 0 12px; }
   .met-expl { margin: 12px 0 0; padding: 10px 14px; border-radius: 10px; font-size: 14.5px; line-height: 1.45; display: flex; gap: 10px; align-items: center; }
   .met-expl.ok { background: var(--okSoft); } .met-expl.ok strong { color: var(--ok); }
@@ -1176,33 +1177,33 @@
   .met-plan-detail > li { margin-bottom: 10px; }
   .met-plan-detail ul { margin: 4px 0 0; padding-left: 18px; font-size: 14px; color: var(--sub); line-height: 1.45; }
   .met-annote { display: grid; gap: 6px; }
-  .met-morceau { margin: 0; padding: 9px 12px; border-radius: 10px; font-family: Fraunces, serif; font-size: 15px; line-height: 1.5; background: var(--panel); border-left: 4px solid var(--accent); }
+  .met-morceau { margin: 0; padding: 9px 12px; border-radius: 10px; font-family: Inter, system-ui, sans-serif; font-size: 15px; line-height: 1.5; background: var(--panel); border-left: 4px solid var(--accent); }
   .met-morceau.r0 { border-left-color: #C93F75; } .met-morceau.r1 { border-left-color: var(--accent); }
   .met-morceau.r2 { border-left-color: var(--warn); } .met-morceau.r3 { border-left-color: var(--histoire); background: var(--histoireSoft); }
   .met-morceau.r4 { border-left-color: var(--ok); } .met-morceau.r5 { border-left-color: var(--accent); }
   .met-morceau.r6 { border-left-color: var(--histoire); background: var(--histoireSoft); } .met-morceau.r7 { border-left-color: #C93F75; }
   .met-doc { padding: 14px 16px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); margin: 12px 0; }
   .met-doc-titre { margin: 0 0 8px; font-weight: 700; font-size: 15px; }
-  .met-doc-texte p { font-family: Fraunces, serif; font-size: 16px; line-height: 1.55; margin: 0 0 8px; }
+  .met-doc-texte p { font-family: Inter, system-ui, sans-serif; font-size: 16px; line-height: 1.55; margin: 0 0 8px; }
   .met-doc-source { margin: 8px 0 0; font-size: 12.5px; color: var(--faint); }
   .met-relire { margin: 6px 0 14px; }
   .met-relire summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--accent); padding: 6px 0; }
   .met-lire { position: static; margin: 0 8px 0 0; vertical-align: middle; }
   .met-modele { display: grid; gap: 10px; margin-top: 12px; }
   .met-modele-partie { padding: 10px 14px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
-  .met-modele-partie p { margin: 4px 0 0; font-family: Fraunces, serif; font-size: 15px; line-height: 1.5; }
+  .met-modele-partie p { margin: 4px 0 0; font-family: Inter, system-ui, sans-serif; font-size: 15px; line-height: 1.5; }
   .met-doc-image { display: block; width: 100%; height: auto; border-radius: 8px; margin: 2px 0 8px; }
   .met-doc-notes { margin: 8px 0 0; padding: 0; list-style: none; font-size: 12.5px; line-height: 1.4; color: var(--sub); }
   .met-questions { margin: 4px 0 0; padding-left: 20px; }
   .met-questions li { margin: 4px 0; font-family: Inter, sans-serif; font-size: 15px; line-height: 1.45; }
   .met-reponse { padding: 10px 14px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
   .met-reponse > strong { display: block; font-size: 14px; line-height: 1.4; }
-  .met-reponse p { margin: 6px 0 0; font-family: Fraunces, serif; font-size: 15px; line-height: 1.5; }
+  .met-reponse p { margin: 6px 0 0; font-family: Inter, system-ui, sans-serif; font-size: 15px; line-height: 1.5; }
   .met-morceau b, .met-reponse b { color: var(--accent); }
   .met-verifier { margin: 14px 0 0; padding: 10px 14px 10px 32px; border-radius: 10px; background: var(--okSoft); font-size: 14.5px; line-height: 1.5; }
   /* tâche finale : surligner le texte, puis le corrigé du croquis */
   .met-texte { padding: 14px 16px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); margin: 12px 0; }
-  .met-texte p { font-family: Fraunces, serif; font-size: 16px; line-height: 1.75; margin: 0 0 10px; }
+  .met-texte p { font-family: Inter, system-ui, sans-serif; font-size: 16px; line-height: 1.75; margin: 0 0 10px; }
   .met-texte p:last-child { margin-bottom: 0; }
   .met-seg { border-bottom: 2px dotted var(--faint); padding: 0 1px; cursor: pointer; border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
   .met-seg:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -1220,7 +1221,7 @@
   /* le croquis et sa légende restent sur fond clair, comme sur papier, même en mode sombre */
   .met-croquis, .met-legende { --terre: #FBF8F2; --mer: #D6E6EC; --cote: #93ABB4; --accent: #1F4E5F; background: #FBF8F2; color: #22282A; border: 1px solid #E4DFD4; border-radius: 12px; }
   .met-croquis { margin: 12px 0; padding: 10px; }
-  .met-croquis figcaption { font-family: Fraunces, serif; font-size: 16px; font-weight: 600; margin: 2px 4px 8px; }
+  .met-croquis figcaption { font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 600; margin: 2px 4px 8px; }
   .met-legende { display: grid; gap: 4px; margin: 10px 0 0; padding: 8px 12px 12px; }
   .met-croquis .met-legende { padding: 0 2px; border: 0; }
   .met-legende h3 { margin: 8px 0 2px; font-size: 14px; }
@@ -1364,8 +1365,10 @@
   .md-tete-fig { width: 86px; flex: none; }
   .md-tete-fig svg { display: block; width: 100%; height: auto; }
   .md-tete-txt { flex: 1; min-width: 0; }
-  .md-tete-lien { display: inline-block; margin-top: 4px; font-size: 12.5px; font-weight: 700; color: #FFE08A; }
-  .av-ile-nom { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 2; padding: 3px 10px; border-radius: 999px; background: rgba(20, 27, 96, .9); color: #fff; font-size: 12.5px; font-weight: 800; white-space: nowrap; pointer-events: none; }
+  .md-tete-lien { display: block; width: fit-content; margin-top: 6px; font-size: 12.5px; font-weight: 700; color: #FFE08A; }
+  .md-tete-question { display: block; margin: 4px 0 6px; font-size: 13px; line-height: 1.35; font-style: italic; color: #EDE8FF; }
+  .av-ile-nom { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 2; padding: 3px 10px; border-radius: 999px; background: rgba(20, 27, 96, .9); color: #fff; font-size: 12.5px; line-height: 1.25; font-weight: 800; width: max-content; max-width: 230px; text-align: center; pointer-events: none; }
+  .av-chemin.nomme .av-ile-nom { transform: translate(-50%, 40%); }
   .av-ile-nom.verrou { color: #A9ACCB; font-weight: 600; }
   .av-ile-nom.fait { background: #F5B82E; color: #5A3B00; }
   .av-chemin.nomme .av-ile { margin-bottom: 12px; }
@@ -1513,6 +1516,80 @@
     .av *, .av-modal *, .av-toast { animation: none !important; transition: none !important; }
     .av-confettis { display: none; }
   }
+
+  /* ---------- Un seul univers : la boîte à outils prend les couleurs, la police et les boutons en relief du jeu ----------
+     Thème sombre (par défaut) : la nuit du jeu. Thème clair : la même famille, en version jour. */
+  :root {
+    --bg: #EEF0FF; --panel: #FFFFFF; --ink: #1C1F4A; --sub: #474B78; --faint: #676B94;
+    --line: #D9DCF5; --accent: #5B3FD9; --accentSoft: #ECE7FF; --dur: #CDD0EF;
+    --histoire: #B9472A; --histoireSoft: #FCE6DE;
+    --geo: #0B7F8E; --geoSoft: #DBF2F4;
+    --ok: #1E8A4C; --okSoft: #DEF4E6; --ko: #C9383D; --koSoft: #FBE3E3;
+    --warn: #96600A; --warnSoft: #FBEFD5;
+    --ombre: rgba(28, 31, 74, .08);
+    --mer: #D9E4FA; --terre: #FFFFFF; --cote: #93A4D0;
+  }
+  [data-theme="dark"] {
+    --bg: #1B1E52; --panel: #2A2E72; --ink: #F4F2FF; --sub: #CFCCF2; --faint: #A6A5D6;
+    --line: #3A3F8C; --accent: #A898FF; --accentSoft: #363583; --dur: #14173F;
+    --histoire: #FFA488; --histoireSoft: #4A2F5E;
+    --geo: #72D8E4; --geoSoft: #22477A;
+    --ok: #6BDB98; --okSoft: #1F4A55; --ko: #FF8A8A; --koSoft: #4F2C55;
+    --warn: #FFD34D; --warnSoft: #45406A;
+    --ombre: rgba(0, 0, 0, .3);
+    --mer: #23296B; --terre: #2F3478; --cote: #5860B0;
+  }
+  html[data-theme="dark"] { background: #1B1E52; }
+  [data-theme="dark"] body { background: radial-gradient(rgba(255, 255, 255, .07) 1px, transparent 1.6px) 0 0 / 46px 46px, #1B1E52; }
+  .lecture {
+    --bg: #FBFAFF; --panel: #FFFFFF; --ink: #1C1F4A; --sub: #474B78; --faint: #676B94; --line: #E1E3F6;
+    --accent: #5B3FD9; --accentSoft: #EFEBFF; --dur: #DCDFF3; --histoire: #B9472A; --histoireSoft: #FCE6DE;
+    --geo: #0B7F8E; --geoSoft: #DBF2F4; --ok: #1E8A4C; --okSoft: #DEF4E6; --warn: #96600A; --warnSoft: #FBEFD5;
+    --mer: #D9E4FA; --terre: #FFFFFF; --cote: #93A4D0;
+    margin: 8px -6px 0; padding: 4px 16px 20px; border-radius: 22px; background: var(--bg); color: var(--ink); box-shadow: 0 5px 0 var(--dur);
+  }
+  [data-theme="dark"] .lecture { box-shadow: 0 5px 0 #14173F; }
+  .lecture .notion { box-shadow: 0 3px 0 var(--dur); }
+  [data-theme="dark"] .lecture .num-rond, [data-theme="dark"] .lecture .btn.plein { color: #fff; }
+  [data-theme="dark"] .lecture .f-num { fill: #fff; }
+  h1, h2, h3 { font-weight: 800; letter-spacing: -.015em; }
+  h1 { font-size: 25px; }
+  .entete { background: var(--panel); border-bottom: 0; box-shadow: 0 3px 0 var(--dur); position: sticky; top: 0; z-index: 10; }
+  .marque { font-weight: 800; font-size: 19px; color: var(--ink); }
+  .marque::before { content: ""; width: 26px; height: 26px; border-radius: 9px; background: linear-gradient(135deg, #2446C0, #6C4CF1); box-shadow: 0 3px 0 #2A1F8A; }
+  .btn-icone { border-radius: 13px; }
+  .etiq { font-weight: 800; letter-spacing: .06em; color: var(--faint); }
+  /* cartes et tuiles : pas de bordure, un relief en bas comme les boutons du jeu */
+  .carte-panneau, .chap, .outil, .ligne-prof, .notion, .frise-boite { border: 0; border-radius: 18px; box-shadow: 0 4px 0 var(--dur); }
+  .chap { box-shadow: inset 5px 0 0 var(--histoire), 0 4px 0 var(--dur); border-left: 0; padding: 14px 16px 14px 20px; }
+  .chap.geo { box-shadow: inset 5px 0 0 var(--geo), 0 4px 0 var(--dur); }
+  .chap:hover, .outil:hover { transform: translateY(-1px); }
+  .chap-titre { font-weight: 800; font-size: 16.5px; }
+  .theme-titre { font-weight: 700; }
+  .chap.a-venir { box-shadow: none; border: 2px dashed var(--line); }
+  .outil { min-height: 112px; }
+  .outil strong { font-weight: 800; }
+  .outil .pastille { border-radius: 12px; }
+  .btn { border: 0; border-radius: 14px; font-weight: 800; box-shadow: 0 4px 0 var(--dur); }
+  .btn.plein, [data-theme="dark"] .btn.plein { background: #6C4CF1; color: #fff; box-shadow: 0 4px 0 #4E33C4; }
+  .btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--dur); }
+  .opt { border: 0; border-radius: 14px; font-weight: 700; box-shadow: 0 4px 0 var(--dur); }
+  .opt[aria-pressed="true"] { background: #6C4CF1; color: #fff; box-shadow: 0 4px 0 #4E33C4; }
+  .av .opt { box-shadow: none; }
+  .express, [data-theme="dark"] .express { color: #fff; background: linear-gradient(135deg, #2446C0, #6C4CF1); border-radius: 18px; box-shadow: 0 5px 0 #2A1F8A; }
+  .express strong { font-weight: 800; }
+  .question { border-left: 0; border-radius: 16px; background: var(--accentSoft); font-weight: 600; }
+  .barre { height: 9px; border-radius: 999px; }
+  .barre > span { border-radius: 999px; background: linear-gradient(180deg, #FFD34D, #F5B82E); }
+  .tag { border-radius: 8px; font-weight: 800; }
+  .retour { font-weight: 700; }
+  .alerte, .bandeau-prof { border-radius: 14px; }
+  .groupe-outils { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--ink); text-transform: none; letter-spacing: 0; }
+  .groupe-outils .go-num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 8px; background: #6C4CF1; color: #fff; font-size: 13px; box-shadow: 0 2px 0 #4E33C4; align-self: center; }
+  .groupe-outils small { font-weight: 600; color: var(--faint); font-size: 12.5px; }
+  .a-venir-pli { margin: 14px 0 0; }
+  .a-venir-pli summary { cursor: pointer; padding: 12px 16px; border-radius: 14px; border: 2px dashed var(--line); color: var(--sub); font-weight: 700; font-size: 14px; list-style-position: inside; }
+  .a-venir-pli[open] summary { margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -1802,7 +1879,7 @@
   // ---------- Thème clair / sombre ----------
   var themeActuel = lire(CLE_THEME, null);
   if (themeActuel !== "dark" && themeActuel !== "light") {
-    themeActuel = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    themeActuel = "dark";
   }
   function appliquerTheme() {
     document.documentElement.setAttribute("data-theme", themeActuel);
@@ -2051,8 +2128,8 @@
     var niveau = prog.niveau && NIVEAUX.some(function (n) { return n.id === prog.niveau; }) ? prog.niveau : null;
 
     app.appendChild(el("div", { class: "intro" }, [
-      el("h1", { text: "La boîte à outils de la classe" }),
-      el("p", { text: "Choisis ta classe, puis un chapitre : l'essentiel du cours, des cartes mémoire, des quiz et des jeux pour retenir." })
+      el("h1", { text: niveau ? "Réviser mes cours" : "La boîte à outils de la classe" }),
+      niveau ? null : el("p", { text: "Choisis ta classe : tu retrouveras tes chapitres, l'essentiel du cours et des jeux pour le retenir. L'appareil s'en souviendra." })
     ]));
     if (!DONNEES_OK) {
       app.appendChild(el("div", { class: "alerte", role: "alert" }, [
@@ -2139,18 +2216,32 @@
       var fiches = chaps.filter(function (c) { return c.d === d; });
       if (!themes.length && !fiches.length) return;
       app.appendChild(el("div", { class: "etiq", text: DISC[d] }));
-      var placees = {};
+      var placees = {}, aVenir = [];
       themes.forEach(function (t) {
-        app.appendChild(el("div", { class: "theme-titre", text: t.theme }));
+        var ouverts = [];
         liste(t, "chapitres").forEach(function (c) {
           var ch = c.fiche ? chapitre(c.fiche) : null;
-          if (ch && ch.n === niveau && estVisible(ch)) { placees[ch.id] = true; app.appendChild(carteChapitre(ch)); }
-          else app.appendChild(el("div", { class: "chap a-venir" + (d === "geo" ? " geo" : "") }, [
-            el("div", { class: "chap-num", text: c.num + " · à venir" }),
-            el("div", { class: "chap-titre", text: c.titre })
+          if (ch && ch.n === niveau && estVisible(ch)) { placees[ch.id] = true; ouverts.push(carteChapitre(ch)); }
+          else aVenir.push({ c: c, t: t });
+        });
+        if (!ouverts.length) return;
+        app.appendChild(el("div", { class: "theme-titre", text: t.theme }));
+        ouverts.forEach(function (x) { app.appendChild(x); });
+      });
+      // les chapitres pas encore étudiés : repliés, pour ne pas encombrer l'accueil
+      if (aVenir.length) {
+        var pli = el("details", { class: "a-venir-pli" });
+        pli.appendChild(el("summary", { text: pluriel(aVenir.length, "chapitre") + " à venir dans l'année" }));
+        var dernierTheme = null;
+        aVenir.forEach(function (x) {
+          if (x.t !== dernierTheme) { dernierTheme = x.t; pli.appendChild(el("div", { class: "theme-titre", text: x.t.theme })); }
+          pli.appendChild(el("div", { class: "chap a-venir" + (d === "geo" ? " geo" : "") }, [
+            el("div", { class: "chap-num", text: x.c.num + " · à venir" }),
+            el("div", { class: "chap-titre", text: x.c.titre })
           ]));
         });
-      });
+        app.appendChild(pli);
+      }
       // une fiche que le plan de l'année ne mentionne pas reste accessible
       var horsPlan = fiches.filter(function (c) { return !placees[c.id]; });
       if (horsPlan.length && themes.length) app.appendChild(el("div", { class: "theme-titre", text: "Autres fiches" }));
@@ -2214,24 +2305,33 @@
     if (entree) app.appendChild(entree);
     if (defiDispo()) app.appendChild(el("a", { class: "lien-defi", href: "#/defi/" + ch.n + "/" + ch.id }, [el("strong", { text: "Défi de classe" }), " : ce chapitre à projeter, par équipes"]));
 
-    app.appendChild(el("div", { class: "etiq", text: "Mes outils" }));
-    var grille = el("div", { class: "outils" });
-    OUTILS.forEach(function (o) {
-      if (!o.dispo(ch)) return;
-      var a = el("a", { class: "outil" + (ch.d === "geo" ? " geo" : ""), href: lienChapitre(ch, o.id) });
-      var past = el("span", { class: "pastille" });
-      past.innerHTML = icone(o.icone);
-      a.appendChild(past);
-      a.appendChild(el("strong", { text: o.nom }));
-      a.appendChild(el("span", { class: "info", text: o.info(ch) }));
-      grille.appendChild(a);
+    // les outils en trois temps, comme une révision : apprendre, s'entraîner, vérifier ce que je sais
+    GROUPES_OUTILS.forEach(function (g) {
+      var grille = el("div", { class: "outils" });
+      OUTILS.forEach(function (o) {
+        if (g.ids.indexOf(o.id) < 0 || !o.dispo(ch)) return;
+        var a = el("a", { class: "outil" + (ch.d === "geo" ? " geo" : ""), href: lienChapitre(ch, o.id) });
+        var past = el("span", { class: "pastille" });
+        past.innerHTML = icone(o.icone);
+        a.appendChild(past);
+        a.appendChild(el("strong", { text: o.nom }));
+        a.appendChild(el("span", { class: "info", text: o.info(ch) }));
+        grille.appendChild(a);
+      });
+      if (!grille.children.length) return;
+      app.appendChild(el("div", { class: "etiq groupe-outils" }, [el("span", { class: "go-num", text: g.num }), g.nom, el("small", { text: g.aide })]));
+      app.appendChild(grille);
     });
-    app.appendChild(grille);
     var methodeC = blocMethodeChapitre(ch);
     if (methodeC) app.appendChild(methodeC);
   }
 
   // ---------- Les outils ----------
+  var GROUPES_OUTILS = [
+    { num: "1", nom: "Apprendre", aide: "Relire le cours et le mémoriser", ids: ["essentiel", "ppo", "cartes"] },
+    { num: "2", nom: "S'entraîner", aide: "Des exercices sur le cours", ids: ["quiz", "frise", "documents", "carte", "associer", "trous", "classer", "quisuisje"] },
+    { num: "3", nom: "Vérifier", aide: "Savoir où j'en suis", ids: ["rituel", "point"] }
+  ];
   var OUTILS = [
     { id: "essentiel", nom: "L'essentiel", icone: "essentiel",
       dispo: function () { return true; },
@@ -2304,6 +2404,10 @@
 
   // ---------- L'essentiel ----------
   function vueEssentiel(ch, cible) {
+    // la fiche de cours se lit sur une feuille claire, comme le cahier, même dans le thème sombre
+    var feuille = el("div", { class: "lecture" });
+    cible.appendChild(feuille);
+    cible = feuille;
     var btnImp = el("button", { class: "btn noprint", type: "button", onclick: function () { window.print(); } }, avecIcone("imprimer", "Imprimer la fiche"));
     cible.appendChild(el("div", { class: "btns noprint", style: "margin-top:6px" }, btnImp));
 
@@ -6008,9 +6112,95 @@
     noeuds.forEach(function (n, i) { n.i = i; });
     return { noeuds: noeuds, unites: unites, parUnite: true, haltes: true };
   }
+  // ----- Un chapitre qui suit le plan du cours : une étape par partie (I., II., III.), avec ses mots, ses dates, ses acteurs,
+  // ses lieux et ses documents ; chaque point de passage vient juste après la partie où on l'étudie ; puis le bilan du chapitre.
+  // Le champ « parties » de cours.js range les éléments du chapitre dans les parties de son plan.
+  var CHAMPS_PARTIE = ["notions", "reperes", "personnages", "lieux", "trous", "graphiques", "croquis", "documents"];
+  function partieChapitre(ch, k) {
+    var spec = ch.parties[k], v = {}, cles = { notions: "mot", reperes: "date", personnages: "nom", lieux: "nom", trous: "titre", graphiques: "id", croquis: "id", documents: "id" };
+    Object.keys(ch).forEach(function (x) { v[x] = ch[x]; });
+    CHAMPS_PARTIE.forEach(function (champ) {
+      var garder = {};
+      liste(spec, champ).forEach(function (x) { garder[x] = true; });
+      v[champ] = liste(ch, champ).filter(function (x) { return garder[String(x[cles[champ]])]; });
+    });
+    v.intrus = spec.intrus ? liste(ch, "intrus") : [];
+    v.questions = []; v.periodes = []; v.ppo = []; v.parties = null; v.parent = ch;
+    return v;
+  }
+  function poolTout(ch, b) {
+    var t = [];
+    MODELES_NIVEAUX.forEach(function (m) { t = t.concat(m.pool(ch, b)); });
+    return t;
+  }
+  // « Deux empires chrétiens : l'Empire byzantin… » → « Deux empires chrétiens » (le nom court, sous l'île)
+  function titreCourt(t) {
+    var m = String(t).split(/ : |; | \(/);
+    var c = /^(introduction|étude de cas|tâche finale|conclusion)$/i.test(m[0]) && m[1] ? m[1] : m[0];
+    return c.replace(/[ ,.]+$/, "");
+  }
+  function routeParties(ch) {
+    var noeuds = [], cours = blocs(ch)[0], plan = liste(ch, "plan");
+    var u = { bloc: cours, num: 1, nom: "Le cours", petit: "Le cours" }, unites = [u];
+    var ppos = {};
+    blocs(ch).slice(1).forEach(function (b) { ppos[b.id] = b; });
+    var etapes = ch.parties.map(function (spec, k) {
+      var v = partieChapitre(ch, k), bv = blocs(v)[0];
+      return { k: k, v: v, b: bv, nb: poolTout(v, bv).length, ppo: liste(spec, "ppo") };
+    });
+    // une partie trop courte pour un niveau rejoint la précédente (ou la suivante)
+    var groupes = [];
+    etapes.forEach(function (e) {
+      var g = groupes[groupes.length - 1];
+      if (g && (e.nb < 4 || g.nb < 4)) { g.ks.push(e.k); g.nb += e.nb; g.ppo = g.ppo.concat(e.ppo); }
+      else groupes.push({ ks: [e.k], nb: e.nb, ppo: e.ppo.slice() });
+    });
+    groupes.forEach(function (g) {
+      var ks = g.ks, num = ks.map(function (k) { return romain(k + 1); }).join("-");
+      var cle = ch.id + "|partie|" + (ks[0] + 1) + (ks.length > 1 ? "-" + (ks[ks.length - 1] + 1) : "");
+      var titres = ks.map(function (k) { return plan[k] || ""; });
+      var court = num + ". " + titreCourt(titres[0]) + (ks.length > 1 ? "…" : "");
+      noeuds.push({ type: "niveau", cle: cle, unite: u, rang: noeuds.length + 1, icone: "essentiel", partie: num, court: court,
+        nom: num + ". " + titres.join(" — "),
+        poolDe: function () { var t = []; ks.forEach(function (k) { var e = etapes[k]; t = t.concat(poolTout(e.v, e.b)); }); return t; } });
+      g.ppo.forEach(function (id) {
+        var b = ppos[id];
+        if (!b || poolTout(ch, b).length < 4) return;
+        noeuds.push({ type: "niveau", cle: ch.id + "|" + b.id + "|tout", unite: u, rang: noeuds.length + 1, icone: "carte", ppo: true,
+          court: b.nom, nom: "Point de passage : " + (b.data.titre || b.nom), poolDe: function () { return poolTout(ch, b); } });
+      });
+    });
+    noeuds.push({ type: "coffre", cle: ch.id + "|cours", unite: u, nom: "Le coffre", icone: "coffre" });
+    noeuds.push({ type: "defi", cle: ch.id + "|defi", unite: null, icone: "bouclier", nom: "Bilan du chapitre", court: "Bilan du chapitre" });
+    noeuds.forEach(function (n, i) { n.i = i; });
+    migrerParties(ch, noeuds);
+    // le bilan porte sur tout le chapitre : le cours et ses points de passage
+    blocs(ch).slice(1).forEach(function (b, i) { unites.push({ bloc: b, num: i + 2, nom: b.nom, petit: b.nom }); });
+    return { noeuds: noeuds, unites: unites, parUnite: false, parties: true };
+  }
+  // les étoiles gagnées avant que le chemin suive le plan du cours (niveaux « mots », « dates »…) sont gardées :
+  // un élève qui avait fini le cours (coffre ouvert) retrouve ses parties faites ; un point de passage fini aussi
+  function migrerParties(ch, noeuds) {
+    av.migreParties = av.migreParties || {};
+    if (av.migreParties[ch.id]) return;
+    av.migreParties[ch.id] = 1;
+    var anciens = function (pre) {
+      return Object.keys(av.niveaux).filter(function (k) { return k.indexOf(pre) === 0 && k.split("|").length === 3; }).map(function (k) { return av.niveaux[k]; });
+    };
+    noeuds.forEach(function (n) {
+      if (n.type !== "niveau" || av.niveaux[n.cle]) return;
+      var bloc = n.ppo ? n.cle.split("|")[1] : "cours";
+      if (!av.coffres[ch.id + "|" + bloc]) return;
+      var liste0 = anciens(ch.id + "|" + bloc + "|").filter(function (x) { return x && x.e; });
+      if (!liste0.length) return;
+      av.niveaux[n.cle] = { e: Math.max(ETOILES_POUR_PASSER, Math.min.apply(null, liste0.map(function (x) { return x.e; }))), t: liste0[0].t || Date.now() };
+    });
+    sauverAventure();
+  }
   // le chemin : niveaux et coffre de chaque unité (plus une île de révision par chapitre dans le parcours de l'année), puis le défi
   function routeAventure(ch) {
     if (ch.special === "annee" && carteActive()) return routeHaltes(ch);
+    if (!ch.special && Array.isArray(ch.parties) && ch.parties.length) return routeParties(ch);
     var noeuds = [], unites = [];
     blocs(ch).forEach(function (b) {
       var niv = MODELES_NIVEAUX.filter(function (m) { return m.pool(ch, b).length >= 4; });
@@ -6054,6 +6244,7 @@
   function etoilesDe(n) { var x = av.niveaux[n.cle]; return x ? x.e : 0; }
   function etoilesRoute(route) { return route.noeuds.reduce(function (s, n) { return s + etoilesDe(n); }, 0); }
   function poolNoeud(ch, route, n) {
+    if (n.poolDe) return n.poolDe();
     if (n.type === "niveau") return n.m.pool(ch, n.unite.bloc);
     var tout = [];
     (n.type === "revision" ? route.unites.slice(0, n.jusque + 1) : route.unites).forEach(function (u) {
@@ -6273,6 +6464,8 @@
       barreProgres(noeuds.length ? faits / noeuds.length : 0),
       el("span", { class: "av-route-info", text: faits + " étape" + (faits > 1 ? "s" : "") + " sur " + noeuds.length + (route.parUnite ? " · chaque unité s'ouvre dès le départ" : "") })
     ];
+    // un chapitre qui suit le plan du cours rappelle sa question de départ, comme en classe
+    if (route.parties && ch.question) entete.splice(2, 0, el("span", { class: "md-tete-question", text: ch.question }));
     if (carte) {
       // l'en-tête porte le monument du chapitre, et un lien vers sa fiche pour réviser avant de jouer
       var figTete = el("span", { class: "md-tete-fig", "aria-hidden": "true" });
@@ -6312,7 +6505,7 @@
     noeuds.forEach(function (n) {
       if (n.unite && n.unite !== uniteCourante) {
         uniteCourante = n.unite;
-        if (!carte || route.unites.length > 1) chemin.appendChild(el("div", { class: "av-unite u" + ((n.unite.num - 1) % 4) }, [el("small", { text: n.unite.petit }), el("strong", { text: n.unite.nom })]));
+        if (!route.parties && (!carte || route.unites.length > 1)) chemin.appendChild(el("div", { class: "av-unite u" + ((n.unite.num - 1) % 4) }, [el("small", { text: n.unite.petit }), el("strong", { text: n.unite.nom })]));
       }
       if (n.type === "defi") chemin.appendChild(el("div", { class: "av-unite defi" }, [el("small", { text: "Pour finir" }), el("strong", { text: n.nom })]));
       chemin.appendChild(ile(n));
@@ -6339,7 +6532,7 @@
         p.innerHTML = dessinPerso(av.perso);
         wrap.appendChild(p);
       }
-      if (carte) wrap.appendChild(el("div", { class: "av-ile-nom" + (fait ? " fait" : ouvert ? "" : " verrou"), "aria-hidden": "true", text: (n.i + 1) + " · " + n.nom }));
+      if (carte) wrap.appendChild(el("div", { class: "av-ile-nom" + (fait ? " fait" : ouvert ? "" : " verrou"), "aria-hidden": "true", text: route.parties ? (n.court || n.nom) : (n.i + 1) + " · " + n.nom }));
       b.addEventListener("click", function () { son("clic"); basculer(wrap, b, n, ouvert, fait); });
       return wrap;
     }
@@ -6356,7 +6549,8 @@
       if (deja) return;
       var bulle = el("div", { class: "av-bulle" + (ouvert ? "" : " verrou") });
       var nb = difficulte(ch);
-      var haut = n.type === "erreurs" ? "À revoir" : n.type === "defi" ? "Pour finir" : n.unite.petit + (n.type === "niveau" ? " · Niveau " + n.rang : "");
+      var haut = n.type === "erreurs" ? "À revoir" : n.type === "defi" ? "Pour finir" : n.partie ? "Partie " + n.partie + " de ton cours"
+        : n.ppo ? "Étudié dans le cours" : n.unite.petit + (n.type === "niveau" ? " · Niveau " + n.rang : "");
       bulle.appendChild(el("small", { text: haut }));
       bulle.appendChild(el("strong", { text: n.nom }));
       var info, action = null;
@@ -6369,7 +6563,8 @@
         if (ouvert && !fait) action = el("button", { class: "av-bulle-btn", type: "button", text: "Ouvrir le coffre", onclick: function () { fermerBulle(); modalCoffre(ch, n); } });
         else if (fait) action = el("a", { class: "av-bulle-btn", href: lienAventure(ch, "perso"), text: "Voir mes trouvailles" });
       } else {
-        info = n.type === "defi" ? nb.defi + " questions sur tout le parcours, et " + VIES_DEFI + " vies."
+        info = n.type === "defi" ? nb.defi + " questions sur tout " + (route.parties ? "le chapitre" : "le parcours") + ", et " + VIES_DEFI + " vies."
+          : n.partie ? nb.nb + " questions sur cette partie du cours : son vocabulaire, ses dates, ses acteurs et ses lieux."
           : n.type === "revision" ? (nb.nb + 2) + " questions qui mélangent les chapitres déjà vus." : nb.nb + " questions variées.";
         var rec = etoilesDe(n), aPasser = n.type !== "defi" && !fait;
         if (rec) info += " Ton record : " + rec + " étoile" + (rec > 1 ? "s" : "") + " sur 3.";
@@ -6393,7 +6588,7 @@
       var cible = actuel >= 0 ? noeuds[actuel] : null;
       var bas = el("div", { class: "md-continuer" });
       if (cible) {
-        bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: "Étape " + (actuel + 1) + " sur " + noeuds.length }), el("strong", { text: cible.nom })]));
+        bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: "Étape " + (actuel + 1) + " sur " + noeuds.length }), el("strong", { text: cible.court || cible.nom })]));
         if (cible.type === "coffre") bas.appendChild(el("button", { class: "jeu-valider", type: "button", text: "Ouvrir le coffre", onclick: function () { fermerBulle(); modalCoffre(ch, cible); } }));
         else bas.appendChild(el("a", { class: "jeu-valider", href: lienAventure(ch, "jeu/" + cible.i), text: cible.type === "defi" ? "Relever le défi" : faits ? "Continuer" : "Commencer" }));
       } else {
@@ -6690,7 +6885,7 @@
         var apres = route.noeuds[n.i + 1];
         if (defi) suite = { href: lienMonde(ch.n), texte: "Retour à la carte" };
         else if (apres && noeudOuvert(route, apres)) suite = apres.type === "coffre" ? { href: lienAventure(ch), texte: "Ouvrir le coffre" }
-          : { href: lienAventure(ch, "jeu/" + apres.i), texte: "Étape suivante : " + apres.nom };
+          : { href: lienAventure(ch, "jeu/" + apres.i), texte: "Étape suivante : " + (apres.court || apres.nom) };
       }
       var chemin = el("a", { class: reussi ? "jeu-continuer" : "jeu-secondaire", href: suite ? suite.href : retour,
         text: suite ? suite.texte : route && route.haltes ? (reussi ? "Retour à la carte" : "Revenir à la carte") : reussi ? "Continuer" : "Revenir au chemin" });
@@ -7773,7 +7968,7 @@
       if (k.indexOf(prefixe) !== 0) return;
       var p = k.split("|"), ch = p.length === 3 && p[1] !== "rev" ? chapitre(p[1]) : null;
       if (!ch) return;
-      var cible = routeAventure(ch).noeuds.filter(function (x) { return x.type === "niveau" && x.m.id === p[2]; })[0];
+      var cible = routeAventure(ch).noeuds.filter(function (x) { return x.type === "niveau" && x.m && x.m.id === p[2]; })[0];
       if (!cible) return;
       var v = av.niveaux[k], ancien = av.niveaux[cible.cle];
       if (!ancien || (ancien.e || 0) < (v.e || 0)) av.niveaux[cible.cle] = { e: v.e, t: v.t };
@@ -7918,7 +8113,7 @@
       figB.innerHTML = svgMonument(monumentDe(ici.ch));
       bas.appendChild(figB);
       if (s) {
-        bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: ici.num + " · étape " + s.rang + " sur " + ici.etat.total }), el("strong", { text: s.noeud.nom })]));
+        bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: ici.num + " · étape " + s.rang + " sur " + ici.etat.total }), el("strong", { text: s.noeud.court || s.noeud.nom })]));
         bas.appendChild(el("a", { class: "jeu-valider", href: s.href, text: ici.etat.faits ? "Continuer" : etoiles ? "Jouer" : "Commencer" }));
       } else {
         bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: "Bravo !" }), el("strong", { text: "Tous les chapitres ouverts sont terminés" })]));
@@ -8010,7 +8205,7 @@
     fig.innerHTML = svgMonument(ici ? monumentDe(ici.ch) : { type: "mystere" }) + (av.perso ? '<span class="ec-perso">' + dessinPerso(av.perso) + "</span>" : "");
     var s = ici ? suiteChapitre(ici.ch, ici.etat) : null;
     var sous = !ici ? "Les chapitres ouvrent au fil de l'année" : !av.perso || !etoiles ? "Un monument par chapitre : crée ton personnage et pars à l'aventure"
-      : s ? ici.num + " · étape " + s.rang + " sur " + ici.etat.total + " : " + s.noeud.nom : "Tous les chapitres ouverts sont terminés";
+      : s ? ici.num + " · étape " + s.rang + " sur " + ici.etat.total + " : " + (s.noeud.court || s.noeud.nom) : "Tous les chapitres ouverts sont terminés";
     var barre = barreProgres(max ? etoiles / max : 0);
     a.appendChild(fig);
     a.appendChild(el("span", { class: "ec-txt" }, [

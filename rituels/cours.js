@@ -169,6 +169,10 @@ const COURS = [
       "Deux empires chrétiens : l'Empire byzantin et l'Empire carolingien",
       "Une religion chrétienne, deux Églises"
     ],
+    parties: [
+      { notions: ["Empire", "Empereur", "Basileus", "Comte", "Missi dominici", "Invasions barbares"], reperes: ["395", "476", "527-565", "800", "843", "1453"], personnages: ["Justinien", "Charlemagne"], lieux: ["Constantinople", "Aix-la-Chapelle", "Ravenne"], trous: ["La fin de l'Empire romain", "Deux empires chrétiens"] },
+      { notions: ["Chrétienté", "Pape", "Patriarche", "Catholique", "Orthodoxe", "Schisme"], reperes: ["1054", "1204"], lieux: ["Rome"], trous: ["Une religion, deux Églises"] }
+    ],
     cle: "Les deux empires se disent héritiers de Rome et sont chrétiens, mais l'un dure plus de mille ans et l'autre moins de cinquante.",
     essentiel: [
       "En 395, l'Empire romain est partagé en deux. L'Empire d'Occident disparaît en 476, envahi par les peuples barbares. L'Empire d'Orient survit : c'est l'Empire byzantin.",
@@ -259,6 +263,11 @@ const COURS = [
       "Naissance de l'islam et construction d'un empire",
       "Une religion et ses pratiques",
       "Sociétés et cultures en contact"
+    ],
+    parties: [
+      { notions: ["Hégire", "Calife", "Empire", "Sunnites et chiites"], reperes: ["622", "632", "661", "750", "762", "1258"], personnages: ["Mahomet", "Abu Bakr", "Ali", "Moawiya"], lieux: ["La Mecque", "Médine", "Damas", "Bagdad"], trous: ["Les débuts de l'islam"] },
+      { notions: ["Islam", "Musulman", "Coran", "Mosquée", "Cinq piliers"] },
+      { notions: ["Souk", "Dhimmi"], lieux: ["Cordoue", "Tolède"], trous: ["Une religion, des sociétés"] }
     ],
     cle: "Né au VIIᵉ siècle en Arabie, l'islam est à l'origine d'un immense empire dirigé par les califes, où se rencontrent des peuples, des religions et des savoirs.",
     essentiel: [
@@ -357,6 +366,10 @@ const COURS = [
       "Des campagnes organisées en seigneurie : la seigneurie, les liens entre seigneurs (vassalité), la vie des seigneurs",
       "Le dynamisme économique de la seigneurie : les obligations des paysans, les défrichements"
     ],
+    parties: [
+      { notions: ["Seigneurie", "Réserve", "Tenure", "Hommage", "Vassal", "Fief", "Féodalité", "Chevalier"], reperes: ["1020", "vers 1030"], personnages: ["Fulbert de Chartres", "Adalbéron de Laon"], lieux: ["Couvent des Billettes (Paris)", "Chartres", "Laon"], trous: ["La seigneurie", "Seigneurs et vassaux"] },
+      { notions: ["Serf", "Vilain", "Corvée", "Banalités", "Dîme", "Défrichement", "Croissance agricole"], reperes: ["XIᵉ-XIIIᵉ siècle", "1000-1300", "XIIᵉ siècle", "1187", "XIIIᵉ siècle", "1248"], lieux: ["Verson", "Lorris", "Saint-Denis"], trous: ["Les paysans et l'essor des campagnes"] }
+    ],
     cle: "Dans les campagnes, le seigneur domine les terres et les hommes. Cette domination repose sur des obligations réciproques, dans des campagnes en pleine expansion entre le XIᵉ et le XIVᵉ siècle.",
     essentiel: [
       "Au Moyen Âge, les campagnes sont organisées en seigneuries. Le seigneur y exerce son pouvoir : il possède les terres, rend la justice et protège les habitants. Une seigneurie comprend le château, le village, les champs (tenures et réserve), les moulins et l'église.",
@@ -452,6 +465,11 @@ const COURS = [
       "Le développement des villes au Moyen Âge : l'essor des villes et le grand commerce",
       "Étude de cas : Paris, ville médiévale (centre économique, politique, religieux et culturel)",
       "Vivre en ville au Moyen Âge : habiter la ville, une société urbaine hiérarchisée"
+    ],
+    parties: [
+      { notions: ["Ville", "Grand commerce", "Foire"], reperes: ["XIᵉ-XIVᵉ siècle", "XIIIᵉ siècle", "milieu du XIVᵉ siècle"], lieux: ["Venise", "Gênes", "Florence", "Bruges", "Gand", "Troyes", "Provins", "Italie du Nord", "Flandres"], trous: ["L'essor des villes"] },
+      { notions: ["Prévôt", "Enceinte", "Capitale", "Cathédrale", "Hôtel-Dieu", "Université"], reperes: ["1163", "à partir de 1190", "1257", "vers 1268", "vers 1345", "1356-1383"], personnages: ["Philippe Auguste", "Maurice de Sully", "Étienne Boileau", "Robert de Sorbon", "Charles V"], lieux: ["Paris"], trous: ["Paris, une ville aux pouvoirs multiples"] },
+      { notions: ["Bourgeois", "Corporation", "Apprenti", "Échevin", "Charte de franchise"], trous: ["Vivre en ville"] }
     ],
     cle: "Au Moyen Âge, les villes grandissent grâce à la croissance des campagnes et au grand commerce. Elles font naître une nouvelle société, plus libre que celle des campagnes féodales, mais hiérarchisée.",
     essentiel: [
@@ -566,6 +584,10 @@ const COURS = [
     plan: [
       "Une lente affirmation du pouvoir monarchique : Hugues Capet, Philippe Auguste, Louis IX",
       "La construction progressive de l'État monarchique : Philippe le Bel, Charles VII et la guerre de Cent Ans, Louis XI"
+    ],
+    parties: [
+      { notions: ["Domaine royal", "Suzerain", "Souverain", "Sacre", "Bailli", "Monnaie royale", "Justice royale"], reperes: ["987", "1190", "1214", "1254", "1297"], personnages: ["Hugues Capet", "Philippe Auguste", "Louis IX"], lieux: ["Paris", "Saint-Denis", "Bouvines", "Reims", "Île-de-France"], trous: ["Du roi faible au roi souverain"] },
+      { notions: ["Légiste", "États généraux", "Église gallicane", "Guerre de Cent Ans", "Armée permanente", "Impôt permanent", "État", "État monarchique"], reperes: ["1302", "1303", "1328", "1337-1453", "1429", "1445", "1461-1483"], personnages: ["Philippe le Bel", "Jeanne d'Arc", "Charles VII", "Louis XI"], lieux: ["Anagni", "Orléans", "Rouen", "Calais"], trous: ["Philippe le Bel et Charles VII", "Un État monarchique"] }
     ],
     cle: "Entre le Xᵉ et le XVᵉ siècle, le roi de France passe d'un pouvoir faible, limité à un petit domaine, à un pouvoir souverain sur tout le royaume. Cette évolution est lente et connaît des crises, mais à la fin du XVᵉ siècle la France est un État monarchique solide.",
     essentiel: [
@@ -701,6 +723,10 @@ const COURS = [
       "Les Européens à la recherche d'une nouvelle route vers les Indes : les grands voyages, la rencontre avec l'Amérique, les empires coloniaux et le grand commerce",
       "Une nouvelle rivalité méditerranéenne : l'Empire ottoman de Soliman face à l'empire de Charles Quint"
     ],
+    parties: [
+      { notions: ["Route des Indes", "Caravelle", "Portulan", "Autochtone", "Choc microbien", "Conquistador", "Colonie", "Comptoir", "Première mondialisation", "Traite atlantique"], reperes: ["1453", "1492", "1494", "1498"], personnages: ["Mehmed II", "Christophe Colomb", "Vasco de Gama", "Bartolomé de Las Casas", "Francisco Pizarro"], lieux: ["Palos", "Guanahani", "Lisbonne", "Calicut", "Goa", "Séville", "Nouvelle-Espagne"], trous: ["Une nouvelle route vers les Indes", "Empires coloniaux et première mondialisation"] },
+      { notions: ["Empire", "Sultan", "Janissaire", "Cosmopolite", "Siècle d'Or"], reperes: ["1516", "1519", "1520", "1529", "1571"], personnages: ["Soliman le Magnifique", "Charles Quint", "François Iᵉʳ"], lieux: ["Constantinople (Istanbul)", "Vienne", "Lépante"], trous: ["Deux empires rivaux en Méditerranée"] }
+    ],
     cle: "Aux XVᵉ et XVIᵉ siècles, les Européens atteignent l'Inde et l'Amérique et profitent d'une première mondialisation. La Méditerranée, elle, devient l'enjeu de la rivalité entre Soliman le Magnifique et Charles Quint.",
     essentiel: [
       "En 1453, le sultan ottoman Mehmed II prend Constantinople, qui devient Istanbul. Les routes terrestres vers l'Asie passent sous contrôle ottoman : les épices et la soie deviennent plus difficiles et plus chères à obtenir pour les Européens.",
@@ -835,6 +861,10 @@ const COURS = [
     plan: [
       "Une révolution culturelle et artistique : l'humanisme et l'imprimerie, la Renaissance à Florence, une science nouvelle (le procès de Galilée)",
       "Les réformes et les conflits religieux : la Réforme protestante, la Réforme catholique, les guerres de Religion"
+    ],
+    parties: [
+      { notions: ["Humanisme", "Humaniste", "Imprimerie", "Renaissance", "Mécène", "Perspective", "Géocentrisme", "Héliocentrisme", "Hérésie", "Inquisition"], reperes: ["vers 1450", "1501-1504", "1543", "1633"], personnages: ["Johannes Gutenberg", "Érasme", "Laurent de Médicis", "Michel-Ange", "Nicolas Copernic", "Galilée"], lieux: ["Florence", "Mayence", "Rome"], trous: ["L'humanisme et la Renaissance", "Une science nouvelle"] },
+      { notions: ["Indulgence", "Réforme protestante", "Réforme catholique", "Guerres de Religion", "Tolérance religieuse"], reperes: ["1517", "1534", "1545-1563", "1572", "1598"], personnages: ["Martin Luther", "Jean Calvin", "Henri VIII"], lieux: ["Wittenberg", "Genève", "Trente", "Paris", "Nantes"], trous: ["Réformes et guerres de Religion"] }
     ],
     cle: "À la Renaissance, l'Europe s'ouvre à des idées nouvelles (humanisme, imprimerie, arts, sciences fondées sur l'observation), mais l'unité religieuse de la chrétienté occidentale se brise. C'est à la fois un temps d'ouverture et de fractures durables.",
     essentiel: [
@@ -975,6 +1005,11 @@ const COURS = [
       "Henri IV et la stabilisation du royaume",
       "Louis XIV et l'absolutisme royal : gouverner seul, Versailles, les limites du pouvoir absolu"
     ],
+    parties: [
+      { notions: ["Ordonnance, édit", "Mécène", "Roi-guerrier"], reperes: ["1515", "1539"], personnages: ["François Iᵉʳ", "Léonard de Vinci"], lieux: ["Marignan", "Pavie", "Chambord", "Villers-Cotterêts"], trous: ["François Iᵉʳ, un prince de la Renaissance"] },
+      { notions: ["Abjurer", "Sacre", "Régicide"], reperes: ["1589", "1593", "1598", "1610"], personnages: ["Henri IV", "Ravaillac"], lieux: ["Chartres", "Nantes"], trous: ["Henri IV, restaurer la paix"] },
+      { notions: ["Monarchie absolue", "Droit divin", "Intendant", "Cour", "Étiquette", "Propagande royale", "Révocation", "Lois fondamentales"], reperes: ["1643", "1661", "1682", "1685", "1715"], personnages: ["Louis XIV", "Mazarin", "Bossuet", "Hyacinthe Rigaud"], lieux: ["Reims", "Paris", "Versailles", "Fontainebleau"], trous: ["Louis XIV, roi absolu"] }
+    ],
     cle: "Du XVIᵉ au XVIIᵉ siècle, le pouvoir royal se renforce par étapes, de François Iᵉʳ à Henri IV puis à Louis XIV, avec qui la monarchie absolue est achevée. Mais ce renforcement est lent, interrompu par des crises, et jamais total.",
     essentiel: [
       "François Iᵉʳ devient roi en 1515. Roi-guerrier, il bat les mercenaires suisses à Marignan, puis affronte Charles Quint : il est fait prisonnier à Pavie en 1525. Grand mécène, il fait construire Chambord et accueille Léonard de Vinci.",
@@ -1112,6 +1147,12 @@ const COURS = [
       "L'Inde, un géant démographique qui croît et qui fait face à de nombreux défis",
       "Le Nigeria, un futur géant démographique ?",
       "Une croissance démographique inégale selon les États : pays favorisés, émergents, précaires"
+    ],
+    parties: [
+      { notions: ["Croissance démographique", "Taux de natalité", "Taux de mortalité", "Accroissement naturel", "Taux de fécondité"], reperes: ["1950", "2022", "2050 (projection)"] },
+      { notions: ["Développement", "Inégalités"], reperes: ["2023"], lieux: ["Inde", "New Delhi", "Kerala", "Bihar", "Rajasthan"], trous: ["L'Inde, un géant démographique", "Un géant face à de nombreux défis"], graphiques: ["inde-natalite", "inde-alphabetisation", "pyramide-inde"] },
+      { notions: ["Exode rural", "Bidonville", "Chômage", "Planning familial"], reperes: ["2004"], lieux: ["Nigeria", "Sun City"], trous: ["Le Nigeria et le monde"], graphiques: ["nigeria-population", "pyramide-nigeria"] },
+      { notions: ["Vieillissement", "Pays favorisés", "Pays émergents", "Pays précaires"], lieux: ["Chine", "Afrique", "Asie du Sud", "Europe et Japon"], graphiques: ["pyramide-japon"], croquis: ["monde-2050"], intrus: true }
     ],
     cle: "La population mondiale augmente parce qu'il y a plus de naissances que de décès. Cette croissance pose de grands défis au développement : il faut nourrir, loger, scolariser et employer une population nombreuse et jeune ; là où elle ralentit, la population vieillit.",
     essentiel: [
@@ -1269,6 +1310,12 @@ const COURS = [
       "Des inégalités autour de la Méditerranée et à l'intérieur d'un pays : l'Italie",
       "Des inégalités à l'intérieur d'une ville : Le Caire"
     ],
+    parties: [
+      { notions: ["Inégalités", "PIB", "PIB par habitant", "Nords", "Suds", "Espérance de vie", "IDH"], trous: ["Les Nords et les Suds"], croquis: ["nords-suds"], intrus: true },
+      { notions: ["Seuil de pauvreté", "Pays émergent", "Pays pétrolier", "PMA", "ODD"], reperes: ["2015", "2020", "2030"], lieux: ["Paris (18ᵉ arrondissement)", "Mumbai", "Madagascar", "Afrique subsaharienne"], trous: ["Des Nords et des Suds très divers"] },
+      { lieux: ["Méditerranée", "Nord de l'Italie", "Sud de l'Italie"], trous: ["Des inégalités à toutes les échelles"], croquis: ["mediterranee-italie"] },
+      { notions: ["Centre", "Périphérie", "Métropole"], lieux: ["Le Caire", "Corniche du Nil", "Cité des Morts"], documents: ["corniche-nil"] }
+    ],
     cle: "La richesse et la pauvreté sont inégalement réparties à toutes les échelles : entre les Nords et les Suds, entre les deux rives de la Méditerranée, entre le nord et le sud de l'Italie, et même à l'intérieur d'une ville comme Le Caire.",
     essentiel: [
       "La richesse et la pauvreté existent partout, dans les pays riches comme dans les pays pauvres. Les inégalités sont des différences entre les territoires et entre les individus, ressenties comme injustes.",
@@ -1414,6 +1461,13 @@ const COURS = [
       "Temps court, temps long (Fernand Braudel)",
       "Une périodisation vivante : calendriers, Anthropocène"
     ],
+    parties: [
+      { notions: ["Histoire", "Source", "Périodisation", "Période", "Événement"], trous: ["Le temps de l'historien"] },
+      { notions: ["Préhistoire", "Antiquité", "Moyen Âge", "Époque moderne", "Époque contemporaine"], reperes: ["vers 3300 av. J.-C.", "395", "vers 496", "1453", "1517", "1815"], trous: ["Les grandes périodes"] },
+      { notions: ["Borne chronologique", "Chrononyme"], reperes: ["476", "1492", "1789"], personnages: ["Odoacre", "Henri Pirenne"], trous: ["Des bornes discutées"] },
+      { notions: ["Temps court, moyen et long"], personnages: ["Fernand Braudel", "Jacques Le Goff"] },
+      { notions: ["Calendrier", "Anthropocène"], reperes: ["2000", "2020"], personnages: ["Paul Crutzen"] }
+    ],
     cle: "La périodisation est une construction des historiens : ils découpent le temps après coup en périodes pour le rendre compréhensible, mais les bornes choisies (476, 1453 ou 1492, 1789) sont des choix symboliques qui se discutent.",
     essentiel: [
       "L'histoire étudie le passé des sociétés humaines à partir de traces (sources écrites, matérielles, orales, numériques) : l'historien les sélectionne, les recoupe et propose une interprétation vérifiable.",
@@ -1522,6 +1576,10 @@ const COURS = [
       "La Méditerranée grecque : la Grèce des cités ; Athènes, cité démocratique et impérialiste ; Périclès",
       "La Méditerranée romaine : de la République à l'Empire (Auguste) ; un espace prospère et unifié ; la christianisation (Constantin)"
     ],
+    parties: [
+      { notions: ["Cité", "Citoyen", "Démocratie", "Isonomie", "Ecclésia", "Éphébie", "Métèque", "Ostracisme", "Thalassocratie", "Impérialisme"], reperes: ["-800 / -500", "-490 / -479", "-478", "-454"], personnages: ["Périclès"], lieux: ["Athènes", "Délos"], trous: ["La démocratie athénienne", "Athènes, un empire maritime"] },
+      { notions: ["Principat", "Limes", "Romanisation", "Christianisation"], reperes: ["-27", "212", "313", "325", "380"], personnages: ["Auguste", "Constantin"], lieux: ["Rome", "Nicée", "Alexandrie"], trous: ["Rome, de la République à l'Empire chrétien"] }
+    ],
     cle: "Athènes lègue un vocabulaire politique (démocratie, citoyenneté, égalité devant la loi) ; Rome, un vaste espace unifié par le droit, la langue et une citoyenneté ouverte.",
     essentiel: [
       "Le monde grec est une mosaïque de cités indépendantes : divisées politiquement, elles partagent une même culture (langue, dieux, jeux d'Olympie).",
@@ -1623,6 +1681,11 @@ const COURS = [
       "Trois civilisations autour d'une même mer : l'Empire byzantin, le monde musulman, l'Occident chrétien",
       "Une mer de conflits : croisades et djihad (Bernard de Clairvaux) ; vivre sous la domination de l'autre",
       "Une mer d'échanges : Venise, puissance maritime ; la circulation des savoirs"
+    ],
+    parties: [
+      { notions: ["Chrétienté", "Islam", "Orthodoxie", "Basileus", "Patriarche", "Calife", "Empire carolingien", "Féodalité", "Vassalité"], reperes: ["476", "622", "1054"], lieux: ["Constantinople", "Rome", "Bagdad", "Cordoue", "Le Caire"], trous: ["Trois civilisations"] },
+      { notions: ["Croisade", "Djihad", "Reconquista", "Dhimmi"], reperes: ["1096", "1146", "1187", "1204", "1291", "1453", "1492"], personnages: ["Bernard de Clairvaux", "Saladin"], lieux: ["Jérusalem"], trous: ["Une mer de conflits"], documents: ["expulsion-1182"], ppo: ["bernard"] },
+      { notions: ["Comptoir", "Transfert culturel"], personnages: ["Averroès", "Al-Idrisi"], lieux: ["Venise", "Tolède"], trous: ["Une mer d'échanges"], ppo: ["venise"] }
     ],
     cle: "La Méditerranée médiévale est à la fois une mer de conflits entre Chrétienté et Islam, et une mer d'échanges qui relie les trois civilisations.",
     essentiel: [
@@ -2052,6 +2115,11 @@ const COURS = [
       "Les voyages européens : une construction historique à déconstruire (pourquoi partir ? ; Magellan ou Enrique ?)",
       "Explorer, conquérir, coloniser : une transformation profonde du monde (de l'exploration à la colonie ; Las Casas et la controverse de Valladolid ; Cholula, ville métisse)",
       "Une nouvelle économie-monde : ressources, esclavages, circulations (l'or et l'argent ; le sucre et l'esclavage)"
+    ],
+    parties: [
+      { notions: ["« Nouveau Monde »"], reperes: ["1453", "1492", "1494", "1498", "1519-1522"], personnages: ["Henri le Navigateur", "Christophe Colomb", "Fernand de Magellan", "Enrique"], lieux: ["Constantinople", "Guanahani", "Tordesillas", "Calicut"], trous: ["Des voyages européens à déconstruire"] },
+      { notions: ["Conquistador", "Empire colonial", "Colonisation", "Évangélisation", "Encomienda", "Choc microbien", "Métissage"], reperes: ["1521", "1533", "1550-1551", "1605"], personnages: ["Hernán Cortés", "Francisco Pizarro", "Bartolomé de Las Casas"], lieux: ["Tenochtitlan (Mexico)", "Cuzco", "Cholula", "Valladolid"], trous: ["Explorer, conquérir, coloniser"], ppo: ["valladolid"] },
+      { notions: ["Mita", "Comptoir", "Traite atlantique", "Esclavage", "Plantation", "Économie-monde", "Mondialisation"], reperes: ["1545"], lieux: ["Potosí", "Séville"], trous: ["Une nouvelle économie-monde"], ppo: ["argent", "sucre"] }
     ],
     cle: "Aux XVᵉ-XVIᵉ siècles, l'ouverture atlantique relie durablement l'Europe, l'Afrique, l'Amérique et l'Asie : c'est une première mondialisation, mais elle se fait au prix de l'effondrement des peuples amérindiens et de la déportation des Africains.",
     essentiel: [
@@ -2491,6 +2559,10 @@ const COURS = [
       "Une révolution culturelle et artistique : l'Humanisme (Érasme), la Renaissance des arts (Michel-Ange), les sciences contre l'Église",
       "Les réformes et les conflits religieux : la Réforme protestante (Luther), la réaction catholique, les guerres de Religion"
     ],
+    parties: [
+      { notions: ["Humanisme", "Renaissance", "Langue vernaculaire", "Mécène", "Fresque", "Dissection", "Héliocentrisme"], reperes: ["1453", "vers 1455", "1508-1512", "1516", "1543", "1633"], personnages: ["Johannes Gutenberg", "Érasme", "Michel-Ange", "André Vésale", "Nicolas Copernic", "Galilée"], lieux: ["Constantinople", "Mayence", "Florence"], trous: ["L'Humanisme", "Les arts et les sciences"], ppo: ["michel-ange", "erasme"] },
+      { notions: ["Chrétienté", "Indulgence", "La Réforme", "Catholicisme / Protestantisme", "Concile", "Contre-Réforme", "Guerres de Religion", "Édit"], reperes: ["1517", "1534", "1545-1563", "1555", "1572", "1598"], personnages: ["Martin Luther", "Jean Calvin", "Henri VIII", "Ignace de Loyola"], lieux: ["Rome (Vatican)", "Wittenberg", "Genève", "Trente", "Augsbourg", "Paris", "Nantes"], trous: ["Les réformes religieuses"], ppo: ["luther"] }
+    ],
     cle: "L'Humanisme et la Renaissance renouvellent la pensée et l'art en revenant à l'Antiquité et en plaçant l'être humain au centre ; l'esprit critique qu'ils développent favorise la Réforme protestante, qui divise durablement la chrétienté occidentale.",
     essentiel: [
       "En 1453, la prise de Constantinople par les Ottomans pousse des savants byzantins à fuir vers l'Italie avec des manuscrits antiques. Vers 1455, l'imprimerie à caractères mobiles de Gutenberg permet de diffuser les textes vite et en grand nombre : environ 210 millions de livres sont produits en Europe au XVIᵉ siècle.",
@@ -2919,6 +2991,11 @@ const COURS = [
       "La naissance de l'État moderne : une volonté d'expansion territoriale ; contrôler le territoire, la monarchie administrative (l'ordonnance de Villers-Cotterêts)",
       "L'affirmation de l'autorité royale : la guerre ; le contrôle de l'économie (Colbert) ; la religion (l'édit de Nantes et sa révocation) ; soumettre la noblesse (Versailles)",
       "Les limites rencontrées par l'autorité royale"
+    ],
+    parties: [
+      { notions: ["État", "Domaine royal", "Monarchie administrative", "Intendant", "Siège", "Révolution militaire"], reperes: ["1539", "1716"], personnages: ["François Iᵉʳ", "Vauban"], lieux: ["Villers-Cotterêts", "Namur"], trous: ["La naissance de l'État moderne"], ppo: ["villers"] },
+      { notions: ["Lit de justice", "Mercantilisme", "Édit", "Étiquette", "Absolutisme"], reperes: ["1534", "1562-1598", "24 août 1572", "1598", "1661-1682", "1664", "1685", "1688-1697", "1695"], personnages: ["Henri IV", "Louis XIV", "Jean-Baptiste Colbert", "Richelieu"], lieux: ["Versailles", "Paris", "Nantes", "Fontainebleau", "Lorient"], trous: ["L'affirmation de l'autorité royale"], ppo: ["colbert", "versailles", "nantes"] },
+      { notions: ["Obéissance consentie", "Lois fondamentales", "Fronde", "Dépendance financière"], reperes: ["1648-1652"], personnages: ["Mazarin", "Fénelon"], lieux: ["Saint-Germain-en-Laye", "Languedoc"], trous: ["Les limites de l'autorité royale"] }
     ],
     cle: "Du XVIᵉ au XVIIIᵉ siècle, l'État royal renforce son emprise dans tous les domaines (territoire, administration, économie, religion, noblesse) ; mais ce pouvoir n'est jamais sans limites en pratique : l'« absolutisme » est une affirmation théorique plus qu'une réalité.",
     essentiel: [
@@ -3425,6 +3502,12 @@ const COURS = [
       "Un modèle à imiter : un empire intercontinental et l'influence des idées anglaises sur les Lumières (Voltaire)",
       "De la révolution américaine à la naissance de la République des États-Unis (Washington)"
     ],
+    parties: [
+      { notions: ["Parlement", "Bill", "Monarchie absolue", "Régicide"], reperes: ["1642-1649", "30 janvier 1649"], personnages: ["Charles Iᵉʳ", "Oliver Cromwell"], lieux: ["Londres", "Naseby"] },
+      { notions: ["Monarchie parlementaire", "Habeas Corpus", "Bill of Rights", "Anglicans"], reperes: ["1660", "1679", "1688", "1689"], personnages: ["Jacques II", "Guillaume III"], trous: ["La monarchie parlementaire anglaise"], ppo: ["bill"] },
+      { notions: ["Empire colonial", "Dock", "Enlightenment", "Droit naturel"], reperes: ["1707", "1733-1734"], personnages: ["John Locke", "Voltaire"], lieux: ["Écosse"], trous: ["Un modèle pour les Lumières"], ppo: ["voltaire"] },
+      { notions: ["Colonie", "Constitution", "Séparation des pouvoirs"], reperes: ["1763", "4 juillet 1776", "17 septembre 1787", "30 avril 1789"], personnages: ["George Washington"], lieux: ["Treize colonies", "Boston", "Lexington", "Philadelphie", "New York"], trous: ["La naissance des États-Unis"], ppo: ["washington"] }
+    ],
     cle: "Au XVIIᵉ siècle, le Parlement anglais impose au roi le respect des lois et des libertés : ce modèle de monarchie parlementaire inspire les philosophes des Lumières, puis les colons américains, qui le retournent contre leur métropole et fondent une république dotée d'une constitution écrite.",
     essentiel: [
       "Charles Iᵉʳ veut gouverner sans le Parlement : la guerre civile (1642-1649) conduit à son exécution en 1649 et à la proclamation de la République. Cromwell impose ensuite un pouvoir personnel et la monarchie est restaurée en 1660.",
@@ -3846,6 +3929,11 @@ const COURS = [
       "Des ressources majeures sous pression : les ressources de l'Amazonie et le front pionnier",
       "Tâche finale : le croquis de l'Amazonie"
     ],
+    parties: [
+      { notions: ["Aléa", "Enjeux", "Vulnérabilité", "Risque", "Exposition"], lieux: ["Ceinture de feu du Pacifique", "Dhaka", "Tokyo", "Manille", "Mexico"], trous: ["Aléa, vulnérabilité, risque"], croquis: ["risques-monde"] },
+      { notions: ["Ressource", "Front pionnier", "Orpaillage", "Déforestation", "Puits de carbone"], lieux: ["Amazone", "Manaus", "Belém", "Arc de déforestation", "Iquitos", "Belo Monte", "Tucuruí", "Jirau", "Carajás", "Trombetas", "Transamazonienne", "Leticia"], trous: ["Une forêt sous pression"], documents: ["rondonia-2016"] },
+      { notions: ["Croquis"], croquis: ["amazonie"], intrus: true }
+    ],
     cle: "Un aléa devient un risque quand il touche une société vulnérable ; en Amazonie, l'exploitation des ressources aggrave les risques.",
     essentiel: [
       "Un aléa devient un risque quand il touche une société vulnérable. En Amazonie, la frontière entre risques naturels (sécheresse, crue) et risques liés aux activités humaines (déforestation, barrages, pollution) est floue.",
@@ -3984,6 +4072,12 @@ const COURS = [
       "Des milieux soumis aux risques",
       "Vers une gestion plus durable",
       "Tâche finale : le croquis de la France"
+    ],
+    parties: [
+      { notions: ["Milieu", "Anthropisation", "Outre-mer", "ZEE"], lieux: ["Antilles", "Fossé rhénan", "Bassin parisien"], trous: ["Des milieux variés"] },
+      { notions: ["Érosion côtière"], lieux: ["Le Signal (Soulac-sur-Mer)"], trous: ["Risques et protection"], documents: ["signal-2021"] },
+      { notions: ["Parc national", "Parc naturel régional", "Parc naturel marin", "Natura 2000", "Développement durable"], lieux: ["Parc amazonien de Guyane", "Vanoise", "Calanques"] },
+      { croquis: ["france-milieux"], intrus: true }
     ],
     cle: "La France, ce sont des milieux variés, valorisés par les sociétés, exposés aux risques, et qu'il faut protéger sans exclure les activités humaines.",
     essentiel: [
