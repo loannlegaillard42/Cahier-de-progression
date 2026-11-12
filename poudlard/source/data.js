@@ -45,18 +45,15 @@ const LIEUX = [
   { n: 16, nom: "La Tour de Serdaigle", x: -14, z: -41, y: 25.2, cp: true },
 ];
 
-const XP_ANNEES = [0, 150, 450, 800, 1200, 1600, 2000];
-const XP_RESULTAT = { reussite: 100, partielle: 60, echec: 30 };
-const XP_CHECKPOINT = 150, XP_DEFI = 40;
-
+/* Les sorts se débloquent avec les étapes franchies (etape = nombre d'étapes à avoir terminées). */
 const SORTS = [
-  { id: "lumos", nom: "Lumos", annee: 1, freq: "etape", effet: "Le professeur éclaire un mot-clé de l'épreuve." },
-  { id: "leviosa", nom: "Wingardium Leviosa", annee: 2, freq: "etape", effet: "Le professeur fait léviter une mauvaise réponse hors d'une question." },
-  { id: "alohomora", nom: "Alohomora", annee: 3, freq: "chapitre", effet: "Ouvre le coffre d'un défi maison sans mot de passe." },
-  { id: "expelliarmus", nom: "Expelliarmus", annee: 4, freq: "chapitre", effet: "Désarme l'Ombre : annule une carte du destin néfaste." },
-  { id: "accio", nom: "Accio", annee: 5, freq: "chapitre", effet: "Fait venir un objet surprise dans le sac." },
-  { id: "protego", nom: "Protego", annee: 6, freq: "chapitre", effet: "Une épreuve ratée compte comme partielle." },
-  { id: "patronum", nom: "Spero Patronum", annee: 7, freq: "finale", effet: "Le jour de la grande finale, toute la classe le lance, quelle que soit son année : le Patronus de l'équipe chasse l'Ombre (+100 XP)." },
+  { id: "lumos", nom: "Lumos", etape: 0, freq: "etape", effet: "Le professeur éclaire un mot-clé de l'épreuve." },
+  { id: "leviosa", nom: "Wingardium Leviosa", etape: 2, freq: "etape", effet: "Le professeur fait léviter une mauvaise réponse hors d'une question." },
+  { id: "alohomora", nom: "Alohomora", etape: 4, freq: "chapitre", effet: "Ouvre le coffre d'un défi maison sans mot de passe." },
+  { id: "expelliarmus", nom: "Expelliarmus", etape: 6, freq: "chapitre", effet: "Désarme l'Ombre : annule une carte du destin néfaste." },
+  { id: "accio", nom: "Accio", etape: 8, freq: "chapitre", effet: "Fait venir un objet surprise dans le sac." },
+  { id: "protego", nom: "Protego", etape: 10, freq: "chapitre", effet: "Une épreuve ratée compte comme partielle." },
+  { id: "patronum", nom: "Spero Patronum", etape: 16, freq: "finale", effet: "Le jour de la grande finale, toute la classe le lance : le Patronus de l'équipe chasse l'Ombre et chaque maison gagne 20 points." },
 ];
 
 const OBJETS = {
@@ -67,16 +64,16 @@ const OBJETS = {
   pimentine: { nom: "Pimentine", effet: "Les maisons qui se sont trompées retentent une réponse (question, paire, ordre ou ligne de code).", quand: "epreuve" },
   felix: { nom: "Felix Felicis", effet: "Chance liquide : une épreuve ratée ou partielle devient réussie.", quand: "resultat", auto: "felix" },
   bezoard: { nom: "Bézoard", effet: "Annule une carte du destin néfaste.", quand: "destin", auto: "annule" },
-  chocogrenouille: { nom: "Chocogrenouille", effet: "+25 XP tout de suite.", quand: "libre", auto: "xp25" },
-  dragees: { nom: "Dragées surprises", effet: "Un pari : +50 XP… ou −20 XP si c'est goût vomi !", quand: "libre", auto: "pari" },
+  chocogrenouille: { nom: "Chocogrenouille", effet: "+5 points pour la maison de votre choix.", quand: "libre", auto: "points" },
+  dragees: { nom: "Dragées surprises", effet: "Un pari pour la maison de votre choix : +10 points… ou −5 si c'est goût vomi !", quand: "libre", auto: "pari" },
 };
 const ORDRE_OBJETS = ["rapeltout", "plume", "retourneur", "cape", "pimentine", "felix", "bezoard", "chocogrenouille", "dragees"];
 const COMPAGNONS = {
   botruc: { nom: "Brindille, le Botruc", effet: "Une fois par chapitre : un indice gratuit pendant une épreuve." },
-  niffleur: { nom: "Pépite, le Niffleur", effet: "+15 XP pour chaque défi maison réussi." },
+  niffleur: { nom: "Pépite, le Niffleur", effet: "Déniche un objet surprise à chaque défi maison réussi." },
 };
 const RELIQUES = {
-  coupe: { nom: "La Coupe de Poufsouffle", maison: "pou", pouvoir: "Abondance : +10 XP à chaque épreuve réussie ou partielle." },
+  coupe: { nom: "La Coupe de Poufsouffle", maison: "pou", pouvoir: "Abondance : une Chocogrenouille tombe dans le sac à chaque épreuve réussie." },
   epee: { nom: "L'Épée de Gryffondor", maison: "gry", pouvoir: "Bravoure : une fois par chapitre, annule une carte du destin néfaste." },
   medaillon: { nom: "Le Médaillon de Serpentard", maison: "sep", pouvoir: "Ruse : une fois par chapitre, tire une nouvelle carte du destin." },
   diademe: { nom: "Le Diadème de Serdaigle", maison: "ser", pouvoir: "Sagesse : chaque maison gagne 20 points." },
@@ -92,21 +89,21 @@ const GAINS = {
 };
 
 const DESTIN = [
-  { id: "encre", titre: "Encre renversée", texte: "Tous les encriers de la tour sont renversés… et on entend un ricanement au loin.", effet: { xp: -20 }, nefaste: true },
+  { id: "encre", titre: "Encre renversée", texte: "Tous les encriers de la tour sont renversés… et on entend un ricanement au loin. Chaque maison perd 5 points.", effet: { toutes: -5 }, nefaste: true },
   { id: "rusard", titre: "Rusard vous a surpris", texte: "Promenade dans les couloirs après le couvre-feu ! Chaque maison perd 5 points.", effet: { toutes: -5 }, nefaste: true },
   { id: "teigne", titre: "Miss Teigne monte la garde", texte: "La chatte de Rusard repart avec un objet de votre sac.", effet: { perte: 1 }, nefaste: true },
-  { id: "mimi", titre: "Mimi Geignarde", texte: "Elle a encore inondé les toilettes du deuxième étage. Tout le monde patauge.", effet: { xp: -10 }, nefaste: true },
-  { id: "lutins", titre: "Lutins de Cornouailles", texte: "Ils ont semé la pagaille dans vos sacs et vos parchemins.", effet: { xp: -15 }, nefaste: true },
-  { id: "fumseck", titre: "Fumseck !", texte: "Le phénix apparaît dans un éclat de flammes et redonne du courage à toute l'équipe.", effet: { xp: 40 } },
+  { id: "mimi", titre: "Mimi Geignarde", texte: "Elle a encore inondé les toilettes du deuxième étage. Tout le monde patauge : chaque maison perd 5 points.", effet: { toutes: -5 }, nefaste: true },
+  { id: "lutins", titre: "Lutins de Cornouailles", texte: "Ils ont semé la pagaille dans vos sacs… et l'un d'eux s'envole avec un objet.", effet: { perte: 1 }, nefaste: true },
+  { id: "fumseck", titre: "Fumseck !", texte: "Le phénix apparaît dans un éclat de flammes et redonne du courage à toute l'équipe.", effet: { toutes: 10 } },
   { id: "cuisines", titre: "Les cuisines de Poudlard", texte: "Un elfe de maison vous glisse des friandises dans les poches.", effet: { objet: "chocogrenouille" } },
   { id: "moine", titre: "Le Moine Gras", texte: "Le fantôme de Poufsouffle vous salue d'un grand sourire.", effet: { maison: "pou", pts: 10 } },
   { id: "nick", titre: "Nick Quasi-Sans-Tête", texte: "Le fantôme de Gryffondor raconte (encore) comment il a failli perdre la tête.", effet: { maison: "gry", pts: 10 } },
   { id: "dame", titre: "La Dame Grise", texte: "Le fantôme de Serdaigle murmure un secret à l'oreille d'Iris.", effet: { maison: "ser", pts: 10 } },
   { id: "baron", titre: "Le Baron Sanglant", texte: "Le fantôme de Serpentard fait taire un ricanement qui traînait dans les couloirs.", effet: { maison: "sep", pts: 10 } },
-  { id: "epouvantard", titre: "Un Épouvantard !", texte: "Il jaillit de l'armoire ! Toute la classe crie « Riddikulus ! » en même temps pour le faire fuir.", effet: { xp: 20 } },
+  { id: "epouvantard", titre: "Un Épouvantard !", texte: "Il jaillit de l'armoire ! Toute la classe crie « Riddikulus ! » en même temps pour le faire fuir.", effet: { toutes: 5 } },
   { id: "colis", titre: "Courrier pour vous", texte: "Moka rapporte un colis mystérieux.", effet: { hasard: 1 } },
   { id: "vomi", titre: "Goût vomi", texte: "Une Dragée surprise au goût vomi ! Il ne se passe rien… à part des grimaces.", effet: {} },
-  { id: "hagrid", titre: "Les gâteaux de Hagrid", texte: "Durs comme de la pierre, mais faits avec amour.", effet: { xp: 10 } },
+  { id: "hagrid", titre: "Les gâteaux de Hagrid", texte: "Durs comme de la pierre, mais faits avec amour.", effet: { toutes: 5 } },
   { id: "choixpeau", titre: "Le Choixpeau chante", texte: "Il entonne une chanson pour l'équipe. Le professeur choisit la maison qui s'est le mieux tenue.", effet: { choix: 15 } },
 ];
 

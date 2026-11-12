@@ -13,68 +13,85 @@ function el(tag, attrs, ...enfants) {
 const ico = (id, cls = "ico") => el("span", { html: `<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`, style: "display:contents" });
 const icone = (id) => el("span", { html: ICONES[id] || "", style: "display:contents" });
 const normaliser = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-const anneeDe = (xp) => { let a = 1; XP_ANNEES.forEach((s, i) => { if (xp >= s) a = i + 1; }); return a; };
-const nomAnnee = (a) => (a === 1 ? "1re année" : `${a}e année`);
 const rangDe = (h, pts) => { let r = RANGS[0]; RANGS.forEach((x) => { if (pts >= x[0]) r = x; }); return HEROS[h].f ? r[2] : r[1]; };
 const quete = (n) => (typeof QUETES !== "undefined" && QUETES[n]) || null;
 function melangeFixe(liste, graine) { const a = liste.map((v, i) => [v, i]); let s = graine * 9301 + 49297; for (let i = a.length - 1; i > 0; i--) { s = (s * 9301 + 49297) % 233280; const j = Math.floor((s / 233280) * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } if (a.length > 2 && a.every(([, i], k) => i === k)) a.push(a.shift()); return a; }
 
 /* ================= État et sauvegarde ================= */
 /* Une partie par classe. En ligne : jeu/classes (la liste), parties/<id> (la partie),
-   parties/<id>/sauvegardes (les points de sauvegarde). Sinon : le navigateur. */
+   parties/<id>/sauvegardes (les points de sauvegarde). Sinon : le navigateur.
+   La sauvegarde en ligne exige d'être connecté à Claude avec le droit de modifier ;
+   sinon la partie reste sur l'appareil et n'est jamais écrasée par celle en ligne. */
 const CLE = "reliques-fondateurs-v1";
 const CLE2 = "reliques-v2";
 function etatNeuf() {
-  return { v: 1, rev: 0, etape: 0, xp: 0, maitrise: { leo: 0, iris: 0, capucine: 0, silas: 0 }, points: { gry: 0, ser: 0, pou: 0, sep: 0 },
+  return { v: 1, rev: 0, etape: 0, maitrise: { leo: 0, iris: 0, capucine: 0, silas: 0 }, points: { gry: 0, ser: 0, pou: 0, sep: 0 },
     sac: { chocogrenouille: 1 }, compagnons: [], reliques: [], resultats: {}, defis: {}, usages: {}, destins: [], journal: [], pile: [], introVue: false, scenes: {} };
 }
 function completer(e) { const n = etatNeuf(); for (const k of Object.keys(n)) if (e[k] == null) e[k] = n[k]; return e; }
 const ls = {
   lire(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
-  ecrire(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  ecrire(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
   oublier(k) { try { localStorage.removeItem(k); } catch (e) {} },
 };
+ls.ok = (() => { try { localStorage.setItem(CLE2 + "-essai", "1"); const v = localStorage.getItem(CLE2 + "-essai"); localStorage.removeItem(CLE2 + "-essai"); return v === "1"; } catch (e) { return false; } })();
 let etat = etatNeuf();
 let registre = { rev: 0, liste: [{ id: "c1", nom: "6e A" }, { id: "c2", nom: "6e B" }] };
 const parties = {};
 let courante = null;
 const nomClasse = (id) => (registre.liste.find((c) => c.id === id) || { nom: "" }).nom;
 const partieDe = (id) => (id === courante ? etat : parties[id]);
+const totalPoints = (e) => Object.values(e.points || {}).reduce((a, b) => a + b, 0);
 const prefs = ls.lire(CLE + "-prefs") || {};
 const sauverPrefs = () => ls.ecrire(CLE + "-prefs", prefs);
 
-/* Un document synchronisé : la version la plus récente (rev) gagne, une écriture à la fois. */
-function creerLien(chemin, cleLie, lire, adopter) {
-  const L = { ref: null, unsub: null, ecrit: false, attente: false, reessai: false };
+/* Un document synchronisé. « base » = numéro de version au dernier accord avec la version en ligne :
+   si seul l'appareil a changé on envoie, si seule la version en ligne a changé on la prend,
+   si les deux ont changé on garde la partie de l'appareil (lecture seule) ou on demande (conflit). */
+function creerLien(chemin, cle, lire, adopter, conflit) {
+  const L = { ref: null, unsub: null, ecrit: false, attente: false, essais: 0, minuteur: null };
+  const kBase = CLE2 + "-base-" + cle;
+  L.base = () => ls.lire(kBase);
+  L.accorder = (rev) => ls.ecrire(kBase, rev);
   L.brancher = () => {
-    L.ref = Store.db.doc(chemin); let lie = ls.lire(cleLie) === 1;
+    L.ref = Store.db.doc(chemin);
     L.unsub = L.ref.onSnapshot((snap) => {
-      if (snap.metadata && snap.metadata.fromCache) return;
+      if (snap.metadata && (snap.metadata.fromCache || snap.metadata.hasPendingWrites)) return;
       const d = snap.exists ? snap.data() : null, loc = lire(); if (!loc) return;
-      const rd = d ? d.rev || 0 : 0, rl = loc.rev || 0;
-      const ecarter = !lie && d && rd < rl && (d.maj || "") > (loc.maj || "");
-      if (!lie) { lie = true; ls.ecrire(cleLie, 1); }
+      const rd = d ? d.rev || 0 : 0, rl = loc.rev || 0, base = L.base();
       if (!d) { if (rl > 0) L.ecrire(); return; }
-      if (rd > rl || ecarter) adopter(JSON.parse(JSON.stringify(d)));
-      else if (rd < rl) L.ecrire();
+      if (rd === rl && (d.maj || "") === (loc.maj || "")) { L.accorder(rd); return; }
+      const iciChange = base == null ? rl > 0 : rl !== base, enLigneChange = base == null ? true : rd !== base;
+      if (!iciChange) { adopter(JSON.parse(JSON.stringify(d))); L.accorder(rd); return; }
+      if (!enLigneChange) { L.ecrire(); return; }
+      if (Store.lecture) return;                       // lecture seule : la partie de cet appareil est conservée
+      conflit(JSON.parse(JSON.stringify(d)), L);
     }, (e) => Store.perdu(e));
   };
+  L.garderIci = (rd) => { const loc = lire(); if (!loc) return; loc.rev = Math.max(loc.rev || 0, rd) + 1; loc.maj = new Date().toISOString(); L.accorder(rd); L.ecrire(); };
   L.ecrire = async () => {
     if (!L.ref || Store.lecture) return;
     if (L.ecrit) { L.attente = true; return; }
     const d = lire(); if (!d) return;
-    L.ecrit = true;
-    try { await L.ref.set(JSON.parse(JSON.stringify(d))); L.reessai = false; }
-    catch (e) { const c = (e && e.code) || "unavailable"; if (c === "invalid_argument" || c === "transform_error") { Store.lecture = true; majSync(); } else if (c === "revoked" || c === "not_granted" || c === "capability_disabled" || c === "capability_removed") Store.perdu(e); else if (c !== "quota_exceeded" && !L.reessai) { L.reessai = true; setTimeout(() => L.ecrire(), 1500 + Math.random() * 2000); } }
+    const copie = JSON.parse(JSON.stringify(d));
+    L.ecrit = true; clearTimeout(L.minuteur);
+    try { await L.ref.set(copie); L.essais = 0; L.accorder(copie.rev || 0); Store.enLigne(true); }
+    catch (e) {
+      const c = (e && e.code) || "unavailable";
+      if (c === "revoked" || c === "not_granted" || c === "capability_disabled" || c === "capability_removed") Store.perdu(e);
+      else if (c === "unavailable" || c === "resource_exhausted") { Store.enLigne(false); if (L.essais < 6) L.minuteur = setTimeout(() => L.ecrire(), [2, 5, 15, 30, 60, 120][L.essais++] * 1000 + Math.random() * 1500); }
+      else if (c === "quota_exceeded") { Store.enLigne(false); }
+      else { Store.lecture = true; majSync(); }   // écriture refusée : cette personne n'a pas le droit de modifier
+    }
     L.ecrit = false;
     if (L.attente) { L.attente = false; L.ecrire(); }
   };
-  L.couper = () => { if (L.unsub) L.unsub(); L.unsub = null; L.ref = null; };
+  L.couper = () => { if (L.unsub) L.unsub(); L.unsub = null; L.ref = null; clearTimeout(L.minuteur); };
   return L;
 }
 
 const Store = {
-  mode: "local", db: null, lecture: false, liens: {},
+  mode: "local", db: null, lecture: false, panne: false, liens: {}, conflits: {},
   charger() {
     const r = ls.lire(CLE2 + "-classes");
     if (r && r.liste && r.liste.length) registre = r;
@@ -90,7 +107,7 @@ const Store = {
     ids.forEach((id) => { if (!parties[id]) parties[id] = completer(ls.lire(CLE2 + "-partie-" + id) || etatNeuf()); });
     Object.keys(parties).forEach((id) => { if (!ids.includes(id)) delete parties[id]; });
     if (this.db) {
-      ids.forEach((id) => { if (!this.liens[id]) { const l = creerLien("parties/" + id, CLE2 + "-lie-" + id, () => partieDe(id), (d) => this.adopter(id, d)); this.liens[id] = l; l.brancher(); } });
+      ids.forEach((id) => { if (!this.liens[id]) { const l = creerLien("parties/" + id, id, () => partieDe(id), (d) => this.adopter(id, d), (d, lien) => this.conflit(id, d, lien)); this.liens[id] = l; l.brancher(); } });
       Object.keys(this.liens).forEach((id) => { if (id !== "registre" && !ids.includes(id)) { this.liens[id].couper(); delete this.liens[id]; } });
     }
     if (courante && !ids.includes(courante)) afficherAccueil();
@@ -100,36 +117,48 @@ const Store = {
     if (id === courante) { etat = e; rendreTout(); }
     rendreAccueil();
   },
+  /* Deux versions différentes d'une même partie : on ne choisit jamais à la place du professeur. */
+  conflit(id, d, lien) {
+    if (this.conflits[id]) return; this.conflits[id] = true;
+    const fin = () => { this.conflits[id] = false; };
+    fenetreConflit(id, d, fin, () => { fin(); this.instantane("Partie en ligne, avant synchronisation", id, true, completer(JSON.parse(JSON.stringify(d)))); lien.garderIci(d.rev || 0); }, () => { fin(); this.instantane("Partie de cet appareil, avant synchronisation", id, true); lien.accorder(d.rev || 0); this.adopter(id, d); });
+  },
   async brancher() {
     try {
-      if (!window.claude || !window.claude.use) return;
-      const db = await window.claude.use("db"); if (!db) return;
-      this.db = db; this.mode = "db"; majSync();
-      try { // la partie de la version précédente (jeu/partie) devient celle de la première classe
-        const r = await db.doc("jeu/classes").get();
-        if (!r.exists) { const a = await db.doc("jeu/partie").get(); const id = registre.liste[0].id;
-          if (a.exists && (a.data().rev || 0) > (parties[id].rev || 0)) { const e = completer(JSON.parse(JSON.stringify(a.data()))); e.introVue = e.etape > 0; parties[id] = e; if (courante === id) etat = e; ls.ecrire(CLE2 + "-partie-" + id, e); rendreAccueil(); } }
-      } catch (e) {}
-      if (!this.db) return;
-      this.liens.registre = creerLien("jeu/classes", CLE2 + "-lie-classes", () => registre, (d) => { if (!Array.isArray(d.liste) || !d.liste.length) return; registre = d; ls.ecrire(CLE2 + "-classes", registre); this.relier(); rendreAccueil(); if (courante) $("#hud-classe").textContent = nomClasse(courante); });
+      if (!window.claude || !window.claude.use) { majSync(); return; }
+      const db = await window.claude.use("db"); if (!db) { majSync(); return; }
+      this.db = db; this.mode = "db";
+      // Cette personne peut-elle modifier la partie partagée ? La plateforme le dit, sinon un essai d'écriture tranche.
+      let peut = null;
+      try { const u = await window.claude.use("user"); if (u) peut = await u.can("data.write"); } catch (e) {}
+      if (peut == null) {
+        try { await db.doc("jeu/acces").set({ essai: new Date().toISOString() }); peut = true; }
+        catch (e) { const c = (e && e.code) || ""; if (c === "revoked" || c === "not_granted" || c === "capability_disabled" || c === "capability_removed") { this.perdu(e); return; } peut = c === "unavailable" || c === "resource_exhausted" ? null : false; }
+      }
+      this.lecture = peut === false;
+      majSync();
+      this.liens.registre = creerLien("jeu/classes", "classes", () => registre, (d) => this.adopterRegistre(d), (d, lien) => { if ((d.maj || "") > (registre.maj || "")) { lien.accorder(d.rev || 0); this.adopterRegistre(d); } else lien.garderIci(d.rev || 0); });
       this.liens.registre.brancher();
       this.relier();
-    } catch (e) {}
+    } catch (e) { majSync(); }
   },
+  adopterRegistre(d) { if (!Array.isArray(d.liste) || !d.liste.length) return; registre = d; ls.ecrire(CLE2 + "-classes", registre); this.relier(); rendreAccueil(); if (courante) $("#hud-classe").textContent = nomClasse(courante); },
   perdu() { this.mode = "local"; Object.values(this.liens).forEach((l) => l.couper()); this.liens = {}; this.db = null; majSync(); },
+  enLigne(ok) { if (this.panne === !ok) return; this.panne = !ok; majSync(); },
   sauver(id = courante) {
     if (!id) return; if (id === courante) parties[id] = etat;
     const e = parties[id]; if (!e) return;
-    e.rev = (e.rev || 0) + 1; e.maj = new Date().toISOString(); ls.ecrire(CLE2 + "-partie-" + id, e);
+    e.rev = (e.rev || 0) + 1; e.maj = new Date().toISOString();
+    if (!ls.ecrire(CLE2 + "-partie-" + id, e) && ls.ok) { ls.ok = false; majSync(); }
     const l = this.liens[id]; if (l) l.ecrire();
   },
   sauverRegistre() { registre.rev = (registre.rev || 0) + 1; registre.maj = new Date().toISOString(); ls.ecrire(CLE2 + "-classes", registre); if (this.liens.registre) this.liens.registre.ecrire(); },
   /* Points de sauvegarde : 25 par classe, dans le navigateur et en ligne. */
-  instantane(label, id = courante) {
-    const e = partieDe(id); if (!e) return;
-    const s = { cle: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), date: new Date().toISOString(), label, etape: e.etape, xp: e.xp, reliques: e.reliques.length, etat: JSON.stringify({ ...e, pile: [] }) };
+  instantane(label, id = courante, localSeul = false, de = null) {
+    const e = de || partieDe(id); if (!e) return;
+    const s = { cle: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), date: new Date().toISOString(), label, etape: e.etape, points: totalPoints(e), reliques: e.reliques.length, etat: JSON.stringify({ ...e, pile: [] }) };
     ls.ecrire(CLE2 + "-sauv-" + id, [s, ...(ls.lire(CLE2 + "-sauv-" + id) || [])].slice(0, 25));
-    if (this.db && !this.lecture) {
+    if (this.db && !this.lecture && !localSeul) {
       const coll = this.db.collection("parties/" + id + "/sauvegardes");
       coll.doc(s.cle).set(s).then(async () => { const q = await coll.orderBy("date", "desc").limit(60).get(); q.docs.slice(25).forEach((d) => coll.doc(d.id).delete().catch(() => {})); }).catch(() => {});
     }
@@ -141,13 +170,19 @@ const Store = {
     }
     return liste.sort((a, b) => (b.date > a.date ? 1 : -1)).slice(0, 25);
   },
+  /* Où la partie est-elle réellement enregistrée ? (affiché sur l'accueil) */
+  etat() {
+    if (this.mode === "db" && !this.lecture) return this.panne ? { c: "attente", t: "Connexion instable : enregistré sur cet appareil, nouvel essai en cours" } : { c: "db", t: "Sauvegarde en ligne active" };
+    if (!ls.ok) return { c: "alerte", t: "Attention : ce navigateur n'enregistre rien" };
+    return this.mode === "db" ? { c: "alerte", t: "Sauvegarde sur cet appareil seulement (lecture seule en ligne)" } : { c: "local", t: "Sauvegarde sur cet appareil seulement" };
+  },
 };
 function majSync() {
-  const s = $("#hud-sync"); if (!s) return;
-  s.classList.toggle("db", Store.mode === "db" && !Store.lecture);
-  s.lastChild.textContent = Store.lecture ? "Lecture seule" : Store.mode === "db" ? "Parties partagées et sauvegardées en ligne" : "Parties sauvegardées sur cet appareil";
+  const s = $("#hud-sync"); if (!s) return; const e = Store.etat();
+  s.className = "sync " + e.c; s.lastChild.textContent = e.t;
 }
 function noter(t, e = etat) { e.journal.unshift({ t, d: new Date().toISOString() }); e.journal = e.journal.slice(0, 80); }
+function donnerPoints(m, n, raison) { etat.points[m] = Math.max(0, etat.points[m] + n); noter(`${n > 0 ? "+" : ""}${n} points pour ${MAISONS[m].nom}${raison ? " · " + raison : ""}`); }
 /* Remplace la partie d'une classe (restauration, remise à zéro) en gardant son numéro de version. */
 function remplacerPartie(id, n, message) {
   const ancien = partieDe(id); n.rev = (ancien && ancien.rev) || 0; noter(message, n);
@@ -205,7 +240,7 @@ const chapCourant = () => chapitreDe(Math.min(16, etat.etape + 1)).n;
 function sortDispo(s) {
   const u = etat.usages[s.id];
   if (s.freq === "finale") return etat.etape === 15 && !u;
-  if (anneeDe(etat.xp) < s.annee) return false;
+  if (etat.etape < s.etape) return false;
   if (s.freq === "etape") return u !== "e" + (etat.etape + 1);
   if (s.freq === "chapitre") return u !== "c" + chapCourant();
   if (s.freq === "finale") return etat.etape === 15 && !u;
@@ -216,21 +251,14 @@ const nbObjets = () => Object.values(etat.sac).reduce((a, b) => a + b, 0);
 function ajouterObjet(id, q = 1) { etat.sac[id] = (etat.sac[id] || 0) + q; }
 function retirerObjet(id) { if (!etat.sac[id]) return false; etat.sac[id]--; if (!etat.sac[id]) delete etat.sac[id]; return true; }
 function objetHasard() { const pool = ["rapeltout", "rapeltout", "plume", "retourneur", "pimentine", "bezoard", "chocogrenouille", "chocogrenouille", "dragees", "cape", "felix"]; return pool[Math.floor(Math.random() * pool.length)]; }
-function gagnerXP(n, raison) {
-  const avant = anneeDe(etat.xp); etat.xp = Math.max(0, etat.xp + n); const apres = anneeDe(etat.xp);
-  if (raison) noter(`${n >= 0 ? "+" : ""}${n} XP · ${raison}`);
-  if (apres > avant) { const s = SORTS.find((x) => x.annee === apres); setTimeout(() => { Son.jouer("fanfare"); toast(`Passage en ${nomAnnee(apres)} ! Nouveau sort : ${s ? s.nom : ""}`); etincelles(70); }, 400); }
-  return apres > avant ? apres : 0;
-}
 const defisEnAttente = () => { const l = []; for (let n = Math.max(1, etat.etape); n <= Math.min(16, etat.etape); n++) { const q = quete(n); if (q && q.defi_maison && q.defi_maison.titre && !etat.defis[n]) l.push(n); } return l; };
 
 /* ================= HUD ================= */
 function rendreHud() {
   const prochaine = Math.min(16, etat.etape + 1); const ch = chapitreDe(prochaine); const fini = etat.etape >= 16;
-  const a = anneeDe(etat.xp); const bas = XP_ANNEES[a - 1], haut = XP_ANNEES[a] ?? null;
   $("#hud-classe").textContent = nomClasse(courante);
   $("#hud-chapitre").textContent = fini ? "Méfait accompli !" : `Chapitre ${ch.n} · ${ch.titre}`;
-  $("#hud-sous").replaceChildren(el("span", {}, `${nomAnnee(a)} · ${etat.xp} XP`), el("span", { class: "barre" }, el("i", { style: `width:${haut ? Math.round(((etat.xp - bas) / (haut - bas)) * 100) : 100}%` })));
+  $("#hud-sous").textContent = fini ? "Les quatre reliques sont réunies" : `Étape ${prochaine} sur 16 · ${ch.mois}`;
   $("#hud-piste").replaceChildren(...CHAPITRES.map((c) => el("div", { class: "piste-chap" }, [1, 2, 3, 4].map((k) => {
     const n = (c.n - 1) * 4 + k; const e = n <= etat.etape ? " ok" : n === etat.etape + 1 ? " cur" : "";
     const titre = `Étape ${n} · ${nomVisible(n)}`;
@@ -404,7 +432,7 @@ function ouvrirQuete(n, mode) {
   }
 
   function vueResultat() {
-    const choix = [["reussite", "Réussite", `+${XP_RESULTAT.reussite} XP et l'objet de l'étape`], ["partielle", "Partielle", `+${XP_RESULTAT.partielle} XP et l'objet de l'étape`], ["echec", "Échec", `+${XP_RESULTAT.echec} XP, pas d'objet`]];
+    const choix = [["reussite", "Réussite", "L'objet de l'étape et +1 ★ pour le héros en tête"], ["partielle", "Partielle", "L'objet de l'étape"], ["echec", "Échec", "Pas d'objet, mais l'équipe avance"]];
     const resFinal = () => { let r = loc.resultat; if (loc.felix && r && r !== "reussite") r = "reussite"; else if (loc.protego && r === "echec") r = "partielle"; return r; };
     const v = el("div", { style: "display:grid;gap:18px" });
     v.append(el("h3", {}, "Comment l'équipe s'en est-elle sortie ?"), el("div", { class: "resultats" }, choix.map(([id, t, s]) => el("button", { class: "res " + id, "aria-pressed": String(loc.resultat === id), onclick: () => { loc.resultat = id; loc.felix = false; loc.protego = false; rendre(); } }, el("b", {}, t), el("small", {}, s)))));
@@ -413,7 +441,7 @@ function ouvrirQuete(n, mode) {
     const protego = SORTS.find((s) => s.id === "protego");
     if (loc.resultat === "echec" && sortDispo(protego) && !loc.felix) extra.push(el("button", { class: "b" + (loc.protego ? " plein" : ""), onclick: () => { loc.protego = !loc.protego; rendre(); } }, loc.protego ? "Protego sera lancé : l'épreuve compte comme partielle" : "Lancer Protego (l'échec devient partiel)"));
     const patronum = SORTS.find((s) => s.id === "patronum");
-    if (n === 16 && sortDispo(patronum)) extra.push(el("button", { class: "b" + (loc.patronum ? " plein" : ""), onclick: () => { loc.patronum = !loc.patronum; rendre(); } }, loc.patronum ? "Spero Patronum sera lancé : +100 XP" : "Lancer Spero Patronum contre l'Ombre (+100 XP)"));
+    if (n === 16 && sortDispo(patronum)) extra.push(el("button", { class: "b" + (loc.patronum ? " plein" : ""), onclick: () => { loc.patronum = !loc.patronum; rendre(); } }, loc.patronum ? "Spero Patronum sera lancé : +20 points par maison" : "Lancer Spero Patronum contre l'Ombre (+20 points par maison)"));
     if (extra.length) v.append(el("div", { class: "rangee" }, extra));
     v.append(el("h3", {}, "Quelles maisons ont brillé ? (+10 points et +1 ★ pour leur héros)"),
       el("div", { class: "maisons-choix" }, ORDRE_MAISONS.map((m) => el("button", { class: "m-choix", style: `--hc:${MAISONS[m].c}`, "aria-pressed": String(loc.maisons.has(m)), onclick: () => { loc.maisons.has(m) ? loc.maisons.delete(m) : loc.maisons.add(m); rendre(); } }, el("i", {}), `${MAISONS[m].nom} · ${HEROS[HEROS_DE_MAISON[m]].court}`))));
@@ -421,11 +449,14 @@ function ouvrirQuete(n, mode) {
     const gainObj = GAINS[n][0];
     const resume = [];
     if (r) {
-      let xp = XP_RESULTAT[r] + (L.cp ? XP_CHECKPOINT : 0) + (r !== "echec" && etat.reliques.includes("coupe") ? 10 : 0) + (loc.patronum ? 100 : 0);
-      resume.push(`+${xp} XP`);
       if (gainObj && gainObj.startsWith("comp:")) resume.push(COMPAGNONS[gainObj.slice(5)].nom + " rejoint l'équipe");
       else if (gainObj && r !== "echec") resume.push(OBJETS[gainObj].nom);
+      if (r === "reussite" && etat.reliques.includes("coupe")) resume.push("Chocogrenouille (la Coupe)");
       if (L.cp) resume.push(RELIQUES[ch.relique].nom);
+      const nouveau = SORTS.find((s) => s.freq !== "finale" && s.etape === n); if (nouveau) resume.push("nouveau sort : " + nouveau.nom);
+      if (loc.maisons.size) resume.push("+10 points : " + [...loc.maisons].map((m) => MAISONS[m].nom).join(", "));
+      if (loc.patronum) resume.push("+20 points par maison");
+      if (!resume.length) resume.push("l'équipe avance jusqu'au lieu suivant");
     }
     v.append(el("p", { class: "consigne" }, r ? "Gains : " + resume.join(" · ") : "Choisissez un résultat pour voir les gains."));
     v.append(el("button", { class: "b or valider", disabled: !r, onclick: () => { SEANCE.loc = null; Fen.fermer(); if (loc.chrono && loc.chrono.id) clearInterval(loc.chrono.id); validerEtape(n, { resultat: r, maisons: [...loc.maisons], felix: loc.felix, protego: loc.protego, patronum: loc.patronum }); } }, n === 16 ? "Valider la grande finale" : "Valider l'étape et avancer"));
@@ -469,20 +500,20 @@ function validerEtape(n, { resultat, maisons, felix, protego, patronum }) {
   const q = quete(n); const L = LIEUX[n], ch = chapitreDe(n);
   const copie = JSON.parse(JSON.stringify(etat)); copie.pile = [];
   etat.pile = [JSON.stringify(copie), ...etat.pile].slice(0, 3);
-  const gains = { xp: 0, objets: [], comp: null, relique: null, annee: 0 };
+  const gains = { objets: [], comp: null, relique: null, sort: null, maisons, resultat, patronum };
   if (felix) { retirerObjet("felix"); noter("Felix Felicis bu"); }
   if (protego) marquerSort(SORTS.find((s) => s.id === "protego"));
-  if (patronum) { marquerSort(SORTS.find((s) => s.id === "patronum")); gains.xp += 100; }
-  gains.xp += XP_RESULTAT[resultat] + (L.cp ? XP_CHECKPOINT : 0) + (resultat !== "echec" && etat.reliques.includes("coupe") ? 10 : 0);
+  if (patronum) { marquerSort(SORTS.find((s) => s.id === "patronum")); ORDRE_MAISONS.forEach((m) => (etat.points[m] += 20)); noter("Spero Patronum : +20 points pour chaque maison"); }
   maisons.forEach((m) => { etat.points[m] += 10; etat.maitrise[HEROS_DE_MAISON[m]] += 1; });
   const leader = (q && q.heros) || ch.heros; if (resultat === "reussite") etat.maitrise[leader] += 1;
   const g = GAINS[n][0];
   if (g && g.startsWith("comp:")) { const c = g.slice(5); if (!etat.compagnons.includes(c)) { etat.compagnons.push(c); gains.comp = c; } }
   else if (g && resultat !== "echec") { ajouterObjet(g); gains.objets.push(g); }
+  if (resultat === "reussite" && etat.reliques.includes("coupe")) { ajouterObjet("chocogrenouille"); gains.objets.push("chocogrenouille"); }
   if (L.cp && !etat.reliques.includes(ch.relique)) { etat.reliques.push(ch.relique); gains.relique = ch.relique; if (ch.relique === "diademe") ORDRE_MAISONS.forEach((m) => (etat.points[m] += 20)); }
   etat.etape = n; etat.resultats[n] = { r: resultat, m: maisons, d: new Date().toISOString() };
   noter(`Étape ${n} (${L.nom}) : ${({ reussite: "réussite", partielle: "partielle", echec: "échec" })[resultat]}`);
-  gains.annee = gagnerXP(gains.xp, `étape ${n}`);
+  gains.sort = SORTS.find((s) => s.freq !== "finale" && s.etape === n) || null;
   Store.sauver();
   Store.instantane(`Après l'étape ${n} · ${L.nom}`);
   Son.jouer(resultat === "echec" ? "grave" : "tinte");
@@ -506,12 +537,14 @@ function fenetreRecompenses(n, gains) {
   const items = [];
   gains.objets.forEach((o) => items.push(el("div", { class: "gain" }, el("span", { html: ICONES[o], style: "display:contents" }), el("b", {}, OBJETS[o].nom), el("small", {}, OBJETS[o].effet))));
   if (gains.comp) items.push(el("div", { class: "gain" }, el("span", { html: ICONES[gains.comp], style: "display:contents" }), el("b", {}, COMPAGNONS[gains.comp].nom), el("small", {}, COMPAGNONS[gains.comp].effet)));
-  const s = gains.annee ? SORTS.find((x) => x.annee === gains.annee) : null;
-  const xpEl = el("div", { class: "gain-xp" }, "+0 XP");
+  const s = gains.sort;
+  const titre = el("div", { class: "gain-xp" }, gains.resultat === "echec" ? "L'équipe avance !" : "Étape franchie !");
+  const points = [gains.maisons.length ? "+10 points : " + gains.maisons.map((m) => MAISONS[m].nom).join(", ") : null, gains.patronum ? "+20 points pour chaque maison" : null].filter(Boolean);
   const c = el("div", { class: "f-corps centre" },
-    el("p", { class: "surtitre" }, `Étape ${n} franchie · ${LIEUX[n].nom}`), xpEl,
+    el("p", { class: "surtitre" }, `Étape ${n} sur 16 · ${LIEUX[n].nom}`), titre,
+    points.length ? el("p", { class: "gain-points" }, points.join(" · ")) : null,
     items.length ? el("div", { class: "gains" }, items) : null,
-    s && el("div", { class: "annee-up" }, el("h3", {}, `Passage en ${nomAnnee(gains.annee)} !`), el("p", {}, `Nouveau sort : `, el("b", {}, s.nom), ` · ${s.effet}`)),
+    s && el("div", { class: "annee-up" }, el("h3", {}, "Nouveau sort !"), el("p", {}, el("b", {}, s.nom), ` · ${s.effet}`)),
     q && q.message_ombre && n < 16 && el("div", { class: "ombre", style: "text-align:left;width:100%" }, el("small", {}, "Avant de partir, un parchemin noir tombe du plafond…"), q.message_ombre),
     D && D.titre && el("div", { class: "boite", style: "text-align:left;width:100%;background:rgba(255,255,255,.05);border-color:var(--filet)" }, el("h3", {}, n === 16 ? "Dernier défi, pour la galerie des héros" : "Défi maison pour la prochaine fois"), el("b", {}, D.titre), el("p", { style: "margin:0;white-space:pre-line" }, D.consigne), D.contenu && el("p", { style: "margin:0;white-space:pre-line;font-size:1.05rem" }, D.contenu),
       el("div", { class: "rangee" }, el("button", { class: "b", onclick: () => copier(`${D.titre}\n\n${D.consigne}\n\n${D.contenu || ""}`) }, ico("copie"), "Copier le défi (ENT, mail)"), el("small", { style: "color:var(--doux)" }, !GAINS[n][1] ? "Pas de coffre : le professeur affiche les plus belles cartes." : D.mot_de_passe ? "Récompense : un objet, avec le mot de passe trouvé." : "Récompense : un objet, si le professeur valide la création."))),
@@ -520,13 +553,11 @@ function fenetreRecompenses(n, gains) {
       : LIEUX[n].cp ? el("button", { class: "b or", onclick: () => Fen.fermer() }, "Continuer l'aventure")
         : el("button", { class: "b or", onclick: () => { Fen.fermer(); fenetreDestin(); } }, "Tirer la carte du destin")));
   Fen.ouvrir(c, { classe: "sombre", etroite: false, bloquante: true });
-  let v = 0; const cible = gains.xp; const pas = Math.max(1, Math.round(cible / 40)); const id = setInterval(() => { v = Math.min(cible, v + pas); xpEl.textContent = `+${v} XP`; if (v >= cible) clearInterval(id); }, 30);
 }
 
 function tirerCarte() { const pool = DESTIN.filter((d) => !etat.destins.includes(d.id)); const c = pool[Math.floor(Math.random() * pool.length)]; etat.destins = [c.id, ...etat.destins].slice(0, 6); return c; }
 function texteEffet(e, detail) {
-  if (e.xp) return `${e.xp > 0 ? "+" : ""}${e.xp} XP`;
-  if (e.toutes) return `${e.toutes} points pour chaque maison`;
+  if (e.toutes) return `${e.toutes > 0 ? "+" : "−"}${Math.abs(e.toutes)} points pour chaque maison`;
   if (e.perte) return detail ? `Objet perdu : ${detail}` : "Votre sac était vide. Ouf !";
   if (e.objet) return `Gagné : ${OBJETS[e.objet].nom}`;
   if (e.maison) return `+${e.pts} points pour ${MAISONS[e.maison].nom}`;
@@ -546,7 +577,6 @@ function fenetreDestin(dejaRetire = false) {
   let detail = "";
   function appliquer() {
     const e = carte.effet;
-    if (e.xp) gagnerXP(e.xp, carte.titre);
     if (e.toutes) ORDRE_MAISONS.forEach((m) => (etat.points[m] = Math.max(0, etat.points[m] + e.toutes)));
     if (e.perte) { const ids = Object.keys(etat.sac); if (ids.length) { const id = ids[Math.floor(Math.random() * ids.length)]; retirerObjet(id); detail = OBJETS[id].nom; } }
     if (e.objet) ajouterObjet(e.objet);
@@ -587,7 +617,6 @@ function fenetreFinale() {
     el("p", { class: "surtitre" }, "Juin · La Grande Salle"), el("h2", {}, "Méfait accompli !"),
     el("p", { class: "consigne" }, "Les quatre reliques des Fondateurs sont réunies et l'Ombre est démasquée. Poudlard est sauvé."),
     el("div", { class: "gains" }, ORDRE_RELIQUES.map((r) => el("div", { class: "gain" }, el("span", { html: ICONES[r], style: "display:contents" }), el("b", {}, RELIQUES[r].nom)))),
-    el("p", {}, `L'équipe termine en ${nomAnnee(anneeDe(etat.xp))} avec ${etat.xp} XP.`),
     el("h3", {}, "La Coupe des Quatre Maisons"),
     el("div", { class: "gains" }, classement.map((m, i) => el("div", { class: "gain", style: `border-color:${MAISONS[m].c}` }, el("b", { style: "font-size:1.6rem" }, i === 0 ? "1er" : `${i + 1}e`), el("b", { style: `color:${MAISONS[m].clair}` }, MAISONS[m].nom), el("small", {}, `${etat.points[m]} points`)))),
     el("button", { class: "b or", onclick: () => Fen.fermer() }, "Revoir la carte"));
@@ -596,7 +625,7 @@ function fenetreFinale() {
 
 /* ================= Sac, sorts, défis, réglages ================= */
 function fenetreSac() {
-  const corps = el("div", { class: "f-corps" });
+  const corps = el("div", { class: "f-corps" }); let choix = null;
   const rendre = () => {
     const libre = (id) => OBJETS[id].quand === "libre";
     corps.replaceChildren(el("h2", {}, "Le sac de l'équipe"),
@@ -606,7 +635,9 @@ function fenetreSac() {
         return el("div", { class: "objet" + (q ? "" : " vide") }, el("span", { html: ICONES[id], style: "display:contents" }),
           el("div", {}, el("b", {}, O.nom, el("span", { class: "qte" }, "×" + q)), el("small", {}, O.effet),
             el("small", {}, ({ epreuve: "À utiliser pendant une épreuve.", resultat: "À utiliser au moment du résultat.", destin: "À utiliser sur une carte du destin.", libre: "Utilisable maintenant." })[O.quand]),
-            q && libre(id) ? el("div", { class: "rangee" }, el("button", { class: "b or", onclick: () => utiliserLibre(id, rendre) }, "Utiliser")) : null));
+            q && libre(id) ? (choix === id
+              ? el("div", { class: "rangee" }, el("small", { style: "flex:1 1 100%" }, "Pour quelle maison ?"), ORDRE_MAISONS.map((m) => el("button", { class: "b", style: `border-color:${MAISONS[m].c}`, onclick: () => { choix = null; utiliserLibre(id, m, rendre); } }, MAISONS[m].nom)))
+              : el("div", { class: "rangee" }, el("button", { class: "b or", onclick: () => { choix = id; rendre(); } }, "Utiliser"))) : null));
       })),
       el("h3", {}, "Compagnons"),
       el("div", { class: "grille-objets" }, Object.keys(COMPAGNONS).map((id) => el("div", { class: "objet" + (etat.compagnons.includes(id) ? "" : " vide") }, el("span", { html: ICONES[id], style: "display:contents" }), el("div", {}, el("b", {}, etat.compagnons.includes(id) ? COMPAGNONS[id].nom : "Compagnon encore inconnu"), el("small", {}, etat.compagnons.includes(id) ? COMPAGNONS[id].effet : "Il rejoindra peut-être l'équipe en chemin…"))))),
@@ -615,21 +646,20 @@ function fenetreSac() {
   };
   rendre(); Fen.ouvrir(corps, { classe: "sombre" });
 }
-function utiliserLibre(id, apres) {
-  if (!retirerObjet(id)) return;
-  if (id === "chocogrenouille") { gagnerXP(25, "Chocogrenouille"); toast("Miam ! +25 XP. Et la carte à collectionner est… Albus Dumbledore !"); Son.jouer("tinte"); }
-  if (id === "dragees") { const ok = Math.random() < 0.5; gagnerXP(ok ? 50 : -20, "Dragées surprises"); toast(ok ? "Goût caramel ! +50 XP" : "Goût… vomi ! −20 XP"); Son.jouer(ok ? "tinte" : "grave"); }
+function utiliserLibre(id, maison, apres) {
+  if (!retirerObjet(id)) return; const M = MAISONS[maison].nom;
+  if (id === "chocogrenouille") { donnerPoints(maison, 5, "Chocogrenouille"); toast(`Miam ! +5 points pour ${M}. Et la carte à collectionner est… Albus Dumbledore !`); Son.jouer("tinte"); }
+  if (id === "dragees") { const ok = Math.random() < 0.5; donnerPoints(maison, ok ? 10 : -5, "Dragées surprises"); toast(ok ? `Goût caramel ! +10 points pour ${M}` : `Goût… vomi ! −5 points pour ${M}`); Son.jouer(ok ? "tinte" : "grave"); }
   Store.sauver(); rendreHud(); apres && apres();
 }
 function fenetreSorts() {
   const corps = el("div", { class: "f-corps" });
   const rendre = () => {
-    const a = anneeDe(etat.xp);
-    corps.replaceChildren(el("h2", {}, "Le grimoire des sorts"), el("p", { style: "margin:0;color:var(--doux)" }, `L'équipe est en ${nomAnnee(a)}. Chaque nouvelle année débloque un sort.`),
-      ...SORTS.map((s) => {
-        const ouvert = a >= s.annee, dispo = sortDispo(s);
-        const etatTxt = !ouvert ? `Débloqué en ${nomAnnee(s.annee)}` : dispo ? "Disponible" : s.freq === "finale" ? "Réservé à la finale" : s.freq === "etape" ? "Déjà lancé pour cette étape" : "Déjà lancé ce chapitre";
-        return el("div", { class: "sort" + (ouvert ? "" : " verrou") }, el("span", { class: "an" }, s.annee), el("div", {}, el("b", {}, s.nom), el("small", {}, s.effet), el("small", {}, s.freq === "etape" ? "Une fois par étape." : s.freq === "chapitre" ? "Une fois par chapitre." : "Une seule fois.")),
+    corps.replaceChildren(el("h2", {}, "Le grimoire des sorts"), el("p", { style: "margin:0;color:var(--doux)" }, "Un nouveau sort se débloque toutes les deux étapes franchies."),
+      ...SORTS.map((s, i) => {
+        const ouvert = s.freq === "finale" || etat.etape >= s.etape, dispo = sortDispo(s);
+        const etatTxt = !ouvert ? `Débloqué après l'étape ${s.etape}` : dispo ? "Disponible" : s.freq === "finale" ? "Réservé à la finale" : s.freq === "etape" ? "Déjà lancé pour cette étape" : "Déjà lancé ce chapitre";
+        return el("div", { class: "sort" + (ouvert ? "" : " verrou") }, el("span", { class: "an" }, i + 1), el("div", {}, el("b", {}, s.nom), el("small", {}, s.effet), el("small", {}, s.freq === "etape" ? "Une fois par étape." : s.freq === "chapitre" ? "Une fois par chapitre." : "Une seule fois.")),
           s.id === "accio" && ouvert && dispo ? el("button", { class: "b or", onclick: () => { marquerSort(s); const id = objetHasard(); ajouterObjet(id); noter(`Accio : ${OBJETS[id].nom}`); Store.sauver(); rendreHud(); Son.jouer("magie"); toast(`Accio ! ${OBJETS[id].nom} file dans le sac.`); rendre(); } }, "Lancer") : el("span", { class: "etat" + (ouvert && dispo ? " dispo" : "") }, etatTxt));
       }));
   };
@@ -640,7 +670,7 @@ function fenetreDefis() {
   const rendre = () => {
     const liste = []; for (let n = 1; n <= Math.min(16, etat.etape); n++) { const q = quete(n); if (q && q.defi_maison && q.defi_maison.titre) liste.push(n); }
     const alohomora = SORTS.find((s) => s.id === "alohomora");
-    corps.replaceChildren(el("h2", {}, "Les défis maison"), el("p", { style: "margin:0;color:var(--parch-doux)" }, "À faire chez soi entre deux séances. Un défi réussi rapporte un objet et " + XP_DEFI + " XP."),
+    corps.replaceChildren(el("h2", {}, "Les défis maison"), el("p", { style: "margin:0;color:var(--parch-doux)" }, "À faire chez soi entre deux séances. Un défi réussi ouvre un coffre : un objet pour le sac."),
       liste.length ? el("div", { class: "liste-defis" }, liste.reverse().map((n) => {
         const D = quete(n).defi_maison; const fait = !!etat.defis[n]; const champ = el("input", { type: "text", id: "mdp-" + n, placeholder: "MOT DE PASSE", autocomplete: "off", "aria-label": "Mot de passe du défi de l'étape " + n });
         const recompense = GAINS[n][1];
@@ -658,9 +688,9 @@ function fenetreDefis() {
 function reussirDefi(n, comment, apres) {
   etat.defis[n] = { d: new Date().toISOString(), c: comment };
   const r = GAINS[n][1]; if (r) ajouterObjet(r);
-  gagnerXP(XP_DEFI + (etat.compagnons.includes("niffleur") ? 15 : 0), `défi maison ${n}`);
+  let bonus = null; if (etat.compagnons.includes("niffleur")) { bonus = objetHasard(); ajouterObjet(bonus); }
   noter(`Défi maison ${n} réussi (${comment})`); Store.sauver(); rendreHud(); Son.jouer("fanfare"); etincelles(60);
-  toast(`Coffre ouvert ! ${r ? OBJETS[r].nom + " rejoint le sac." : ""}${etat.compagnons.includes("niffleur") ? " Pépite déniche 15 XP de plus." : ""}`);
+  toast(`Coffre ouvert ! ${r ? OBJETS[r].nom + " rejoint le sac." : ""}${bonus ? ` Pépite déniche aussi : ${OBJETS[bonus].nom}.` : ""}`);
   apres && apres();
 }
 function copier(t) {
@@ -694,15 +724,15 @@ function fenetreAide() {
     etape(2, "La lettre (5 min)", "Bouton doré en bas : on lit la lettre de Moka. Certains lieux s'ouvrent sur une scène animée."),
     etape(3, "L'épreuve (25-35 min)", "Chronomètre, réponses à révéler une par une, jokers. Les maisons répondent sur leur ardoise. Une épreuve peut aussi partir à la maison avec « Copier pour la maison »."),
     etape(4, "Le résultat (5 min)", "Réussite, partielle ou échec, et les maisons qui ont brillé. L'équipe avance quoi qu'il arrive."),
-    etape(5, "Récompenses et destin (5 min)", "XP, objets, reliques aux étapes 4, 8, 12 et 16, puis une carte du destin. On annonce le défi maison."),
+    etape(5, "Récompenses et destin (5 min)", "Objets, points des maisons qui ont brillé, reliques aux étapes 4, 8, 12 et 16, puis une carte du destin. On annonce le défi maison."),
     el("h3", {}, "À l'écran"),
     el("div", { class: "grille-objets" },
-      el("div", { class: "objet" }, el("span", { html: ICONES.coupe, style: "display:contents" }), el("div", {}, el("b", {}, "En haut"), el("small", {}, "La classe, le chapitre, l'année et les 16 étapes ; les 4 grands ronds sont les reliques."))),
+      el("div", { class: "objet" }, el("span", { html: ICONES.coupe, style: "display:contents" }), el("div", {}, el("b", {}, "En haut"), el("small", {}, "La classe, le chapitre et les 16 étapes ; les 4 grands ronds sont les reliques."))),
       el("div", { class: "objet" }, el("span", { html: portraitSVG("pou"), style: "display:contents" }), el("div", {}, el("b", {}, "En bas à gauche"), el("small", {}, "Les 4 héros. Une maison qui brille donne +1 ★ à son héros : Novice, Adepte, Expert, Légende."))),
       el("div", { class: "objet" }, el("span", { html: sablierSVG("#E2B12C", 0.6), style: "display:contents" }), el("div", {}, el("b", {}, "En bas à droite"), el("small", {}, "Les sabliers des maisons. Cliquez sur un sablier pour ajouter ou retirer des points."))),
       el("div", { class: "objet" }, el("span", { html: '<svg viewBox="0 0 64 64"><rect x="10" y="16" width="44" height="6" rx="3" fill="#E8C978"/><rect x="10" y="29" width="44" height="6" rx="3" fill="#E8C978"/><rect x="10" y="42" width="44" height="6" rx="3" fill="#E8C978"/></svg>', style: "display:contents" }), el("div", {}, el("b", {}, "Le menu ☰"), el("small", {}, "Défis maison, sac, sorts, sauvegardes, scènes à revoir et réglages.")))),
     el("h3", {}, "Pour le professeur"),
-    el("p", { style: "margin:0;color:var(--doux);line-height:1.5" }, "Avant chaque séance : menu ☰ › Réglages › mode préparation, ouvrez l'étape suivante (bouton doré), onglet « L'épreuve », « Copier la fiche du professeur », imprimez-la et préparez le matériel ; coupez le mode préparation avant de projeter. La sauvegarde est automatique et un point de sauvegarde est créé après chaque étape : menu ☰ › Sauvegardes pour revenir en arrière ou recommencer à zéro."));
+    el("p", { style: "margin:0;color:var(--doux);line-height:1.5" }, "Avant chaque séance : menu ☰ › Réglages › mode préparation, ouvrez l'étape suivante (bouton doré), onglet « L'épreuve », « Copier la fiche du professeur », imprimez-la et préparez le matériel ; coupez le mode préparation avant de projeter. La sauvegarde est automatique et un point de sauvegarde est créé après chaque étape : menu ☰ › Sauvegardes pour revenir en arrière ou recommencer à zéro. Sur la page d'accueil, la pastille en bas indique où la partie est enregistrée (en ligne ou sur cet appareil seulement) : cliquez dessus pour télécharger une copie dans un fichier."));
   Fen.ouvrir(c, { classe: "sombre" });
 }
 
@@ -712,6 +742,7 @@ function rendreAccueil() {
   box.replaceChildren(...registre.liste.map((c) => {
     const e = partieDe(c.id) || etatNeuf(); const fini = e.etape >= 16, prochaine = Math.min(16, e.etape + 1);
     const res = e.resultats && e.resultats[e.etape]; const derniere = res && res.d ? new Date(res.d) : null;
+    const m1 = [...ORDRE_MAISONS].sort((a, b) => e.points[b] - e.points[a])[0]; const enTete = e.points[m1] > 0 ? `En tête : ${MAISONS[m1].nom} (${e.points[m1]})` : "";
     return el("article", { class: "carte-classe verre" },
       el("div", { class: "cc-tete" }, el("h2", {}, c.nom), el("button", { class: "btn-rond petit", "aria-label": `Options de la classe ${c.nom}`, title: "Options", onclick: (ev) => menuClasse(c, ev.currentTarget) }, ico("points"))),
       el("p", { class: "cc-etat" }, e.etape === 0 ? "Nouvelle aventure" : fini ? "Aventure terminée" : `Étape ${prochaine} sur 16`),
@@ -719,7 +750,7 @@ function rendreAccueil() {
       el("span", { class: "barre" }, el("i", { style: `width:${Math.round((e.etape / 16) * 100)}%` })),
       el("div", { class: "cc-bas" },
         el("div", { class: "cc-reliques" }, ORDRE_RELIQUES.map((r) => el("span", { class: "slot" + (e.reliques.includes(r) ? " ok" : ""), title: RELIQUES[r].nom, html: ICONES[r] }))),
-        el("small", {}, derniere ? "Dernière séance : " + derniere.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }) : nomAnnee(anneeDe(e.xp)))),
+        el("small", {}, derniere ? "Dernière séance : " + derniere.toLocaleDateString("fr-FR", { day: "numeric", month: "long" }) : enTete)),
       el("button", { class: "btn-ouvrir", onclick: () => ouvrirClasse(c.id) }, !e.introVue && Scene3D.ok ? "Monter dans le train" : "Ouvrir la carte"));
   }));
 }
@@ -760,7 +791,7 @@ function fenetreSupprimer(c) {
 function fenetreRaz(id) {
   const champ = el("input", { class: "champ", type: "text", placeholder: "Tapez RECOMMENCER", "aria-label": "Confirmation" });
   Fen.ouvrir(el("div", { class: "f-corps" }, el("h2", {}, `Recommencer à zéro · ${nomClasse(id)}`),
-    el("p", { style: "margin:0;color:var(--doux)" }, "La classe repart du Poudlard Express : étapes, XP, objets, reliques et points des maisons reviennent à zéro. Un point de sauvegarde est créé juste avant : vous pourrez revenir en arrière. Tapez RECOMMENCER pour confirmer."), champ,
+    el("p", { style: "margin:0;color:var(--doux)" }, "La classe repart du Poudlard Express : étapes, objets, reliques et points des maisons reviennent à zéro. Un point de sauvegarde est créé juste avant : vous pourrez revenir en arrière. Tapez RECOMMENCER pour confirmer."), champ,
     el("div", { class: "rangee" }, el("button", { class: "b or", onclick: () => {
       if (champ.value.trim().toUpperCase() !== "RECOMMENCER") { toast("Tapez RECOMMENCER pour confirmer."); return; }
       Store.instantane("Avant la remise à zéro", id); remplacerPartie(id, etatNeuf(), "Nouvelle partie");
@@ -773,7 +804,7 @@ function fenetreSauvegardes(id) {
   const corps = el("div", { class: "f-corps" });
   Fen.ouvrir(corps, { classe: "sombre" });
   const date = (d) => new Date(d).toLocaleString("fr-FR", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-  const resume = (s) => `${s.etape === 0 ? "Départ" : s.etape >= 16 ? "Aventure terminée" : `Étape ${s.etape} franchie`} · ${s.xp} XP · ${s.reliques} relique${s.reliques > 1 ? "s" : ""}`;
+  const resume = (s) => `${s.etape === 0 ? "Départ" : s.etape >= 16 ? "Aventure terminée" : `Étape ${s.etape} franchie`}${s.points != null ? ` · ${s.points} points` : ""} · ${s.reliques} relique${s.reliques > 1 ? "s" : ""}`;
   const rendre = async () => {
     const e = partieDe(id);
     corps.replaceChildren(el("h2", {}, `Sauvegardes · ${nomClasse(id)}`), el("p", { style: "margin:0;color:var(--doux)" }, "Chargement…"));
@@ -781,7 +812,7 @@ function fenetreSauvegardes(id) {
     const code = btoa(unescape(encodeURIComponent(JSON.stringify({ ...e, pile: [] }))));
     const zone = el("textarea", { class: "sauvegarde", placeholder: "Collez ici un code de secours" });
     corps.replaceChildren(el("h2", {}, `Sauvegardes · ${nomClasse(id)}`),
-      el("p", { style: "margin:0;color:var(--doux)" }, `Aujourd'hui : ${resume({ etape: e.etape, xp: e.xp, reliques: e.reliques.length })}. Un point de sauvegarde est créé automatiquement après chaque étape.`),
+      el("p", { style: "margin:0;color:var(--doux)" }, `Aujourd'hui : ${resume({ etape: e.etape, points: totalPoints(e), reliques: e.reliques.length })}. Un point de sauvegarde est créé automatiquement après chaque étape.`),
       el("div", { class: "rangee" },
         el("button", { class: "b or", onclick: () => { Store.instantane("Sauvegarde manuelle", id); toast("Point de sauvegarde créé."); rendre(); } }, ico("disque"), "Sauvegarder maintenant"),
         el("button", { class: "b", onclick: () => { Fen.fermer(); fenetreRaz(id); } }, ico("reset"), "Recommencer à zéro")),
@@ -796,10 +827,67 @@ function fenetreSauvegardes(id) {
         : el("p", { style: "margin:0;color:var(--doux)" }, "Aucun point de sauvegarde pour l'instant."),
       el("details", { class: "secours" }, el("summary", {}, "Code de secours (pour changer d'ordinateur)"),
         el("div", { style: "display:grid;gap:8px;margin-top:10px" },
-          el("button", { class: "b", onclick: () => copier(code) }, ico("copie"), "Copier le code de cette partie"), zone,
+          el("button", { class: "b", onclick: exporterFichier }, ico("disque"), "Télécharger un fichier (toutes les classes)"), el("button", { class: "b", onclick: () => copier(code) }, ico("copie"), "Copier le code de cette partie"), zone,
           el("button", { class: "b", onclick: () => { try { const n = JSON.parse(decodeURIComponent(escape(atob(zone.value.trim())))); if (n.v !== 1) throw 0; Store.instantane("Avant la restauration", id); remplacerPartie(id, completer(n), "Partie restaurée depuis un code"); toast("Partie restaurée."); rendre(); } catch (er) { toast("Ce code de sauvegarde n'est pas valide."); } } }, "Restaurer ce code"))));
   };
   rendre();
+}
+
+/* Deux versions différentes d'une partie (cet appareil / en ligne) : le professeur choisit, l'autre reste dans les sauvegardes. */
+function fenetreConflit(id, d, plusTard, garderIci, prendreEnLigne) {
+  const ici = partieDe(id); let choisi = false;
+  const quand = (x) => (x.maj ? new Date(x.maj).toLocaleString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : "date inconnue");
+  const resume = (x) => `${x.etape >= 16 ? "Aventure terminée" : x.etape === 0 ? "Départ" : `Étape ${x.etape} franchie`} · ${totalPoints(x)} points · modifiée le ${quand(x)}`;
+  const choix = (titre, x, action) => el("div", { class: "sauv" }, el("div", {}, el("b", {}, titre), el("small", {}, resume(x))), el("button", { class: "b or", onclick: () => { choisi = true; Fen.fermer(); action(); toast("C'est noté. L'autre version reste dans les sauvegardes de la classe."); } }, "Garder"));
+  Fen.ouvrir(el("div", { class: "f-corps" }, el("h2", {}, `Deux versions de la partie ${nomClasse(id)}`),
+    el("p", { style: "margin:0;color:var(--doux)" }, "La partie enregistrée en ligne et celle de cet appareil ont avancé chacune de leur côté. Laquelle garder ? L'autre sera rangée dans les sauvegardes de la classe."),
+    el("div", { class: "liste-sauv" }, choix("Celle de cet appareil", ici, garderIci), choix("Celle en ligne", completer(JSON.parse(JSON.stringify(d))), prendreEnLigne))),
+    { classe: "sombre", etroite: true, bloquante: true, onFermer: () => { if (!choisi) plusTard(); } });
+}
+
+/* Où la partie est-elle enregistrée ? Explication + copie dans un fichier (toutes les classes). */
+function fenetreEtatSauvegarde() {
+  const e = Store.etat();
+  const fichier = el("input", { type: "file", accept: ".json,application/json", hidden: true, onchange: (ev) => importerFichier(ev.target.files[0]) });
+  const explication = e.c === "db" || e.c === "attente"
+    ? "Chaque action est enregistrée en ligne : la partie se retrouve sur tout ordinateur où ce lien est ouvert avec un compte Claude autorisé à la modifier."
+    : !ls.ok ? "Ce navigateur refuse d'enregistrer quoi que ce soit pour cette page : la progression sera perdue à la fermeture. Téléchargez la sauvegarde en fin de séance, ou ouvrez le jeu avec un compte Claude autorisé."
+      : Store.mode === "db" ? "Vous voyez la partie partagée, mais ce compte n'a pas le droit de la modifier. Vos changements ne sont gardés que dans ce navigateur, sur cet ordinateur. Pour une sauvegarde en ligne, la personne qui a créé le jeu doit partager la page avec votre compte Claude en lui donnant le droit de la modifier."
+        : "Sans compte Claude autorisé, la partie n'est gardée que dans ce navigateur, sur cet ordinateur. Elle disparaît si les données du navigateur sont effacées (c'est fréquent sur les ordinateurs d'un établissement). Pour une sauvegarde en ligne, ouvrez ce lien en étant connecté à un compte Claude avec lequel la page a été partagée, avec le droit de la modifier.";
+  Fen.ouvrir(el("div", { class: "f-corps" }, el("h2", {}, "Où la partie est-elle enregistrée ?"),
+    el("p", { class: "etat-sauv " + e.c }, e.t), el("p", { style: "margin:0;color:var(--doux);line-height:1.5" }, explication),
+    el("h3", {}, "Garder une copie dans un fichier"),
+    el("p", { style: "margin:0;color:var(--doux);line-height:1.5" }, "Le fichier contient toutes les classes. Téléchargez-le en fin de séance ; il se recharge sur n'importe quel ordinateur."),
+    el("div", { class: "rangee" }, el("button", { class: "b or", onclick: exporterFichier }, ico("disque"), "Télécharger la sauvegarde"), el("button", { class: "b", onclick: () => fichier.click() }, "Charger un fichier de sauvegarde"), fichier)),
+    { classe: "sombre", etroite: true });
+}
+async function exporterFichier() {
+  const donnees = JSON.stringify({ jeu: "reliques-des-fondateurs", v: 2, date: new Date().toISOString(), liste: registre.liste, parties: Object.fromEntries(registre.liste.map((c) => [c.id, { ...partieDe(c.id), pile: [] }])) });
+  const nom = `poudlard-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+  try { const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; if (dl) { await dl.save({ filename: nom, data: donnees }); toast("Sauvegarde téléchargée."); return; } }
+  catch (e) { if (e && e.code === "declined") return; }
+  try { const a = el("a", { href: URL.createObjectURL(new Blob([donnees], { type: "application/json" })), download: nom }); document.body.append(a); a.click(); a.remove(); toast("Sauvegarde téléchargée."); }
+  catch (e) { montrerTexte(donnees); }
+}
+function importerFichier(f) {
+  if (!f) return; const r = new FileReader();
+  r.onerror = () => toast("Ce fichier est illisible.");
+  r.onload = () => {
+    let d; try { d = JSON.parse(r.result); if (d.jeu !== "reliques-des-fondateurs" || !Array.isArray(d.liste) || !d.liste.length || !d.parties) throw 0; d.liste = d.liste.filter((c) => c && /^[A-Za-z0-9]{1,24}$/.test(c.id) && d.parties[c.id] && d.parties[c.id].v === 1).map((c) => ({ id: c.id, nom: String(c.nom || "Classe").slice(0, 24) })); if (!d.liste.length) throw 0; }
+    catch (e) { toast("Ce fichier n'est pas une sauvegarde du jeu."); return; }
+    const champ = el("input", { class: "champ", type: "text", placeholder: "Tapez REMPLACER", "aria-label": "Confirmation" });
+    Fen.ouvrir(el("div", { class: "f-corps" }, el("h2", {}, "Charger cette sauvegarde ?"),
+      el("p", { style: "margin:0;color:var(--doux)" }, `Fichier du ${new Date(d.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}. Les classes actuelles seront remplacées par : ${d.liste.map((c) => `${c.nom} (étape ${Math.min(16, (d.parties[c.id].etape || 0) + 1)})`).join(", ")}. Un point de sauvegarde de chaque classe actuelle est créé avant. Tapez REMPLACER pour confirmer.`), champ,
+      el("div", { class: "rangee" }, el("button", { class: "b or", onclick: () => {
+        if (champ.value.trim().toUpperCase() !== "REMPLACER") { toast("Tapez REMPLACER pour confirmer."); return; }
+        registre.liste.forEach((c) => Store.instantane("Avant le chargement d'un fichier", c.id));
+        const anciens = { ...parties }; Fen.tout(); courante = null;
+        registre.liste = d.liste;
+        d.liste.forEach((c) => { const n = completer(d.parties[c.id]); n.pile = []; n.rev = Math.max(n.rev || 0, (anciens[c.id] && anciens[c.id].rev) || 0); noter("Partie chargée depuis un fichier", n); parties[c.id] = n; Store.sauver(c.id); });
+        Store.sauverRegistre(); Store.relier(); afficherAccueil(); toast("Sauvegarde chargée.");
+      } }, "Remplacer les classes"))), { classe: "sombre", etroite: true });
+  };
+  r.readAsText(f);
 }
 
 /* ================= Scènes animées ================= */
@@ -839,13 +927,13 @@ function fenetreScenes() {
 
 /* ================= Menu de la classe ================= */
 function fenetreMenu() {
-  const a = anneeDe(etat.xp); const nd = defisEnAttente().length, no = nbObjets(), ns = SORTS.filter((s) => s.annee <= a).length;
+  const nd = defisEnAttente().length, no = nbObjets(), ns = SORTS.filter((s) => s.freq !== "finale" && s.etape <= etat.etape).length;
   const item = (icone, titre, sous, action, badge) => el("button", { class: "menu-item", onclick: () => { Fen.fermer(); action(); } }, ico(icone), el("span", {}, el("b", {}, titre), sous && el("small", {}, sous)), badge ? el("span", { class: "badge" }, badge) : null);
   const c = el("div", { class: "f-corps" }, el("h2", {}, nomClasse(courante)),
     el("div", { class: "menu-grille" },
       item("coffre", "Défis maison", nd ? "Un coffre attend son mot de passe" : "Coffres et mots de passe", fenetreDefis, nd || null),
       item("sac", "Le sac", `${no} objet${no > 1 ? "s" : ""}, compagnons et reliques`, fenetreSac),
-      item("grimoire", "Les sorts", `${nomAnnee(a)} · ${ns} sort${ns > 1 ? "s" : ""} connu${ns > 1 ? "s" : ""}`, fenetreSorts),
+      item("grimoire", "Les sorts", `${ns} sort${ns > 1 ? "s" : ""} connu${ns > 1 ? "s" : ""} sur ${SORTS.length - 1}`, fenetreSorts),
       item("disque", "Sauvegardes", "Revenir en arrière ou recommencer", () => fenetreSauvegardes(courante)),
       Scene3D.ok && item("film", "Revoir une scène", "Le train, le calmar, l'hippogriffe…", fenetreScenes),
       Scene3D.ok && item("cible", "Recentrer la carte", "Sur l'équipe", () => Scene3D.suivreEquipe()),
@@ -862,7 +950,7 @@ function ouvrirClasse(id, { train = false } = {}) {
   const acc = $("#accueil"); acc.classList.add("part"); setTimeout(() => { acc.hidden = true; acc.classList.remove("part"); }, 900);
   Scene3D.ok && Scene3D.orbite(false);
   rendreTout(); Son.jouer("magie");
-  const montrer = () => { $("#hud").hidden = false; Scene3D.ok && Scene3D.suivreEquipe(true); };
+  const montrer = () => { $("#hud").hidden = false; Scene3D.ok && Scene3D.suivreEquipe(true); const e = Store.etat(); if (e.c === "alerte" && !Store.prevenu) { Store.prevenu = true; toast(e.t + "."); } };
   if ((train || !etat.introVue) && Scene3D.ok) jouerScene("express", () => { if (!etat.introVue) { etat.introVue = true; Store.sauver(); } montrer(); });
   else { if (!etat.introVue) { etat.introVue = true; Store.sauver(); } montrer(); }
 }
@@ -885,6 +973,7 @@ function demarrer() {
   $("#btn-defi-attente").addEventListener("click", fenetreDefis);
   $("#btn-ajouter-classe").addEventListener("click", () => fenetreNomClasse(null));
   $("#btn-aide-accueil").addEventListener("click", fenetreAide);
+  $("#hud-sync").addEventListener("click", fenetreEtatSauvegarde);
   Store.brancher();
 }
 demarrer();
