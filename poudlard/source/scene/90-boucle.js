@@ -14,7 +14,9 @@
     requestAnimationFrame(boucle);
     if (document.hidden || (S.pause && !anim && !tween && !cine)) return;
     const t = horloge.getElapsedTime(), maint = performance.now();
-    const dt = Math.min(0.05, (maint - (S.tPrec || maint)) / 1000); S.tPrec = maint;
+    const brut = (maint - (S.tPrec || maint)) / 1000, dt = Math.min(0.05, brut); S.tPrec = maint;
+    // si l'ordinateur peine (moins de 22 images par seconde), on allège le rendu par paliers, sans rien demander
+    if (S.adaptatif && !S.pause && brut < 0.5) { S.msMoy = S.msMoy == null ? brut : S.msMoy * 0.95 + brut * 0.05; S.nImg = (S.nImg || 0) + 1; if (S.nImg > 100 && S.msMoy > 0.045) alleger(); }
     if (cine) majScene(maint, dt);
     else if (anim) {
       const k = Math.min(1, (maint - anim.t0) / anim.duree); placerEquipe(melange(anim.u0, anim.u1, ease(k)));
@@ -53,6 +55,13 @@
     renderer.render(scene, camera);
   }
 
+  function alleger() {
+    S.nImg = 0; S.msMoy = null; S.paliers = (S.paliers || 0) + 1;
+    if (S.ratio > 0.76) { S.ratio = Math.max(0.75, S.ratio * 0.8); renderer.setPixelRatio(S.ratio); redim(); }
+    else if (S.eauReflets) { scene.remove(S.eau); S.eauReflets = false; eau(true); lineariser(S.eau); }
+    else if (soleil.castShadow) soleil.castShadow = false;
+    else S.adaptatif = false;
+  }
   function ecran(n) { const l = LIEUX[n]; const p = pointLieu(l); p.y += 3; p.project(camera); const r = renderer.domElement.getBoundingClientRect(); return { x: r.left + (p.x + 1) / 2 * r.width, y: r.top + (1 - p.y) / 2 * r.height, devant: p.z < 1 }; }
 
   function orbite(oui) { S.enOrbite = oui; if (oui && camera) { tween = null; S.angle = Math.atan2(camera.position.z + 2, camera.position.x - 4); } }

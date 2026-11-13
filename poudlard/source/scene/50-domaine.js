@@ -117,14 +117,14 @@
   /* Buck l'hippogriffe : arrière-train de cheval, tête, serres et ailes d'aigle. Regarde vers +x. */
   function hippogriffe() {
     const g = new THREE.Group(), corps = new THREE.Group(); g.add(corps);
-    const gris = std({ color: 0x8C8C96, roughness: 0.75 }), clair = std({ color: 0xDAD6CC, roughness: 0.8 }), bec = std({ color: 0xD9A441, roughness: 0.45 }), sombre = std({ color: 0x3A3A42, roughness: 0.7 }), plume = std({ color: 0x9A9AA6, roughness: 0.8, side: THREE.DoubleSide });
+    const gris = std({ color: 0x64646E, roughness: 0.8 }), clair = std({ color: 0xA8A49C, roughness: 0.85 }), bec = std({ color: 0xD9A441, roughness: 0.45 }), sombre = std({ color: 0x3A3A42, roughness: 0.7 }), plume = std({ color: 0x74747E, roughness: 0.85, side: THREE.DoubleSide });
     const piece = (geo, m, x, y, z, sx = 1, sy = 1, sz = 1, rz = 0, parent = corps) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.scale.set(sx, sy, sz); o.rotation.z = rz; parent.add(o); return o; };
     const boule = new THREE.SphereGeometry(1, 20, 14);
     piece(boule, gris, -0.25, 1.28, 0, 0.95, 0.5, 0.44); piece(boule, gris, -0.85, 1.32, 0, 0.5, 0.5, 0.42);            // dos et croupe
     piece(boule, clair, 0.55, 1.36, 0, 0.55, 0.56, 0.46); piece(new THREE.CylinderGeometry(0.2, 0.34, 0.95, 12), clair, 0.98, 1.85, 0, 1, 1, 1, -0.55);   // poitrail et cou
     piece(boule, clair, 1.28, 2.28, 0, 0.32, 0.3, 0.27); piece(new THREE.ConeGeometry(0.15, 0.5, 10), bec, 1.62, 2.2, 0, 1, 1, 0.8, -Math.PI / 2 - 0.35); piece(new THREE.ConeGeometry(0.07, 0.2, 8), bec, 1.82, 2.03, 0, 1, 1, 0.8, Math.PI - 0.5);
     for (const s of [-1, 1]) { piece(new THREE.SphereGeometry(0.06, 10, 8), std({ color: 0xF2A23A, emissive: 0x9A5A10, roughness: 0.3 }), 1.42, 2.36, s * 0.2); piece(new THREE.SphereGeometry(0.028, 8, 6), sombre, 1.47, 2.365, s * 0.215); piece(new THREE.ConeGeometry(0.06, 0.26, 6), clair, 1.12, 2.58, s * 0.14, 1, 1, 1, 0.5); }
-    piece(new THREE.ConeGeometry(0.2, 1.3, 10), sombre, -1.55, 0.95, 0, 1, 1, 0.7, -2.5);                                    // queue
+    piece(new THREE.ConeGeometry(0.2, 1.3, 10), sombre, -1.52, 0.74, 0, 1, 1, 0.7, Math.PI - 0.35);                                    // queue
     for (const s of [-1, 1]) {
       piece(new THREE.CylinderGeometry(0.1, 0.07, 0.85, 8), gris, -0.95, 0.6, s * 0.26, 1, 1, 1, 0, g); piece(new THREE.CylinderGeometry(0.09, 0.1, 0.16, 8), sombre, -0.95, 0.08, s * 0.26, 1, 1, 1, 0, g);   // pattes arrière, sabots
       piece(new THREE.CylinderGeometry(0.09, 0.05, 0.9, 8), bec, 0.6, 0.55, s * 0.24, 1, 1, 1, 0, g); for (let k = -1; k <= 1; k++) piece(new THREE.ConeGeometry(0.035, 0.22, 6), sombre, 0.72, 0.06, s * 0.24 + k * 0.08, 1, 1, 1, -1.35, g);   // serres

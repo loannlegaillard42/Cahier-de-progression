@@ -5,7 +5,7 @@
       renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: !P.force3d });
     } catch (e) { return false; }
     onClic = rappels.clic; onSurvol = rappels.survol;
-    Q = S.qualite = qualite(P);
+    Q = S.qualite = qualite(P); S.adaptatif = !P.qualite && !P.fixe;
     S.aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
     S.ratio = Math.min(window.devicePixelRatio || 1, { haute: 2, moyenne: 1.5, basse: 1 }[Q]);
     renderer.setPixelRatio(S.ratio);
@@ -96,6 +96,6 @@
     if (S.envs) scene.environment = nuit ? S.envs.nuit : S.envs.jour;
     soleil.intensity = S.jour.soleil * (nuit ? 0.1 : sousEau ? 0.45 : 1); hemi.intensity = S.jour.hemi * (nuit ? 0.5 : sousEau ? 0.7 : 1);
     soleil.color.copy(nuit ? lin(0x9DB4FF) : S.jour.couleur);
-    etoiles.visible = nuit; nuages.forEach((n) => { n.visible = !sousEau; n.children.forEach((s) => s.material.color.setScalar(nuit ? 0.16 : 1.7)); });
+    etoiles.visible = nuit; nuages.forEach((n) => { n.visible = !sousEau; n.children.forEach((s) => { s.material.color.setScalar(nuit ? 0.22 : 1.7); s.material.opacity = nuit ? 0.18 : 0.72; }); });
     if (MAT.fenetre) MAT.fenetre.emissiveIntensity = nuit ? 2.6 : 1.25;
   }

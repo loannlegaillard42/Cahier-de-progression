@@ -35,10 +35,10 @@
   }
 
   /* ---------- Le lac : reflets du ciel et du château (haute et moyenne), eau simple sinon ---------- */
-  function eau() {
+  function eau(simple) {
     const N = texture("eau", 3).normalMap, g = new THREE.CircleGeometry(1, 72);
     const poser = (m) => { m.rotation.x = -Math.PI / 2; m.scale.set(18.5, 14.5, 1); m.position.set(22, EAU, 6); scene.add(m); return m; };
-    if (THREE.Water && Q !== "basse") {
+    if (THREE.Water && Q !== "basse" && !simple) {
       const t = Q === "haute" ? 1024 : 512;
       const w = new THREE.Water(g, { textureWidth: t, textureHeight: t, waterNormals: N, sunDirection: DIR_SOLEIL.clone(), sunColor: 0xFFF0D0, waterColor: 0x0E3442, distortionScale: 1.5, alpha: 0.95, fog: true });
       w.material.fragmentShader = w.material.fragmentShader.replace("#include <tonemapping_fragment>", "#include <tonemapping_fragment>\n#include <encodings_fragment>");
@@ -48,7 +48,7 @@
       m.userData.lin = true; N.repeat.set(5, 4); S.eau = poser(new THREE.Mesh(g, m)); S.eau.receiveShadow = true;
     }
     // la surface vue de dessous (plongée dans le lac)
-    const dessous = poser(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0x2F8A70, transparent: true, opacity: 0.6, side: THREE.BackSide, fog: true }))); dessous.position.y = EAU - 0.02;
+    if (!S.dessousEau) { S.dessousEau = poser(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0x2F8A70, transparent: true, opacity: 0.6, side: THREE.BackSide, fog: true }))); S.dessousEau.position.y = EAU - 0.02; }
   }
   function majEau(t, dt) {
     if (!S.eau) return;

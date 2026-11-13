@@ -168,7 +168,7 @@
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(p, 3)); g.userData.base = p.slice();
     lucioles = new THREE.Points(g, new THREE.PointsMaterial({ map: dessin("halo"), color: 0xFFF2A8, size: 0.6, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })); scene.add(lucioles);
     const courbe = new THREE.CatmullRomCurve3([new THREE.Vector3(0, -1, 0), new THREE.Vector3(0.6, 1.4, 0), new THREE.Vector3(0.2, 3, 0.3), new THREE.Vector3(1.2, 4, 0.2)]);
-    tentacule = new THREE.Mesh(new THREE.TubeGeometry(courbe, 32, 0.25, 12, false), std({ color: 0x8A4E7E, roughness: 0.35, metalness: 0.1 })); tentacule.position.set(29, -4, 12); tentacule.castShadow = true; scene.add(tentacule);
+    tentacule = new THREE.Mesh(new THREE.TubeGeometry(courbe, 32, 0.25, 12, false), std({ color: 0x7A2F48, roughness: 0.38, metalness: 0.05 })); tentacule.position.set(29, -4, 12); tentacule.castShadow = true; scene.add(tentacule);
     // fumée de la cheminée de Hagrid
     S.fumeeCabane = []; if (S.cheminee && Q !== "basse") for (let k = 0; k < 8; k++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: dessin("nuage"), color: new THREE.Color(1.2, 1.18, 1.15), transparent: true, opacity: 0, depthWrite: false })); sp.material.userData.lin = true; scene.add(sp); S.fumeeCabane.push(sp); }
   }

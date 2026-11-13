@@ -38,10 +38,10 @@
 
   function arbres() {
     const positions = []; const pas = 2.5;
-    const clairieres = [[-21, 11, 6.5], [-33, 15, 6.5], [-24, 35, 8], [-39, 28, 4], [-31, 2, 6.5], [-8, 27, 5.5], [-17, -14, 5], [-25, -8, 5], [-9, -13, 4]];
+    const clairieres = [[-21, 11, 6.5], [-33, 15, 6.5], [-24, 35, 8], [-39, 28, 4], [-31, 2, 6.5], [-6, 31, 9.5], [-17, -14, 5], [-25, -8, 5], [-9, -13, 4]];
     const proche = (x, z, d) => echantillonsChemin.some((p) => (p.x - x) ** 2 + (p.z - z) ** 2 < d * d);
     const libre = (jx, jz) => !(dansLac(jx, jz) || Math.hypot((jx - 22) / 17, (jz - 6) / 13) < 1.15 || surPlateau(jx, jz) || Math.hypot(jx / 1.25, jz + 33) < 19 || Math.hypot((jx - 42) / 13, (jz + 14) / 8) < 1.1
-      || distVoie(jx, jz) < 9 || Math.hypot(jx - 1, jz - 25) < 7 || Math.hypot((jx - 42) / 11, (jz - 17.6) / 6) < 1 || VILLAGE.some(([vx, vz]) => Math.hypot(jx - vx, jz - vz) < 3.6));
+      || distVoie(jx, jz) < 9 || Math.hypot(jx - 4, jz - 24) < 9.5 || Math.hypot((jx - 42) / 11, (jz - 17.6) / 6) < 1 || VILLAGE.some(([vx, vz]) => Math.hypot(jx - vx, jz - vz) < 3.6));
     for (let x = -60; x <= 60; x += pas) for (let z = -50; z <= 56; z += pas) {
       const jx = x + (rnd() - 0.5) * pas, jz = z + (rnd() - 0.5) * pas; const y = hauteur(jx, jz);
       const foret = jx < -13 && jx > -56 && jz > -4 && jz < 50;

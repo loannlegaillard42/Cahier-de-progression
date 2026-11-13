@@ -17,14 +17,14 @@
     bulles = new THREE.Points(gb, new THREE.PointsMaterial({ color: 0xDFFFF0, size: 0.14, transparent: true, opacity: 0.8, depthWrite: false })); scene.add(bulles);
     majPoissons(0);
     // le calmar géant
-    calmarG = new THREE.Group(); const peau = new THREE.MeshStandardMaterial({ color: 0x8A4E7E, roughness: 0.28, metalness: 0.05, envMapIntensity: 1.3 });
+    calmarG = new THREE.Group(); const peau = new THREE.MeshStandardMaterial({ color: 0x7A2F48, roughness: 0.38, metalness: 0.05, envMapIntensity: 1.1 });
     const manteau = new THREE.Mesh(new THREE.SphereGeometry(1.6, 30, 22), peau); manteau.scale.set(1, 2.2, 0.95); manteau.position.y = 3.6; calmarG.add(manteau);
     const nag = new THREE.Mesh(new THREE.ConeGeometry(1.4, 1.6, 4), peau); nag.scale.set(1.6, 1, 0.25); nag.position.y = 7.3; calmarG.add(nag);
     for (const s of [-1, 1]) {
       const oeil = new THREE.Mesh(new THREE.SphereGeometry(0.45, 12, 10), new THREE.MeshStandardMaterial({ color: 0xF4E7B0, emissive: 0x6A5A20, emissiveIntensity: 0.4 })); oeil.position.set(s * 0.95, 2.1, 1.0); calmarG.add(oeil);
       const pup = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8), new THREE.MeshBasicMaterial({ color: 0x111111 })); pup.position.set(s * 1.08, 2.12, 1.36); calmarG.add(pup);
     }
-    const ventouse = new THREE.MeshStandardMaterial({ color: 0xB06A98, roughness: 0.6 });
+    const ventouse = new THREE.MeshStandardMaterial({ color: 0xC08A9A, roughness: 0.5 });
     for (let j = 0; j < 10; j++) {
       const longs = j >= 8; const segs = longs ? 16 : 11; const arm = [];
       for (let k = 0; k < segs; k++) { const r = (longs ? 0.3 : 0.4) * (1 - k / (segs + 2)); const sp = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 9), k % 3 === 2 ? ventouse : peau); calmarG.add(sp); arm.push(sp); }

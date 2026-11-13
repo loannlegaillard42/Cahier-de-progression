@@ -49,7 +49,7 @@
       },
       cles(ctx) {
         const p0 = ctx.p0, K = [{ t: 0, p: [p0.x + 5, p0.y + 3.2, p0.z + 3.5], c: [p0.x, p0.y + 1.5, p0.z] }, { t: 3, p: [p0.x + 4, p0.y + 2.4, p0.z + 2.4], c: [p0.x, p0.y + 1.6, p0.z] }];
-        for (const t of [6, 7.5, 9, 10.5, 12]) { const u = lisse(4, 12.5, t), p = ctx.vol.getPoint(u), d = ctx.vol.getTangent(u); K.push({ t, p: [p.x - d.x * 8, p.y - d.y * 8 + 3.5, p.z - d.z * 8], c: [p.x + d.x * 3, p.y + d.y * 3 + 0.6, p.z + d.z * 3] }); }
+        for (const t of [6, 7.5, 9, 10.5, 12]) { const u = lisse(4, 12.5, t), p = ctx.vol.getPoint(u), d = ctx.vol.getTangent(u); K.push({ t, p: [p.x - d.x * 9, p.y - d.y * 9 + 4.6, p.z - d.z * 9], c: [p.x + d.x * 3, p.y + d.y * 3 + 0.6, p.z + d.z * 3] }); }
         K.push({ t: 14, p: [p0.x + 5.5, p0.y + 4, p0.z + 3], c: [p0.x, p0.y + 1.4, p0.z] }, { t: 16, p: [p0.x + 6.5, p0.y + 4.6, p0.z + 4], c: [p0.x, p0.y + 1.4, p0.z] });
         return K;
       },
@@ -104,7 +104,7 @@
       duree: 9.5,
       textes: [[0.3, 4.3, "Le Vif d'or ensorcelé file à travers le terrain de Quidditch…"], [4.7, 9.5, "…il traverse les anneaux ! Impossible de l'attraper sans ruse."]],
       sons: [[0.3, "magie"], [4.4, "magie"]],
-      debut(ctx) { ctx.vol = new THREE.CatmullRomCurve3([[30, 5, -4], [37, 8, -11], [45, 6.5, -16.5], [48.5, 7.6, -14.2], [51.6, 7.7, -14], [56, 7.7, -13.8], [57, 10, -8], [47, 4.5, -7.5], [37, 6, -17], [42, 4, -14]].map(V3), false, "centripetal"); },
+      debut(ctx) { ctx.vol = new THREE.CatmullRomCurve3([[34.5, 5, -1.5], [39, 8, -9.5], [45, 6.5, -16.5], [48.5, 7.6, -14.2], [51.6, 7.7, -14], [56, 7.7, -13.8], [57, 10, -8], [47, 4.5, -7.5], [37, 6, -17], [42, 4, -14]].map(V3), false, "centripetal"); },
       cles(ctx) {
         const K = []; for (let t = 0; t <= 8.51; t += 0.85) { const u = Math.min(1, t / 8.6), p = ctx.vol.getPointAt(u), d = ctx.vol.getTangentAt(u); K.push({ t, p: [p.x - d.x * 3, p.y - d.y * 3 + 0.7, p.z - d.z * 3], c: [p.x + d.x * 1.5, p.y + d.y * 1.5, p.z + d.z * 1.5] }); }
         K.push({ t: 9.5, p: [35, 9, -3], c: [42, 4, -14] }); return K;
