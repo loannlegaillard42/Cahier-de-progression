@@ -25,9 +25,11 @@ def insec(o):
 quetes = insec(quetes)
 QUETES = "const QUETES = " + json.dumps(quetes, ensure_ascii=False) + ";"
 FONTS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Lexend:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">'
-LIBS = '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>'
+LIBS = "\n".join(['<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>'] + [f'<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/{f}"></script>' for f in ["controls/OrbitControls.js", "objects/Sky.js", "objects/Water.js"]])
 TITLE = "Les Reliques des Fondateurs"
-script = "\n".join([QUETES, lire("data.js"), lire("scene.js"), lire("ui.js")])
+# le moteur 3D est découpé en fichiers dans scene/, assemblés dans l'ordre de leur nom
+scene = "".join(lire(os.path.join("scene", f)) for f in sorted(os.listdir(os.path.join(D, "scene"))) if f.endswith(".js"))
+script = "\n".join([QUETES, lire("data.js"), scene, lire("ui.js")])
 corps = lire("body.html") + "\n" + LIBS + "\n<script>\n" + script + "\n</script>\n"
 frag = f"<title>{TITLE}</title>\n{FONTS}\n<style>\n{lire('style.css')}\n</style>\n{corps}"
 full = f'''<!DOCTYPE html>
