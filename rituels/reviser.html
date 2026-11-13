@@ -880,7 +880,7 @@
   .jeu-retour.bien .jeu-continuer { background: #22C55E; box-shadow: 0 5px 0 #15803D; }
   .jeu-retour.mal .jeu-continuer { background: #EF4444; box-shadow: 0 5px 0 #B91C1C; }
   @keyframes av-monte { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
-  .jeu-fin { text-align: center; padding: 22px 18px 10px; max-width: 560px; margin: 0 auto; }
+  .jeu-fin { position: relative; z-index: 60; text-align: center; padding: 22px 18px 10px; max-width: 560px; margin: 0 auto; }
   .jeu-fin-etoiles { display: flex; justify-content: center; align-items: flex-end; gap: 6px; margin-bottom: 6px; }
   .jeu-fin-etoiles span { display: block; animation: av-etoile .5s cubic-bezier(.3, 1.6, .5, 1) both; }
   .jeu-fin-etoiles .av-sym { width: 58px; height: 58px; }
@@ -1287,6 +1287,8 @@
   .md-prog { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
   .md-prog > .av-sym { width: 18px; height: 18px; }
   .md-points { display: flex; flex-wrap: wrap; gap: 3px; }
+  .md-jauge { flex: 1; height: 8px; border-radius: 999px; background: rgba(0, 0, 0, .3); overflow: hidden; min-width: 60px; }
+  .md-jauge span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(180deg, #FFD34D, #F5B82E); }
   .md-points i { width: 9px; height: 9px; border-radius: 50%; background: #3E4489; }
   .md-points i.fait { background: #FFC83D; }
   .md-points i.actuel { background: #fff; box-shadow: 0 0 0 2px rgba(255, 255, 255, .35); }
@@ -5830,8 +5832,10 @@
     if (!opts) return null;
     return melanger([bonne].concat(opts.filter(function (o) { return o !== bonne; }).slice(0, nb - 1)));
   }
+  // les leurres viennent d'abord du même chapitre (les autres parties du cours), puis des chapitres déjà ouverts de la classe
   function ailleursQue(ch, b, champ) {
     var out = [];
+    if (ch.parent) blocs(ch.parent).forEach(function (x) { out = out.concat(liste(x.data, champ)); });
     blocs(ch).forEach(function (x) { if (x.id !== b.id) out = out.concat(liste(x.data, champ)); });
     return out.concat(autresDuNiveau(ch, champ));
   }
@@ -5900,7 +5904,10 @@
         o = choisirOptions(propositions(n, notions, autres, mot, mot), n.mot, diff.options);
         if (o) qs.push({ type: "glisser", consigne: "Glisse le bon mot", avant: "", apres: " : " + n.def, options: o, bonne: n.mot, expl: expl });
       } else {
-        var autre = melanger(notions.concat(autres).filter(function (x) { return normaliser(x.mot) !== normaliser(n.mot) && normaliser(x.def) !== normaliser(n.def); }))[0];
+        // le « faux » d'un vrai ou faux : une définition du même chapitre, sinon d'un chapitre déjà ouvert
+        var differente = function (x) { return normaliser(x.mot) !== normaliser(n.mot) && normaliser(x.def) !== normaliser(n.def); };
+        var duChap = notions.concat(ch.parent ? liste(ch.parent, "notions") : []).filter(differente);
+        var autre = melanger(duChap.length ? duChap : autres.filter(differente))[0];
         var vrai = !autre || Math.random() < .5;
         qs.push({ type: "vf", titre: n.mot, texte: vrai ? n.def : autre.def, vrai: vrai, expl: expl });
       }
@@ -5965,14 +5972,19 @@
   function cartesDuBloc(ch, b) {
     if (b.data.carte && typeof FONDS !== "undefined") {
       var fonds = (Array.isArray(b.data.carte) ? b.data.carte : [b.data.carte]).map(function (id) { return FONDS[id]; }).filter(Boolean);
-      var groupes = fonds.map(function (f) { return { fond: f, lieux: [] }; });
+      var groupes = fonds.map(function (f) { return { fond: f, lieux: [], contexte: [] }; });
       lieuxCarte(ch, b.id).forEach(function (p) {
         var k = rangFond(fonds, p);
         if (k >= 0) groupes[k].lieux.push(p);
       });
-      return groupes.map(function (g) { return { fond: g.fond, lieux: g.lieux, contexte: g.lieux }; });
+      // une partie du cours : les lieux à trouver sont ceux de la partie, les autres points viennent de tout le chapitre
+      (ch.parent ? lieuxCarte(ch.parent, null) : []).forEach(function (p) {
+        var k = rangFond(fonds, p);
+        if (k >= 0) groupes[k].contexte.push(p);
+      });
+      return groupes.map(function (g) { return { fond: g.fond, lieux: g.lieux, contexte: g.contexte.length ? g.contexte : g.lieux }; });
     }
-    var tout = cartesDuChapitre(ch, null, 1);
+    var tout = cartesDuChapitre(ch.parent || ch, null, 1);
     return cartesDuChapitre(ch, b.id, 1).map(function (r) {
       return { fond: r.fond, lieux: r.lieux, contexte: (tout.filter(function (t) { return t.fond.id === r.fond.id; })[0] || r).lieux };
     });
@@ -6187,13 +6199,19 @@
     var anciens = function (pre) {
       return Object.keys(av.niveaux).filter(function (k) { return k.indexOf(pre) === 0 && k.split("|").length === 3; }).map(function (k) { return av.niveaux[k]; });
     };
+    var parties = noeuds.filter(function (n) { return n.type === "niveau" && !n.ppo; });
     noeuds.forEach(function (n) {
       if (n.type !== "niveau" || av.niveaux[n.cle]) return;
       var bloc = n.ppo ? n.cle.split("|")[1] : "cours";
-      if (!av.coffres[ch.id + "|" + bloc]) return;
-      var liste0 = anciens(ch.id + "|" + bloc + "|").filter(function (x) { return x && x.e; });
+      var liste0 = anciens(ch.id + "|" + bloc + "|").filter(function (x) { return x && x.e >= ETOILES_POUR_PASSER; });
       if (!liste0.length) return;
-      av.niveaux[n.cle] = { e: Math.max(ETOILES_POUR_PASSER, Math.min.apply(null, liste0.map(function (x) { return x.e; }))), t: liste0[0].t || Date.now() };
+      var e = Math.min.apply(null, liste0.map(function (x) { return x.e; })), t = liste0[0].t || Date.now();
+      if (av.coffres[ch.id + "|" + bloc]) { av.niveaux[n.cle] = { e: e, t: t }; return; }
+      if (n.ppo) return;
+      // chapitre commencé : la part des anciens niveaux réussis devient la part des parties faites
+      var b = blocs(ch)[0], avant = MODELES_NIVEAUX.filter(function (m) { return m.pool(ch, b).length >= 4; }).length || 1;
+      var faites = Math.floor(parties.length * Math.min(1, liste0.length / avant));
+      if (parties.indexOf(n) < faites) av.niveaux[n.cle] = { e: e, t: t };
     });
     sauverAventure();
   }
@@ -7824,7 +7842,7 @@
       a.appendChild(fig);
       a.appendChild(el("span", { class: "ea-txt" }, [
         el("strong", { text: faits ? "Continuer l'aventure" : "Jouer ce chapitre" }),
-        el("span", { text: i < 0 ? "Chapitre terminé · " + pluriel(etoilesRoute(route), "étoile") : "Étape " + (i + 1) + " sur " + route.noeuds.length + " : " + route.noeuds[i].nom })
+        el("span", { text: i < 0 ? "Chapitre terminé · " + pluriel(etoilesRoute(route), "étoile") : "Étape " + (i + 1) + " sur " + route.noeuds.length + " : " + (route.noeuds[i].court || route.noeuds[i].nom) })
       ]));
       return a;
     }
@@ -7968,10 +7986,15 @@
       if (k.indexOf(prefixe) !== 0) return;
       var p = k.split("|"), ch = p.length === 3 && p[1] !== "rev" ? chapitre(p[1]) : null;
       if (!ch) return;
-      var cible = routeAventure(ch).noeuds.filter(function (x) { return x.type === "niveau" && x.m && x.m.id === p[2]; })[0];
-      if (!cible) return;
-      var v = av.niveaux[k], ancien = av.niveaux[cible.cle];
-      if (!ancien || (ancien.e || 0) < (v.e || 0)) av.niveaux[cible.cle] = { e: v.e, t: v.t };
+      var cle;
+      if (Array.isArray(ch.parties) && ch.parties.length && !(av.migreParties && av.migreParties[ch.id])) cle = ch.id + "|cours|" + p[2];
+      else {
+        var cible = routeAventure(ch).noeuds.filter(function (x) { return x.type === "niveau" && x.m && x.m.id === p[2]; })[0];
+        if (!cible) return;
+        cle = cible.cle;
+      }
+      var v = av.niveaux[k], ancien = av.niveaux[cle];
+      if (!ancien || (ancien.e || 0) < (v.e || 0)) av.niveaux[cle] = { e: v.e, t: v.t };
     });
     sauverAventure();
   }
@@ -8044,10 +8067,11 @@
     // les lieux, tour à tour à gauche et à droite de la route
     var rang = 0, lieuIci = null;
     function cote() { return rang++ % 2 ? "d" : "g"; }
-    function prog(e, noeuds) {
-      var points = el("span", { class: "md-points", "aria-hidden": "true" });
-      noeuds.forEach(function (x, i) { points.appendChild(el("i", { class: noeudFait(x) ? "fait" : i === e.actuel ? "actuel" : null })); });
-      return el("span", { class: "md-prog" }, [points, avecSymbole("etoile", e.etoiles + " / " + e.max, "md-et")]);
+    // une seule jauge par chapitre : les étapes faites
+    function prog(e) {
+      var j = el("span", { class: "md-jauge", "aria-hidden": "true" }, el("span"));
+      j.firstChild.style.width = Math.round(100 * e.faits / Math.max(1, e.total)) + "%";
+      return el("span", { class: "md-prog" }, [j, el("small", { class: "md-et", text: e.faits + "/" + e.total })]);
     }
     function figure(mo, plus) {
       var fig = el("span", { class: "md-fig", "aria-hidden": "true" });
@@ -8063,8 +8087,7 @@
       var plaque = el("span", { class: "md-plaque" }, [
         el("span", { class: "md-num" }, [el("span", { text: l.num }), chip ? el("i", { class: "md-chip", text: chip }) : null]),
         el("strong", { class: "md-titre", text: l.titre }),
-        mo.nom && l.ouvert ? el("em", { class: "md-nom", text: mo.nom }) : null,
-        l.ouvert ? prog(e, e.route.noeuds) : null,
+        l.ouvert ? prog(e) : null,
         l.ferme ? el("small", { class: "md-ferme", text: "Fermé aux élèves" }) : null
       ]);
       ajouter(a, [figure(mo, (etat === "fini" ? '<span class="md-coche">' + symbole("coche") + "</span>" : "") + (estIci ? '<span class="md-perso">' + dessinPerso(av.perso) + "</span>" : "")), plaque]);

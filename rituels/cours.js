@@ -11,6 +11,9 @@
      num, titre  « Chapitre 1 », intitulé du chapitre
      question    question de départ / problématique
      plan        grandes parties
+     parties     (facultatif) ce que chaque partie du plan contient, dans le même ordre : { notions: [mots], reperes: [dates],
+                 personnages: [noms], lieux: [noms], trous: [titres], graphiques/croquis/documents: [id], ppo: [id], intrus: true }.
+                 Le chemin du chapitre, dans le jeu, suit alors le plan du cours : une étape par partie, puis le bilan du chapitre.
      cle         la phrase à retenir
      essentiel   l'essentiel du cours, en quelques phrases
      periodes    bandes de la frise : { de, a, nom, court?, detail? } — court : libellé raccourci sur la frise
