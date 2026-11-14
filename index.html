@@ -621,6 +621,15 @@ function withDefaults(raw) {
   if (!Array.isArray(data.classTasks)) data.classTasks = [];
   if (!Array.isArray(data.agenda)) data.agenda = DEFAULT_AGENDA();
   if (!data.cahier || typeof data.cahier !== "object") data.cahier = {};
+  // Premiers retours dictés (cours du 13/11/2026) : le prévu, le fait et le bilan étaient mêlés dans « Séance »
+  Object.keys(data.cahier).filter(k => k.startsWith("2026-11-13|")).forEach(k => {
+    const e = data.cahier[k];
+    if (!e || typeof e.seance !== "string" || !/(^|\n)(Bilan|Fait) : /.test(e.seance)) return;
+    const lignes = e.seance.split("\n");
+    const bilan = lignes.filter(l => l.startsWith("Bilan : ")).map(l => l.slice(8).trim());
+    const fait = lignes.filter(l => l.startsWith("Fait : ")).map(l => l.slice(7).trim());
+    data.cahier[k] = { ...e, seance: fait.length ? fait.join("\n") : lignes.filter(l => !l.startsWith("Bilan : ")).join("\n").trim(), bilan: [e.bilan, ...bilan].filter(Boolean).join("\n") };
+  });
   if (!data.calendrier || typeof data.calendrier !== "object") data.calendrier = {};
   if (!CAL_ZONES[data.calendrier.zone]) data.calendrier = { ...data.calendrier, zone: "A" };
   if (!data.weekNotes || typeof data.weekNotes !== "object") data.weekNotes = {};
@@ -2112,11 +2121,12 @@ function SlotCard({ data, slot, date, entry, onSave, evals }) {
           style: { width: 22, height: 22, borderRadius: 11, border: `1.5px solid ${draft.done ? COLORS.done : COLORS.line}`, background: draft.done ? COLORS.done : "transparent", color: COLORS.bg, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center" } },
           draft.done && h(IconCheck, { size: 12 })),
         h(open ? IconChevronDown : IconChevronRight, { size: 14, style: { color: COLORS.faint } }))),
-    !open && !!(draft.seance || draft.devoirs || found || draft.reste || carry.length > 0 || nTasks > 0) && h("div", { onClick: () => setOpen(true), className: "slot-sum", style: { padding: "0 12px 10px 104px", cursor: "pointer", display: "flex", flexDirection: "column", gap: 4 } },
+    !open && !!(draft.seance || draft.devoirs || found || draft.reste || draft.bilan || carry.length > 0 || nTasks > 0) && h("div", { onClick: () => setOpen(true), className: "slot-sum", style: { padding: "0 12px 10px 104px", cursor: "pointer", display: "flex", flexDirection: "column", gap: 4 } },
       h(CarryOver, { items: carry }),
       found && h("div", { style: { ...txt, fontSize: 11.5, color: COLORS.sub, fontStyle: "italic" } }, found.chapter.title),
       draft.seance && h("div", { style: txt }, draft.seance),
       draft.reste && h("div", { style: { ...txt, color: COLORS.wipInk } }, h("strong", null, "Pas fini, reporté : "), draft.reste),
+      draft.bilan && h("div", { style: { ...txt, color: COLORS.sub, fontStyle: "italic" } }, h("strong", null, "Bilan : "), draft.bilan),
       draft.devoirs && h("div", { style: { ...txt, color: COLORS.histoire } }, h("strong", null, "Pour la suite : "), draft.devoirs),
       h(ClassTasks, { data, classId: slot.classId, iso: date, compact: true })),
     open && h("div", { style: { padding: "4px 12px 12px", display: "flex", flexDirection: "column", gap: 9, borderTop: `1px dashed ${COLORS.line}` } },
@@ -2131,6 +2141,8 @@ function SlotCard({ data, slot, date, entry, onSave, evals }) {
         h("input", { style: inputStyle, value: draft.reste || "", placeholder: "Ex. Trace écrite du II à finir, doc 3 pas étudié", onChange: e => type({ reste: e.target.value }), onBlur: typed.flush })),
       h("div", null, h("label", { style: labelStyle }, "Travail donné"),
         h("input", { style: inputStyle, value: draft.devoirs, placeholder: "Ex. Apprendre les notions aléa / vulnérabilité", onChange: e => type({ devoirs: e.target.value }), onBlur: typed.flush })),
+      h("div", null, h("label", { style: labelStyle }, "Bilan de la séance (ce qui a marché ou pas)"),
+        h("input", { style: inputStyle, value: draft.bilan || "", placeholder: "Ex. Le doc 1 a bien marché ; le schéma prend trop de temps", onChange: e => type({ bilan: e.target.value }), onBlur: typed.flush })),
       h("div", { style: { borderTop: `1px dashed ${COLORS.line}`, paddingTop: 9 } }, h(ClassTasks, { data, classId: slot.classId, iso: date })),
       h("p", { style: { fontFamily: "Inter, sans-serif", fontSize: 11, color: COLORS.faint, margin: 0 } },
         "Cocher « faite » avec un chapitre choisi ajoute la séance au journal du chapitre et fait avancer sa progression.")));
@@ -2336,6 +2348,8 @@ function MyDay({ data, setView, onClassMode }) {
             h(CarryOver, { items: carryOverFor(data, s.classId, dayISO, s) }),
             f && h("div", { style: { ...txt, fontSize: 11.5, color: COLORS.sub, fontStyle: "italic" } }, f.chapter.title),
             e.seance ? h("div", { style: { ...txt, color: COLORS.ink } }, e.seance) : h("div", { style: { ...txt, color: COLORS.faint } }, "Séance pas encore préparée"),
+            e.reste && h("div", { style: { ...txt, color: COLORS.wipInk } }, h("strong", null, "Pas fini, reporté : "), e.reste),
+            e.bilan && h("div", { style: { ...txt, fontSize: 12, color: COLORS.sub, fontStyle: "italic" } }, h("strong", null, "Bilan : "), e.bilan),
             h(ClassTasks, { data, classId: s.classId, iso: dayISO, compact: true }),
             due.map(d => h("div", { key: d.key, style: { ...txt, fontSize: 12, color: COLORS.histoire } }, h("strong", null, "À relever : "), d.devoirs)),
             evals.map(ev => h("div", { key: ev.id, style: { ...txt, fontSize: 12, fontWeight: 600, color: COLORS.wipInk } }, "Évaluation : " + ev.title))));
@@ -5836,12 +5850,9 @@ function applyRetours(data, retours) {
     if (!slot) { ko.push(r); continue; }
     const key = `${r.date}|${slot.id}`;
     const e = { seance: "", devoirs: "", chapterId: "", done: false, ...(next.cahier[key] || {}) };
-    const ajoute = (ligne, prefixe) => {
-      if (!ligne || (e.seance || "").includes(ligne)) return;
-      e.seance = e.seance && e.seance.trim() ? `${e.seance.trim()}\n${prefixe}${ligne}` : (prefixe === "Fait : " ? ligne : prefixe + ligne);
-    };
-    ajoute(txt(r.fait), "Fait : ");
-    ajoute(txt(r.bilan), "Bilan : ");
+    // Après le cours, la case « Séance » dit ce qui a été FAIT (le prévu non fait part dans « Pas fini »)
+    if (txt(r.fait)) e.seance = txt(r.fait);
+    if (txt(r.bilan) && !(e.bilan || "").includes(txt(r.bilan))) e.bilan = [e.bilan && e.bilan.trim(), txt(r.bilan)].filter(Boolean).join("\n");
     if ("reste" in r) e.reste = txt(r.reste);
     if (txt(r.devoirs)) e.devoirs = txt(r.devoirs);
     if (txt(r.chapitre) && !e.chapterId) {
@@ -5851,6 +5862,18 @@ function applyRetours(data, retours) {
     }
     e.done = r.faite !== false;
     next.cahier[key] = e;
+    // Comme une séance cochée à la main : elle entre dans le journal du chapitre et fait avancer la progression
+    if (e.done && e.chapterId) {
+      const cls = next.classes[cid];
+      next.classes = { ...next.classes, [cid]: { ...cls, themes: cls.themes.map(th => ({ ...th, chapters: th.chapters.map(ch => {
+        if (ch.id !== e.chapterId) return ch;
+        const j = ch.journal || [];
+        const item = { id: key, date: r.date, texte: e.seance || "Séance" };
+        const exists = j.some(x => x.id === key);
+        return { ...ch, journal: exists ? j.map(x => x.id === key ? item : x) : [...j, item],
+          done: exists ? ch.done : Math.min(Number(ch.total) || 99, (Number(ch.done) || 0) + 1), start: ch.start || r.date };
+      }) })) } };
+    }
     (Array.isArray(r.taches) ? r.taches : []).map(txt).filter(Boolean).forEach(t => {
       if (!next.classTasks.some(x => x.classId === cid && !x.done && x.text === t))
         next.classTasks.push({ id: uid(), classId: cid, text: t, done: false, createdAt: new Date().toISOString() });
