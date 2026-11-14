@@ -5793,6 +5793,92 @@ async function syncFiles(getLocal) {
   if (received) window.dispatchEvent(new Event("cahier-fichiers"));
 }
 // Mise en route : vérifie la clé et le dépôt, regarde s'il contient déjà un cahier
+/* ---------- Retours de séance dictés à Claude ----------
+   Après un cours, Loann raconte la séance à Claude, qui dépose le retour dans « retours.json »
+   (même dépôt privé, EN CLAIR : jamais de noms d'élèves). À la synchro, l'appli range chaque
+   retour dans le cahier du bon cours : séance faite, ce qui a été fait, pas fini (reporté au
+   cours suivant), travail donné, tâches de la classe. Le fichier est vidé AVANT d'appliquer :
+   si un autre appareil l'a déjà traité, l'envoi échoue (conflit) et rien n'est rangé deux fois.
+   Format : { "v": 1, "retours": [ { "id", "date": "AAAA-MM-JJ", "classe": "2de 3",
+   "heure"?: "10:05", "chapitre"?, "fait"?, "reste"?, "devoirs"?, "bilan"?, "taches"?: [],
+   "faite"?: true } ] } */
+const INBOX_FILE = "retours.json";
+const normClasse = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+  .replace(/secondes?|2\s*nde?|2\s*eme/g, "2de").replace(/premieres?|1\s*ere|1\s*re/g, "1re").replace(/cinquiemes?|5\s*eme/g, "5e")
+  .replace(/[^a-z0-9]/g, "");
+const normTexte = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+function inboxClassId(data, nom) {
+  const n = normClasse(nom);
+  if (!n) return null;
+  const ids = data.order.filter(cid => data.classes[cid]);
+  const exact = ids.filter(cid => normClasse(data.classes[cid].name) === n);
+  if (exact.length === 1) return exact[0];
+  const proches = ids.filter(cid => { const c = normClasse(data.classes[cid].name); return c.includes(n) || n.includes(c); });
+  return proches.length === 1 ? proches[0] : null;
+}
+function inboxSlot(data, classId, iso, heure) {
+  const slots = slotsOnDate(data, iso).filter(s => s.classId === classId);
+  if (!slots.length) return null;
+  const hh = heure ? String(heure).replace("h", ":").replace(/^(\d):/, "0$1:").padEnd(5, "0").slice(0, 5) : "";
+  if (hh) {
+    const s = slots.find(s => s.start <= hh && hh < s.end) || slots.find(s => s.start === hh);
+    if (s) return s;
+  }
+  return slots.find(s => !((data.cahier || {})[`${iso}|${s.id}`] || {}).done) || slots[slots.length - 1];
+}
+function applyRetours(data, retours) {
+  const next = { ...data, cahier: { ...(data.cahier || {}) }, classTasks: [...(data.classTasks || [])] };
+  const ok = [], ko = [];
+  const txt = v => typeof v === "string" ? v.trim() : "";
+  for (const r of retours) {
+    const cid = r && inboxClassId(next, r.classe);
+    const slot = cid && /^\d{4}-\d{2}-\d{2}$/.test(r.date || "") ? inboxSlot(next, cid, r.date, r.heure) : null;
+    if (!slot) { ko.push(r); continue; }
+    const key = `${r.date}|${slot.id}`;
+    const e = { seance: "", devoirs: "", chapterId: "", done: false, ...(next.cahier[key] || {}) };
+    const ajoute = (ligne, prefixe) => {
+      if (!ligne || (e.seance || "").includes(ligne)) return;
+      e.seance = e.seance && e.seance.trim() ? `${e.seance.trim()}\n${prefixe}${ligne}` : (prefixe === "Fait : " ? ligne : prefixe + ligne);
+    };
+    ajoute(txt(r.fait), "Fait : ");
+    ajoute(txt(r.bilan), "Bilan : ");
+    if ("reste" in r) e.reste = txt(r.reste);
+    if (txt(r.devoirs)) e.devoirs = txt(r.devoirs);
+    if (txt(r.chapitre) && !e.chapterId) {
+      const q = normTexte(r.chapitre);
+      const ch = next.classes[cid].themes.flatMap(th => th.chapters).filter(c => normTexte(c.title).includes(q));
+      if (ch.length === 1) e.chapterId = ch[0].id;
+    }
+    e.done = r.faite !== false;
+    next.cahier[key] = e;
+    (Array.isArray(r.taches) ? r.taches : []).map(txt).filter(Boolean).forEach(t => {
+      if (!next.classTasks.some(x => x.classId === cid && !x.done && x.text === t))
+        next.classTasks.push({ id: uid(), classId: cid, text: t, done: false, createdAt: new Date().toISOString() });
+    });
+    ok.push(r);
+  }
+  return { data: next, ok, ko };
+}
+async function syncInbox(getLocal, applyMerged) {
+  const cfg = syncConfig();
+  if (!cfg) return null;
+  const file = await ghGetFile(cfg, INBOX_FILE);
+  if (!file) return null;
+  let retours;
+  try { const j = JSON.parse(file.text); retours = Array.isArray(j) ? j : Array.isArray(j.retours) ? j.retours : []; } catch (e) { return null; }
+  if (!retours.length) return null;
+  const essai = applyRetours(getLocal(), retours);
+  if (!essai.ok.length) return { ok: 0, ko: essai.ko.length };
+  try {
+    await ghPutFile(cfg, INBOX_FILE, JSON.stringify({ v: 1, retours: essai.ko }, null, 2) + "\n", file.sha, "Retours de séance rangés dans le cahier");
+  } catch (e) {
+    if (e.code === "conflit") return null;
+    throw e;
+  }
+  // Rangés sur les données les plus fraîches de l'appareil (rien perdu pendant l'envoi)
+  applyMerged(applyRetours(getLocal(), essai.ok).data);
+  return { ok: essai.ok.length, ko: essai.ko.length };
+}
 async function syncProbe(repo, token) {
   const cfg = { repo, token };
   const info = await ghRequest(cfg, "");
@@ -6561,6 +6647,8 @@ function App() {
     const c = syncConfig();
     return { on: !!c, etat: c ? "attente" : "off", last: c ? c.last || null : null, erreur: null };
   });
+  const [inboxNote, setInboxNote] = useState(null);
+  const inboxTimer = useRef(null);
   const syncJob = useRef(null);
   const syncAgain = useRef(false);
   const syncTimer = useRef(null);
@@ -6581,7 +6669,15 @@ function App() {
     setSync(s => ({ ...s, on: true, etat: "encours" }));
     // Un seul échange à la fois, même avec l'app ouverte dans deux fenêtres
     const exclusive = fn => navigator.locks && navigator.locks.request ? navigator.locks.request("cahier-synchro", fn) : fn();
-    const job = exclusive(() => syncRound(() => dataRef.current, applyRemote).then(() => syncFiles(() => dataRef.current))).then(() => {
+    const inbox = () => syncInbox(() => dataRef.current, applyRemote).catch(e => { console.error(e); return null; }).then(r => {
+      if (!r || (!r.ok && !r.ko)) return;
+      setInboxNote(r);
+      clearTimeout(inboxTimer.current);
+      inboxTimer.current = setTimeout(() => setInboxNote(null), 9000);
+      // Les retours rangés partent tout de suite dans le cahier en ligne
+      if (r.ok) return syncRound(() => dataRef.current, applyRemote);
+    });
+    const job = exclusive(() => syncRound(() => dataRef.current, applyRemote).then(inbox).then(() => syncFiles(() => dataRef.current))).then(() => {
       const last = new Date().toISOString();
       patchSyncConfig({ last });
       syncedData.current = dataRef.current;
@@ -7605,7 +7701,14 @@ function App() {
     onClose: closeClassMode,
     onObserve: addObservation,
     onSaveEntry: saveCahierEntry
-  }), printing && data.classes[printing] && ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
+  }), inboxNote && /*#__PURE__*/React.createElement("div", {
+    role: "status",
+    style: { position: "fixed", left: 16, right: 16, bottom: "calc(76px + env(safe-area-inset-bottom))", maxWidth: 520, margin: "0 auto", zIndex: 60, display: "flex", alignItems: "center", gap: 10, background: COLORS.ink, color: COLORS.bg, borderRadius: 10, padding: "10px 12px 10px 14px", boxShadow: "0 4px 16px rgba(0,0,0,.25)", fontFamily: "Inter, sans-serif", fontSize: 13.5 }
+  }, /*#__PURE__*/React.createElement("span", { style: { flex: 1, minWidth: 0 } },
+    inboxNote.ok ? `${inboxNote.ok} retour${inboxNote.ok > 1 ? "s" : ""} de séance rangé${inboxNote.ok > 1 ? "s" : ""} dans le cahier` : "",
+    inboxNote.ok && inboxNote.ko ? " · " : "",
+    inboxNote.ko ? `${inboxNote.ko} en attente (classe ou cours introuvable ce jour-là)` : ""),
+  /*#__PURE__*/React.createElement("button", { onClick: () => setInboxNote(null), "aria-label": "Fermer", style: { background: "none", border: "none", color: COLORS.bg, fontSize: 18, cursor: "pointer", padding: "0 4px" } }, "\u00d7")), printing && data.classes[printing] && ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
     className: "print-sheet"
   }, /*#__PURE__*/React.createElement(PrintSheet, {
     data: data,
