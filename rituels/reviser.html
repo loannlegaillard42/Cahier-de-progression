@@ -10127,6 +10127,11 @@
 
   function jeton() { var p = lire(CLE_PROF, null); return p && p.token ? p.token : null; }
   function estProf() { return !!jeton(); }
+  var jetonVerifie = false;
+  function jetonExpire() {
+    try { localStorage.removeItem(CLE_PROF); } catch (e) {}
+    messageProf = { ok: false, texte: "Votre jeton GitHub a expiré : GitHub ne l'accepte plus. Créez-en un nouveau en suivant les étapes ci-dessous, puis collez-le. Vos choix de chapitres sont gardés : il suffira ensuite de cliquer sur « Publier »." };
+  }
   function estPublie(id) { return !Array.isArray(visibles) || visibles.indexOf(id) >= 0; }
   function enTetesGitHub(t) {
     return { "Authorization": "Bearer " + t, "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
@@ -10195,6 +10200,12 @@
     ]));
     if (messageProf) app.appendChild(el("div", { class: "alerte" + (messageProf.ok ? " ok" : ""), role: "status" }, messageProf.texte));
     app.appendChild(blocConnexion());
+    if (!jetonVerifie) {
+      jetonVerifie = true;
+      appelGitHub(urlDepot(), { headers: enTetesGitHub(jeton()), cache: "no-store" }).catch(function (e) {
+        if (e.statut === 401 && location.hash.indexOf("#/prof") === 0) { jetonExpire(); rendre(); window.scrollTo(0, 0); }
+      });
+    }
 
     app.appendChild(el("a", { class: "lien-defi", href: "#/defi/" + classeProf }, [el("strong", { text: "Défi de classe à projeter" }), " : questions des chapitres, par équipes, avec minuteur et classement"]));
     app.appendChild(blocCartesProf());
@@ -10252,7 +10263,8 @@
         rendre();
         window.scrollTo(0, 0);
       }, function (e) {
-        messageProf = { ok: false, texte: e.message };
+        if (e.statut === 401) jetonExpire();
+        else messageProf = { ok: false, texte: e.message };
         rendre();
         window.scrollTo(0, 0);
       });
