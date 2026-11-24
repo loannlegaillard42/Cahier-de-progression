@@ -6,7 +6,7 @@
 //   la dernière version ; le cache sert hors connexion.
 // - Les images et les polices : le cache d'abord, mis à jour en arrière-plan pour la visite suivante.
 // Le service worker de l'application principale (../sw.js) laisse ce dossier de côté.
-const CACHE = "reviser-v14";
+const CACHE = "reviser-v15";
 const BASE = [
   "./reviser.html", "./cours.js", "./cartes.js", "./questions.js", "./reperes.js", "./methode.js", "./activation.json",
   "../vendor/qrcode-generator-1.4.4.js", "../icon-192.png"
