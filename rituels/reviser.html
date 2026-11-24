@@ -1607,6 +1607,57 @@
   .a-venir-pli { margin: 14px 0 0; }
   .a-venir-pli summary { cursor: pointer; padding: 12px 16px; border-radius: 14px; border: 2px dashed var(--line); color: var(--sub); font-weight: 700; font-size: 14px; list-style-position: inside; }
   .a-venir-pli[open] summary { margin-bottom: 4px; }
+
+  /* ---------- Jeu en direct ---------- */
+  .dx-accueil { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: center; margin: 10px 0 18px; }
+  .dx-qr { width: min(300px, 70vw); background: #fff; border-radius: 18px; padding: 10px; box-shadow: 0 5px 0 #14173F; }
+  .dx-qr svg { display: block; width: 100%; height: auto; }
+  .dx-consignes { max-width: 420px; }
+  .dx-consignes h2 { font-size: 26px; font-weight: 800; margin: 0 0 8px; }
+  .dx-code { font-size: 18px; margin: 10px 0 4px; }
+  .dx-code strong { font-size: 30px; letter-spacing: .12em; color: #FFD34D; }
+  .dx-nb { color: #C9C6F0; font-weight: 700; }
+  .dx-salle { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .dx-vide { color: #A6A5D6; font-weight: 700; }
+  .dx-joueur { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; border: 0; background: #2E3270; color: #F4F2FF; font-weight: 800; font-size: 16px; box-shadow: 0 3px 0 #1D2052; animation: av-etoile .35s ease-out both; }
+  .dx-perso { display: inline-block; width: 40px; height: 40px; border-radius: 50%; background: #F5B82E; overflow: hidden; flex: none; }
+  .dx-perso svg { width: 100%; height: 100%; display: block; }
+  .dx-perso.grand { width: 110px; height: 110px; border: 4px solid #FFE08A; }
+  .dx-option { position: relative; overflow: hidden; border-left: 8px solid var(--c); }
+  .dx-option::after { content: ""; position: absolute; left: 0; bottom: 0; height: 5px; width: calc(var(--part, 0) * 100%); background: var(--c); transition: width .5s; }
+  .dx-option .dc-lettre { background: var(--c); color: #fff; }
+  .dx-nb-rep { margin-left: auto; font-weight: 800; font-size: 20px; }
+  .dx-temps { min-width: 90px; text-align: center; font-size: 22px; font-weight: 800; }
+  .dx-compteur { font-weight: 800; color: #C9C6F0; align-self: center; }
+  .dx-podium { display: flex; justify-content: center; align-items: flex-end; gap: 14px; margin: 18px 0; }
+  .dx-marche { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 150px; }
+  .dx-marche strong { font-size: 18px; text-align: center; }
+  .dx-pts { color: #FFD34D; font-weight: 800; }
+  .dx-socle { width: 100%; text-align: center; font-size: 26px; font-weight: 800; padding-top: 10px; border-radius: 14px 14px 0 0; background: #6C4CF1; box-shadow: inset 0 -6px 0 rgba(0,0,0,.2); }
+  .dx-marche.r1 .dx-socle { height: 140px; background: linear-gradient(180deg, #FFD34D, #F5B82E); color: #5A3B00; }
+  .dx-marche.r2 .dx-socle { height: 100px; background: #C9CCE0; color: #2B2F5A; }
+  .dx-marche.r3 .dx-socle { height: 70px; background: #D79B5C; color: #4A2A0A; }
+  .dx-classement { list-style: none; padding: 0; margin: 10px auto; max-width: 560px; display: flex; flex-direction: column; gap: 8px; }
+  .dx-classement li { display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-radius: 16px; background: #2A2E72; box-shadow: 0 3px 0 #14173F; font-size: 18px; }
+  .dx-rang { width: 30px; font-weight: 800; color: #FFD34D; text-align: center; }
+  .dx-pseudo { flex: 1; font-weight: 700; }
+  .dx-corps { max-width: 520px; margin: 0 auto; }
+  .dx-code-tel { font-weight: 800; letter-spacing: .1em; color: #FFD34D; }
+  .dx-attente { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; margin: 26px 0 18px; }
+  .dx-attente h2 { font-size: 24px; font-weight: 800; margin: 6px 0 0; }
+  .dx-attente.bien h2 { color: #6BDB98; }
+  .dx-attente.mal h2 { color: #FF8A8A; }
+  .dx-gain { font-size: 22px; font-weight: 800; color: #FFD34D; margin: 0; }
+  .dx-score { font-weight: 800; font-size: 18px; margin: 0; }
+  .dx-num { font-weight: 800; color: #C9C6F0; margin: 8px 0; }
+  .dx-consigne { font-size: 20px; font-weight: 800; margin: 12px 0 6px; }
+  .dx-enonce { font-size: 16px; line-height: 1.4; margin: 0 0 12px; }
+  .dx-boutons { display: grid; gap: 10px; margin-top: 12px; }
+  .dx-rep { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px; border: 0; border-radius: 16px; background: var(--c); color: #fff; font-size: 17px; font-weight: 800; text-align: left; box-shadow: 0 5px 0 rgba(0,0,0,.3); }
+  .dx-rep .dc-lettre { background: rgba(255,255,255,.25); color: #fff; }
+  .dx-rep:disabled { opacity: .45; }
+  .dx-regles { width: 100%; font: 12.5px "IBM Plex Mono", monospace; margin-top: 10px; }
+  .dx-note a { color: #FFD34D; }
 </style>
 </head>
 <body>
@@ -2057,6 +2108,7 @@
     if (p[0] === "express") return { vue: "express", niveau: p[1] };
     if (p[0] === "methode") return { vue: "methode", niveau: p[1], sous: p[2], x: p[3] };
     if (p[0] === "duo") return { vue: "duo", niveau: p[1] };
+    if (p[0] === "direct") return { vue: "direct", code: p[1], hote: p[2] };
     if (p[0] === "niveau") return { vue: "accueil", niveau: p[1] };
     return { vue: "accueil" };
   }
@@ -2079,6 +2131,7 @@
     var ch = r.ch ? chapitre(r.ch) : null;
     document.documentElement.classList.remove("av-ouvert"); // remis par les écrans du mode aventure
     if (r.vue === "sauvegarde") { vueSauvegarde(r.code); return; }
+    if (r.vue === "direct") { vueDirectEleve(r.code, r.hote); return; }
     if (r.vue === "controle") {
       if (rangNiveau(r.niveau) >= 0 && aventureDispo(r.niveau)) vueControle(r.niveau, r.sous); else vueAccueil();
       return;
@@ -9943,6 +9996,7 @@
   }
   function vueDefiClasse(n, demandes) {
     document.title = "Défi de classe — " + nomNiveau(n);
+    if (directProf && directProf.niveau === n && !demandes) { vueDirectProf(); return; }
     if (defiClasse && defiClasse.niveau === n && defiClasse.enCours && !demandes) { vueDefiJeu(); return; }
     vueDefiReglages(n, demandes);
   }
@@ -9958,6 +10012,8 @@
     var nbEquipes = [2, 3, 4].indexOf(r.equipes) >= 0 ? r.equipes : 2;
     var nbQuestions = [10, 15, 20].indexOf(r.questions) >= 0 ? r.questions : 10;
     var minuteur = [0, 20, 30, 45].indexOf(r.minuteur) >= 0 ? r.minuteur : 30;
+    var mode = r.mode === "direct" ? "direct" : "equipes";
+    var dureeQ = [10, 20, 30].indexOf(r.duree) >= 0 ? r.duree : 20;
     var chaps = estProf() ? tousChapitresNiveau(n) : chapitresDansLOrdre(n);
     var choisis = (demandes || (r.niveau === n && Array.isArray(r.chapitres) ? r.chapitres : chapitresDansLOrdre(n).map(function (c) { return c.id; })))
       .filter(function (id) { return chaps.some(function (c) { return c.id === id; }); });
@@ -9983,10 +10039,12 @@
         champ.addEventListener("input", function () { noms[i] = champ.value.trim() || NOMS_EQUIPES[i]; });
         champsNoms.appendChild(champ);
       })(i);
-      var lancer = el("button", { class: "jeu-valider", type: "button", text: "Lancer le défi", disabled: !choisis.length });
+      var direct = mode === "direct";
+      var lancer = el("button", { class: "jeu-valider", type: "button", text: direct ? "Ouvrir la salle d'attente" : "Lancer le défi", disabled: !choisis.length || (direct && !hoteDirect()) });
       lancer.addEventListener("click", function () {
         var ids = chaps.map(function (c) { return c.id; }).filter(function (id) { return choisis.indexOf(id) >= 0; });
-        ecrire(CLE_DEFI, { niveau: n, chapitres: ids, noms: noms, equipes: nbEquipes, questions: nbQuestions, minuteur: minuteur });
+        ecrire(CLE_DEFI, { niveau: n, chapitres: ids, noms: noms, equipes: nbEquipes, questions: nbQuestions, minuteur: minuteur, mode: mode, duree: dureeQ });
+        if (direct) { lancerDirect(n, ids, nbQuestions, dureeQ); return; }
         var qs = questionsDefi(n, ids, nbQuestions);
         if (!qs.length) { notifier("Ces chapitres n'ont pas encore assez de contenu pour un défi.", "parchemin"); return; }
         defiClasse = { niveau: n, ids: ids, questions: qs, pos: 0, minuteur: minuteur, enCours: true,
@@ -9999,13 +10057,17 @@
         segmentsDefi("Classe", NIVEAUX.map(function (x) { return { id: x.id, nom: x.nom }; }), n, function (id) { location.hash = "#/defi/" + id; }),
         el("h3", { class: "av-sous-titre", text: "Chapitres" }),
         chaps.length ? lc : el("p", { class: "av-note", text: "Aucun chapitre prêt pour cette classe." }),
-        el("h3", { class: "av-sous-titre", text: "Équipes" }),
-        segmentsDefi("Nombre d'équipes", [{ id: 2, nom: "2 équipes" }, { id: 3, nom: "3 équipes" }, { id: 4, nom: "4 équipes" }], nbEquipes, function (v) { nbEquipes = v; dessiner(); }),
-        champsNoms,
+        el("h3", { class: "av-sous-titre", text: "Comment jouer ?" }),
+        segmentsDefi("Mode", [{ id: "equipes", nom: "Par équipes, à l'oral" }, { id: "direct", nom: "En direct sur les téléphones" }], mode, function (v) { mode = v; dessiner(); }),
+        direct && !hoteDirect() ? el("p", { class: "av-note dx-note" }, ["Le jeu en direct a besoin d'une base gratuite, à brancher une fois : ", el("a", { href: "#/prof", text: "Espace professeur" }), "."]) : null,
+        direct ? null : el("h3", { class: "av-sous-titre", text: "Équipes" }),
+        direct ? null : segmentsDefi("Nombre d'équipes", [{ id: 2, nom: "2 équipes" }, { id: 3, nom: "3 équipes" }, { id: 4, nom: "4 équipes" }], nbEquipes, function (v) { nbEquipes = v; dessiner(); }),
+        direct ? null : champsNoms,
         el("h3", { class: "av-sous-titre", text: "Questions" }),
         segmentsDefi("Nombre de questions", [{ id: 10, nom: "10" }, { id: 15, nom: "15" }, { id: 20, nom: "20" }], nbQuestions, function (v) { nbQuestions = v; dessiner(); }),
-        el("h3", { class: "av-sous-titre", text: "Minuteur" }),
-        segmentsDefi("Minuteur", [{ id: 0, nom: "Sans" }, { id: 20, nom: "20 s" }, { id: 30, nom: "30 s" }, { id: 45, nom: "45 s" }], minuteur, function (v) { minuteur = v; dessiner(); }),
+        el("h3", { class: "av-sous-titre", text: direct ? "Temps pour répondre" : "Minuteur" }),
+        direct ? segmentsDefi("Temps par question", [{ id: 10, nom: "10 s" }, { id: 20, nom: "20 s" }, { id: 30, nom: "30 s" }], dureeQ, function (v) { dureeQ = v; dessiner(); })
+          : segmentsDefi("Minuteur", [{ id: 0, nom: "Sans" }, { id: 20, nom: "20 s" }, { id: 30, nom: "30 s" }, { id: 45, nom: "45 s" }], minuteur, function (v) { minuteur = v; dessiner(); }),
         lancer
       ]);
     }
@@ -10178,6 +10240,449 @@
     };
     afficher();
   }
+  // ---------- Jeu en direct : les élèves rejoignent la partie avec un QR code et répondent sur leur téléphone ----------
+  // Le professeur projette les questions ; les réponses arrivent en direct, avec le classement et le podium.
+  // Chaque élève vient avec son personnage du mode aventure et un pseudo : pas de compte, pas de nom ; la partie est
+  // effacée quand le professeur la ferme. Les échanges passent par une base Firebase Realtime Database du professeur
+  // (simple adresse, sans clé), ou par « local » pour un essai à plusieurs onglets d'un même navigateur.
+  var CLE_DIRECT = "reviser-direct-v1";
+  var REGLES_DIRECT = '{\n  "rules": {\n    "parties": {\n      "$code": {\n        ".read": true,\n        ".write": true,\n        ".validate": "$code.matches(/^[A-Z0-9]{6}$/)"\n      }\n    }\n  }\n}';
+  var COULEURS_DIRECT = ["#E21B3C", "#1368CE", "#D89E00", "#26890C", "#864CBF", "#0AA3A3"];
+  function hoteDirectValide(h) { return h === "local" || /^[a-z0-9-]+(\.[a-z0-9-]+)*\.(firebasedatabase\.app|firebaseio\.com)$/.test(String(h || "")); }
+  function reglagesDirect() { var r = lire(CLE_DIRECT, {}); return r && typeof r === "object" ? r : {}; }
+  function hoteDirect() { var h = reglagesDirect().hote; return hoteDirectValide(h) ? h : null; }
+  function nettoyerHote(saisie) { var m = /^(?:https?:\/\/)?([^\/\s?#]+)/.exec(String(saisie || "").trim().toLowerCase()); return m ? m[1] : ""; }
+  // le personnage vient d'un téléphone : on ne garde que des valeurs connues (il passe dans du SVG)
+  function persoSur(p) { return nettoyerEtat({ p: p && typeof p === "object" ? p : {} }).perso; }
+  function pseudoSur(s) { return String(s || "").replace(/[\u0000-\u001f<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 16); }
+
+  function canalDirect(hote, code) {
+    var arbre = null, ecoute = null, source = null, bc = null, cle = "reviser-direct-local-" + code;
+    function appliquer(racine, chemin, valeur, fusion) {
+      var parts = String(chemin || "").split("/").filter(Boolean);
+      if (!parts.length) {
+        if (!fusion) return valeur;
+        racine = racine && typeof racine === "object" ? racine : {};
+        Object.keys(valeur || {}).forEach(function (k) { if (valeur[k] === null) delete racine[k]; else racine[k] = valeur[k]; });
+        return racine;
+      }
+      racine = racine && typeof racine === "object" ? racine : {};
+      var o = racine;
+      for (var i = 0; i < parts.length - 1; i++) { if (!o[parts[i]] || typeof o[parts[i]] !== "object") o[parts[i]] = {}; o = o[parts[i]]; }
+      var k = parts[parts.length - 1];
+      if (fusion) {
+        if (!o[k] || typeof o[k] !== "object") o[k] = {};
+        Object.keys(valeur || {}).forEach(function (c) { if (valeur[c] === null) delete o[k][c]; else o[k][c] = valeur[c]; });
+      } else if (valeur === null) delete o[k];
+      else o[k] = valeur;
+      return racine;
+    }
+    function prevenir() { if (ecoute) ecoute(arbre); }
+    if (hote === "local") {
+      var lireLocal = function () { try { var t = localStorage.getItem(cle); return t ? JSON.parse(t) : null; } catch (e) { return null; } };
+      var ecrireLocal = function (chemin, valeur, fusion) {
+        var t = appliquer(lireLocal(), chemin, valeur, fusion);
+        try { if (t === null || t === undefined) localStorage.removeItem(cle); else localStorage.setItem(cle, JSON.stringify(t)); } catch (e) {}
+        try { if (bc) bc.postMessage(1); } catch (e) {}
+        arbre = lireLocal(); prevenir();
+        return Promise.resolve();
+      };
+      try { bc = new BroadcastChannel(cle); bc.onmessage = function () { arbre = lireLocal(); prevenir(); }; } catch (e) {}
+      return {
+        ecrire: function (c, v) { return ecrireLocal(c, v, false); },
+        fusionner: function (c, v) { return ecrireLocal(c, v, true); },
+        effacer: function (c) { return ecrireLocal(c || "", null, false); },
+        ecouter: function (cb) { ecoute = cb; arbre = lireLocal(); setTimeout(prevenir, 0); },
+        fermer: function () { ecoute = null; try { if (bc) bc.close(); } catch (e) {} }
+      };
+    }
+    var base = "https://" + hote + "/parties/" + code;
+    function envoyer(methode, chemin, valeur) {
+      return fetch(base + (chemin || "") + ".json", { method: methode, body: valeur === undefined ? undefined : JSON.stringify(valeur), cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error("La base a répondu « erreur " + r.status + " » : vérifiez son adresse et ses règles."); return null; });
+    }
+    return {
+      ecrire: function (c, v) { return envoyer("PUT", c, v); },
+      fusionner: function (c, v) { return envoyer("PATCH", c, v); },
+      effacer: function (c) { return envoyer("DELETE", c || ""); },
+      ecouter: function (cb, erreur) {
+        ecoute = cb;
+        try {
+          source = new EventSource(base + ".json");
+          var maj = function (fusion) { return function (e) { try { var d = JSON.parse(e.data); arbre = appliquer(arbre, d.path, d.data, fusion); prevenir(); } catch (x) {} }; };
+          source.addEventListener("put", maj(false));
+          source.addEventListener("patch", maj(true));
+          source.addEventListener("cancel", function () { if (erreur) erreur(); });
+          source.onerror = function () { if (erreur && source.readyState === 2) erreur(); };
+        } catch (e) { if (erreur) erreur(); }
+      },
+      fermer: function () { ecoute = null; if (source) source.close(); }
+    };
+  }
+  function codePartie() {
+    var l = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", s = "";
+    for (var i = 0; i < 6; i++) s += l.charAt(Math.floor(Math.random() * l.length));
+    return s;
+  }
+  function lienDirect(code, hote) { return location.href.split("#")[0].split("?")[0] + "#/direct/" + code + "/" + hote; }
+  function figurePerso(p, cls) { var f = el("span", { class: "dx-perso" + (cls ? " " + cls : ""), "aria-hidden": "true" }); f.innerHTML = dessinPerso(persoSur(p), true); return f; }
+  function classementDirect(joueurs, scores) {
+    var liste_ = Object.keys(joueurs || {}).map(function (id) { return { id: id, p: joueurs[id], s: scores[id] || 0 }; });
+    liste_.sort(function (a, b) { return b.s - a.s || pseudoSur(a.p.p).localeCompare(pseudoSur(b.p.p)); });
+    var rang = 0;
+    liste_.forEach(function (x, i) { if (i === 0 || x.s < liste_[i - 1].s) rang = i + 1; x.rang = rang; });
+    return liste_;
+  }
+
+  // ----- Le professeur : salle d'attente, questions, correction, classement, podium -----
+  var directProf = null;
+  function lancerDirect(n, ids, nb, duree) {
+    var hote = hoteDirect();
+    var qs = questionsDefi(n, ids, nb * 3).filter(function (P) { return P.options && P.options.length >= 2 && P.options.length <= 6 && !P.ouverte; }).slice(0, nb);
+    if (!hote) { notifier("Configurez d'abord le jeu en direct dans l'Espace professeur.", "parchemin"); return; }
+    if (qs.length < 3) { notifier("Ces chapitres n'ont pas encore assez de questions pour une partie en direct.", "parchemin"); return; }
+    var code = codePartie();
+    directProf = { niveau: n, code: code, hote: hote, canal: canalDirect(hote, code), questions: qs, pos: -1, duree: duree, phase: "attente",
+      arbre: null, scores: {}, debut: 0, minuterie: null, bannis: {} };
+    var d = directProf;
+    d.canal.ecrire("", { etat: "attente", cree: Date.now(), total: qs.length }).then(function () {
+      d.canal.ecouter(function (t) { d.arbre = t; if (directProf === d) majDirectProf(); }, function () { notifier("La connexion à la base est coupée : vérifiez le réseau.", "parchemin"); });
+      vueDirectProf();
+    }, function (e) { directProf = null; notifier(e.message, "parchemin"); });
+  }
+  function joueursDirect(d) {
+    var j = (d.arbre && d.arbre.joueurs) || {}, res = {};
+    Object.keys(j).forEach(function (id) { if (/^[a-z0-9]{6,16}$/.test(id) && !d.bannis[id] && j[id] && typeof j[id] === "object") res[id] = { p: pseudoSur(j[id].p) || "Anonyme", perso: j[id].perso }; });
+    return res;
+  }
+  function reponsesDirect(d) {
+    var r = (d.arbre && d.arbre.rep && d.arbre.rep[d.pos]) || {}, joueurs = joueursDirect(d), res = {}, P = d.questions[d.pos];
+    Object.keys(r).forEach(function (id) {
+      var x = r[id];
+      if (!joueurs[id] || !x || typeof x !== "object") return;
+      var k = Math.floor(Number(x.r)), ms = Math.max(0, Number(x.ms) || 0);
+      if (k >= 0 && P && k < P.options.length) res[id] = { r: k, ms: ms };
+    });
+    return res;
+  }
+  function vueDirectProf() {
+    var d = directProf;
+    app.innerHTML = "";
+    var ecran = ecranAventure("av-nuit defi-classe dc-jeu dx");
+    var fermer = el("button", { class: "av-btn-rond", type: "button", "aria-label": "Fermer la partie" });
+    fermer.innerHTML = icone("fermer");
+    fermer.addEventListener("click", function () { confirmer("Fermer la partie ?", "La partie sera effacée et les élèves déconnectés.", "Fermer", fermerDirect); });
+    d.titre = el("strong", { class: "av-haut-titre" });
+    ecran.appendChild(el("div", { class: "av-haut dc-haut" }, [fermer, d.titre, boutonPleinEcran()]));
+    d.scene = el("div", { class: "dc-scene dx-scene" });
+    d.pied = el("div", { class: "dc-pied" });
+    ajouter(ecran, [d.scene, d.pied]);
+    surToucheVue = function (e) { if (e.key === " " || e.key === "Enter") { var b = d.pied.querySelector(".jeu-valider:not([disabled])"); if (b) { e.preventDefault(); b.click(); } } else if (e.key.toLowerCase() === "f") pleinEcran(); };
+    dessinerDirectProf();
+  }
+  function fermerDirect() {
+    var d = directProf;
+    if (!d) return;
+    if (d.minuterie) clearInterval(d.minuterie);
+    d.canal.effacer("").catch(function () {});
+    d.canal.fermer();
+    directProf = null;
+    location.hash = "#/defi/" + d.niveau;
+    rendre();
+  }
+  function majDirectProf() {
+    var d = directProf;
+    if (!d || !d.scene || !d.scene.isConnected) return;
+    if (d.phase === "attente") dessinerDirectProf();
+    else if (d.phase === "question") {
+      var rep = reponsesDirect(d), nbJ = Object.keys(joueursDirect(d)).length, nbR = Object.keys(rep).length;
+      if (d.compteur) d.compteur.textContent = nbR + " / " + nbJ + " réponse" + (nbR > 1 ? "s" : "");
+      if (nbJ && nbR >= nbJ) corrigerDirect();
+    }
+  }
+  function dessinerDirectProf() {
+    var d = directProf, scene = d.scene, pied = d.pied;
+    scene.innerHTML = ""; pied.innerHTML = "";
+    var joueurs = joueursDirect(d), ids = Object.keys(joueurs);
+    if (d.phase === "attente") {
+      d.titre.textContent = "Jeu en direct · salle d'attente";
+      var qr = el("div", { class: "dx-qr" });
+      try { var q = qrcode(0, "M"); q.addData(lienDirect(d.code, d.hote)); q.make(); qr.innerHTML = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true }); } catch (e) { qr.textContent = lienDirect(d.code, d.hote); }
+      var salle = el("div", { class: "dx-salle" });
+      if (!ids.length) salle.appendChild(el("p", { class: "dx-vide", text: "En attente des élèves…" }));
+      ids.forEach(function (id) {
+        var b = el("button", { class: "dx-joueur", type: "button", title: "Retirer de la partie" }, [figurePerso(joueurs[id].perso), el("span", { text: joueurs[id].p })]);
+        b.addEventListener("click", function () {
+          confirmer("Retirer « " + joueurs[id].p + " » ?", "Utile si le pseudo n'est pas correct : l'élève pourra revenir avec un autre pseudo.", "Retirer", function () {
+            d.bannis[id] = true; d.canal.effacer("/joueurs/" + id).catch(function () {}); dessinerDirectProf();
+          });
+        });
+        salle.appendChild(b);
+      });
+      ajouter(scene, [
+        el("div", { class: "dx-accueil" }, [qr, el("div", { class: "dx-consignes" }, [
+          el("h2", { text: "Scannez le QR code pour jouer" }),
+          el("p", { text: "Avec l'appareil photo du téléphone. Chacun vient avec son personnage du mode aventure et choisit un pseudo." }),
+          el("p", { class: "dx-code" }, ["Partie ", el("strong", { text: d.code })]),
+          el("p", { class: "dx-nb", text: pluriel(ids.length, "joueur") + " · " + pluriel(d.questions.length, "question") + " · " + d.duree + " s par question" })
+        ])]),
+        salle
+      ]);
+      var go = el("button", { class: "jeu-valider", type: "button", text: "Commencer la partie", disabled: !ids.length });
+      go.addEventListener("click", function () { questionDirect(0); });
+      pied.appendChild(el("div", { class: "dc-boutons" }, [go]));
+      return;
+    }
+  }
+  function questionDirect(i) {
+    var d = directProf, P = d.questions[i];
+    d.pos = i; d.phase = "question"; d.debut = Date.now();
+    d.canal.ecrire("/q", { i: i, n: d.questions.length, consigne: P.consigne, enonce: P.enonce || (P.indices ? P.indices.join(" ") : ""), options: P.options, duree: d.duree })
+      .then(function () { return d.canal.fusionner("", { etat: "question" }); }).catch(function (e) { notifier(e.message, "parchemin"); });
+    var scene = d.scene, pied = d.pied;
+    scene.innerHTML = ""; pied.innerHTML = "";
+    d.titre.textContent = "Question " + (i + 1) + " sur " + d.questions.length;
+    scene.appendChild(el("h2", { class: "dc-consigne", text: P.consigne }));
+    if (P.indices) { var ind = el("div", { class: "dc-indices" }); P.indices.forEach(function (t) { ind.appendChild(el("p", { text: t })); }); scene.appendChild(ind); }
+    if (P.enonce) scene.appendChild(el("div", { class: "dc-enonce" + (P.grand ? " grand" : ""), text: P.enonce }));
+    var media = null;
+    if (P.carte) {
+      var carte = creerCarte(P.carte.fond, [P.carte.lieu], { titre: "Carte", nomAccessible: function () { return "Le lieu à reconnaître"; }, surLieu: function () {}, surTouche: function () {} });
+      carte.etat(0, "vise"); carte.nom(0, 0);
+      media = el("div", { class: "dc-media jeu-geo" }, carte.boite);
+      setTimeout(function () { carte.echelle(); }, 0);
+    } else if (P.doc) {
+      var cadre = cadreImage(P.doc, {});
+      media = el("figure", { class: "dc-media jeu-doc" }, [cadre.cadre, el("figcaption", { text: P.doc.titre })]);
+    } else if (P.graphique) media = el("div", { class: "dc-media" }, figureGraphique(P.graphique, dessinGraphique(P.graphique), P.anonyme));
+    else if (P.image) media = el("figure", { class: "dc-media jeu-doc" }, [el("div", { class: "doc-cadre" }, el("img", { src: P.image.image, alt: P.image.titre })), el("figcaption", { text: P.image.titre })]);
+    var corpsQ = el("div", { class: "dc-corps" + (media ? " avec-media" : "") });
+    if (media) corpsQ.appendChild(media);
+    var opts = el("div", { class: "dc-options dx-options" });
+    P.options.forEach(function (o, k) {
+      var c = el("div", { class: "dc-option dx-option", "data-bonne": String(normaliser(o) === normaliser(P.bonne)) }, [el("span", { class: "dc-lettre", text: "ABCDEF".charAt(k) }), el("span", { class: "dx-txt", text: o }), el("span", { class: "dx-nb-rep" })]);
+      c.style.setProperty("--c", COULEURS_DIRECT[k]);
+      opts.appendChild(c);
+    });
+    corpsQ.appendChild(opts);
+    scene.appendChild(corpsQ);
+    var temps = el("div", { class: "dc-minuteur dx-temps" });
+    d.compteur = el("div", { class: "dx-compteur" });
+    var stop = el("button", { class: "jeu-secondaire", type: "button", text: "Arrêter et corriger" });
+    stop.addEventListener("click", corrigerDirect);
+    pied.appendChild(el("div", { class: "dc-boutons" }, [temps, d.compteur, stop]));
+    if (d.minuterie) clearInterval(d.minuterie);
+    function tic() {
+      var reste = Math.max(0, Math.ceil(d.duree - (Date.now() - d.debut) / 1000));
+      temps.textContent = reste + " s";
+      temps.classList.toggle("urgent", reste <= 5);
+      temps.style.setProperty("--part", reste / d.duree);
+      if (reste <= 0) corrigerDirect();
+    }
+    tic();
+    d.minuterie = setInterval(tic, 250);
+    majDirectProf();
+  }
+  function corrigerDirect() {
+    var d = directProf;
+    if (!d || d.phase !== "question") return;
+    d.phase = "correction";
+    if (d.minuterie) { clearInterval(d.minuterie); d.minuterie = null; }
+    var P = d.questions[d.pos], rep = reponsesDirect(d), joueurs = joueursDirect(d);
+    var bonne = -1;
+    P.options.forEach(function (o, k) { if (normaliser(o) === normaliser(P.bonne)) bonne = k; });
+    var gains = {}, comptes = P.options.map(function () { return 0; });
+    Object.keys(rep).forEach(function (id) {
+      comptes[rep[id].r]++;
+      var g = rep[id].r === bonne ? 500 + Math.round(500 * Math.max(0, 1 - rep[id].ms / (d.duree * 1000))) : 0;
+      gains[id] = g;
+      d.scores[id] = (d.scores[id] || 0) + g;
+    });
+    var cl = classementDirect(joueurs, d.scores), rangs = {};
+    cl.forEach(function (x) { rangs[x.id] = x.rang; });
+    d.canal.ecrire("/res", { i: d.pos, bonne: bonne, gains: gains, scores: d.scores, rangs: rangs, nb: cl.length })
+      .then(function () { return d.canal.fusionner("", { etat: "correction" }); }).catch(function () {});
+    son("ok");
+    var total = Math.max(1, Object.keys(rep).length);
+    d.scene.querySelectorAll(".dx-option").forEach(function (c, k) {
+      c.classList.add(k === bonne ? "bien" : "pale");
+      c.querySelector(".dx-nb-rep").textContent = String(comptes[k]);
+      c.style.setProperty("--part", comptes[k] / total);
+    });
+    if (P.expl) d.scene.appendChild(el("p", { class: "dc-expl", text: P.expl }));
+    d.pied.innerHTML = "";
+    var justes = Object.keys(rep).filter(function (id) { return rep[id].r === bonne; }).length;
+    var suite = el("button", { class: "jeu-valider", type: "button", text: "Voir le classement" });
+    suite.addEventListener("click", classementDirectProf);
+    d.pied.appendChild(el("div", { class: "dc-boutons" }, [el("div", { class: "dx-compteur", text: justes + " bonne" + (justes > 1 ? "s" : "") + " réponse" + (justes > 1 ? "s" : "") + " sur " + Object.keys(joueurs).length }), suite]));
+    suite.focus({ preventScroll: true });
+  }
+  function classementDirectProf() {
+    var d = directProf, fin = d.pos >= d.questions.length - 1;
+    d.phase = fin ? "fin" : "classement";
+    d.canal.fusionner("", { etat: d.phase }).catch(function () {});
+    var cl = classementDirect(joueursDirect(d), d.scores);
+    d.scene.innerHTML = ""; d.pied.innerHTML = "";
+    d.titre.textContent = fin ? "Le podium" : "Classement après la question " + (d.pos + 1);
+    if (fin) {
+      var podium = el("div", { class: "dx-podium" });
+      [1, 0, 2].forEach(function (k) {
+        var x = cl[k];
+        if (!x) return;
+        podium.appendChild(el("div", { class: "dx-marche r" + (k + 1) }, [figurePerso(x.p.perso, "grand"), el("strong", { text: x.p.p }), el("span", { class: "dx-pts", text: x.s + " pts" }), el("span", { class: "dx-socle", text: x.rang === 1 ? "1er" : x.rang + "e" })]));
+      });
+      d.scene.appendChild(podium);
+      confettis(d.scene.closest(".av"));
+      son("fin");
+    }
+    var liste_ = el("ol", { class: "dx-classement" });
+    cl.slice(fin ? 3 : 0, fin ? 10 : 5).forEach(function (x) {
+      liste_.appendChild(el("li", {}, [el("span", { class: "dx-rang", text: String(x.rang) }), figurePerso(x.p.perso), el("span", { class: "dx-pseudo", text: x.p.p }), el("strong", { text: x.s + " pts" })]));
+    });
+    if (liste_.children.length) d.scene.appendChild(liste_);
+    var b = el("button", { class: "jeu-valider", type: "button", text: fin ? "Fermer la partie" : "Question suivante" });
+    b.addEventListener("click", function () { if (fin) fermerDirect(); else questionDirect(d.pos + 1); });
+    d.pied.appendChild(el("div", { class: "dc-boutons" }, [b]));
+    b.focus({ preventScroll: true });
+  }
+
+  // ----- L'élève : rejoindre avec son personnage et un pseudo, puis répondre sur le téléphone -----
+  var directEleve = null;
+  function vueDirectEleve(code, hote) {
+    code = String(code || "").toUpperCase();
+    if (directEleve && (directEleve.code !== code || !directEleve.ecran.isConnected)) { directEleve.canal.fermer(); if (directEleve.minuterie) clearInterval(directEleve.minuterie); directEleve = null; }
+    document.title = "Jeu en direct — Réviser";
+    var ecran = ecranAventure("av-nuit dx-tel");
+    ecran.appendChild(el("div", { class: "av-haut" }, [el("a", { class: "av-btn-rond", href: "#/", "aria-label": "Quitter", icone: "fermer" }), el("strong", { class: "av-haut-titre", text: "Jeu en direct" }), el("span", { class: "dx-code-tel", text: code })]));
+    var corps = el("div", { class: "av-page dx-corps" });
+    ecran.appendChild(corps);
+    if (!/^[A-Z0-9]{6}$/.test(code) || !hoteDirectValide(hote)) { corps.appendChild(el("p", { class: "av-note", text: "Ce lien de partie n'est pas valable : scanne à nouveau le QR code du tableau." })); return; }
+    var id = null;
+    try { id = sessionStorage.getItem("reviser-direct-id-" + code); } catch (e) {}
+    var e = directEleve = { code: code, hote: hote, canal: canalDirect(hote, code), ecran: ecran, corps: corps, id: id, vu: false, arbre: undefined, cle: "", reponses: {}, t0: {}, minuterie: null };
+    e.canal.ecouter(function (t) { e.arbre = t; dessinerEleve(); }, function () { e.corps.innerHTML = ""; e.corps.appendChild(el("p", { class: "av-note", text: "Connexion perdue : vérifie le réseau, puis scanne à nouveau le QR code." })); });
+  }
+  function dessinerEleve() {
+    var e = directEleve, t = e.arbre;
+    if (!e || !e.corps.isConnected) return;
+    var moi = t && t.joueurs && e.id ? t.joueurs[e.id] : null;
+    if (moi) e.vu = true;
+    var etat = !t ? (e.vu ? "fermee" : "absente") : !e.id || (!moi && !e.vu) ? "rejoindre" : !moi ? "retire" : t.etat;
+    var q = t && t.q, res = t && t.res;
+    var cle = etat + "|" + (q ? q.i : "") + "|" + (e.reponses[q ? q.i : -1] !== undefined) + "|" + (res ? res.i : "");
+    if (cle === e.cle) return;
+    e.cle = cle;
+    if (e.minuterie) { clearInterval(e.minuterie); e.minuterie = null; }
+    var c = e.corps;
+    c.innerHTML = "";
+    var perso = av.perso || { peau: AV_PEAUX[1], coiffure: "court", cheveux: AV_CHEVEUX[1], tenue: "tunique", couleur: AV_TEINTES[0][0] };
+    if (etat === "absente") { c.appendChild(el("p", { class: "av-note", text: "Partie introuvable : elle n'a pas encore commencé, ou elle est terminée." })); return; }
+    if (etat === "fermee") { c.appendChild(el("div", { class: "dx-attente" }, [figurePerso(perso, "grand"), el("h2", { text: "La partie est terminée" }), el("p", { text: "Merci d'avoir joué !" }), el("a", { class: "jeu-secondaire", href: "#/", text: "Retour à la boîte à outils" })])); return; }
+    if (etat === "retire") { c.appendChild(el("p", { class: "av-note", text: "Tu as été retiré de la partie. Choisis un autre pseudo pour revenir." })); e.id = null; e.vu = false; e.cle = ""; setTimeout(dessinerEleve, 2500); return; }
+    if (etat === "rejoindre") {
+      var dernier = reglagesDirect().pseudo || "";
+      var champ = el("input", { class: "jeu-saisie", type: "text", maxlength: "16", autocomplete: "off", "aria-label": "Ton pseudo", placeholder: "Ton pseudo", value: dernier });
+      var go = el("button", { class: "jeu-valider", type: "button", text: "Rejoindre la partie", disabled: !pseudoSur(dernier) });
+      champ.addEventListener("input", function () { go.disabled = !pseudoSur(champ.value); });
+      go.addEventListener("click", function () {
+        var p = pseudoSur(champ.value);
+        if (!p) return;
+        go.disabled = true;
+        var r = reglagesDirect(); r.pseudo = p; ecrire(CLE_DIRECT, r);
+        e.id = "";
+        var l = "abcdefghijkmnpqrstuvwxyz23456789";
+        for (var i = 0; i < 10; i++) e.id += l.charAt(Math.floor(Math.random() * l.length));
+        try { sessionStorage.setItem("reviser-direct-id-" + e.code, e.id); } catch (x) {}
+        e.canal.ecrire("/joueurs/" + e.id, { p: p, perso: persoSur(av.perso || perso), t: Date.now() }).catch(function (x) { notifier(x.message, "parchemin"); go.disabled = false; });
+      });
+      champ.addEventListener("keydown", function (x) { if (x.key === "Enter" && !go.disabled) go.click(); });
+      ajouter(c, [el("div", { class: "dx-attente" }, [figurePerso(perso, "grand"), el("h2", { text: "Rejoins la partie" }),
+        el("p", { text: av.perso ? "Tu joues avec ton personnage du mode aventure." : "Crée ton personnage dans le mode aventure pour l'avoir ici." })]),
+        champ, el("p", { class: "jeu-aide", text: "Un pseudo correct : il s'affiche au tableau. Pas ton nom de famille." }), go]);
+      champ.focus();
+      return;
+    }
+    if (etat === "attente") { c.appendChild(el("div", { class: "dx-attente" }, [figurePerso(perso, "grand"), el("h2", { text: "Tu es dans la partie !" }), el("p", { text: (moi.p || "") + ", regarde le tableau : ça va commencer." })])); return; }
+    if (etat === "question" && q) {
+      if (e.reponses[q.i] !== undefined) { c.appendChild(el("div", { class: "dx-attente" }, [el("h2", { text: "Réponse envoyée !" }), el("p", { text: "Attends la correction au tableau." })])); return; }
+      if (!e.t0[q.i]) e.t0[q.i] = Date.now();
+      var duree = Math.max(5, Math.min(120, Number(q.duree) || 20));
+      var barre = barreProgres(1);
+      var opts = el("div", { class: "dx-boutons" });
+      (Array.isArray(q.options) ? q.options : []).slice(0, 6).forEach(function (o, k) {
+        var b = el("button", { class: "dx-rep", type: "button" }, [el("span", { class: "dc-lettre", text: "ABCDEF".charAt(k) }), el("span", { text: String(o) })]);
+        b.style.setProperty("--c", COULEURS_DIRECT[k]);
+        b.addEventListener("click", function () {
+          if (e.reponses[q.i] !== undefined) return;
+          e.reponses[q.i] = k;
+          son("clic");
+          e.canal.ecrire("/rep/" + q.i + "/" + e.id, { r: k, ms: Date.now() - e.t0[q.i] }).catch(function () {});
+          dessinerEleve();
+        });
+        opts.appendChild(b);
+      });
+      ajouter(c, [el("p", { class: "dx-num", text: "Question " + (Number(q.i) + 1) + " sur " + q.n }), barre, el("h2", { class: "dx-consigne", text: String(q.consigne || "") }),
+        q.enonce ? el("p", { class: "dx-enonce", text: String(q.enonce) }) : null, opts]);
+      e.minuterie = setInterval(function () {
+        var part = Math.max(0, 1 - (Date.now() - e.t0[q.i]) / (duree * 1000));
+        barre.firstChild.style.width = Math.round(part * 100) + "%";
+        if (part <= 0) { clearInterval(e.minuterie); e.minuterie = null; opts.querySelectorAll("button").forEach(function (b) { b.disabled = true; }); }
+      }, 200);
+      return;
+    }
+    if ((etat === "correction" || etat === "classement" || etat === "fin") && res) {
+      var mienne = e.reponses[res.i], juste = mienne !== undefined && mienne === res.bonne;
+      var gain = res.gains && res.gains[e.id] || 0, score = res.scores && res.scores[e.id] || 0, rang = res.rangs && res.rangs[e.id];
+      var fin = etat === "fin";
+      ajouter(c, [el("div", { class: "dx-attente " + (fin ? "fin" : juste ? "bien" : "mal") }, [
+        figurePerso(perso, "grand"),
+        el("h2", { text: fin ? (rang === 1 ? "Tu as gagné !" : "Partie terminée !") : mienne === undefined ? "Trop tard !" : juste ? "Bonne réponse !" : "Raté !" }),
+        !fin && gain ? el("p", { class: "dx-gain", text: "+" + gain + " points" }) : null,
+        el("p", { class: "dx-score", text: score + " points" + (rang ? " · " + (rang === 1 ? "1er" : rang + "e") + " sur " + res.nb : "") }),
+        fin ? el("a", { class: "jeu-secondaire", href: "#/", text: "Retour à la boîte à outils" }) : el("p", { class: "jeu-aide", text: "Regarde le tableau pour la suite." })
+      ])]);
+      if (fin && rang && rang <= 3) confettis(e.ecran);
+      return;
+    }
+    c.appendChild(el("div", { class: "dx-attente" }, [figurePerso(perso, "grand"), el("p", { text: "Regarde le tableau…" })]));
+  }
+
+  // ----- Espace professeur : brancher la base du jeu en direct, une fois -----
+  function blocDirectProf() {
+    var r = reglagesDirect();
+    var bloc = el("div", { class: "carte-panneau dx-config", style: "margin-top:14px" });
+    bloc.appendChild(el("h2", { text: "Jeu en direct sur les téléphones" }));
+    bloc.appendChild(el("p", { class: "petit", style: "margin:6px 0 0", text: "Comme Kahoot : vous projetez, les élèves scannent un QR code et répondent avec leur personnage et un pseudo. Il faut une base gratuite, à créer une seule fois (10 minutes). Seuls les pseudos et les réponses y passent, et chaque partie est effacée quand vous la fermez." }));
+    var lien = el("a", { href: "https://console.firebase.google.com/", target: "_blank", rel: "noopener", text: "console.firebase.google.com" });
+    var etapes = el("ol", { class: "etapes" });
+    [["Ouvrez ", lien, " avec votre compte Google, puis « Créer un projet » (nom : jeu-hg ; Google Analytics inutile)."],
+     ["Menu « Créer », puis « Realtime Database », « Créer une base de données », emplacement « Belgique (europe-west1) », « mode verrouillé »."],
+     ["Onglet « Règles » : remplacez tout par le texte ci-dessous, puis « Publier »."],
+     ["Onglet « Données » : copiez l'adresse affichée en haut (https://….firebasedatabase.app) et collez-la ici."]
+    ].forEach(function (x) { etapes.appendChild(el("li", null, x)); });
+    var regles = el("textarea", { class: "champ dx-regles", readonly: "readonly", rows: "10", "aria-label": "Règles de la base" });
+    regles.value = REGLES_DIRECT;
+    var copier = el("button", { class: "btn", type: "button", text: "Copier les règles" });
+    copier.addEventListener("click", function () { regles.select(); try { navigator.clipboard.writeText(REGLES_DIRECT); } catch (x) { document.execCommand("copy"); } copier.textContent = "Copié !"; });
+    var champ = el("input", { class: "champ", type: "url", placeholder: "https://jeu-hg-default-rtdb.europe-west1.firebasedatabase.app", "aria-label": "Adresse de la base", value: r.hote && r.hote !== "local" ? "https://" + r.hote : "" });
+    var btn = el("button", { class: "btn plein", type: "button", text: "Enregistrer et tester" });
+    var retour = el("p", { class: "petit", role: "status", style: "margin:8px 0 0", text: hoteDirect() ? "Base enregistrée sur cet appareil : le jeu en direct est prêt (Défi de classe, mode « En direct »)." : "" });
+    btn.addEventListener("click", function () {
+      var h = nettoyerHote(champ.value);
+      if (!hoteDirectValide(h)) { retour.textContent = "Cette adresse ne ressemble pas à une base Firebase (…firebasedatabase.app)."; return; }
+      btn.disabled = true;
+      retour.textContent = "Test de la base…";
+      var canal = canalDirect(h, "ESSAI0");
+      canal.ecrire("", { t: Date.now() }).then(function () { return canal.effacer(""); }).then(function () {
+        var x = reglagesDirect(); x.hote = h; ecrire(CLE_DIRECT, x);
+        retour.textContent = "C'est prêt : la base répond. Lancez une partie depuis le Défi de classe, mode « En direct ».";
+        btn.disabled = false;
+      }, function (er) { retour.textContent = er.message || "La base ne répond pas : vérifiez l'adresse et les règles."; btn.disabled = false; });
+    });
+    ajouter(bloc, [etapes, regles, el("div", { class: "btns" }, copier), el("div", { class: "ligne-champ" }, [champ, btn]), retour]);
+    return bloc;
+  }
+
   function vueDefiFin() {
     var d = defiClasse;
     app.innerHTML = "";
@@ -10310,6 +10815,7 @@
 
     app.appendChild(el("a", { class: "lien-defi", href: "#/defi/" + classeProf }, [el("strong", { text: "Défi de classe à projeter" }), " : questions des chapitres, par équipes, avec minuteur et classement"]));
     app.appendChild(blocCartesProf());
+    app.appendChild(blocDirectProf());
     app.appendChild(el("div", { class: "etiq", text: "Classe" }));
     var choix = el("div", { class: "choix", role: "group", "aria-label": "Classe" });
     NIVEAUX.forEach(function (n) {
