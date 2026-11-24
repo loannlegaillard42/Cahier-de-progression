@@ -1675,32 +1675,25 @@
   .pt-etapes i { width: 16px; height: 16px; border-radius: 50%; background: #34386A; box-shadow: inset 0 -3px 0 rgba(0,0,0,.25); }
   .pt-etapes i.fait { background: #FFC83D; }
   .pt-etapes i.ici { background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.3); }
-  .pt-scene { position: relative; height: 190px; margin: 0 0 6px; overflow: hidden; background: linear-gradient(180deg, #3B5FD8 0%, #7DB3F5 58%, #2050B8 58%, #183E96 100%); }
-  .pt-ciel { position: absolute; inset: 0; background: radial-gradient(circle at 80% 22%, #FFE08A 0 18px, transparent 19px), radial-gradient(ellipse 40px 12px at 30% 25%, rgba(255,255,255,.8) 98%, transparent), radial-gradient(ellipse 30px 9px at 62% 14%, rgba(255,255,255,.6) 98%, transparent); }
-  .pt-ile { position: absolute; bottom: 30%; width: 22%; height: 24%; background: #4BAE4F; border-radius: 0 0 40% 40%; box-shadow: inset 0 -10px 0 #C79A5A; }
-  .pt-ile.g { left: -6%; border-top-right-radius: 30px; }
-  .pt-ile.d { right: -6%; border-top-left-radius: 30px; }
-  .pt-drapeau { position: absolute; top: -28px; left: 30%; padding: 2px 8px; border-radius: 6px; background: #FFD34D; color: #5A3B00; font-weight: 800; font-size: 13px; }
-  .pt-planches { position: absolute; left: 0; right: 0; bottom: 34%; height: 12px; background: repeating-linear-gradient(90deg, #A86A36 0 22px, #7A4A22 22px 26px); box-shadow: 0 4px 0 #5B3418; animation: pt-defile .6s linear infinite; }
-  @keyframes pt-defile { from { background-position: 0 0; } to { background-position: -26px 0; } }
-  .pt-perso { position: absolute; left: 12%; bottom: calc(34% + 10px); width: 64px; height: 80px; z-index: 2; }
-  .pt-perso svg { width: 100%; height: 100%; display: block; }
-  .pt-perso.court { animation: pt-court .35s ease-in-out infinite alternate; }
-  @keyframes pt-court { from { transform: translateY(0); } to { transform: translateY(-4px); } }
-  .pt-perso.saute { animation: pt-saut .8s ease-out; }
-  @keyframes pt-saut { 0% { transform: translateY(0); } 45% { transform: translateY(-78px) rotate(-8deg); } 100% { transform: translateY(0); } }
-  .pt-perso.tombe { animation: pt-tombe .7s ease-out; }
-  @keyframes pt-tombe { 0% { transform: none; } 30% { transform: translateX(-10px) rotate(-22deg); filter: drop-shadow(0 0 6px #FF5A6E); } 100% { transform: none; } }
-  .pt-perso.arrive { left: 74%; transition: left 1.2s ease-in-out; animation: pt-court .3s ease-in-out 4 alternate; }
-  .pt-obst { position: absolute; bottom: calc(34% + 10px); width: 52px; height: 42px; z-index: 1; transform: translateX(-50%); }
-  .pt-obst svg { width: 100%; height: 100%; display: block; }
-  .pt-obst.proche { filter: drop-shadow(0 0 8px #FF5A6E); }
-  .pt-obst.passe { transition: left .8s linear; left: 4% !important; opacity: .4; }
   .pt-bulle { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); padding: 5px 12px; border-radius: 12px; background: rgba(20, 23, 63, .8); color: #fff; font-weight: 800; font-size: 14px; white-space: nowrap; }
   .pt-bulle:empty { display: none; }
-  .pt-corps { padding-top: 4px; }
-  .pt-question .jeu-consigne { font-size: 19px; }
-  @media (prefers-reduced-motion: reduce) { .pt-planches, .pt-perso.court { animation: none; } }
+  .ps-scene { position: relative; margin: 2px 12px 6px; border-radius: 22px; overflow: hidden; box-shadow: 0 5px 0 #14173F; background: #E3EAFA; }
+  .ps-svg { display: block; width: 100%; height: auto; max-height: 44vh; }
+  .ps-plateforme { cursor: pointer; }
+  .ps-nuages { animation: ps-nuages 40s linear infinite alternate; }
+  @keyframes ps-nuages { from { transform: translateX(-10px); } to { transform: translateX(14px); } }
+  .ps-perso-corps { animation: ps-respire 1.4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: bottom; }
+  @keyframes ps-respire { from { transform: scaleY(1); } to { transform: scaleY(1.03); } }
+  .ps .pt-bulle { top: 10px; background: rgba(28, 31, 74, .85); }
+  .ps-question { padding-top: 2px; }
+  .ps-question .jeu-consigne { font-size: 18px; margin-bottom: 4px; }
+  .ps-texte { margin: 0 0 8px; font-weight: 700; font-size: 15px; line-height: 1.35; color: #EDEBFF; }
+  .ps-question .av-barre { margin: 6px 0 10px; }
+  .ps-reps { display: grid; gap: 8px; }
+  .ps-rep { display: flex; align-items: center; gap: 10px; text-align: left; }
+  .ps-rep .dc-lettre { flex: none; }
+  .ps-rep.choisi { border-color: #8B6CFF; }
+  @media (prefers-reduced-motion: reduce) { .ps-nuages, .ps-perso-corps { animation: none; } }
 </style>
 </head>
 <body>
@@ -2891,7 +2884,7 @@
     exclus[normaliser(valeur(bonne))] = true;
     exclus["id:" + normaliser(ident(bonne))] = true;
     var choisies = [];
-    [melanger(memeChap), melanger(autres)].forEach(function (groupe) {
+    [melanger(memeChap), melanger(autres), melanger(autres.loin || [])].forEach(function (groupe) {
       groupe.forEach(function (x) {
         if (choisies.length >= 3) return;
         var v = normaliser(valeur(x)), id = "id:" + normaliser(ident(x));
@@ -5977,7 +5970,9 @@
     var out = [];
     if (ch.parent) blocs(ch.parent).forEach(function (x) { out = out.concat(liste(x.data, champ)); });
     blocs(ch).forEach(function (x) { if (x.id !== b.id) out = out.concat(liste(x.data, champ)); });
-    return out.concat(autresDuNiveau(ch, champ));
+    // les chapitres voisins ne servent qu'en dernier recours (voir propositions)
+    out.loin = autresDuNiveau(ch, champ);
+    return out;
   }
   // une réponse écrite : sans tenir compte des majuscules, des accents ni de l'article ; une faute de frappe passe dans un mot long
   function distance(a, b) {
@@ -6047,7 +6042,7 @@
         // le « faux » d'un vrai ou faux : une définition du même chapitre, sinon d'un chapitre déjà ouvert
         var differente = function (x) { return normaliser(x.mot) !== normaliser(n.mot) && normaliser(x.def) !== normaliser(n.def); };
         var duChap = notions.concat(ch.parent ? liste(ch.parent, "notions") : []).filter(differente);
-        var autre = melanger(duChap.length ? duChap : autres.filter(differente))[0];
+        var autre = melanger(duChap.length ? duChap : autres.concat(autres.loin || []).filter(differente))[0];
         var vrai = !autre || Math.random() < .5;
         qs.push({ type: "vf", titre: n.mot, texte: vrai ? n.def : autre.def, vrai: vrai, expl: expl });
       }
@@ -6352,13 +6347,13 @@
         noeuds.push({ type: "niveau", cle: ch.id + "|" + b.id + "|tout", unite: u, rang: noeuds.length + 1, icone: "carte", ppo: true,
           court: b.nom, nom: "Point de passage : " + (b.data.titre || b.nom), poolDe: function () { return poolTout(ch, b); } });
       });
-      // le pont vers l'île suivante : six obstacles sur ce qu'on vient d'apprendre
+      // le passage vers l'île suivante : six sauts de plateforme en plateforme sur ce qu'on vient d'apprendre
       var suivant = groupes[gi + 1];
       if (suivant) {
         var poolPartie = noeuds[noeuds.length - 1].ppo ? null : noeuds[noeuds.length - 1].poolDe;
         var dernier = noeuds.filter(function (x) { return x.partie === num; })[0];
-        noeuds.push({ type: "pont", cle: ch.id + "|pont|" + (gi + 1), unite: u, icone: "pont", court: "Le pont", vers: numGroupe(suivant),
-          nom: "Le pont vers la partie " + numGroupe(suivant), apres: cleGroupe(suivant), poolDe: (poolPartie || dernier.poolDe) });
+        noeuds.push({ type: "pont", cle: ch.id + "|pont|" + (gi + 1), unite: u, icone: "pont", court: "Le passage", vers: numGroupe(suivant),
+          nom: "Le passage vers la partie " + numGroupe(suivant), apres: cleGroupe(suivant), poolDe: (poolPartie || dernier.poolDe) });
       }
     });
     noeuds.push({ type: "coffre", cle: ch.id + "|cours", unite: u, nom: "Le coffre", icone: "coffre" });
@@ -6723,7 +6718,7 @@
       var fait = noeudFait(n), ouvert = noeudOuvert(route, n), ici = n.i === actuel || (actuel < 0 && n.i === noeuds.length - 1);
       var wrap = el("div", { class: "av-ile" + (n.type === "pont" ? " pont" : "") + (ici ? " actuelle" : "") });
       wrap.style.setProperty("--dx", Math.round(DECALAGES[n.i % DECALAGES.length] * ampleur * (n.type === "pont" ? .4 : 1)) + "px");
-      wrap.innerHTML = n.type === "pont" ? svgPontChemin(!ouvert) : svgIle(n.i, AV_DECORS[n.i % AV_DECORS.length], !ouvert);
+      wrap.innerHTML = n.type === "pont" ? svgPassageChemin(!ouvert) : svgIle(n.i, AV_DECORS[n.i % AV_DECORS.length], !ouvert);
       var etat = fait ? "fait" : n.i === actuel ? "actuel" : ouvert ? "ouvert" : "verrou";
       var b = el("button", { class: "av-noeud " + n.type + " " + etat, type: "button", "aria-expanded": "false",
         "aria-label": n.nom + (n.unite ? ", " + n.unite.petit.toLowerCase() : "") + (fait ? ", terminé" : ouvert ? "" : ", verrouillé") });
@@ -6770,8 +6765,8 @@
         if (ouvert && !fait) action = el("button", { class: "av-bulle-btn", type: "button", text: "Ouvrir le coffre", onclick: function () { fermerBulle(); modalCoffre(ch, n); } });
         else if (fait) action = el("a", { class: "av-bulle-btn", href: lienAventure(ch, "perso"), text: "Voir mes trouvailles" });
       } else if (n.type === "pont") {
-        info = fait ? "Pont déjà traversé : tu peux le refaire pour t'entraîner." : ouvert ? "Fais traverser le pont à ton personnage : avant chaque obstacle, réponds à une question sur la partie que tu viens de finir. 6 obstacles, de plus en plus durs." : "Termine d'abord l'île d'avant.";
-        if (ouvert) action = el("a", { class: "av-bulle-btn", href: lienAventure(ch, "jeu/" + n.i), text: fait ? "Retraverser" : "Traverser le pont" });
+        info = fait ? "Passage déjà franchi : tu peux le refaire pour t'entraîner." : ouvert ? "Saute de plateforme en plateforme jusqu'à l'île suivante : chaque plateforme est une réponse sur la partie que tu viens de finir. 6 sauts, de plus en plus durs ; la mauvaise plateforme s'effondre !" : "Termine d'abord l'île d'avant.";
+        if (ouvert) action = el("a", { class: "av-bulle-btn", href: lienAventure(ch, "jeu/" + n.i), text: fait ? "Refaire le passage" : "Sauter !" });
       } else {
         info = n.type === "defi" ? nb.defi + " questions sur tout " + (route.parties ? "le chapitre" : "le parcours") + ", et " + VIES_DEFI + " vies."
           : n.partie ? nb.nb + " questions sur cette partie du cours : son vocabulaire, ses dates, ses acteurs et ses lieux."
@@ -6801,7 +6796,7 @@
       if (cible) {
         bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: "Étape " + (actuel + 1) + " sur " + noeuds.length }), el("strong", { text: cible.court || cible.nom })]));
         if (cible.type === "coffre") bas.appendChild(el("button", { class: "jeu-valider", type: "button", text: "Ouvrir le coffre", onclick: function () { fermerBulle(); modalCoffre(ch, cible); } }));
-        else bas.appendChild(el("a", { class: "jeu-valider", href: lienAventure(ch, "jeu/" + cible.i), text: cible.type === "defi" ? "Relever le défi" : cible.type === "pont" ? "Traverser" : faits ? "Continuer" : "Commencer" }));
+        else bas.appendChild(el("a", { class: "jeu-valider", href: lienAventure(ch, "jeu/" + cible.i), text: cible.type === "defi" ? "Relever le défi" : cible.type === "pont" ? "Sauter !" : faits ? "Continuer" : "Commencer" }));
       } else {
         bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: pluriel(etoilesRoute(route), "étoile") + " gagnées" }), el("strong", { text: ch.special ? "Parcours terminé !" : "Chapitre terminé !" })]));
         bas.appendChild(el("a", { class: "jeu-valider", href: lienMonde(ch.n), text: "Retour à la carte" }));
@@ -7144,161 +7139,279 @@
     poser();
   }
 
-  // ----- Le pont entre deux îles : un petit jeu d'arcade pour valider la partie du cours qu'on vient de finir -----
-  // Le personnage court sur le pont ; un obstacle arrive : la question s'affiche, et l'obstacle qui avance est le compte à rebours.
-  // Bonne réponse : il saute ; erreur ou temps écoulé : il trébuche et perd un cœur, puis un autre obstacle arrive.
-  // Six obstacles, de plus en plus durs : vrai ou faux, puis 3 propositions, puis 4, puis une question exigeante.
-  var PONT_PALIERS = ["vf", "vf", "choix3", "choix3", "choix", "dur"];
-  function questionsPont(ch, pool) {
-    var diff = difficulte(ch), vus = {};
-    pool = melanger(pool.slice());
-    function prendre(test) {
-      for (var i = 0; i < pool.length; i++) {
-        var q = pool[i], sig = signature(q);
-        if (!vus[sig] && test(q)) { vus[sig] = true; pool.splice(i, 1); return q; }
+  // ----- Le passage entre deux îles : un petit jeu de plateformes pour valider la partie du cours qu'on vient de finir -----
+  // Une scène en 3D isométrique (plateformes flottantes, façon pâte à modeler). Les réponses sont les plateformes : on touche
+  // la bonne, le personnage saute dessus ; la mauvaise s'effondre (un cœur perdu). La plateforme sous ses pieds s'effrite :
+  // c'est le compte à rebours. Six sauts, de plus en plus durs (2, puis 3, puis 4 plateformes, puis une question difficile) ;
+  // au bout, l'île suivante, avec le monument du chapitre et un coffre.
+  var PASSAGE_PALIERS = [2, 2, 3, 3, 4, 0];
+  var ISO = 24; // un pas de la grille, en pixels
+  function iso(x, y, z) { return { X: (x - y) * .866 * ISO, Y: (x + y) * .5 * ISO - (z || 0) * ISO }; }
+  // un bloc arrondi vu en isométrique : le dessus et les deux faces visibles, avec des bourrelets en bas
+  function svgBloc(cx, cy, z, w, d, h, c) {
+    var A = iso(cx - w / 2, cy - d / 2, z), B = iso(cx + w / 2, cy - d / 2, z), C = iso(cx + w / 2, cy + d / 2, z), D = iso(cx - w / 2, cy + d / 2, z);
+    var dz = h * ISO, pts = function (l) { return l.map(function (p) { return p.X.toFixed(1) + "," + p.Y.toFixed(1); }).join(" "); };
+    var bas = function (p) { return { X: p.X, Y: p.Y + dz }; };
+    var s = '<polygon points="' + pts([D, C, bas(C), bas(D)]) + '" fill="' + c[1] + '" stroke="' + c[1] + '" stroke-width="5" stroke-linejoin="round"/>';
+    s += '<polygon points="' + pts([C, B, bas(B), bas(C)]) + '" fill="' + c[2] + '" stroke="' + c[2] + '" stroke-width="5" stroke-linejoin="round"/>';
+    var r = Math.max(3, dz * .42);
+    [[D, C, c[1]], [C, B, c[2]]].forEach(function (f) {
+      for (var k = 1; k <= 3; k++) { var t = k / 4, x = f[0].X + (f[1].X - f[0].X) * t, y = f[0].Y + (f[1].Y - f[0].Y) * t + dz; s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + f[2] + '"/>'; }
+    });
+    s += '<polygon points="' + pts([A, B, C, D]) + '" fill="' + c[0] + '" stroke="' + c[0] + '" stroke-width="6" stroke-linejoin="round"/>';
+    return s;
+  }
+  var COULEURS_BLOC = { bleu: ["#4C86FF", "#2F63E0", "#2553C2"], gris: ["#EEEFF4", "#D5D7E2", "#C3C6D4"], vert: ["#3FCF7A", "#25A85C", "#1E8C4C"], rouge: ["#FF7A7A", "#E04848", "#C23636"], eteint: ["#5B5F80", "#45496B", "#3A3D5C"] };
+  function svgBuisson(x, y) { return '<g transform="translate(' + x.toFixed(1) + " " + y.toFixed(1) + ')"><circle cx="-7" cy="-6" r="7" fill="#5E9C7A"/><circle cx="6" cy="-7" r="8" fill="#6FAE8A"/><circle cx="0" cy="-12" r="7" fill="#7FBE98"/></g>'; }
+  function svgLampadaire(x, y) { return '<g transform="translate(' + x.toFixed(1) + " " + y.toFixed(1) + ')"><rect x="-2.5" y="-58" width="5" height="58" rx="2" fill="#3A3D52"/><path d="M0 -56 h16" stroke="#3A3D52" stroke-width="4" stroke-linecap="round"/><rect x="10" y="-52" width="12" height="15" rx="4" fill="#F5A623"/><rect x="13" y="-49" width="6" height="9" rx="2" fill="#FFD27A"/></g>'; }
+  // l'icône du passage sur le chemin : trois plateformes qui montent
+  function svgPassageChemin(eteint) {
+    var c = eteint ? COULEURS_BLOC.eteint : COULEURS_BLOC.bleu, s = '<svg viewBox="-110 -70 220 110" class="av-pont-svg" aria-hidden="true" focusable="false">';
+    s += svgBloc(-2.6, 2.6, 0, 1.6, 1.6, .5, c) + svgBloc(0, 0, .6, 1.6, 1.6, .5, c) + svgBloc(2.6, -2.6, 1.2, 1.6, 1.6, .5, c);
+    return s + "</svg>";
+  }
+  // une question du chapitre → une question à plateformes : un énoncé et 2 à 4 réponses courtes
+  function versPlateformes(q, nb) {
+    var P = versProjection(q);
+    if (!P || !P.options || P.ouverte || P.carte || P.doc || P.graphique || P.croquis || P.image) return null;
+    var opts = P.options.slice(), bonne = opts.filter(function (o) { return normaliser(o) === normaliser(P.bonne); })[0];
+    if (bonne === undefined) return null;
+    if (nb && opts.length > nb) opts = melanger([bonne].concat(melanger(opts.filter(function (o) { return o !== bonne; })).slice(0, nb - 1)));
+    if (opts.length < 2 || opts.length > 4) return null;
+    return { q: q, consigne: P.consigne, texte: P.enonce || (P.indices ? P.indices.slice(0, 3).join(" ") : ""), options: opts, bonne: bonne, expl: P.expl };
+  }
+  function questionsPassage(ch, pool) {
+    var diff = difficulte(ch), vus = {}, reste = melanger(pool.slice());
+    function prendre(test, nb) {
+      for (var i = 0; i < reste.length; i++) {
+        var q = reste[i], sig = signature(q);
+        if (vus[sig] || !test(q)) continue;
+        var P = versPlateformes(q, nb);
+        if (!P || (nb && P.options.length !== nb)) continue;
+        vus[sig] = true; reste.splice(i, 1);
+        return P;
       }
       return null;
     }
-    var estChoix = function (q) { return q.type === "choix" && q.options && q.options.length >= 3; };
-    function deTroisOptions(q) {
-      var c = {}; Object.keys(q).forEach(function (k) { c[k] = q[k]; });
-      c.options = melanger([q.bonne].concat(melanger(q.options.filter(function (o) { return normaliser(o) !== normaliser(q.bonne); })).slice(0, 2)));
-      return c;
-    }
-    function palier(p) {
-      var q = null;
-      if (p === "vf") q = prendre(function (x) { return x.type === "vf"; }) || prendre(estChoix);
-      else if (p === "choix3") { q = prendre(estChoix); if (q) q = deTroisOptions(q); }
-      else if (p === "choix") q = prendre(estChoix);
-      else q = (diff.saisie ? prendre(function (x) { return x.type === "saisie"; }) : null) || prendre(function (x) { return x.type === "curseur" || x.type === "intrus" || x.type === "glisser"; }) || prendre(estChoix);
-      return q || prendre(function (x) { return x.type === "vf" || estChoix(x); });
-    }
-    return { palier: palier };
-  }
-  function svgObstacle(k) {
-    var formes = [
-      // un rocher
-      '<path d="M6 44 L14 20 Q22 8 34 12 L46 22 Q56 30 54 44 Z" fill="#8C8FA8"/><path d="M14 20 Q22 8 34 12 L30 22 Z" fill="#B4B7CC"/>',
-      // un tonneau
-      '<rect x="12" y="10" width="36" height="34" rx="8" fill="#A0602E"/><rect x="12" y="17" width="36" height="4" fill="#5B3418"/><rect x="12" y="33" width="36" height="4" fill="#5B3418"/>',
-      // un crabe
-      '<ellipse cx="30" cy="34" rx="18" ry="11" fill="#E4573D"/><circle cx="23" cy="24" r="3.5" fill="#fff"/><circle cx="37" cy="24" r="3.5" fill="#fff"/><circle cx="23" cy="24" r="1.6" fill="#222"/><circle cx="37" cy="24" r="1.6" fill="#222"/><path d="M12 30 Q2 22 8 14 M48 30 Q58 22 52 14" stroke="#E4573D" stroke-width="4" fill="none" stroke-linecap="round"/>'
-    ];
-    return '<svg viewBox="0 0 60 48" aria-hidden="true" focusable="false">' + formes[k % formes.length] + "</svg>";
-  }
-  function svgPontChemin(eteint) {
-    var bois = eteint ? "#5B5F80" : "#A86A36", corde = eteint ? "#3E4170" : "#6B3F1C";
-    var s = '<svg viewBox="0 0 220 90" class="av-pont-svg" aria-hidden="true" focusable="false">';
-    s += '<path d="M10 52 Q110 78 210 52" stroke="' + corde + '" stroke-width="5" fill="none"/>';
-    for (var i = 0; i < 11; i++) {
-      var x = 18 + i * 17.5, y = 52 + Math.sin(i / 10 * Math.PI) * 13;
-      s += '<rect x="' + (x - 7) + '" y="' + (y - 4) + '" width="14" height="10" rx="2" fill="' + bois + '"/>';
-    }
-    s += '<path d="M10 34 Q110 58 210 34" stroke="' + corde + '" stroke-width="3" fill="none"/>';
-    [10, 210].forEach(function (x) { s += '<rect x="' + (x - 4) + '" y="26" width="8" height="34" rx="3" fill="' + corde + '"/>'; });
-    return s + "</svg>";
+    // les vraies questions à choix d'abord ; les phrases à trous et la frise ensuite (leurs propositions mêlent parfois mots et dates)
+    var choixPur = function (q) { return q.type === "choix"; };
+    var choix = function (q) { return q.type === "choix" || q.type === "glisser" || q.type === "curseur"; };
+    return function (k) {
+      var nb = PASSAGE_PALIERS[k], max = Math.min(4, diff.options);
+      if (nb === 2) return prendre(function (q) { return q.type === "vf"; }, 2) || prendre(choixPur, 2) || prendre(choix, 2);
+      if (nb) return prendre(choixPur, Math.min(nb, max)) || prendre(choix, Math.min(nb, max)) || prendre(function (q) { return q.type === "vf"; }, 2);
+      return prendre(function (q) { return q.type === "intrus" || q.type === "quisuisje" || q.type === "curseur"; }, Math.min(4, max)) || prendre(choix, Math.min(4, max)) || prendre(choix, 3);
+    };
   }
   function vuePont(ch, route, n) {
-    var diff = difficulte(ch), illimites = coeursIllimites();
+    var illimites = coeursIllimites(), diff = difficulte(ch);
     var retour = lienAventure(ch);
     if (!illimites && coeurs() <= 0) { vueSansCoeur(ch, n, retour); return; }
-    var source = questionsPont(ch, n.poolDe ? n.poolDe() : []);
-    var guide = { d: ch.d };
-    var ecran = ecranAventure("av-nuit jeu pt");
-    var quitter = el("a", { class: "av-btn-rond", href: retour, "aria-label": "Quitter le pont" });
+    var tirer = questionsPassage(ch, n.poolDe ? n.poolDe() : []);
+    var lent = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var ecran = ecranAventure("av-nuit jeu ps");
+    var quitter = el("a", { class: "av-btn-rond", href: retour, "aria-label": "Quitter le passage" });
     quitter.innerHTML = icone("fermer");
     var etapes = el("div", { class: "pt-etapes", "aria-hidden": "true" });
-    PONT_PALIERS.forEach(function () { etapes.appendChild(el("i")); });
+    PASSAGE_PALIERS.forEach(function () { etapes.appendChild(el("i")); });
     var coeursH = el("span", { class: "av-coeurs" });
     ecran.appendChild(el("div", { class: "jeu-haut" }, [quitter, etapes, illimites ? el("span") : coeursH]));
-    // la scène : le pont, le personnage, l'obstacle qui arrive
-    var scene = el("div", { class: "pt-scene" });
-    var perso = el("div", { class: "pt-perso" });
-    perso.innerHTML = dessinPerso(av.perso);
-    var obst = el("div", { class: "pt-obst" });
+    // la scène
+    var W = 390, H = 300;
+    var cadre = el("div", { class: "ps-scene" });
+    var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, class: "ps-svg", role: "img", "aria-label": "Le personnage sur des plateformes flottantes" });
+    svg.innerHTML = '<defs><linearGradient id="ps-ciel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F7FF"/><stop offset="1" stop-color="#D8E2F8"/></linearGradient></defs>' +
+      '<rect width="' + W + '" height="' + H + '" fill="url(#ps-ciel)"/>' +
+      '<g class="ps-nuages"><ellipse cx="70" cy="60" rx="34" ry="13" fill="#fff"/><ellipse cx="95" cy="52" rx="22" ry="12" fill="#fff"/><ellipse cx="300" cy="110" rx="40" ry="14" fill="#fff"/><ellipse cx="330" cy="100" rx="24" ry="12" fill="#fff"/><ellipse cx="200" cy="250" rx="46" ry="15" fill="#fff" opacity=".8"/></g>';
+    var monde = svgEl("g", {});
+    svg.appendChild(monde);
     var bulle = el("div", { class: "pt-bulle", role: "status", "aria-live": "polite" });
-    ajouter(scene, [el("div", { class: "pt-ciel" }), el("div", { class: "pt-ile g" }), el("div", { class: "pt-ile d" }, el("span", { class: "pt-drapeau", text: n.vers ? "Île " + n.vers : "" })), el("div", { class: "pt-planches" }), obst, perso, bulle]);
-    ecran.appendChild(scene);
-    var corps = el("div", { class: "jeu-corps pt-corps" });
+    ajouter(cadre, [svg, bulle]);
+    ecran.appendChild(cadre);
+    var corps = el("div", { class: "jeu-corps ps-corps" });
     var pied = el("div", { class: "jeu-pied" });
     ajouter(ecran, [corps, pied]);
-    var pos = 0, chutes = 0, minuterie = null, actif = false, debut = 0, duree = 0, q = null;
-    var lent = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // le personnage
+    var perso = svgEl("g", { class: "ps-perso" });
+    var dansPerso = svgEl("g", { class: "ps-perso-corps" });
+    dansPerso.innerHTML = dessinPerso(av.perso);
+    var svgP = dansPerso.querySelector("svg");
+    svgP.setAttribute("x", "-26"); svgP.setAttribute("y", "-64"); svgP.setAttribute("width", "52"); svgP.setAttribute("height", "66");
+    perso.appendChild(dansPerso);
+    // l'île de départ
+    var depart = svgEl("g", {});
+    var p0 = iso(0, 0, .8);
+    depart.innerHTML = svgBloc(0, 0, .8, 4, 4, .9, COULEURS_BLOC.gris) + svgBuisson(iso(-1.2, 1.1, .8).X, iso(-1.2, 1.1, .8).Y) + svgBuisson(iso(1.3, -1.2, .8).X, iso(1.3, -1.2, .8).Y) + svgLampadaire(iso(-1.3, -1.1, .8).X, iso(-1.3, -1.1, .8).Y);
+    monde.appendChild(depart);
+    monde.appendChild(perso);
+    var rang = 0, chutes = 0, ici = { X: p0.X, Y: p0.Y, g: depart }, cam = { x: 0, y: 0 }, candidats = [], P = null, minuterie = null, debut = 0, duree = 0, actif = false;
+    function placerPerso(x, y, o) { perso.setAttribute("transform", "translate(" + x.toFixed(1) + " " + y.toFixed(1) + ")"); perso.style.opacity = o === undefined ? 1 : o; }
+    function viser(x, y) { cam.x = W / 2 - x; cam.y = H * .66 - y; }
+    function appliquerCam() { monde.setAttribute("transform", "translate(" + cam.x.toFixed(1) + " " + cam.y.toFixed(1) + ")"); }
+    function animer(ms, f, fin) {
+      if (lent) ms = 1;
+      var t0 = performance.now();
+      (function pas(t) { var k = Math.min(1, (t - t0) / ms); f(k); if (k < 1 && ecran.isConnected) requestAnimationFrame(pas); else if (fin) fin(); })(t0);
+    }
+    function sauter(de, vers, fin) {
+      var c0 = { x: cam.x, y: cam.y }; viser(vers.X, vers.Y); var c1 = { x: cam.x, y: cam.y };
+      animer(620, function (k) {
+        var e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+        placerPerso(de.X + (vers.X - de.X) * e, de.Y + (vers.Y - de.Y) * e - 56 * 4 * k * (1 - k));
+        cam.x = c0.x + (c1.x - c0.x) * e; cam.y = c0.y + (c1.y - c0.y) * e; appliquerCam();
+      }, fin);
+    }
     function majHaut() {
-      etapes.querySelectorAll("i").forEach(function (x, k) { x.className = k < pos ? "fait" : k === pos ? "ici" : ""; });
+      etapes.querySelectorAll("i").forEach(function (x, k) { x.className = k < rang ? "fait" : k === rang ? "ici" : ""; });
       if (!illimites) { coeursH.innerHTML = ""; for (var k = 0; k < COEURS_MAX; k++) coeursH.innerHTML += symbole(k < coeurs() ? "coeur" : "coeurVide"); }
     }
-    function placer(part) { obst.style.left = "calc(" + (24 + part * 64) + "% )"; }
-    function obstacleSuivant() {
+    // la rangée de plateformes suivante, une par réponse
+    function rangee(P) {
+      // la rangée se place devant le personnage, là où il se trouve
+      var nb = P.options.length, x0 = -(rang + 1) * 3.4, ecart = nb === 4 ? 1.85 : 2.1, b0 = ici.b || 0;
+      candidats = P.options.map(function (o, k) {
+        var b = b0 + (k - (nb - 1) / 2) * ecart, cx = x0 + b, cy = x0 - b, z = .8 + (rang + 1) * .05;
+        var g = svgEl("g", { class: "ps-plateforme", role: "button", tabindex: "-1", "aria-label": "Plateforme " + "ABCD".charAt(k) + " : " + o });
+        // la réponse s'écrit sur la plateforme si elle tient dans la place ; sinon, la lettre seule (le texte est en dessous)
+        var place = ecart * 2 * .866 * ISO - 8, large = 14 + (String(o).length + 4) * 6.6, court = large <= place;
+        var lw = court ? large : 24, haut = iso(cx, cy, z);
+        g.innerHTML = svgBloc(cx, cy, z, 1.45, 1.45, .55, COULEURS_BLOC.bleu) +
+          '<g class="ps-etiq" transform="translate(' + haut.X.toFixed(1) + " " + (haut.Y - 20).toFixed(1) + ')"><rect x="' + (-lw / 2).toFixed(1) + '" y="-11" width="' + lw.toFixed(1) + '" height="22" rx="11" fill="#fff"/>' +
+          '<text x="0" y="4.5" text-anchor="middle" font-size="12" font-weight="800" fill="#1C1F4A"></text></g>';
+        g.querySelector("text").textContent = court ? "ABCD".charAt(k) + " · " + o : "ABCD".charAt(k);
+        // seules les plateformes de la rangée en cours répondent
+        g.addEventListener("click", function () { if (actif && candidats[k] && candidats[k].g === g) choisir(k); });
+        monde.insertBefore(g, monde.firstChild);
+        g.style.opacity = 0;
+        return { g: g, X: haut.X, Y: haut.Y, o: o, b: b };
+      });
+      animer(300, function (k) { candidats.forEach(function (c) { c.g.style.opacity = k; }); });
+    }
+    function poser() {
       if (!ecran.isConnected) return;
-      q = source.palier(PONT_PALIERS[pos]);
-      if (!q) { gagne(); return; }
+      P = tirer(rang);
+      if (!P) { arrivee(); return; }
       majHaut();
-      obst.innerHTML = svgObstacle(pos + chutes);
-      obst.className = "pt-obst";
-      perso.className = "pt-perso court";
-      bulle.textContent = "";
+      perso.classList.remove("tombe");
+      rangee(P);
       corps.innerHTML = ""; pied.innerHTML = "";
-      var zone = el("div", { class: "jeu-question pt-question" });
+      var temps = barreProgres(1);
+      var zone = el("div", { class: "jeu-question ps-question" });
+      zone.__question = { type: "plateformes", options: P.options, bonne: P.bonne };
+      ajouter(zone, [el("h2", { class: "jeu-consigne", text: P.consigne }), P.texte ? el("p", { class: "ps-texte", text: P.texte }) : null, temps]);
+      var reps = el("div", { class: "ps-reps" });
+      P.options.forEach(function (o, k) {
+        var b = el("button", { class: "jeu-option long ps-rep", type: "button" }, [el("span", { class: "dc-lettre", text: "ABCD".charAt(k) }), el("span", { text: String(o) })]);
+        b.addEventListener("click", function () { if (actif) choisir(k); });
+        reps.appendChild(b);
+      });
+      zone.appendChild(reps);
       corps.appendChild(zone);
-      zone.__question = q;
       actif = true;
-      RENDUS[q.type](guide, q, zone, pied, function (juste) { if (actif) repondre(juste); });
-      duree = (q.type === "saisie" || q.type === "curseur" ? 22 : [13, 12, 12, 11, 10, 10][pos]) + (diff.nom === "Collège" ? 4 : 0);
+      duree = [15, 14, 13, 12, 11, 12][rang] + (diff.nom === "Collège" ? 4 : 0);
       debut = Date.now();
-      placer(1);
       if (minuterie) clearInterval(minuterie);
       minuterie = setInterval(function () {
         if (!ecran.isConnected) { clearInterval(minuterie); return; }
-        var reste = 1 - (Date.now() - debut) / (duree * 1000);
-        placer(Math.max(0, reste));
-        obst.classList.toggle("proche", reste < .3);
-        if (reste <= 0 && actif) {
-          zone.querySelectorAll("button, input").forEach(function (b) { b.disabled = true; });
-          pied.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
-          repondre(false, true);
-        }
-      }, 50);
+        var r = 1 - (Date.now() - debut) / (duree * 1000);
+        temps.firstChild.style.width = Math.max(0, r * 100) + "%";
+        // la plateforme sous ses pieds s'effrite
+        var sec = r < .3 && !lent ? (Math.random() - .5) * 3 : 0;
+        ici.g.setAttribute("transform", "translate(" + sec.toFixed(1) + " " + (Math.abs(sec) / 2).toFixed(1) + ")");
+        if (r <= 0 && actif) { actif = false; clearInterval(minuterie); tomber(null, true); }
+      }, 60);
     }
-    function repondre(juste, tard) {
+    function choisir(k) {
       actif = false;
       clearInterval(minuterie);
-      if (juste) {
+      ici.g.removeAttribute("transform");
+      corps.querySelectorAll("button").forEach(function (b, j) { b.disabled = true; if (j === k) b.classList.add("choisi"); });
+      var c = candidats[k], juste = normaliser(c.o) === normaliser(P.bonne);
+      son("clic");
+      sauter(ici, c, function () {
+        if (!juste) { tomber(c, false); return; }
         son("ok");
-        perso.className = "pt-perso saute";
-        obst.classList.add("passe");
-        bulle.textContent = ["Hop !", "Bravo !", "Bien vu !", "Saut parfait !"][pos % 4];
         compter("bonnes");
-        pos++;
+        c.g.innerHTML = c.g.innerHTML.replace(/#4C86FF/g, COULEURS_BLOC.vert[0]).replace(/#2F63E0/g, COULEURS_BLOC.vert[1]).replace(/#2553C2/g, COULEURS_BLOC.vert[2]);
+        // l'étiquette disparaît : la plateforme franchie devient un simple pas du chemin
+        var etiq = c.g.querySelector(".ps-etiq");
+        if (etiq) animer(300, function (t) { etiq.style.opacity = 1 - t; }, function () { etiq.remove(); });
+        corps.querySelectorAll(".ps-rep")[k].classList.add("bien");
+        bulle.textContent = ["Hop !", "Bien sauté !", "Bravo !", "Parfait !", "Encore !", "Dernier saut !"][rang];
+        candidats.forEach(function (x) { if (x !== c) animer(400, function (t) { x.g.setAttribute("transform", "translate(0 " + (t * 160).toFixed(1) + ")"); x.g.style.opacity = 1 - t; }, function () { x.g.remove(); }); });
+        c.g.classList.remove("ps-plateforme");
+        c.g.removeAttribute("role");
+        ici = c;
+        rang++;
         majHaut();
-        setTimeout(function () { if (pos >= PONT_PALIERS.length) gagne(); else obstacleSuivant(); }, lent ? 300 : 900);
-        return;
-      }
+        setTimeout(function () { bulle.textContent = ""; if (rang >= PASSAGE_PALIERS.length) arrivee(); else poser(); }, lent ? 200 : 650);
+      });
+    }
+    // une mauvaise plateforme s'effondre (ou, le temps écoulé, celle sous ses pieds) : un cœur perdu
+    function tomber(c, tard) {
       son("ko");
       chutes++;
-      perso.className = "pt-perso tombe";
-      placer(0);
-      if (!illimites) { perdreCoeur(); sauverAventure(); }
-      majHaut();
-      ajouterErreur(q);
+      var sous = c || ici, x0 = c ? c.X : ici.X, y0 = c ? c.Y : ici.Y;
+      if (c) c.g.innerHTML = c.g.innerHTML.replace(/#4C86FF/g, COULEURS_BLOC.rouge[0]).replace(/#2F63E0/g, COULEURS_BLOC.rouge[1]).replace(/#2553C2/g, COULEURS_BLOC.rouge[2]);
+      animer(650, function (t) {
+        var dy = t * t * 220;
+        if (c) { sous.g.setAttribute("transform", "translate(0 " + dy.toFixed(1) + ")"); sous.g.style.opacity = 1 - t; }
+        placerPerso(x0, y0 + dy, 1 - t);
+      });
+      if (!illimites) { perdreCoeur(); }
+      ajouterErreur(P.q);
       sauverAventure();
+      majHaut();
       var plus = !illimites && coeurs() <= 0;
       var feuille = el("div", { class: "jeu-retour mal", role: "status" });
-      var h = el("h3"); h.innerHTML = icone("fermer"); h.appendChild(document.createTextNode(tard ? "Trop tard : l'obstacle t'a fait tomber !" : "Aïe, l'obstacle !"));
+      var h = el("h3"); h.innerHTML = icone("fermer");
+      h.appendChild(document.createTextNode(tard ? "Trop tard : la plateforme s'est effondrée !" : "La plateforme s'effondre !"));
       feuille.appendChild(h);
-      var bonne = q.bonneTexte !== undefined && q.bonneTexte !== null ? q.bonneTexte : q.type === "vf" ? (q.vrai ? "Vrai" : "Faux") : q.bonne;
-      if (bonne) feuille.appendChild(el("p", { class: "jeu-bonne" }, ["Réponse : ", el("strong", { text: String(bonne) })]));
-      if (q.expl) feuille.appendChild(el("p", { class: "jeu-expl", text: q.expl }));
+      feuille.appendChild(el("p", { class: "jeu-bonne" }, ["Réponse : ", el("strong", { text: String(P.bonne) })]));
+      if (P.expl) feuille.appendChild(el("p", { class: "jeu-expl", text: P.expl }));
       if (!illimites) { var cv = el("span"); cv.innerHTML = symbole(plus ? "coeurVide" : "coeur"); feuille.appendChild(el("p", { class: "jeu-vies-reste" }, [cv, plus ? " Plus de cœurs !" : " Il te reste " + pluriel(coeurs(), "cœur") + "."])); }
-      var b = el("button", { class: "jeu-continuer", type: "button", text: plus ? "Continuer" : "Un autre obstacle arrive…" });
-      b.addEventListener("click", function () { if (plus) { rendre(); return; } obstacleSuivant(); });
+      var b = el("button", { class: "jeu-continuer", type: "button", text: plus ? "Continuer" : "Réessayer" });
+      b.addEventListener("click", function () {
+        if (plus) { rendre(); return; }
+        candidats.forEach(function (x) { x.g.remove(); });
+        candidats = [];
+        if (!c) ici.g.removeAttribute("transform");
+        viser(ici.X, ici.Y); appliquerCam();
+        placerPerso(ici.X, ici.Y, 0);
+        animer(300, function (t) { placerPerso(ici.X, ici.Y, t); });
+        poser();
+      });
       feuille.appendChild(b);
       pied.innerHTML = "";
       pied.appendChild(feuille);
       b.focus({ preventScroll: true });
     }
-    function gagne() {
+    // l'arrivée : l'île suivante, le monument du chapitre et un coffre
+    function arrivee() {
       clearInterval(minuterie);
+      corps.innerHTML = ""; pied.innerHTML = "";
+      var f = -(rang + 1) * 3.4 - 1.2, b0 = ici.b || 0, x0 = f + b0, y0 = f - b0, z = .8;
+      var ile = svgEl("g", {});
+      ile.innerHTML = svgBloc(x0, y0, z, 4.4, 4.4, 1, COULEURS_BLOC.gris) + svgBuisson(iso(x0 + 1.5, y0 - 1.4, z).X, iso(x0 + 1.5, y0 - 1.4, z).Y) + svgBuisson(iso(x0 - 1.5, y0 + 1.5, z).X, iso(x0 - 1.5, y0 + 1.5, z).Y);
+      var centre = iso(x0, y0, z), haut = iso(x0 - 1.2, y0 - 1.2, z);
+      var mon = svgEl("g", {});
+      mon.innerHTML = ch.special ? "" : svgMonument(monumentDe(ch));
+      var sm = mon.querySelector("svg");
+      if (sm) { sm.setAttribute("x", (haut.X - 60).toFixed(1)); sm.setAttribute("y", (haut.Y - 86).toFixed(1)); sm.setAttribute("width", "120"); sm.setAttribute("height", "98"); }
+      var coffre = svgEl("g", {});
+      coffre.innerHTML = svgCoffre(false);
+      var sc = coffre.querySelector("svg"), pc = iso(x0 + 1.1, y0 + .2, z);
+      sc.setAttribute("x", (pc.X - 18).toFixed(1)); sc.setAttribute("y", (pc.Y - 32).toFixed(1)); sc.setAttribute("width", "36"); sc.setAttribute("height", "33");
+      ajouter(ile, [mon, coffre]);
+      monde.insertBefore(ile, monde.firstChild);
+      sauter(ici, centre, function () {
+        coffre.innerHTML = svgCoffre(true);
+        var so = coffre.querySelector("svg");
+        so.setAttribute("x", (pc.X - 26).toFixed(1)); so.setAttribute("y", (pc.Y - 44).toFixed(1)); so.setAttribute("width", "52"); so.setAttribute("height", "48");
+        gagne();
+      });
+    }
+    function gagne() {
       var ancien = av.niveaux[n.cle];
       av.niveaux[n.cle] = { e: 0, t: Date.now(), ok: 1 };
       var gain = ancien ? 3 : 10 + Math.max(0, 6 - chutes * 2);
@@ -7308,12 +7421,12 @@
       verifierRecompenses();
       sauverAventure();
       son("fin");
-      perso.className = "pt-perso arrive";
-      obst.innerHTML = "";
-      corps.innerHTML = ""; pied.innerHTML = "";
+      rang = PASSAGE_PALIERS.length;
+      majHaut();
+      bulle.textContent = "Bienvenue sur l'île " + (n.vers || "suivante") + " !";
       var apres = route.noeuds[n.i + 1];
-      corps.appendChild(el("div", { class: "jeu-fin pt-fin" }, [el("h2", { text: "Pont traversé !" }),
-        el("p", { text: chutes ? "Tu as franchi les 6 obstacles, avec " + pluriel(chutes, "chute") + "." : "Les 6 obstacles franchis sans tomber : bravo !" }),
+      corps.appendChild(el("div", { class: "jeu-fin pt-fin" }, [el("h2", { text: "Passage réussi !" }),
+        el("p", { text: chutes ? "Six sauts réussis, avec " + pluriel(chutes, "chute") + "." : "Six sauts sans tomber : bravo !" }),
         el("div", { class: "jeu-stats" }, [avecSymbole("ducat", "+" + gain, "jeu-stat"), avecSymbole("eclair", "+40", "jeu-stat")])]));
       var suite = apres && noeudOuvert(route, apres) && apres.type !== "coffre"
         ? el("a", { class: "jeu-continuer", href: lienAventure(ch, "jeu/" + apres.i), text: "Étape suivante : " + (apres.court || apres.nom) })
@@ -7322,10 +7435,15 @@
       confettis(ecran);
       suite.focus({ preventScroll: true });
     }
-    surToucheVue = function (e) { if (e.key === "Enter") { var b = pied.querySelector(".jeu-continuer"); if (b && document.activeElement !== b) { e.preventDefault(); b.click(); } } };
+    surToucheVue = function (e) {
+      if (actif && /^[1-4a-dA-D]$/.test(e.key)) { var k = /\d/.test(e.key) ? Number(e.key) - 1 : "abcd".indexOf(e.key.toLowerCase()); if (candidats[k]) choisir(k); }
+      else if (e.key === "Enter") { var b = pied.querySelector(".jeu-continuer"); if (b && document.activeElement !== b) { e.preventDefault(); b.click(); } }
+    };
+    viser(ici.X, ici.Y); appliquerCam();
+    placerPerso(ici.X, ici.Y);
     majHaut();
-    bulle.textContent = "Réponds avant que l'obstacle n'arrive !";
-    setTimeout(obstacleSuivant, lent ? 200 : 900);
+    bulle.textContent = "Saute sur la plateforme de la bonne réponse !";
+    setTimeout(poser, lent ? 200 : 700);
   }
 
   // ----- Plus de cœur : attendre, relire, ou regagner un cœur -----
