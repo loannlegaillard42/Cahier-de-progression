@@ -2,10 +2,11 @@
 // disponibles sans connexion, après une première visite en ligne.
 // - La page et activation.json : le réseau d'abord (3 s au plus), le cache en secours, pour que les chapitres
 //   ouverts par le professeur arrivent tout de suite.
-// - Les fiches (cours.js, cartes.js…), les images et les polices : le cache d'abord, mis à jour en arrière-plan
-//   pour la visite suivante.
+// - Les fiches (cours.js, cartes.js…) : le réseau d'abord aussi, pour que chaque appareil ait tout de suite
+//   la dernière version ; le cache sert hors connexion.
+// - Les images et les polices : le cache d'abord, mis à jour en arrière-plan pour la visite suivante.
 // Le service worker de l'application principale (../sw.js) laisse ce dossier de côté.
-const CACHE = "reviser-v11";
+const CACHE = "reviser-v12";
 const BASE = [
   "./reviser.html", "./cours.js", "./cartes.js", "./questions.js", "./reperes.js", "./methode.js", "./activation.json",
   "../vendor/qrcode-generator-1.4.4.js", "../icon-192.png"
@@ -13,7 +14,7 @@ const BASE = [
 const POLICES = /^https:\/\/fonts\.(googleapis|gstatic)\.com\//;
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(BASE)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(BASE.map((u) => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (e) => {
@@ -37,7 +38,9 @@ const garder = (req, rep) => {
 const duCache = (req) => caches.open(CACHE).then((cache) => cache.match(POLICES.test(req.url) ? req.url : cle(req.url)));
 
 function reseauDabord(req) {
-  const reseau = fetch(req).then((rep) => garder(req, rep));
+  // « no-cache » : le navigateur revérifie auprès du site au lieu de resservir sa copie (jusqu'à 10 min sur GitHub Pages)
+  const frais = req.mode === "navigate" ? req : new Request(req, { cache: "no-cache" });
+  const reseau = fetch(frais).then((rep) => garder(req, rep));
   const delai = new Promise((ok) => setTimeout(ok, 3000)).then(() => duCache(req));
   return Promise.race([reseau.catch(() => duCache(req)), delai.then((r) => r || reseau)])
     .then((r) => r || reseau)
@@ -62,7 +65,7 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   // l'API GitHub (publication du professeur) et les autres sites : toujours en direct
   if (url.origin !== self.location.origin) return;
-  if (req.mode === "navigate" || url.pathname.endsWith(".html") || url.pathname.endsWith("/activation.json")) {
+  if (req.mode === "navigate" || /\.(html|js|json)$/.test(url.pathname)) {
     e.respondWith(reseauDabord(req));
     return;
   }
