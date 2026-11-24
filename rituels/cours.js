@@ -1152,10 +1152,10 @@ const COURS = [
       "Une croissance démographique inégale selon les États : pays favorisés, émergents, précaires"
     ],
     parties: [
-      { notions: ["Croissance démographique", "Taux de natalité", "Taux de mortalité", "Accroissement naturel", "Taux de fécondité"], reperes: ["1950", "2022", "2050 (projection)"] },
-      { notions: ["Développement", "Inégalités"], reperes: ["2023"], lieux: ["Inde", "New Delhi", "Kerala", "Bihar", "Rajasthan"], trous: ["L'Inde, un géant démographique", "Un géant face à de nombreux défis"], graphiques: ["inde-natalite", "inde-alphabetisation", "pyramide-inde"] },
-      { notions: ["Exode rural", "Bidonville", "Chômage", "Planning familial"], reperes: ["2004"], lieux: ["Nigeria", "Sun City"], trous: ["Le Nigeria et le monde"], graphiques: ["nigeria-population", "pyramide-nigeria"] },
-      { notions: ["Vieillissement", "Pays favorisés", "Pays émergents", "Pays précaires"], lieux: ["Chine", "Afrique", "Asie du Sud", "Europe et Japon"], graphiques: ["pyramide-japon"], croquis: ["monde-2050"], intrus: true }
+      { notions: ["Croissance démographique", "Taux de natalité", "Taux de mortalité", "Accroissement naturel", "Taux de fécondité", "Projection démographique"], reperes: ["1950", "2022", "2050 (projection)"] },
+      { notions: ["Développement", "Inégalités", "Espérance de vie", "Mortalité infantile", "Alphabétisation", "Exode rural", "Bidonville", "Vieillissement", "Pyramide des âges"], reperes: ["2023", "2011"], lieux: ["Inde", "New Delhi", "Kerala", "Bihar", "Rajasthan"], trous: ["L'Inde, un géant démographique", "Un géant face à de nombreux défis"], graphiques: ["inde-natalite", "inde-alphabetisation", "pyramide-inde"] },
+      { notions: ["Chômage", "Planning familial"], reperes: ["2004", "1960"], lieux: ["Nigeria", "Sun City"], trous: ["Le Nigeria et le monde"], graphiques: ["nigeria-population", "pyramide-nigeria"] },
+      { notions: ["Pays favorisés", "Pays émergents", "Pays précaires"], lieux: ["Chine", "Afrique", "Asie du Sud", "Europe et Japon"], graphiques: ["pyramide-japon"], croquis: ["monde-2050"], intrus: true }
     ],
     cle: "La population mondiale augmente parce qu'il y a plus de naissances que de décès. Cette croissance pose de grands défis au développement : il faut nourrir, loger, scolariser et employer une population nombreuse et jeune ; là où elle ralentit, la population vieillit.",
     essentiel: [
@@ -1172,7 +1172,9 @@ const COURS = [
       { a: 2004, date: "2004", txt: "Le Nigeria lance un plan de dix ans pour faire baisser la fécondité : c'est un échec." },
       { a: 2022, date: "2022", txt: "La population mondiale atteint 8 milliards d'humains. Le Nigeria compte 219 millions d'habitants." },
       { a: 2023, date: "2023", txt: "L'Inde dépasse la Chine et devient le pays le plus peuplé du monde (plus de 1,4 milliard d'habitants)." },
-      { a: 2050, date: "2050 (projection)", txt: "Près de 10 milliards d'humains selon l'ONU ; le Nigeria pourrait compter 375 millions d'habitants." }
+      { a: 2050, date: "2050 (projection)", txt: "Près de 10 milliards d'humains selon l'ONU ; le Nigeria pourrait compter 375 millions d'habitants." },
+      {"a": 1960, "date": "1960", "txt": "Le Nigeria compte 45 millions d'habitants."},
+      {"a": 2011, "date": "2011", "txt": "En Inde, 92 % des femmes savent lire au Kerala, contre 53 % au Bihar et au Rajasthan."}
     ],
     notions: [
       { mot: "Croissance démographique", def: "Augmentation du nombre d'habitants." },
@@ -1189,7 +1191,12 @@ const COURS = [
       { mot: "Planning familial", def: "Aide aux couples pour choisir le nombre d'enfants et le moment de les avoir (contraception)." },
       { mot: "Pays favorisés", def: "Pays riches où les habitants vivent bien (exemple : la France)." },
       { mot: "Pays émergents", def: "Pays dont l'économie progresse vite (exemple : l'Inde)." },
-      { mot: "Pays précaires", def: "Pays pauvres où beaucoup d'habitants manquent de l'essentiel." }
+      { mot: "Pays précaires", def: "Pays pauvres où beaucoup d'habitants manquent de l'essentiel." },
+      {"mot": "Espérance de vie", "def": "Nombre moyen d'années que peut espérer vivre un nouveau-né."},
+      {"mot": "Mortalité infantile", "def": "Nombre d'enfants qui meurent avant l'âge d'un an, pour 1 000 naissances."},
+      {"mot": "Alphabétisation", "def": "Part de la population qui sait lire et écrire."},
+      {"mot": "Projection démographique", "def": "Estimation de la population future, faite à partir des tendances actuelles : ce n'est pas une certitude."},
+      {"mot": "Pyramide des âges", "def": "Graphique qui montre la répartition de la population par âge et par sexe."}
     ],
     personnages: [],
     lieux: [
@@ -1281,6 +1288,35 @@ const COURS = [
       { titre: "L'Inde, un géant démographique", texte: "L'Inde est le [pays le plus peuplé] du monde depuis 2023. Sa population a presque quadruplé depuis 1950, car la [mortalité] a baissé plus vite que la [natalité] : l'[accroissement naturel] est donc élevé. C'est une [population jeune] : 40 % des Indiens ont moins de 25 ans. Nourrir, loger et employer autant d'habitants est un grand [défi]." },
       { titre: "Un géant face à de nombreux défis", texte: "En Inde, le [développement] progresse, mais les [inégalités] restent fortes : au Kerala, 92 % des femmes savent lire et écrire, contre à peine plus de la moitié au Rajasthan. Avec l'[exode rural], les villes comme [New Delhi] grandissent très vite, et beaucoup de migrants vivent dans des [bidonvilles], sans eau ni électricité. Comme les femmes ont moins d'enfants, la population commence à vieillir : le [vieillissement] est un nouveau défi." },
       { titre: "Le Nigeria et le monde", texte: "Le Nigeria est le pays le plus peuplé d'[Afrique]. Sa [croissance démographique] est très rapide, car le [taux de fécondité] reste élevé. Il manque des emplois : le [chômage] augmente, et une partie de la population souffre de la [faim]. L'ONU propose de développer le [planning familial] et l'[éducation des filles]. Dans le monde, la population augmente surtout dans les pays [précaires] et émergents ; elle stagne et vieillit dans les pays [favorisés]." }
+    ],
+    questions: [
+      {"p": 2, "q": "De combien de fois la population de l'Inde a-t-elle été multipliée depuis 1950 ?", "r": "Environ 4 fois", "faux": ["Environ 2 fois", "Environ 10 fois", "Elle a baissé"], "expl": "Elle est passée de 357 millions d'habitants en 1950 à 1,43 milliard en 2023 : elle a presque quadruplé."},
+      {"p": 2, "q": "Pourquoi la population de l'Inde augmente-t-elle depuis 1950 ?", "r": "La natalité reste plus forte que la mortalité", "faux": ["La mortalité est plus forte que la natalité", "Beaucoup d'étrangers s'installent en Inde", "Les Indiens vivent moins longtemps"], "expl": "Le taux de natalité (44 ‰ puis 16 ‰) reste toujours supérieur au taux de mortalité (22 ‰ puis 7 ‰) : c'est l'accroissement naturel."},
+      {"p": 2, "q": "Quelle part des Indiens a moins de 25 ans ?", "r": "40 %", "faux": ["10 %", "25 %", "75 %"], "expl": "40 % des Indiens ont moins de 25 ans : c'est une population très jeune (Le Monde, 14 avril 2023)."},
+      {"p": 2, "q": "Jusqu'à quand la population de l'Inde devrait-elle augmenter ?", "r": "Jusque vers 2060, autour de 1,7 milliard", "faux": ["Elle baisse déjà depuis 2023", "Jusqu'en 2025 seulement", "Sans jamais s'arrêter"], "expl": "Selon les projections, la population indienne augmentera jusqu'en 2060 environ, pour atteindre 1,7 milliard d'habitants."},
+      {"p": 2, "q": "Quelle était l'espérance de vie en Inde en 1950 ? Et en 2023 ?", "r": "41 ans, puis 72 ans", "faux": ["72 ans, puis 41 ans", "60 ans, puis 65 ans", "30 ans, puis 90 ans"], "expl": "De 41 ans en 1950 à 72 ans en 2023 : meilleure santé, meilleure alimentation."},
+      {"p": 2, "q": "Combien d'enfants par femme en Inde en 1950 ? Et aujourd'hui ?", "r": "5,7, puis environ 2", "faux": ["2, puis 5,7", "3, puis 1", "8, puis 5"], "expl": "Les familles sont beaucoup moins nombreuses : 5,7 enfants par femme en 1950, environ 2 aujourd'hui."},
+      {"p": 2, "q": "Quelle part des Indiens savaient lire en 1950 ? Et en 2023 ?", "r": "18 %, puis 75 %", "faux": ["75 %, puis 18 %", "50 %, puis 60 %", "5 %, puis 100 %"], "expl": "L'alphabétisation passe de 18 % à 75 % : plus d'enfants vont à l'école. Mais 25 % des Indiens ne savent toujours pas lire."},
+      {"p": 2, "q": "Quel écart entre les femmes du Kerala et celles du Bihar pour savoir lire et écrire ?", "r": "92 % contre 53 %", "faux": ["53 % contre 92 %", "65 % partout", "100 % contre 0 %"], "expl": "Près de 40 points d'écart (la moyenne indienne est de 65 %) : le développement est très inégal d'un État à l'autre."},
+      {"p": 2, "q": "Pourquoi Sadam Hussein a-t-il quitté son village pour New Delhi ?", "r": "Il n'y trouvait pas de travail régulier", "faux": ["Pour faire des études", "Pour partir en vacances", "Il était devenu riche"], "expl": "C'est l'exode rural. À New Delhi, il gagne 5 $ par jour mais vit dans un bidonville, sans eau ni électricité."},
+      {"p": 2, "q": "Pourquoi la population de l'Inde commence-t-elle à vieillir ?", "r": "Moins d'enfants par famille et une vie plus longue", "faux": ["Les jeunes partent tous à l'étranger", "La natalité augmente très fort", "Les personnes âgées viennent d'autres pays"], "expl": "Les familles ont beaucoup moins d'enfants et les gens vivent plus longtemps. Le pays n'a pas assez de maisons de retraite."},
+      {"p": 3, "q": "Combien d'habitants au Nigeria en 1960 ? Et en 2022 ?", "r": "45 millions, puis 219 millions", "faux": ["219 millions, puis 45 millions", "100 millions, puis 120 millions", "10 millions, puis 1 milliard"], "expl": "La population du Nigeria a été multipliée par près de 5 entre 1960 et 2022."},
+      {"p": 3, "q": "Combien d'habitants le Nigeria pourrait-il compter en 2050, selon l'ONU ?", "r": "375 millions", "faux": ["100 millions", "219 millions", "1 milliard"], "expl": "Une projection de l'ONU : le Nigeria deviendrait le 3ᵉ pays le plus peuplé du monde."},
+      {"p": 3, "q": "Quelle part des jeunes Nigérians est au chômage ?", "r": "Plus d'un tiers", "faux": ["Presque aucun", "Un sur cent", "Tous"], "expl": "Plus d'un tiers des jeunes sont au chômage : il faudrait créer 2,5 millions d'emplois par an."},
+      {"p": 3, "q": "Combien d'enfants par femme au Nigeria, dix ans après le plan de 2004 ?", "r": "5,5", "faux": ["2", "1,5", "4"], "expl": "Le gouvernement voulait descendre à 4 enfants par femme : la politique a échoué (5,5 enfants, moins de 10 % de contraception)."},
+      {"p": 3, "q": "Quelles solutions l'ONU propose-t-elle pour faire baisser la fécondité au Nigeria ?", "r": "Le planning familial et l'éducation des filles", "faux": ["Interdire les mariages", "Faire partir les jeunes à l'étranger", "Construire des usines"], "expl": "Une fille qui va à l'école se marie plus tard et a moins d'enfants."},
+      {"p": 4, "q": "Où la population va-t-elle le plus augmenter d'ici 2050 ?", "r": "En Afrique et en Asie du Sud", "faux": ["En Europe et au Japon", "En Russie et en Chine", "En Amérique du Nord"], "expl": "Surtout au sud du Sahara (Nigeria, RD Congo, Éthiopie…) et en Asie du Sud (Inde, Pakistan), là où les familles ont encore beaucoup d'enfants."},
+      {"p": 4, "q": "Comment la population de la France devrait-elle évoluer d'ici 2050 ?", "r": "Elle stagne, autour de 68 millions", "faux": ["Elle double", "Elle est divisée par deux", "Elle atteint 375 millions"], "expl": "La France est un pays favorisé : sa population stagne, comme en Europe et au Japon, où la population vieillit."}
+    ],
+    tris: [
+      {"p": 2, "consigne": "L'Inde en 1950 ou en 2023 ?", "categories": ["En 1950", "En 2023"], "items": [["41 ans d'espérance de vie", 0], ["72 ans d'espérance de vie", 1], ["18 % savent lire", 0], ["75 % savent lire", 1], ["5,7 enfants par femme", 0], ["2 enfants par femme", 1], ["610 $ par habitant", 0], ["6 600 $ par habitant", 1]]},
+      {"p": 2, "consigne": "Une population nombreuse et jeune : une chance ou un défi ?", "categories": ["Une chance", "Un défi"], "items": [["Beaucoup de travailleurs", 0], ["Beaucoup de consommateurs", 0], ["Une puissance démographique", 0], ["Construire des écoles", 1], ["Créer des emplois", 1], ["Loger et nourrir tout le monde", 1]], "expl": "Pas de réponse unique : une population jeune est une chance si elle est formée et trouve un emploi, un défi sinon."},
+      {"p": 4, "consigne": "D'ici 2050, la population va…", "categories": ["Augmenter beaucoup", "Stagner ou diminuer"], "items": [["Nigeria", 0], ["RD Congo", 0], ["Éthiopie", 0], ["Inde", 0], ["Pakistan", 0], ["Italie", 1], ["Japon", 1], ["Chine", 1], ["Russie", 1], ["Corée du Sud", 1]], "expl": "La population augmente là où les familles ont encore beaucoup d'enfants ; elle stagne ou baisse là où elles en ont peu et où la population vieillit."},
+      {"p": 4, "consigne": "Range chaque pays dans sa catégorie", "categories": ["Pays favorisé", "Pays émergent", "Pays précaire"], "items": [["France", 0], ["Japon", 0], ["Inde", 1], ["Chine", 1], ["Nigeria", 2]]}
+    ],
+    suites: [
+      {"p": 2, "consigne": "Le parcours de Sadam Hussein, dans l'ordre", "items": ["Pas de travail régulier dans son village", "Il part pour New Delhi : l'exode rural", "Il s'installe dans un bidonville, sans eau ni électricité", "Il gagne 5 $ par jour, en travaillant parfois 24 heures d'affilée"]},
+      {"p": 3, "consigne": "La population du Nigeria, de la plus petite à la plus grande", "items": ["1960 : 45 millions", "2022 : 219 millions", "2050 : 375 millions (projection)"]}
     ],
     capable: [
       "Décrire l'évolution de la population mondiale depuis 1950 et connaître les chiffres clés (8 milliards d'humains en 2022).",
@@ -3933,9 +3969,9 @@ const COURS = [
       "Tâche finale : le croquis de l'Amazonie"
     ],
     parties: [
-      { notions: ["Aléa", "Enjeux", "Vulnérabilité", "Risque", "Exposition"], lieux: ["Ceinture de feu du Pacifique", "Dhaka", "Tokyo", "Manille", "Mexico"], trous: ["Aléa, vulnérabilité, risque"], croquis: ["risques-monde"] },
-      { notions: ["Ressource", "Front pionnier", "Orpaillage", "Déforestation", "Puits de carbone"], lieux: ["Amazone", "Manaus", "Belém", "Arc de déforestation", "Iquitos", "Belo Monte", "Tucuruí", "Jirau", "Carajás", "Trombetas", "Transamazonienne", "Leticia"], trous: ["Une forêt sous pression"], documents: ["rondonia-2016"] },
-      { notions: ["Croquis"], croquis: ["amazonie"], intrus: true }
+      { notions: ["Aléa", "Enjeux", "Vulnérabilité", "Risque", "Exposition", "Delta", "Mégapole"], reperes: ["2005, 2010, 2015", "2023", "août 2023"], lieux: ["Ceinture de feu du Pacifique", "Dhaka", "Tokyo", "Manille", "Mexico", "Leticia"], trous: ["Aléa, vulnérabilité, risque"], croquis: ["risques-monde"] },
+      { notions: ["Ressource", "Front pionnier", "Orpaillage", "Déforestation", "Puits de carbone"], lieux: ["Amazone", "Manaus", "Belém", "Arc de déforestation", "Iquitos", "Belo Monte", "Tucuruí", "Jirau", "Carajás", "Trombetas", "Transamazonienne"], trous: ["Une forêt sous pression"], documents: ["rondonia-2016"] },
+      { notions: ["Croquis", "Figuré"], croquis: ["amazonie"], intrus: true }
     ],
     cle: "Un aléa devient un risque quand il touche une société vulnérable ; en Amazonie, l'exploitation des ressources aggrave les risques.",
     essentiel: [
@@ -3946,7 +3982,11 @@ const COURS = [
       "Les États amazoniens tentent de coopérer (pacte de Leticia, 2019), sans mesures contraignantes."
     ],
     periodes: [],
-    reperes: [],
+    reperes: [
+      {"a": 2005, "date": "2005, 2010, 2015", "txt": "Grandes sécheresses au centre et au sud de l'Amazonie."},
+      {"a": 2023, "date": "2023", "txt": "Sécheresse historique en Amazonie : le niveau des fleuves baisse de 90 % par endroits, 7 400 personnes sont isolées."},
+      {"a": 2023.6, "date": "août 2023", "txt": "Pacte de Leticia : 7 des 9 pays amazoniens s'engagent contre l'orpaillage illégal, le trafic de drogue et la déforestation."}
+    ],
     notions: [
       { mot: "Aléa", def: "Phénomène naturel ou lié aux activités humaines qui peut se produire et causer des dégâts (sécheresse, crue, séisme…)." },
       { mot: "Enjeux", def: "Les personnes, les biens et les activités exposés à un aléa." },
@@ -3958,7 +3998,10 @@ const COURS = [
       { mot: "Orpaillage", def: "Recherche de l'or dans les rivières, souvent illégale en Amazonie ; le mercure utilisé pollue les eaux." },
       { mot: "Déforestation", def: "Destruction de la forêt pour exploiter le bois ou les terres." },
       { mot: "Puits de carbone", def: "Milieu qui absorbe et stocke du CO₂, comme la forêt amazonienne." },
-      { mot: "Croquis", def: "Représentation simplifiée d'un espace, avec un titre, une légende organisée en parties et une nomenclature." }
+      { mot: "Croquis", def: "Représentation simplifiée d'un espace, avec un titre, une légende organisée en parties et une nomenclature." },
+      {"mot": "Delta", "def": "Embouchure d'un fleuve divisée en plusieurs bras ; espace bas, souvent très peuplé et exposé aux inondations, aux cyclones et à la montée du niveau de la mer."},
+      {"mot": "Mégapole", "def": "Agglomération de plus de 10 millions d'habitants ; elle concentre à la fois les aléas et les populations exposées."},
+      {"mot": "Figuré", "def": "Signe utilisé sur un croquis : de surface (aplat, hachures), de ligne (trait, flèche) ou ponctuel (rond, triangle)."}
     ],
     personnages: [],
     lieux: [
@@ -4047,6 +4090,30 @@ const COURS = [
       { titre: "Aléa, vulnérabilité, risque", texte: "Un [aléa] est un phénomène qui peut se produire, comme une sécheresse ou une crue. Il devient un [risque] quand il touche une société [vulnérable]. Le Japon est très [exposé] aux séismes, mais peu vulnérable car il est riche et préparé." },
       { titre: "Une forêt sous pression", texte: "L'Amazonie est riche en [ressources] : bois, or, fer, terres agricoles. Le [front pionnier] avance sur la forêt : on ouvre une piste, on brûle la forêt, puis on installe de l'élevage ou du soja. Cette [déforestation] détruit la biodiversité et affaiblit un grand [puits de carbone]. L'[orpaillage] pollue les fleuves au mercure." }
     ],
+    questions: [
+      {"p": 1, "q": "Quel aléa frappe l'Amazonie en 2023 ?", "r": "Une sécheresse historique", "faux": ["Un séisme", "Un cyclone", "Un tsunami"], "expl": "Le niveau du fleuve baisse de 90 % par endroits : berges à découvert, bateaux échoués."},
+      {"p": 1, "q": "Pourquoi les communautés indigènes sont-elles vulnérables à la sécheresse de 2023 ?", "r": "Elles se déplacent et se ravitaillent surtout par bateau", "faux": ["Elles vivent dans des grandes villes", "Elles n'ont pas besoin du fleuve", "Elles vivent en montagne"], "expl": "Leur dépendance au fleuve les isole : 7 400 personnes ont vu leur approvisionnement en nourriture coupé."},
+      {"p": 1, "q": "Contre quoi le pacte de Leticia (2023) veut-il lutter ?", "r": "L'orpaillage illégal, le trafic de drogue, la déforestation", "faux": ["Les séismes et les volcans", "Le tourisme de masse", "Les barrages hydroélectriques"], "expl": "Limite : 7 pays sur 9 seulement (ni le Venezuela, ni la France pour la Guyane), et pas de mesures contraignantes."},
+      {"p": 1, "q": "Quels risques sont plus fréquents en Amazonie depuis les années 1990 ?", "r": "Les sécheresses et les inondations extrêmes", "faux": ["Les séismes", "Les tempêtes de neige", "Les éruptions volcaniques"], "expl": "Sécheresses en 2005, 2010 et 2015, crues extrêmes au nord-ouest : la déforestation et les barrages ont pu jouer un rôle."},
+      {"p": 1, "q": "Où se trouvent les principales zones de séismes et de volcans dans le monde ?", "r": "La ceinture de feu du Pacifique et l'axe Méditerranée-Himalaya", "faux": ["Le centre de l'Afrique et l'Australie", "L'Europe du Nord", "Le Sahara"], "expl": "Japon, Philippines, Indonésie, Andes, ouest des États-Unis… et de la Méditerranée à l'Himalaya."},
+      {"p": 1, "q": "Pourquoi les deltas sont-ils très exposés aux risques ?", "r": "Ils sont bas, très peuplés, exposés aux cyclones et à la montée de la mer", "faux": ["Ils sont en altitude", "Ils sont déserts", "Ils sont loin des côtes"], "expl": "Comme à Dhaka, dans le delta du Gange et du Brahmapoutre, menacé par les inondations et les cyclones."},
+      {"p": 1, "q": "Le Japon est très exposé aux séismes, mais peu vulnérable. Pourquoi ?", "r": "Il est riche et bien préparé (constructions, alertes)", "faux": ["Il n'y a jamais de séisme", "Personne n'y habite", "Il est protégé par l'Australie"], "expl": "Exposition n'est pas vulnérabilité : un pays riche et préparé subit moins de dégâts et de victimes."},
+      {"p": 1, "q": "Où le réchauffement climatique est-il le plus fort ?", "r": "En Arctique et dans le nord de l'Eurasie et de l'Amérique", "faux": ["À l'équateur", "En Antarctique uniquement", "Dans les déserts chauds"], "expl": "Le changement climatique amplifie les risques, surtout les sécheresses, les canicules et les inondations."},
+      {"p": 2, "q": "Quelles sont les principales ressources de l'Amazonie ?", "r": "Bois, minerais, terres agricoles, hydroélectricité", "faux": ["Charbon et neige", "Pétrole de la mer du Nord", "Uranium et diamants d'Afrique"], "expl": "Bois, or, bauxite, fer, hydrocarbures, terres pour le soja et l'élevage, hydroélectricité."},
+      {"p": 2, "q": "Quelle part de la forêt amazonienne a disparu en 50 ans ?", "r": "20 %", "faux": ["2 %", "50 %", "90 %"], "expl": "Destruction des habitats, disparition d'espèces : la biodiversité recule."},
+      {"p": 2, "q": "Pourquoi la déforestation aggrave-t-elle le changement climatique ?", "r": "Les incendies libèrent du CO₂ et le puits de carbone s'affaiblit", "faux": ["Les arbres coupés refroidissent l'air", "Elle augmente la pluie", "Elle n'a aucun effet"], "expl": "La forêt stockait du carbone : brûlée, elle en relâche, et elle en absorbe moins."},
+      {"p": 3, "q": "Comment représenter la déforestation sur le croquis ?", "r": "Des hachures rouges (figuré de surface)", "faux": ["Un point bleu", "Une flèche verte", "Un trait noir"], "expl": "Une zone touchée : figuré de surface ; rouge, couleur chaude, pour une pression ; les hachures laissent voir la forêt dessous."},
+      {"p": 3, "q": "Pourquoi organiser la légende du croquis en trois parties ?", "r": "Pour hiérarchiser l'information et suivre un raisonnement", "faux": ["Pour faire joli", "Parce que la carte a trois couleurs", "Pour écrire moins"], "expl": "I. un environnement exceptionnel ; II. des ressources convoitées ; III. des risques qui fragilisent la région."}
+    ],
+    tris: [
+      {"p": 1, "consigne": "Un risque plutôt naturel ou lié aux activités humaines ?", "categories": ["Plutôt naturel", "Lié aux activités humaines"], "items": [["Sécheresse", 0], ["Crue du fleuve", 0], ["Déforestation", 1], ["Barrage", 1], ["Pollution des fleuves au mercure", 1]], "expl": "Attention : l'incendie va dans les deux colonnes, souvent allumé par l'homme mais favorisé par la sécheresse. Et le changement climatique aggrave sécheresses et crues."},
+      {"p": 1, "consigne": "Aléa, enjeu ou vulnérabilité ?", "categories": ["Aléa", "Enjeu", "Vulnérabilité"], "items": [["Une sécheresse", 0], ["Un cyclone", 0], ["Un village au bord du fleuve", 1], ["Une route", 1], ["Dépendre du fleuve pour se nourrir", 2], ["Manquer de moyens pour se protéger", 2]], "expl": "Un aléa devient un risque quand il touche des enjeux (hommes, biens) vulnérables."},
+      {"p": 3, "consigne": "Quel type de figuré sur le croquis ?", "categories": ["Surface", "Ligne", "Point"], "items": [["Forêt tropicale", 0], ["Arc de déforestation", 0], ["Fleuve Amazone", 1], ["Transamazonienne", 1], ["Manaus", 2], ["Barrage de Belo Monte", 2]], "expl": "Une zone : figuré de surface ; un axe ou un flux : figuré de ligne ; un lieu précis : figuré ponctuel."}
+    ],
+    suites: [
+      {"p": 2, "consigne": "Comment avance le front pionnier ?", "items": ["Une piste est ouverte dans la forêt", "La forêt est défrichée par le feu", "On installe des pâturages ou du soja", "Le front avance plus loin : routes, villes, nouvelles pistes"]},
+      {"p": 2, "consigne": "Les conséquences de l'orpaillage, dans l'ordre", "items": ["Les orpailleurs utilisent du mercure", "Le mercure pollue les rivières et les sols", "Les poissons sont contaminés", "Les riverains qui mangent ces poissons sont en danger"]}
+    ],
     capable: [
       "Distinguer aléa, enjeux, vulnérabilité et risque.",
       "Donner des exemples de risques naturels et de risques liés aux activités humaines en Amazonie.",
@@ -4077,9 +4144,9 @@ const COURS = [
       "Tâche finale : le croquis de la France"
     ],
     parties: [
-      { notions: ["Milieu", "Anthropisation", "Outre-mer", "ZEE"], lieux: ["Antilles", "Fossé rhénan", "Bassin parisien"], trous: ["Des milieux variés"] },
-      { notions: ["Érosion côtière"], lieux: ["Le Signal (Soulac-sur-Mer)"], trous: ["Risques et protection"], documents: ["signal-2021"] },
-      { notions: ["Parc national", "Parc naturel régional", "Parc naturel marin", "Natura 2000", "Développement durable"], lieux: ["Parc amazonien de Guyane", "Vanoise", "Calanques"] },
+      { notions: ["Milieu", "Anthropisation", "Outre-mer", "ZEE", "Climat océanique", "Climat méditerranéen"], lieux: ["Bassin parisien"], trous: ["Des milieux variés"] },
+      { notions: ["Érosion côtière", "Aléa", "Enjeux", "Risque"], reperes: ["1964", "2014", "2023"], lieux: ["Le Signal (Soulac-sur-Mer)", "Antilles", "Fossé rhénan"], trous: ["Risques et protection"], documents: ["signal-2021"] },
+      { notions: ["Parc national", "Parc naturel régional", "Parc naturel marin", "Natura 2000", "Développement durable"], reperes: ["1963", "2007", "2012"], lieux: ["Parc amazonien de Guyane", "Vanoise", "Calanques"] },
       { croquis: ["france-milieux"], intrus: true }
     ],
     cle: "La France, ce sont des milieux variés, valorisés par les sociétés, exposés aux risques, et qu'il faut protéger sans exclure les activités humaines.",
@@ -4090,7 +4157,14 @@ const COURS = [
       "Protéger ne veut pas dire interdire : plusieurs statuts (parc national, parc naturel régional, parc naturel marin, Natura 2000) et plusieurs acteurs (Union européenne, État, collectivités, associations)."
     ],
     periodes: [],
-    reperes: [],
+    reperes: [
+      {"a": 1963, "date": "1963", "txt": "Création du premier parc national français, la Vanoise, dans les Alpes."},
+      {"a": 1964, "date": "1964", "txt": "Permis de construire de l'immeuble du Signal, à Soulac-sur-Mer, loin de l'eau, derrière la dune."},
+      {"a": 2007, "date": "2007", "txt": "Création du Parc amazonien de Guyane, le plus grand parc national de France."},
+      {"a": 2012, "date": "2012", "txt": "Création du parc national des Calanques, près de Marseille."},
+      {"a": 2014, "date": "2014", "txt": "L'immeuble du Signal est évacué : l'érosion a fait reculer la dune jusqu'à son pied."},
+      {"a": 2023, "date": "2023", "txt": "Démolition de l'immeuble du Signal."}
+    ],
     notions: [
       { mot: "Milieu", def: "Ensemble des éléments naturels d'un espace (relief, climat, végétation, eau), plus ou moins transformés par les sociétés." },
       { mot: "Anthropisation", def: "Transformation d'un milieu par les activités humaines." },
@@ -4101,7 +4175,12 @@ const COURS = [
       { mot: "Parc naturel régional", def: "Espace habité, créé à l'initiative des régions, qui concilie protection de la nature et développement local." },
       { mot: "Parc naturel marin", def: "Espace protégé créé par l'État pour le milieu marin, où la pêche et les loisirs restent possibles." },
       { mot: "Natura 2000", def: "Réseau européen de sites naturels protégés." },
-      { mot: "Développement durable", def: "Développement qui répond aux besoins actuels sans compromettre ceux des générations futures (économie, société, environnement)." }
+      { mot: "Développement durable", def: "Développement qui répond aux besoins actuels sans compromettre ceux des générations futures (économie, société, environnement)." },
+      {"mot": "Aléa", "def": "Phénomène naturel ou humain qui peut se produire (séisme, inondation, érosion…)."},
+      {"mot": "Enjeux", "def": "Les personnes, les biens et les activités exposés à un aléa."},
+      {"mot": "Risque", "def": "Rencontre d'un aléa et d'enjeux vulnérables : risque = aléa + enjeux vulnérables."},
+      {"mot": "Climat océanique", "def": "Climat doux et humide de l'ouest de la France, sous l'influence de l'océan Atlantique."},
+      {"mot": "Climat méditerranéen", "def": "Climat du sud-est de la France : étés chauds et secs, hivers doux, pluies violentes à l'automne."}
     ],
     personnages: [],
     lieux: [
@@ -4165,6 +4244,25 @@ const COURS = [
     trous: [
       { titre: "Des milieux variés", texte: "La France possède des milieux très variés, en métropole et en [outre-mer]. Grâce à ces territoires, elle dispose de la deuxième [ZEE] du monde. Les sociétés transforment les milieux : c'est l'[anthropisation]." },
       { titre: "Risques et protection", texte: "L'immeuble du Signal, en Gironde, a été évacué en 2014 à cause de l'[érosion côtière] : l'aléa et les [enjeux] forment le [risque]. Pour protéger les milieux, l'État crée des [parcs nationaux] ; les régions créent des [parcs naturels régionaux], habités, qui concilient protection et développement local." }
+    ],
+    questions: [
+      {"p": 1, "q": "Pourquoi la France possède-t-elle la 2ᵉ ZEE du monde ?", "r": "Grâce à ses territoires d'outre-mer", "faux": ["Grâce à la Méditerranée", "Grâce à ses montagnes", "Grâce à la Manche"], "expl": "Polynésie, Nouvelle-Calédonie, Terres australes, Réunion… apportent l'essentiel de la zone économique exclusive."},
+      {"p": 1, "q": "Quelles régions françaises sont très boisées ?", "r": "Les Landes, les Vosges, le Jura", "faux": ["La Beauce et le Bassin parisien", "La Bretagne et le Nord", "La Camargue"], "expl": "Peu boisés au contraire : la Beauce et le Bassin parisien, la Bretagne, le Nord."},
+      {"p": 1, "q": "Où trouve-t-on les grandes cultures en France ?", "r": "Dans le Bassin parisien, le Nord et le Bassin aquitain", "faux": ["Dans les Alpes", "Sur le littoral méditerranéen", "Dans le Massif central"], "expl": "Dans les outre-mer : la banane et la canne à sucre."},
+      {"p": 2, "q": "Où l'aléa sismique est-il le plus fort en France ?", "r": "Aux Antilles", "faux": ["Dans le Bassin parisien", "En Bretagne", "Dans les Landes"], "expl": "Fort aux Antilles ; moyen dans les Alpes, les Pyrénées et le sud de l'Alsace ; faible dans les bassins parisien et aquitain."},
+      {"p": 2, "q": "Quelles zones sont les plus exposées aux inondations ?", "r": "Les grandes vallées et le littoral méditerranéen", "faux": ["Les sommets des Alpes", "Le centre de la Beauce", "Les plateaux du Massif central"], "expl": "Seine, Loire, Rhône, Garonne, et des villes comme Paris, Lyon, Avignon, Montpellier ou Nice."},
+      {"p": 2, "q": "Au Signal de Soulac-sur-Mer, quel est l'aléa ?", "r": "L'érosion côtière et les tempêtes", "faux": ["Un séisme", "Une éruption volcanique", "Une avalanche"], "expl": "L'aléa (érosion, tempêtes) menace des enjeux (l'immeuble, ses habitants) : ensemble, ils forment le risque."},
+      {"p": 3, "q": "Quelle différence entre un parc national et un parc naturel régional ?", "r": "Le parc national est créé par l'État ; le PNR concilie protection et vie locale", "faux": ["Il n'y a aucune différence", "Personne ne vit dans un PNR", "Le PNR est créé par l'Union européenne"], "expl": "Le cœur d'un parc national est très réglementé ; un PNR, à l'initiative des régions, est habité et soutient le développement local."},
+      {"p": 3, "q": "Qui protège les milieux naturels en France ?", "r": "L'Union européenne, l'État, les collectivités et les associations", "faux": ["Seulement les maires", "Seulement l'ONU", "Personne"], "expl": "Natura 2000 (Union européenne), parcs nationaux (État), PNR (régions), associations : protéger ne veut pas dire interdire."},
+      {"p": 3, "q": "Quel est le parc national de France situé en outre-mer, en Amazonie ?", "r": "Le Parc amazonien de Guyane", "faux": ["La Vanoise", "Les Calanques", "Les Cévennes"], "expl": "Créé en 2007, c'est le plus grand parc national de France."}
+    ],
+    tris: [
+      {"p": 1, "consigne": "Quel climat ?", "categories": ["Océanique", "Méditerranéen", "De montagne"], "items": [["La Bretagne", 0], ["La Normandie", 0], ["La Provence", 1], ["Le Languedoc", 1], ["Les Alpes", 2], ["Les Pyrénées", 2]], "expl": "Océanique à l'ouest, méditerranéen au sud-est, climats de montagne dans les massifs."},
+      {"p": 3, "consigne": "Parc national, PNR ou parc naturel marin ?", "categories": ["Parc national", "Parc naturel régional", "Parc naturel marin"], "items": [["Un cœur très réglementé", 0], ["La Vanoise", 0], ["À l'initiative des régions", 1], ["Des habitants y vivent et y travaillent", 1], ["Protège la mer, la pêche continue", 2]]},
+      {"p": 4, "consigne": "Dans quelle partie de la légende du croquis de la France ?", "categories": ["I. Des milieux variés", "II. Des milieux valorisés", "III. Des milieux à protéger"], "items": [["Les montagnes", 0], ["Les grandes vallées", 0], ["Les littoraux touristiques", 1], ["Les stations de sports d'hiver", 1], ["Les parcs nationaux", 2], ["Les zones sismiques", 2]]}
+    ],
+    suites: [
+      {"p": 2, "consigne": "L'histoire de l'immeuble du Signal, dans l'ordre", "items": ["1964 : permis de construire, loin de l'eau, derrière la dune", "La dune recule sous l'effet de l'érosion et des tempêtes", "2014 : l'océan est au pied de l'immeuble, il est évacué", "2023 : l'immeuble est démoli"]}
     ],
     capable: [
       "Décrire la variété des milieux de la France, en métropole et outre-mer.",
@@ -4865,6 +4963,12 @@ const COURS = [
       "Des espaces métropolitains au rayonnement inégal (étude de cas : Saint-Étienne)",
       "Des inégalités croissantes à toutes les échelles et la diversité des espaces métropolisés"
     ],
+    parties: [
+      { notions: ["Urbanisation", "Métropolisation", "Métropole", "Transition urbaine", "Mégapole", "Mégalopole", "Coalescence", "Polycentrisme", "Ville primatiale"], reperes: ["1950", "1961", "1975", "années 1990", "2025", "2050 (prévision)", "1939-1981", "2021", "1960"], personnages: ["Jean Gottmann"], lieux: ["Mégalopolis américaine", "New York", "Tokyo", "Paris", "Mumbai", "São Paulo", "Londres", "Brasília"], trous: ["La ville gagne le monde"] },
+      { notions: ["Recomposition spatiale", "Étalement urbain", "Quartier central des affaires (CBD)", "Centralité", "Ville nouvelle", "Verticalisation", "Régénération urbaine", "Ceinture verte", "Technopôle"], reperes: ["2004"], trous: ["Les formes de la métropolisation"] },
+      { notions: ["Fonction de commandement", "Métropole mondiale", "Archipel mégalopolitain mondial (AMM)", "Ville en décroissance"], reperes: ["1968-2023", "2007"], lieux: ["Saint-Étienne", "Jakarta"], trous: ["Des métropoles inégales"] },
+      { notions: ["Gentrification", "Fragmentation socio-spatiale", "Bidonville"], reperes: ["2022"], lieux: ["Detroit", "Shanghai", "Dubaï", "Mexico", "Lagos", "Dacca", "Kinshasa", "Le Caire"] }
+    ],
     cle: "La métropolisation concentre les hommes, les richesses et les fonctions de commandement dans quelques grandes villes, reliées entre elles en un réseau hiérarchisé ; mais les villes les plus peuplées ne sont pas les plus puissantes.",
     essentiel: [
       "En 2025, 45 % des 8,2 milliards d'humains vivent dans une ville, plus du double de 1950 (20 %). L'urbanisation s'accélère surtout dans les Suds (Afrique subsaharienne, Asie du Sud et du Sud-Est), sous l'effet de la croissance démographique et de l'exode rural.",
@@ -4884,7 +4988,12 @@ const COURS = [
       { a: 1990, b: 1999, date: "années 1990", txt: "Le mot « métropolisation » apparaît, lié à la mondialisation." },
       { a: 2022, date: "2022", txt: "1,12 milliard de personnes vivent dans des bidonvilles, surtout en Asie et en Afrique subsaharienne." },
       { a: 2025, date: "2025", txt: "45 % des 8,2 milliards d'humains vivent dans une ville ; le monde compte 33 mégapoles, dont 19 en Asie." },
-      { a: 2050, date: "2050 (prévision)", txt: "37 mégapoles prévues ; d'ici là, les deux tiers de la croissance démographique mondiale auront lieu dans les villes." }
+      { a: 2050, date: "2050 (prévision)", txt: "37 mégapoles prévues ; d'ici là, les deux tiers de la croissance démographique mondiale auront lieu dans les villes." },
+      {"a": 1939, "b": 1981, "date": "1939-1981", "txt": "Londres passe de 8,6 à 6,6 millions d'habitants : départs vers la périphérie, désindustrialisation."},
+      {"a": 1960, "date": "1960", "txt": "Brasília, capitale planifiée au centre du pays, remplace Rio de Janeiro comme capitale du Brésil."},
+      {"a": 2004, "date": "2004", "txt": "Le London Plan : réaménager des quartiers pauvres mais accessibles pour bâtir une ville compacte."},
+      {"a": 2007, "date": "2007", "txt": "L'État crée un établissement public d'aménagement à Saint-Étienne (EPASE) face à la déprise."},
+      {"a": 2021, "date": "2021", "txt": "Londres atteint le record de 8,8 millions d'habitants."}
     ],
     notions: [
       { mot: "Urbanisation", def: "Processus d'augmentation de la part de la population vivant en ville ; il s'accompagne de l'extension des espaces urbanisés." },
@@ -4901,7 +5010,17 @@ const COURS = [
       { mot: "Fragmentation socio-spatiale", def: "Coupure sociale et spatiale entre des quartiers d'une même ville, qui coexistent sans se mélanger." },
       { mot: "Fonction de commandement", def: "Activité qui permet de prendre des décisions et de contrôler un territoire ou une économie (siège social, bourse, gouvernement)." },
       { mot: "Métropole mondiale", def: "Métropole dont les fonctions de commandement rayonnent sur le monde entier." },
-      { mot: "Archipel mégalopolitain mondial (AMM)", def: "Réseau des grandes métropoles mondiales, plus reliées entre elles qu'à leur arrière-pays." }
+      { mot: "Archipel mégalopolitain mondial (AMM)", def: "Réseau des grandes métropoles mondiales, plus reliées entre elles qu'à leur arrière-pays." },
+      {"mot": "Coalescence", "def": "Rapprochement d'agglomérations qui s'étendent jusqu'à se rejoindre, formant un espace urbanisé continu."},
+      {"mot": "Polycentrisme", "def": "Organisation d'une ville ou d'une région autour de plusieurs pôles, et non d'un seul centre."},
+      {"mot": "Ville primatiale", "def": "Ville qui écrase toutes les autres villes de son pays par sa population et ses fonctions (Londres au Royaume-Uni, Paris en France)."},
+      {"mot": "Ville nouvelle", "def": "Ville créée de toutes pièces pour accueillir habitants et activités et désengorger une grande ville (Navi Mumbai)."},
+      {"mot": "Verticalisation", "def": "Construction en hauteur (tours, gratte-ciel), là où l'espace est rare et cher."},
+      {"mot": "Régénération urbaine", "def": "Réaménagement de quartiers anciens ou de friches pour leur donner de nouvelles fonctions (Canary Wharf, Stratford)."},
+      {"mot": "Ceinture verte", "def": "Espace naturel ou agricole protégé autour d'une ville pour limiter son étalement (la green belt de Londres)."},
+      {"mot": "Technopôle", "def": "Pôle qui associe recherche, universités et entreprises de haute technologie (Paris-Saclay)."},
+      {"mot": "Ville en décroissance", "def": "Ville qui perd des habitants et des emplois, souvent après la désindustrialisation (shrinking city : Detroit, Saint-Étienne)."},
+      {"mot": "Bidonville", "def": "Quartier d'habitat précaire et informel, sans services de base ; plus d'un milliard d'habitants dans le monde."}
     ],
     personnages: [
       { nom: "Jean Gottmann", dates: "1915-1994", txt: [
@@ -4921,12 +5040,51 @@ const COURS = [
       { nom: "São Paulo", lon: -46.63, lat: -23.55, txt: "Capitale économique du Brésil, qui l'emporte sur Rio de Janeiro ; un habitant sur sept vit en favela, tandis que les plus riches s'isolent dans des quartiers fermés comme Alphaville." },
       { nom: "Jakarta", lon: 106.85, lat: -6.21, txt: "Ville la plus peuplée du monde (près de 42 millions d'habitants en 2025), mais absente des dix premières métropoles mondiales." },
       { nom: "Detroit", lon: -83.05, lat: 42.33, txt: "Métropole en déclin : désindustrialisation, 1,85 million d'habitants en 1950, 0,64 million en 2020." },
-      { nom: "Saint-Étienne", lon: 4.39, lat: 45.44, txt: "Métropole en reconversion dans l'orbite de Lyon : la ville-centre a perdu 50 000 habitants depuis 1968 ; elle mise sur le design (Cité du design)." }
+      { nom: "Saint-Étienne", lon: 4.39, lat: 45.44, txt: "Métropole en reconversion dans l'orbite de Lyon : la ville-centre a perdu 50 000 habitants depuis 1968 ; elle mise sur le design (Cité du design)." },
+      {"nom": "Shanghai", "lon": 121.47, "lat": 31.23, "txt": "Métropole d'un pays émergent (Alpha+), de plus en plus connectée, aux fortes inégalités."},
+      {"nom": "Dubaï", "lon": 55.27, "lat": 25.2, "txt": "Métropole émergente (Alpha+) : hub aérien et financier entre l'Europe, l'Asie et l'Afrique."},
+      {"nom": "Mexico", "lon": -99.13, "lat": 19.43, "txt": "Métropole d'un pays émergent (Alpha), en voie d'intégration à l'archipel mégalopolitain mondial."},
+      {"nom": "Lagos", "lon": 3.38, "lat": 6.52, "txt": "Mégapole des Suds peu intégrée (Beta−) : très peuplée, croissance rapide, habitat informel."},
+      {"nom": "Dacca", "lon": 90.41, "lat": 23.81, "txt": "Deuxième ville la plus peuplée du monde, mais mégapole peu intégrée à la mondialisation (Gamma+)."},
+      {"nom": "Kinshasa", "lon": 15.27, "lat": -4.32, "txt": "Mégapole des Suds non classée par le GaWC : faible rayonnement malgré sa taille."},
+      {"nom": "Le Caire", "lon": 31.24, "lat": 30.04, "txt": "Mégapole des Suds peu intégrée, parmi les dix villes les plus peuplées du monde."},
+      {"nom": "Brasília", "lon": -47.88, "lat": -15.79, "txt": "Capitale fédérale planifiée (1960) au centre du Brésil ; elle n'a pas les fonctions économiques d'une métropole mondiale."}
     ],
     trous: [
       { titre: "La ville gagne le monde", texte: "L'urbanisation du monde s'accélère, surtout dans les pays des [Suds], sous l'effet de la croissance démographique et de l'[exode rural]. Avec la [mondialisation], les hommes et les activités se concentrent dans les plus grandes villes : c'est la [métropolisation]. Les villes s'[étalent] et les [mégapoles] se multiplient." },
       { titre: "Les formes de la métropolisation", texte: "La métropolisation transforme l'organisation interne des villes : le [centre des affaires] concentre le [commandement], de nouvelles [centralités] apparaissent en périphérie et la ville s'étale. Les métropoles sont aussi de plus en plus [fragmentées] : [gentrification] des quartiers centraux, quartiers [informels] et quartiers [fermés] se côtoient sans se mélanger." },
       { titre: "Des métropoles inégales", texte: "Toutes les métropoles n'ont pas le même [rayonnement] : il dépend de leurs [fonctions de commandement] plus que de leur [population]. Elles forment un réseau hiérarchisé, l'[archipel mégalopolitain mondial], dominé par [Londres] et [New York]. La métropolisation creuse les [inégalités] à toutes les échelles, du monde au quartier. On distingue plusieurs types de métropoles : mondiales, émergentes, mégapoles peu intégrées, et métropoles en [déclin] qui cherchent à se reconvertir, comme [Saint-Étienne]." }
+    ],
+    questions: [
+      {"p": 1, "q": "Quelle est la longueur de la Mégalopolis, de Boston à Washington ?", "r": "Environ 650 à 700 km", "faux": ["Environ 50 km", "Environ 3 000 km", "Environ 10 km"], "expl": "Un ruban urbain presque continu, structuré par le Northeast Corridor."},
+      {"p": 1, "q": "Quelle part de l'économie des États-Unis la Mégalopolis produit-elle ?", "r": "20 %", "faux": ["2 %", "50 %", "80 %"], "expl": "Ses villes sont complémentaires : finance à New York, pouvoir à Washington, universités à Boston."},
+      {"p": 1, "q": "Pourquoi dit-on que la Mégalopolis est polycentrique ?", "r": "Plusieurs grandes villes y dépassent 4 millions d'habitants", "faux": ["Elle n'a qu'un seul centre, New York", "Elle est au centre des États-Unis", "Elle est entièrement rurale"], "expl": "New York domine (19,4 M) mais Philadelphie, Washington et Boston dépassent chacune 4 millions."},
+      {"p": 1, "q": "Quelle part des habitants de Mumbai vit dans un bidonville ?", "r": "41,8 %", "faux": ["4 %", "10 %", "90 %"], "expl": "5,2 millions de personnes ; Dharavi rassemble environ 1 million d'habitants, à côté du quartier d'affaires de Bandra-Kurla."},
+      {"p": 1, "q": "Quel est le rang de Mumbai dans la hiérarchie urbaine ?", "r": "Alpha, première ville de l'Inde", "faux": ["Alpha++, comme Londres", "Non classée", "Gamma, derrière New Delhi"], "expl": "Capitale économique et financière de l'Inde, devant New Delhi (Alpha−) et Bangalore (Beta+)."},
+      {"p": 1, "q": "Pourquoi São Paulo est-elle appelée la « capitale » du Brésil, sans l'être ?", "r": "Elle commande l'économie : 9,2 % du PIB, seule ville Alpha", "faux": ["Elle est la capitale politique", "C'est la plus ancienne ville", "C'est un grand port de pêche"], "expl": "Brasília est la capitale politique ; São Paulo produit plus du double du PIB de Rio et presque trois fois celui de Brasília."},
+      {"p": 1, "q": "Quelle part du PIB français l'agglomération parisienne produit-elle ?", "r": "30 %, avec 18 % des habitants", "faux": ["5 %", "50 %, avec 50 % des habitants", "80 %"], "expl": "Paris est Alpha+, 2ᵉ ville d'Europe après Londres : une ville primatiale."},
+      {"p": 1, "q": "Qui a inventé le mot « Megalopolis » ?", "r": "Le géographe Jean Gottmann, en 1961", "faux": ["Le président Kennedy", "Le maire de New York", "L'ONU, en 2000"], "expl": "Il décrit une étendue presque continue d'espaces urbains et suburbains du New Hampshire à la Virginie."},
+      {"p": 2, "q": "Pourquoi Mumbai est-elle si dense et construit-elle en hauteur ?", "r": "Son site est une presqu'île étroite entre la mer et des criques", "faux": ["Il fait trop chaud au sol", "C'est la loi en Inde", "Elle est en montagne"], "expl": "L'espace constructible est rare : verticalisation et étalement vers le nord et le continent (Navi Mumbai)."},
+      {"p": 2, "q": "Pourquoi Canary Wharf a-t-il été construit à l'est de Londres ?", "r": "Sur les anciens docks, des terrains libres et bon marché près de la City saturée", "faux": ["Pour être près de l'aéroport", "Parce que l'est est plus riche", "Pour fuir la Tamise"], "expl": "Une friche portuaire reconvertie en second quartier d'affaires : c'est la régénération urbaine."},
+      {"p": 2, "q": "Pourquoi Londres doit-elle être une ville compacte ?", "r": "La ceinture verte interdit de s'étendre", "faux": ["Elle est sur une île", "Ses habitants refusent les tours", "Le climat l'impose"], "expl": "Depuis 2004, la ville réaménage en priorité des quartiers pauvres mais accessibles, au risque de la gentrification."},
+      {"p": 2, "q": "À quoi sert le Grand Paris Express ?", "r": "Relier les banlieues entre elles sans passer par Paris", "faux": ["Relier Paris à Londres", "Remplacer les aéroports", "Supprimer les voitures"], "expl": "200 km de métro et 68 gares : une métropole plus polycentrique et moins inégalitaire."},
+      {"p": 3, "q": "Combien d'habitants la ville de Saint-Étienne a-t-elle perdus depuis 1968 ?", "r": "50 000", "faux": ["500", "1 million", "Aucun : elle en a gagné"], "expl": "De 223 223 à 173 136 habitants, alors que l'aire de Lyon, à 50 km, gagne 0,7 % d'habitants par an."},
+      {"p": 3, "q": "Quel est le taux de pauvreté dans la ville-centre de Saint-Étienne ?", "r": "30 %", "faux": ["3 %", "10 %", "60 %"], "expl": "Contre 21,8 % dans la métropole : les plus aisés sont partis vers le périurbain."},
+      {"p": 3, "q": "Comment Saint-Étienne cherche-t-elle à se reconvertir ?", "r": "Le design, un quartier d'affaires autour de la gare, la Cité du design", "faux": ["En rouvrant des mines de charbon", "En devenant une station de ski", "En construisant un aéroport international"], "expl": "Une ville en décroissance qui se renouvelle, dans l'orbite de Lyon, métropole régionale de rang européen."},
+      {"p": 3, "q": "Pourquoi Jakarta n'est-elle pas parmi les dix premières métropoles mondiales ?", "r": "Le rang dépend des fonctions de commandement, pas de la population", "faux": ["Elle n'a pas assez d'habitants", "Elle est trop loin de l'Europe", "Elle n'a pas d'aéroport"], "expl": "Jakarta est la ville la plus peuplée du monde (près de 42 millions d'habitants)."},
+      {"p": 4, "q": "Combien de personnes vivent dans des bidonvilles dans le monde (2022) ?", "r": "1,12 milliard", "faux": ["12 millions", "112 millions", "5 milliards"], "expl": "Surtout en Asie et en Afrique subsaharienne : la première inégalité, entre métropoles du Nord et villes des Suds."},
+      {"p": 4, "q": "À New York, quel écart de revenu médian entre Manhattan et le Bronx ?", "r": "103 931 $ contre 48 676 $", "faux": ["Le même revenu", "48 676 $ contre 103 931 $", "1 million contre 1 000 $"], "expl": "Plus du double : une inégalité entre centre riche et périphérie pauvre, à l'échelle de la métropole."},
+      {"p": 4, "q": "Combien Detroit a-t-elle perdu d'habitants entre 1950 et 2020 ?", "r": "De 1,85 million à 0,64 million", "faux": ["Aucun", "De 0,64 à 1,85 million", "De 10 à 9 millions"], "expl": "Désindustrialisation : Detroit est l'exemple type de la métropole en déclin."}
+    ],
+    tris: [
+      {"p": 4, "consigne": "Quel type de métropole ?", "categories": ["Métropole mondiale de premier rang", "Métropole d'un pays émergent", "Mégapole des Suds peu intégrée", "Métropole en déclin"], "items": [["Londres", 0], ["New York", 0], ["Tokyo", 0], ["Paris", 0], ["Shanghai", 1], ["Dubaï", 1], ["Mumbai", 1], ["São Paulo", 1], ["Lagos", 2], ["Dacca", 2], ["Kinshasa", 2], ["Le Caire", 2], ["Detroit", 3], ["Saint-Étienne", 3]], "expl": "Mondiales : pôles majeurs de l'AMM ; émergentes : croissance rapide, de plus en plus connectées ; mégapoles peu intégrées : très peuplées, faible rayonnement ; en déclin : désindustrialisation, perte d'habitants."},
+      {"p": 4, "consigne": "À quelle échelle cette inégalité ?", "categories": ["Monde", "Métropole", "Quartier"], "items": [["1,12 milliard d'habitants de bidonvilles, surtout dans les Suds", 0], ["Manhattan contre le Bronx", 1], ["Hauts-de-Seine contre Seine-Saint-Denis", 1], ["Un quartier populaire qui s'embourgeoise", 2], ["Une résidence fermée (gated community)", 2]]},
+      {"p": 1, "consigne": "Mégapole ou mégalopole ?", "categories": ["Mégapole", "Mégalopole"], "items": [["Une agglomération de plus de 10 millions d'habitants", 0], ["Jakarta", 0], ["Dacca", 0], ["Un chapelet de métropoles reliées", 1], ["Boston-Washington", 1], ["Tokyo-Osaka", 1]], "expl": "Mégapole : une agglomération géante. Mégalopole : plusieurs métropoles soudées. Les trois mégalopoles : Amérique du Nord, Europe (Londres-Milan), Japon (Tokyo-Osaka)."},
+      {"p": 1, "consigne": "Paris, ville mondiale : force ou faiblesse ?", "categories": ["Une force", "Une faiblesse"], "items": [["30 % du PIB français", 0], ["Rang Alpha+", 0], ["70 millions de passagers à Roissy", 0], ["Fortes inégalités entre départements", 1], ["Transports saturés", 1], ["Logement cher", 1]]}
+    ],
+    suites: [
+      {"p": 3, "consigne": "Du plus haut au plus bas du classement GaWC (2024)", "items": ["Londres (Alpha++)", "Paris (Alpha+)", "Mumbai (Alpha)", "Johannesburg (Alpha−)", "Lagos (Beta−)", "Dacca (Gamma+)", "Kinshasa (non classée)"], "expl": "Le classement dépend de l'implantation des grandes firmes de services : Kinshasa, très peuplée, n'est même pas classée."},
+      {"p": 1, "consigne": "La population de Londres depuis 1939, dans l'ordre", "items": ["1939 : 8,6 millions", "1981 : 6,6 millions, départs vers la périphérie", "2021 : 8,8 millions, un record"], "expl": "Une courbe en U : déclin, puis attractivité retrouvée grâce à la régénération urbaine et à l'immigration."}
     ],
     capable: [
       "Distinguer urbanisation et métropolisation.",

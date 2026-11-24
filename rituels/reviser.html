@@ -647,6 +647,10 @@
   .jeu-haut .av-barre span { background: linear-gradient(180deg, #5EEA8C, #22C55E); }
   .av-coeurs { display: flex; gap: 2px; }
   .av-coeurs .av-sym { width: 23px; height: 23px; }
+  .av-coeurs.perd { animation: secousse .4s; }
+  .jeu-vies-reste { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; font-weight: 800; color: #FFB4B4; }
+  .jeu-vies-reste span { display: inline-flex; }
+  .jeu-vies-reste .av-sym { width: 20px; height: 20px; }
   .jeu-corps { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .jeu-question { max-width: 560px; margin: 0 auto; padding: 8px 18px 24px; animation: av-apparait .2s ease-out; }
   .jeu-consigne { font-size: 22px; font-weight: 800; line-height: 1.25; margin: 6px 0 16px; }
@@ -754,6 +758,17 @@
   .jeu-paire.choisi { border-color: #8B6CFF; background: #3B3192; }
   .jeu-paire.bien { opacity: .7; }
   .jeu-ordre { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .jeu-tri-reserve { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; min-height: 44px; }
+  .jeu-tri-cases { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .jeu-tri-cases.trois { grid-template-columns: 1fr; }
+  .jeu-tri-case { display: flex; flex-direction: column; align-items: stretch; gap: 8px; min-height: 96px; padding: 10px; border-radius: 16px; border: 2px dashed #4A50A0; background: #22265A; color: #F4F2FF; text-align: left; }
+  .jeu-tri-case strong { font-size: 14px; font-weight: 800; color: #C9C6F0; }
+  .jeu-tri-case.prete { border-color: #8B6CFF; background: #2C2A72; }
+  .jeu-tri-contenu { display: flex; flex-wrap: wrap; gap: 6px; }
+  .jeu-tri-etiq { padding: 8px 11px; border-radius: 12px; border: 2px solid #3E4384; border-bottom-width: 4px; background: #2E3270; color: #F4F2FF; font-size: 14px; font-weight: 700; line-height: 1.25; text-align: left; }
+  .jeu-tri-etiq.choisi { border-color: #FFD34D; background: #4A3A0A; }
+  .jeu-tri-etiq.bien { border-color: #22C55E; background: #16402F; color: #9AF5BC; }
+  .jeu-tri-etiq.mal { border-color: #EF4444; background: #45192A; color: #FFB4B4; }
   .jeu-ordre-item {
     display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; border: 2px solid #3E4384; border-bottom-width: 5px; background: #282C5E;
     color: #F4F2FF; font-weight: 600; font-size: 14.5px; line-height: 1.35; text-align: left;
@@ -2833,6 +2848,11 @@
       lieux.forEach(function (l) {
         var o = propositions(l, lieux, autresL, nom, nom);
         if (o) qs.push({ item: k + "l" + l.nom, consigne: "De quel lieu s'agit-il ?", enonce: l.txt, bonne: l.nom, options: o, carte: pre + "|l|" + l.nom, expl: l.nom + " : " + l.txt });
+      });
+      // les questions tirées des fiches d'activités (documents, chiffres, études de cas)
+      liste(d, "questions").forEach(function (x, i) {
+        if (!x.faux || x.faux.length < 2) return;
+        qs.push({ item: k + "q" + i, consigne: "D'après tes fiches d'activités", enonce: x.q, bonne: x.r, options: melanger([x.r].concat(melanger(x.faux).slice(0, 3))), carte: null, expl: x.expl });
       });
     });
     // une seule question par notion, date, personnage ou lieu
@@ -5015,6 +5035,9 @@
   // pour des collègues : toutes les étapes ouvertes, sans aucun accès à l'espace professeur).
   var CLE_AV = "reviser-aventure-v1";
   var VIES_DEFI = 3;
+  // comme dans Duolingo : chaque niveau donne 3 vies ; chaque erreur en coûte une, même sur une question revue à la fin ;
+  // plus de vies, le niveau s'arrête et il faut le rejouer (3 erreurs empêchent de toute façon de débloquer la suite)
+  var VIES_NIVEAU = 3;
   var ETOILES_POUR_PASSER = 2; // un niveau débloque l'étape suivante à partir de 2 étoiles (2 erreurs au plus)
   // La difficulté suit la classe : nombre de propositions, dates plus ou moins proches, points sur la carte,
   // réponses à écrire, carte « experte » sans points.
@@ -6043,7 +6066,26 @@
       return { type: "choix", consigne: "Choisis la bonne réponse", bulle: x.q, options: choisirOptions([x.r].concat(melanger(x.faux)), x.r, diff.options), bonne: x.r, expl: x.expl };
     });
     if (b.data.siecles) for (var k = 0; k < 3; k++) qs.push(intrusSiecle());
-    return qs;
+    return qs.concat(questionsTri(b.data), questionsSuite(b.data));
+  }
+  // « Classe dans le bon tableau » : { consigne, categories: [..], items: [[texte, n° de catégorie], …], expl }
+  // au collège, 5 étiquettes à ranger ; au lycée, 6
+  function questionsTri(d) {
+    return liste(d, "tris").map(function (t) {
+      var items = melanger(t.items.map(function (x) { return { txt: x[0], cat: x[1] }; })).slice(0, d.n === "5e" ? 5 : 6);
+      return { type: "tri", consigne: t.consigne, categories: t.categories, items: items, bonne: "",
+        bonneTexte: null, expl: t.expl || t.categories.map(function (c, k) {
+          return c + " : " + items.filter(function (x) { return x.cat === k; }).map(function (x) { return x.txt; }).join(", ");
+        }).filter(function (x) { return !/ : $/.test(x); }).join(" · ") };
+    });
+  }
+  // « Remets les étapes dans l'ordre » : { consigne, items: [étapes dans l'ordre], expl }
+  function questionsSuite(d) {
+    return liste(d, "suites").map(function (t) {
+      return { type: "ordre", consigne: t.consigne, aide: "Touche les étapes dans l'ordre. Touche à nouveau pour annuler.",
+        items: t.items.map(function (x, k) { return { txt: x, a: k + 1, date: (k + 1) + "." }; }),
+        expl: t.expl || t.items.map(function (x, k) { return (k + 1) + ". " + x; }).join(" → ") };
+    });
   }
   var MODELES_NIVEAUX = [
     { id: "mots", icone: "essentiel", titre: function () { return "Les mots"; }, pool: poolMots },
@@ -6056,7 +6098,7 @@
   // un niveau : des types variés, à tour de rôle, sans trop de questions longues ; le nombre de réponses
   // écrites et de cartes « expertes » dépend de la classe
   function composer(pool, nb, diff) {
-    var max = { paires: 1, ordre: 1, curseur: 2, carte: diff.carte, experte: diff.experte, detail: 2, quisuisje: 2, saisie: diff.saisie, graphique: 4, legende: 2, intrus: 3 };
+    var max = { tri: 2, paires: 1, ordre: 1, curseur: 2, carte: diff.carte, experte: diff.experte, detail: 2, quisuisje: 2, saisie: diff.saisie, graphique: 4, legende: 2, intrus: 3 };
     var parType = {};
     melanger(pool).forEach(function (q) { (parType[q.type] = parType[q.type] || []).push(q); });
     Object.keys(parType).forEach(function (t) { if (t in max) parType[t] = parType[t].slice(0, max[t]); });
@@ -6137,7 +6179,8 @@
       v[champ] = liste(ch, champ).filter(function (x) { return garder[String(x[cles[champ]])]; });
     });
     v.intrus = spec.intrus ? liste(ch, "intrus") : [];
-    v.questions = []; v.periodes = []; v.ppo = []; v.parties = null; v.parent = ch;
+    ["questions", "tris", "suites"].forEach(function (champ) { v[champ] = liste(ch, champ).filter(function (x) { return x.p === k + 1; }); });
+    v.periodes = []; v.ppo = []; v.parties = null; v.parent = ch;
     return v;
   }
   function poolTout(ch, b) {
@@ -6149,7 +6192,8 @@
   function titreCourt(t) {
     var m = String(t).split(/ : |; | \(/);
     var c = /^(introduction|étude de cas|tâche finale|conclusion)$/i.test(m[0]) && m[1] ? m[1] : m[0];
-    return c.replace(/[ ,.]+$/, "");
+    c = c.replace(/[ ,.]+$/, "");
+    return c.charAt(0).toUpperCase() + c.slice(1);
   }
   function routeParties(ch) {
     var noeuds = [], cours = blocs(ch)[0], plan = liste(ch, "plan");
@@ -6584,6 +6628,7 @@
         info = n.type === "defi" ? nb.defi + " questions sur tout " + (route.parties ? "le chapitre" : "le parcours") + ", et " + VIES_DEFI + " vies."
           : n.partie ? nb.nb + " questions sur cette partie du cours : son vocabulaire, ses dates, ses acteurs et ses lieux."
           : n.type === "revision" ? (nb.nb + 2) + " questions qui mélangent les chapitres déjà vus." : nb.nb + " questions variées.";
+        if (n.type === "niveau" || n.type === "revision") info += " Tu as " + VIES_NIVEAU + " vies : chaque erreur en coûte une.";
         var rec = etoilesDe(n), aPasser = n.type !== "defi" && !fait;
         if (rec) info += " Ton record : " + rec + " étoile" + (rec > 1 ? "s" : "") + " sur 3.";
         if (aPasser) info += rec ? " Il en faut " + ETOILES_POUR_PASSER + " pour débloquer la suite." : " Il faut " + ETOILES_POUR_PASSER + " étoiles pour débloquer la suite.";
@@ -6714,7 +6759,9 @@
       : composer(poolNoeud(ch, route, n), defi ? diff.defi : n.type === "revision" ? diff.nb + 2 : diff.nb, diff);
     // le guide : Ératosthène pour une unité de géographie, Hérodote sinon
     var guide = { d: (n.unite && n.unite.bloc.data.d) || ch.d };
-    var file = qs.slice(), pos = 0, finies = 0, premiersEssais = 0, erreurs = 0, xp = 0, vies = VIES_DEFI, combo = 0, corrigees = 0;
+    var avecVies = defi || n.type === "niveau" || n.type === "revision";
+    var viesMax = defi ? VIES_DEFI : VIES_NIVEAU;
+    var file = qs.slice(), pos = 0, finies = 0, premiersEssais = 0, erreurs = 0, xp = 0, vies = viesMax, combo = 0, corrigees = 0;
     annonces = [];
     var ecran = ecranAventure("av-nuit jeu");
     var barre = barreProgres(0);
@@ -6723,7 +6770,7 @@
     var compteurXp = avecSymbole("eclair", "0");
     var coeurs = el("span", { class: "av-coeurs", "aria-label": vies + " vies" });
     var serieQ = el("span", { class: "jeu-combo", "aria-live": "polite" });
-    var haut = el("div", { class: "jeu-haut" }, [quitter, barre, serieQ, defi ? coeurs : compteurXp]);
+    var haut = el("div", { class: "jeu-haut" }, [quitter, barre, serieQ, avecVies ? coeurs : compteurXp]);
     var corps = el("div", { class: "jeu-corps" });
     var pied = el("div", { class: "jeu-pied" });
     ajouter(ecran, [haut, corps, pied]);
@@ -6733,7 +6780,7 @@
       barre.firstChild.style.width = Math.round(finies / qs.length * 100) + "%";
       compteurXp.lastChild.textContent = String(xp);
       coeurs.innerHTML = "";
-      for (var k = 0; k < VIES_DEFI; k++) coeurs.innerHTML += symbole(k < vies ? "coeur" : "coeurVide");
+      for (var k = 0; k < viesMax; k++) coeurs.innerHTML += symbole(k < vies ? "coeur" : "coeurVide");
       coeurs.setAttribute("aria-label", vies + " vie" + (vies > 1 ? "s" : ""));
       serieQ.innerHTML = "";
       if (combo >= 3) { serieQ.innerHTML = symbole("flamme"); serieQ.appendChild(document.createTextNode("× " + combo)); serieQ.classList.remove("pop"); void serieQ.offsetWidth; serieQ.classList.add("pop"); }
@@ -6772,7 +6819,7 @@
       } else {
         combo = 0;
         if (!q.revue) erreurs++;
-        if (defi) vies--;
+        if (avecVies) { vies--; coeurs.classList.remove("perd"); void coeurs.offsetWidth; coeurs.classList.add("perd"); }
         if (q.erreur && !q.revue) noterErreur(q.erreur, false);
         else if (!q.revue && !q.erreur) ajouterErreur(q);
         // on revoit l'erreur à la fin du niveau (une fois), sauf pour les paires, déjà corrigées sur place
@@ -6798,8 +6845,13 @@
       else if (!juste && q.bonne && q.type !== "paires") feuille.appendChild(el("p", { class: "jeu-bonne" }, ["Réponse : ", el("strong", { text: q.bonne })]));
       var expl = extra.expl || q.expl;
       if (expl) feuille.appendChild(el("p", { class: "jeu-expl", text: expl }));
-      if (!juste && !defi && !q.revue && q.type !== "paires") feuille.appendChild(el("p", { class: "jeu-aide", text: ileErreurs ? "Elle reviendra à la fin, puis demain sur l'île des erreurs." : "Cette question reviendra à la fin du niveau, puis sur l'île des erreurs." }));
-      var fini = defi ? vies <= 0 : false;
+      if (!juste && avecVies) {
+        var cv = el("span");
+        cv.innerHTML = symbole(vies > 0 ? "coeur" : "coeurVide");
+        feuille.appendChild(el("p", { class: "jeu-vies-reste" }, [cv, vies > 0 ? " Il te reste " + pluriel(vies, "vie") + "." : " Plus de vies !"]));
+      }
+      if (!juste && !defi && !q.revue && q.type !== "paires" && vies > 0) feuille.appendChild(el("p", { class: "jeu-aide", text: ileErreurs ? "Elle reviendra à la fin, puis demain sur l'île des erreurs." : "Cette question reviendra à la fin du niveau, puis sur l'île des erreurs." }));
+      var fini = avecVies ? vies <= 0 : false;
       var btn = el("button", { class: "jeu-continuer", type: "button", text: "Continuer" });
       continuer = function () {
         continuer = null;
@@ -6866,11 +6918,13 @@
       av.xp += xp;
       majSerie();
       sauverAventure();
-      finEcran("Le défi t'a eu… cette fois !", 0, [avecSymbole("eclair", "+" + xp, "jeu-stat")], false,
+      if (defi) finEcran("Le défi t'a eu… cette fois !", 0, [avecSymbole("eclair", "+" + xp, "jeu-stat")], false,
         "Revois les niveaux du parcours, puis retente ta chance : il faut garder au moins une vie jusqu'au bout.", false);
+      else finEcran("Plus de vies !", 0, [avecSymbole("eclair", "+" + xp, "jeu-stat")], false,
+        "Trois erreurs : le niveau s'arrête. Relis la fiche du chapitre, puis rejoue : les questions changent à chaque fois.", false, true);
     }
     // gagne : le niveau est allé au bout (on montre les étoiles) ; reussi : il débloque la suite
-    function finEcran(titre, etoiles, stats, gagne, message, reussi) {
+    function finEcran(titre, etoiles, stats, gagne, message, reussi, relire) {
       continuer = null;
       haut.style.visibility = "hidden";
       corps.innerHTML = "";
@@ -6910,6 +6964,7 @@
       var encore = ileErreurs ? null : el("button", { class: reussi ? "jeu-secondaire" : "jeu-continuer", type: "button", text: defi ? "Retenter le défi" : seance ? "Refaire une séance" : "Rejouer ce niveau", onclick: function () { rendre(); } });
       var boutons = reussi ? [chemin, encore] : [encore, chemin];
       if (suite && !defi) boutons.push(el("a", { class: "jeu-lien", href: retour, text: "Revenir au chemin du chapitre" }));
+      if (relire && !ch.special) boutons.splice(1, 0, el("a", { class: "jeu-secondaire", href: lienChapitre(ch, "essentiel"), text: "Relire l'essentiel du chapitre" }));
       pied.appendChild(el("div", { class: "jeu-fin-btns" }, boutons));
       if (reussi && !ileErreurs) confettis(ecran);
       annoncer(titre + (message ? " " + message : ""));
@@ -7171,8 +7226,8 @@
     },
 
     ordre: function (ch, q, zone, pied, fin) {
-      zone.appendChild(consigne("Du plus ancien au plus récent"));
-      zone.appendChild(el("p", { class: "jeu-aide", text: "Touche les événements dans l'ordre chronologique. Touche à nouveau pour annuler." }));
+      zone.appendChild(consigne(q.consigne || "Du plus ancien au plus récent"));
+      zone.appendChild(el("p", { class: "jeu-aide", text: q.aide || "Touche les événements dans l'ordre chronologique. Touche à nouveau pour annuler." }));
       var items = melanger(q.items), choix = [], fait = false;
       var boutons = items.map(function (it) {
         var num = el("span", { class: "num", "aria-hidden": "true" });
@@ -7200,7 +7255,7 @@
           x.b.classList.add(valeurDate(x.it.a) === valeurDate(bon[k].a) ? "bien" : "mal");
           x.b.disabled = true;
         });
-        fin(juste, { expl: bon.map(function (it) { return it.date + " : " + it.txt; }).join(" → ") });
+        fin(juste, { expl: q.expl || bon.map(function (it) { return it.date + " : " + it.txt; }).join(" → ") });
       });
       function maj() {
         boutons.forEach(function (x) {
@@ -7210,6 +7265,52 @@
           x.b.setAttribute("aria-label", (k >= 0 ? "Position " + (k + 1) + " : " : "") + x.it.txt);
         });
         valider.disabled = choix.length !== items.length;
+      }
+      maj();
+    },
+
+    tri: function (ch, q, zone, pied, fin) {
+      zone.appendChild(consigne(q.consigne));
+      zone.appendChild(el("p", { class: "jeu-aide", text: "Touche une étiquette, puis la case où elle va. Touche une étiquette rangée pour la reprendre." }));
+      var place = {}, choisie = null, fait = false;
+      var reserve = el("div", { class: "jeu-tri-reserve" });
+      var cases = q.categories.map(function (c, k) {
+        var contenu = el("div", { class: "jeu-tri-contenu" });
+        var b = el("button", { class: "jeu-tri-case", type: "button", "aria-label": "Ranger dans : " + c }, [el("strong", { text: c }), contenu]);
+        b.addEventListener("click", function (e) {
+          if (fait || choisie === null || e.target.closest(".jeu-tri-etiq")) return;
+          place[choisie] = k; choisie = null; son("clic"); maj();
+        });
+        return { b: b, contenu: contenu };
+      });
+      var etiqs = q.items.map(function (it, i) {
+        var e = el("button", { class: "jeu-tri-etiq", type: "button", text: it.txt });
+        e.addEventListener("click", function (ev) {
+          if (fait) return;
+          ev.stopPropagation();
+          if (i in place) { delete place[i]; choisie = i; } else choisie = choisie === i ? null : i;
+          son("clic"); maj();
+        });
+        return e;
+      });
+      var grille = el("div", { class: "jeu-tri-cases" + (q.categories.length > 2 ? " trois" : "") });
+      cases.forEach(function (c) { grille.appendChild(c.b); });
+      ajouter(zone, [reserve, grille]);
+      var valider = boutonValider(pied, function () {
+        fait = true;
+        var juste = q.items.every(function (it, i) { return place[i] === it.cat; });
+        etiqs.forEach(function (e, i) { e.classList.add(place[i] === q.items[i].cat ? "bien" : "mal"); e.disabled = true; });
+        fin(juste);
+      });
+      function maj() {
+        reserve.innerHTML = "";
+        cases.forEach(function (c) { c.contenu.innerHTML = ""; c.b.classList.toggle("prete", choisie !== null); });
+        etiqs.forEach(function (e, i) {
+          e.classList.toggle("choisi", choisie === i);
+          (i in place ? cases[place[i]].contenu : reserve).appendChild(e);
+        });
+        reserve.hidden = Object.keys(place).length === q.items.length;
+        valider.disabled = Object.keys(place).length !== q.items.length;
       }
       maj();
     },
