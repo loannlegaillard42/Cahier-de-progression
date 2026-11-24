@@ -1664,6 +1664,43 @@
   .dx-rep:disabled { opacity: .45; }
   .dx-regles { width: 100%; font: 12.5px "IBM Plex Mono", monospace; margin-top: 10px; }
   .dx-note a { color: #FFD34D; }
+
+  /* ---------- Le pont : le jeu d'arcade entre deux îles ---------- */
+  .av-ile.pont { height: 100px; }
+  .av-chemin.nomme .av-ile.pont .av-ile-nom { transform: translate(-50%, 0); }
+  .av-ile.pont .av-pont-svg { display: block; width: 200px; height: auto; margin: 0 auto -6px; }
+  .av-ile.pont .av-noeud { position: absolute; left: 50%; top: 2px; transform: translateX(-50%); width: 54px; height: 54px; }
+  .pt .jeu-haut { gap: 12px; }
+  .pt-etapes { flex: 1; display: flex; gap: 6px; justify-content: center; }
+  .pt-etapes i { width: 16px; height: 16px; border-radius: 50%; background: #34386A; box-shadow: inset 0 -3px 0 rgba(0,0,0,.25); }
+  .pt-etapes i.fait { background: #FFC83D; }
+  .pt-etapes i.ici { background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.3); }
+  .pt-scene { position: relative; height: 190px; margin: 0 0 6px; overflow: hidden; background: linear-gradient(180deg, #3B5FD8 0%, #7DB3F5 58%, #2050B8 58%, #183E96 100%); }
+  .pt-ciel { position: absolute; inset: 0; background: radial-gradient(circle at 80% 22%, #FFE08A 0 18px, transparent 19px), radial-gradient(ellipse 40px 12px at 30% 25%, rgba(255,255,255,.8) 98%, transparent), radial-gradient(ellipse 30px 9px at 62% 14%, rgba(255,255,255,.6) 98%, transparent); }
+  .pt-ile { position: absolute; bottom: 30%; width: 22%; height: 24%; background: #4BAE4F; border-radius: 0 0 40% 40%; box-shadow: inset 0 -10px 0 #C79A5A; }
+  .pt-ile.g { left: -6%; border-top-right-radius: 30px; }
+  .pt-ile.d { right: -6%; border-top-left-radius: 30px; }
+  .pt-drapeau { position: absolute; top: -28px; left: 30%; padding: 2px 8px; border-radius: 6px; background: #FFD34D; color: #5A3B00; font-weight: 800; font-size: 13px; }
+  .pt-planches { position: absolute; left: 0; right: 0; bottom: 34%; height: 12px; background: repeating-linear-gradient(90deg, #A86A36 0 22px, #7A4A22 22px 26px); box-shadow: 0 4px 0 #5B3418; animation: pt-defile .6s linear infinite; }
+  @keyframes pt-defile { from { background-position: 0 0; } to { background-position: -26px 0; } }
+  .pt-perso { position: absolute; left: 12%; bottom: calc(34% + 10px); width: 64px; height: 80px; z-index: 2; }
+  .pt-perso svg { width: 100%; height: 100%; display: block; }
+  .pt-perso.court { animation: pt-court .35s ease-in-out infinite alternate; }
+  @keyframes pt-court { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+  .pt-perso.saute { animation: pt-saut .8s ease-out; }
+  @keyframes pt-saut { 0% { transform: translateY(0); } 45% { transform: translateY(-78px) rotate(-8deg); } 100% { transform: translateY(0); } }
+  .pt-perso.tombe { animation: pt-tombe .7s ease-out; }
+  @keyframes pt-tombe { 0% { transform: none; } 30% { transform: translateX(-10px) rotate(-22deg); filter: drop-shadow(0 0 6px #FF5A6E); } 100% { transform: none; } }
+  .pt-perso.arrive { left: 74%; transition: left 1.2s ease-in-out; animation: pt-court .3s ease-in-out 4 alternate; }
+  .pt-obst { position: absolute; bottom: calc(34% + 10px); width: 52px; height: 42px; z-index: 1; transform: translateX(-50%); }
+  .pt-obst svg { width: 100%; height: 100%; display: block; }
+  .pt-obst.proche { filter: drop-shadow(0 0 8px #FF5A6E); }
+  .pt-obst.passe { transition: left .8s linear; left: 4% !important; opacity: .4; }
+  .pt-bulle { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); padding: 5px 12px; border-radius: 12px; background: rgba(20, 23, 63, .8); color: #fff; font-weight: 800; font-size: 14px; white-space: nowrap; }
+  .pt-bulle:empty { display: none; }
+  .pt-corps { padding-top: 4px; }
+  .pt-question .jeu-consigne { font-size: 19px; }
+  @media (prefers-reduced-motion: reduce) { .pt-planches, .pt-perso.court { animation: none; } }
 </style>
 </head>
 <body>
@@ -1751,7 +1788,8 @@
     son: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',
     sonCoupe: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/>',
     revoir: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/>',
-    plein: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>'
+    plein: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+    pont: '<path d="M2 17h20"/><path d="M3 17c4-6 14-6 18 0"/><path d="M7.5 13.2V17M12 12V17M16.5 13.2V17"/>'
   };
   function icone(nom) {
     return '<span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24">' + (ICONES[nom] || "") + "</svg></span>";
@@ -6298,9 +6336,11 @@
       if (g && (e.nb < 4 || g.nb < 4)) { g.ks.push(e.k); g.nb += e.nb; g.ppo = g.ppo.concat(e.ppo); }
       else groupes.push({ ks: [e.k], nb: e.nb, ppo: e.ppo.slice() });
     });
-    groupes.forEach(function (g) {
-      var ks = g.ks, num = ks.map(function (k) { return romain(k + 1); }).join("-");
-      var cle = ch.id + "|partie|" + (ks[0] + 1) + (ks.length > 1 ? "-" + (ks[ks.length - 1] + 1) : "");
+    function numGroupe(g) { return g.ks.map(function (k) { return romain(k + 1); }).join("-"); }
+    function cleGroupe(g) { return ch.id + "|partie|" + (g.ks[0] + 1) + (g.ks.length > 1 ? "-" + (g.ks[g.ks.length - 1] + 1) : ""); }
+    groupes.forEach(function (g, gi) {
+      var ks = g.ks, num = numGroupe(g);
+      var cle = cleGroupe(g);
       var titres = ks.map(function (k) { return plan[k] || ""; });
       var court = num + ". " + titreCourt(titres[0]) + (ks.length > 1 ? "…" : "");
       noeuds.push({ type: "niveau", cle: cle, unite: u, rang: noeuds.length + 1, icone: "essentiel", partie: num, court: court,
@@ -6312,6 +6352,14 @@
         noeuds.push({ type: "niveau", cle: ch.id + "|" + b.id + "|tout", unite: u, rang: noeuds.length + 1, icone: "carte", ppo: true,
           court: b.nom, nom: "Point de passage : " + (b.data.titre || b.nom), poolDe: function () { return poolTout(ch, b); } });
       });
+      // le pont vers l'île suivante : six obstacles sur ce qu'on vient d'apprendre
+      var suivant = groupes[gi + 1];
+      if (suivant) {
+        var poolPartie = noeuds[noeuds.length - 1].ppo ? null : noeuds[noeuds.length - 1].poolDe;
+        var dernier = noeuds.filter(function (x) { return x.partie === num; })[0];
+        noeuds.push({ type: "pont", cle: ch.id + "|pont|" + (gi + 1), unite: u, icone: "pont", court: "Le pont", vers: numGroupe(suivant),
+          nom: "Le pont vers la partie " + numGroupe(suivant), apres: cleGroupe(suivant), poolDe: (poolPartie || dernier.poolDe) });
+      }
     });
     noeuds.push({ type: "coffre", cle: ch.id + "|cours", unite: u, nom: "Le coffre", icone: "coffre" });
     noeuds.push({ type: "defi", cle: ch.id + "|defi", unite: null, icone: "bouclier", nom: "Bilan du chapitre", court: "Bilan du chapitre" });
@@ -6371,6 +6419,8 @@
   // un niveau (ou une révision) est réussi à partir de 2 étoiles ; le défi, dès qu'on le finit avec au moins une vie
   function noeudFait(n) {
     if (n.type === "coffre") return !!av.coffres[n.cle];
+    // un pont est fait une fois traversé, ou si l'élève a déjà réussi l'île d'après (progression d'avant les ponts)
+    if (n.type === "pont") return !!av.niveaux[n.cle] || !!(n.apres && av.niveaux[n.apres] && av.niveaux[n.apres].e >= ETOILES_POUR_PASSER);
     var x = av.niveaux[n.cle];
     return !!x && (n.type === "defi" || x.e >= ETOILES_POUR_PASSER);
   }
@@ -6557,6 +6607,7 @@
     }
     if (sous === "jeu") {
       var n = route.noeuds[Number(x)];
+      if (n && n.type === "pont" && noeudOuvert(route, n)) { vuePont(ch, route, n); return; }
       if (n && n.type !== "coffre" && noeudOuvert(route, n)) { vueNiveau(ch, route, n); return; }
     }
     // les haltes de révision n'ont pas de chemin à elles : elles sont sur la carte de l'année
@@ -6670,9 +6721,9 @@
 
     function ile(n) {
       var fait = noeudFait(n), ouvert = noeudOuvert(route, n), ici = n.i === actuel || (actuel < 0 && n.i === noeuds.length - 1);
-      var wrap = el("div", { class: "av-ile" + (ici ? " actuelle" : "") });
-      wrap.style.setProperty("--dx", Math.round(DECALAGES[n.i % DECALAGES.length] * ampleur) + "px");
-      wrap.innerHTML = svgIle(n.i, AV_DECORS[n.i % AV_DECORS.length], !ouvert);
+      var wrap = el("div", { class: "av-ile" + (n.type === "pont" ? " pont" : "") + (ici ? " actuelle" : "") });
+      wrap.style.setProperty("--dx", Math.round(DECALAGES[n.i % DECALAGES.length] * ampleur * (n.type === "pont" ? .4 : 1)) + "px");
+      wrap.innerHTML = n.type === "pont" ? svgPontChemin(!ouvert) : svgIle(n.i, AV_DECORS[n.i % AV_DECORS.length], !ouvert);
       var etat = fait ? "fait" : n.i === actuel ? "actuel" : ouvert ? "ouvert" : "verrou";
       var b = el("button", { class: "av-noeud " + n.type + " " + etat, type: "button", "aria-expanded": "false",
         "aria-label": n.nom + (n.unite ? ", " + n.unite.petit.toLowerCase() : "") + (fait ? ", terminé" : ouvert ? "" : ", verrouillé") });
@@ -6718,6 +6769,9 @@
           : ouvert ? "Bravo, l'unité est terminée ! Ouvre le coffre pour découvrir tes trouvailles." : "Termine les niveaux de l'unité pour l'ouvrir.";
         if (ouvert && !fait) action = el("button", { class: "av-bulle-btn", type: "button", text: "Ouvrir le coffre", onclick: function () { fermerBulle(); modalCoffre(ch, n); } });
         else if (fait) action = el("a", { class: "av-bulle-btn", href: lienAventure(ch, "perso"), text: "Voir mes trouvailles" });
+      } else if (n.type === "pont") {
+        info = fait ? "Pont déjà traversé : tu peux le refaire pour t'entraîner." : ouvert ? "Fais traverser le pont à ton personnage : avant chaque obstacle, réponds à une question sur la partie que tu viens de finir. 6 obstacles, de plus en plus durs." : "Termine d'abord l'île d'avant.";
+        if (ouvert) action = el("a", { class: "av-bulle-btn", href: lienAventure(ch, "jeu/" + n.i), text: fait ? "Retraverser" : "Traverser le pont" });
       } else {
         info = n.type === "defi" ? nb.defi + " questions sur tout " + (route.parties ? "le chapitre" : "le parcours") + ", et " + VIES_DEFI + " vies."
           : n.partie ? nb.nb + " questions sur cette partie du cours : son vocabulaire, ses dates, ses acteurs et ses lieux."
@@ -6747,7 +6801,7 @@
       if (cible) {
         bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: "Étape " + (actuel + 1) + " sur " + noeuds.length }), el("strong", { text: cible.court || cible.nom })]));
         if (cible.type === "coffre") bas.appendChild(el("button", { class: "jeu-valider", type: "button", text: "Ouvrir le coffre", onclick: function () { fermerBulle(); modalCoffre(ch, cible); } }));
-        else bas.appendChild(el("a", { class: "jeu-valider", href: lienAventure(ch, "jeu/" + cible.i), text: cible.type === "defi" ? "Relever le défi" : faits ? "Continuer" : "Commencer" }));
+        else bas.appendChild(el("a", { class: "jeu-valider", href: lienAventure(ch, "jeu/" + cible.i), text: cible.type === "defi" ? "Relever le défi" : cible.type === "pont" ? "Traverser" : faits ? "Continuer" : "Commencer" }));
       } else {
         bas.appendChild(el("span", { class: "md-c-txt" }, [el("small", { text: pluriel(etoilesRoute(route), "étoile") + " gagnées" }), el("strong", { text: ch.special ? "Parcours terminé !" : "Chapitre terminé !" })]));
         bas.appendChild(el("a", { class: "jeu-valider", href: lienMonde(ch.n), text: "Retour à la carte" }));
@@ -7088,6 +7142,190 @@
     if (!qs.length) { location.hash = retour; return; }
     majHaut();
     poser();
+  }
+
+  // ----- Le pont entre deux îles : un petit jeu d'arcade pour valider la partie du cours qu'on vient de finir -----
+  // Le personnage court sur le pont ; un obstacle arrive : la question s'affiche, et l'obstacle qui avance est le compte à rebours.
+  // Bonne réponse : il saute ; erreur ou temps écoulé : il trébuche et perd un cœur, puis un autre obstacle arrive.
+  // Six obstacles, de plus en plus durs : vrai ou faux, puis 3 propositions, puis 4, puis une question exigeante.
+  var PONT_PALIERS = ["vf", "vf", "choix3", "choix3", "choix", "dur"];
+  function questionsPont(ch, pool) {
+    var diff = difficulte(ch), vus = {};
+    pool = melanger(pool.slice());
+    function prendre(test) {
+      for (var i = 0; i < pool.length; i++) {
+        var q = pool[i], sig = signature(q);
+        if (!vus[sig] && test(q)) { vus[sig] = true; pool.splice(i, 1); return q; }
+      }
+      return null;
+    }
+    var estChoix = function (q) { return q.type === "choix" && q.options && q.options.length >= 3; };
+    function deTroisOptions(q) {
+      var c = {}; Object.keys(q).forEach(function (k) { c[k] = q[k]; });
+      c.options = melanger([q.bonne].concat(melanger(q.options.filter(function (o) { return normaliser(o) !== normaliser(q.bonne); })).slice(0, 2)));
+      return c;
+    }
+    function palier(p) {
+      var q = null;
+      if (p === "vf") q = prendre(function (x) { return x.type === "vf"; }) || prendre(estChoix);
+      else if (p === "choix3") { q = prendre(estChoix); if (q) q = deTroisOptions(q); }
+      else if (p === "choix") q = prendre(estChoix);
+      else q = (diff.saisie ? prendre(function (x) { return x.type === "saisie"; }) : null) || prendre(function (x) { return x.type === "curseur" || x.type === "intrus" || x.type === "glisser"; }) || prendre(estChoix);
+      return q || prendre(function (x) { return x.type === "vf" || estChoix(x); });
+    }
+    return { palier: palier };
+  }
+  function svgObstacle(k) {
+    var formes = [
+      // un rocher
+      '<path d="M6 44 L14 20 Q22 8 34 12 L46 22 Q56 30 54 44 Z" fill="#8C8FA8"/><path d="M14 20 Q22 8 34 12 L30 22 Z" fill="#B4B7CC"/>',
+      // un tonneau
+      '<rect x="12" y="10" width="36" height="34" rx="8" fill="#A0602E"/><rect x="12" y="17" width="36" height="4" fill="#5B3418"/><rect x="12" y="33" width="36" height="4" fill="#5B3418"/>',
+      // un crabe
+      '<ellipse cx="30" cy="34" rx="18" ry="11" fill="#E4573D"/><circle cx="23" cy="24" r="3.5" fill="#fff"/><circle cx="37" cy="24" r="3.5" fill="#fff"/><circle cx="23" cy="24" r="1.6" fill="#222"/><circle cx="37" cy="24" r="1.6" fill="#222"/><path d="M12 30 Q2 22 8 14 M48 30 Q58 22 52 14" stroke="#E4573D" stroke-width="4" fill="none" stroke-linecap="round"/>'
+    ];
+    return '<svg viewBox="0 0 60 48" aria-hidden="true" focusable="false">' + formes[k % formes.length] + "</svg>";
+  }
+  function svgPontChemin(eteint) {
+    var bois = eteint ? "#5B5F80" : "#A86A36", corde = eteint ? "#3E4170" : "#6B3F1C";
+    var s = '<svg viewBox="0 0 220 90" class="av-pont-svg" aria-hidden="true" focusable="false">';
+    s += '<path d="M10 52 Q110 78 210 52" stroke="' + corde + '" stroke-width="5" fill="none"/>';
+    for (var i = 0; i < 11; i++) {
+      var x = 18 + i * 17.5, y = 52 + Math.sin(i / 10 * Math.PI) * 13;
+      s += '<rect x="' + (x - 7) + '" y="' + (y - 4) + '" width="14" height="10" rx="2" fill="' + bois + '"/>';
+    }
+    s += '<path d="M10 34 Q110 58 210 34" stroke="' + corde + '" stroke-width="3" fill="none"/>';
+    [10, 210].forEach(function (x) { s += '<rect x="' + (x - 4) + '" y="26" width="8" height="34" rx="3" fill="' + corde + '"/>'; });
+    return s + "</svg>";
+  }
+  function vuePont(ch, route, n) {
+    var diff = difficulte(ch), illimites = coeursIllimites();
+    var retour = lienAventure(ch);
+    if (!illimites && coeurs() <= 0) { vueSansCoeur(ch, n, retour); return; }
+    var source = questionsPont(ch, n.poolDe ? n.poolDe() : []);
+    var guide = { d: ch.d };
+    var ecran = ecranAventure("av-nuit jeu pt");
+    var quitter = el("a", { class: "av-btn-rond", href: retour, "aria-label": "Quitter le pont" });
+    quitter.innerHTML = icone("fermer");
+    var etapes = el("div", { class: "pt-etapes", "aria-hidden": "true" });
+    PONT_PALIERS.forEach(function () { etapes.appendChild(el("i")); });
+    var coeursH = el("span", { class: "av-coeurs" });
+    ecran.appendChild(el("div", { class: "jeu-haut" }, [quitter, etapes, illimites ? el("span") : coeursH]));
+    // la scène : le pont, le personnage, l'obstacle qui arrive
+    var scene = el("div", { class: "pt-scene" });
+    var perso = el("div", { class: "pt-perso" });
+    perso.innerHTML = dessinPerso(av.perso);
+    var obst = el("div", { class: "pt-obst" });
+    var bulle = el("div", { class: "pt-bulle", role: "status", "aria-live": "polite" });
+    ajouter(scene, [el("div", { class: "pt-ciel" }), el("div", { class: "pt-ile g" }), el("div", { class: "pt-ile d" }, el("span", { class: "pt-drapeau", text: n.vers ? "Île " + n.vers : "" })), el("div", { class: "pt-planches" }), obst, perso, bulle]);
+    ecran.appendChild(scene);
+    var corps = el("div", { class: "jeu-corps pt-corps" });
+    var pied = el("div", { class: "jeu-pied" });
+    ajouter(ecran, [corps, pied]);
+    var pos = 0, chutes = 0, minuterie = null, actif = false, debut = 0, duree = 0, q = null;
+    var lent = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function majHaut() {
+      etapes.querySelectorAll("i").forEach(function (x, k) { x.className = k < pos ? "fait" : k === pos ? "ici" : ""; });
+      if (!illimites) { coeursH.innerHTML = ""; for (var k = 0; k < COEURS_MAX; k++) coeursH.innerHTML += symbole(k < coeurs() ? "coeur" : "coeurVide"); }
+    }
+    function placer(part) { obst.style.left = "calc(" + (24 + part * 64) + "% )"; }
+    function obstacleSuivant() {
+      if (!ecran.isConnected) return;
+      q = source.palier(PONT_PALIERS[pos]);
+      if (!q) { gagne(); return; }
+      majHaut();
+      obst.innerHTML = svgObstacle(pos + chutes);
+      obst.className = "pt-obst";
+      perso.className = "pt-perso court";
+      bulle.textContent = "";
+      corps.innerHTML = ""; pied.innerHTML = "";
+      var zone = el("div", { class: "jeu-question pt-question" });
+      corps.appendChild(zone);
+      zone.__question = q;
+      actif = true;
+      RENDUS[q.type](guide, q, zone, pied, function (juste) { if (actif) repondre(juste); });
+      duree = (q.type === "saisie" || q.type === "curseur" ? 22 : [13, 12, 12, 11, 10, 10][pos]) + (diff.nom === "Collège" ? 4 : 0);
+      debut = Date.now();
+      placer(1);
+      if (minuterie) clearInterval(minuterie);
+      minuterie = setInterval(function () {
+        if (!ecran.isConnected) { clearInterval(minuterie); return; }
+        var reste = 1 - (Date.now() - debut) / (duree * 1000);
+        placer(Math.max(0, reste));
+        obst.classList.toggle("proche", reste < .3);
+        if (reste <= 0 && actif) {
+          zone.querySelectorAll("button, input").forEach(function (b) { b.disabled = true; });
+          pied.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
+          repondre(false, true);
+        }
+      }, 50);
+    }
+    function repondre(juste, tard) {
+      actif = false;
+      clearInterval(minuterie);
+      if (juste) {
+        son("ok");
+        perso.className = "pt-perso saute";
+        obst.classList.add("passe");
+        bulle.textContent = ["Hop !", "Bravo !", "Bien vu !", "Saut parfait !"][pos % 4];
+        compter("bonnes");
+        pos++;
+        majHaut();
+        setTimeout(function () { if (pos >= PONT_PALIERS.length) gagne(); else obstacleSuivant(); }, lent ? 300 : 900);
+        return;
+      }
+      son("ko");
+      chutes++;
+      perso.className = "pt-perso tombe";
+      placer(0);
+      if (!illimites) { perdreCoeur(); sauverAventure(); }
+      majHaut();
+      ajouterErreur(q);
+      sauverAventure();
+      var plus = !illimites && coeurs() <= 0;
+      var feuille = el("div", { class: "jeu-retour mal", role: "status" });
+      var h = el("h3"); h.innerHTML = icone("fermer"); h.appendChild(document.createTextNode(tard ? "Trop tard : l'obstacle t'a fait tomber !" : "Aïe, l'obstacle !"));
+      feuille.appendChild(h);
+      var bonne = q.bonneTexte !== undefined && q.bonneTexte !== null ? q.bonneTexte : q.type === "vf" ? (q.vrai ? "Vrai" : "Faux") : q.bonne;
+      if (bonne) feuille.appendChild(el("p", { class: "jeu-bonne" }, ["Réponse : ", el("strong", { text: String(bonne) })]));
+      if (q.expl) feuille.appendChild(el("p", { class: "jeu-expl", text: q.expl }));
+      if (!illimites) { var cv = el("span"); cv.innerHTML = symbole(plus ? "coeurVide" : "coeur"); feuille.appendChild(el("p", { class: "jeu-vies-reste" }, [cv, plus ? " Plus de cœurs !" : " Il te reste " + pluriel(coeurs(), "cœur") + "."])); }
+      var b = el("button", { class: "jeu-continuer", type: "button", text: plus ? "Continuer" : "Un autre obstacle arrive…" });
+      b.addEventListener("click", function () { if (plus) { rendre(); return; } obstacleSuivant(); });
+      feuille.appendChild(b);
+      pied.innerHTML = "";
+      pied.appendChild(feuille);
+      b.focus({ preventScroll: true });
+    }
+    function gagne() {
+      clearInterval(minuterie);
+      var ancien = av.niveaux[n.cle];
+      av.niveaux[n.cle] = { e: 0, t: Date.now(), ok: 1 };
+      var gain = ancien ? 3 : 10 + Math.max(0, 6 - chutes * 2);
+      av.ducats += gain;
+      av.xp += 40;
+      majSerie();
+      verifierRecompenses();
+      sauverAventure();
+      son("fin");
+      perso.className = "pt-perso arrive";
+      obst.innerHTML = "";
+      corps.innerHTML = ""; pied.innerHTML = "";
+      var apres = route.noeuds[n.i + 1];
+      corps.appendChild(el("div", { class: "jeu-fin pt-fin" }, [el("h2", { text: "Pont traversé !" }),
+        el("p", { text: chutes ? "Tu as franchi les 6 obstacles, avec " + pluriel(chutes, "chute") + "." : "Les 6 obstacles franchis sans tomber : bravo !" }),
+        el("div", { class: "jeu-stats" }, [avecSymbole("ducat", "+" + gain, "jeu-stat"), avecSymbole("eclair", "+40", "jeu-stat")])]));
+      var suite = apres && noeudOuvert(route, apres) && apres.type !== "coffre"
+        ? el("a", { class: "jeu-continuer", href: lienAventure(ch, "jeu/" + apres.i), text: "Étape suivante : " + (apres.court || apres.nom) })
+        : el("a", { class: "jeu-continuer", href: retour, text: "Revenir au chemin" });
+      pied.appendChild(el("div", { class: "jeu-fin-btns" }, [suite, el("a", { class: "jeu-lien", href: retour, text: "Revenir au chemin du chapitre" })]));
+      confettis(ecran);
+      suite.focus({ preventScroll: true });
+    }
+    surToucheVue = function (e) { if (e.key === "Enter") { var b = pied.querySelector(".jeu-continuer"); if (b && document.activeElement !== b) { e.preventDefault(); b.click(); } } };
+    majHaut();
+    bulle.textContent = "Réponds avant que l'obstacle n'arrive !";
+    setTimeout(obstacleSuivant, lent ? 200 : 900);
   }
 
   // ----- Plus de cœur : attendre, relire, ou regagner un cœur -----
@@ -8163,7 +8401,7 @@
     var route = routeAventure(ch), e = { route: route, faits: 0, total: route.noeuds.length, etoiles: 0, max: 0, fini: false };
     route.noeuds.forEach(function (x) {
       if (noeudFait(x)) { e.faits++; if (x.type === "defi") e.fini = true; }
-      if (x.type !== "coffre") { e.etoiles += Math.min(3, etoilesDe(x)); e.max += 3; }
+      if (x.type !== "coffre" && x.type !== "pont") { e.etoiles += Math.min(3, etoilesDe(x)); e.max += 3; }
     });
     e.actuel = etapeDuMoment(route);
     return e;
