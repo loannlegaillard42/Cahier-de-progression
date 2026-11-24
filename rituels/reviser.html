@@ -592,7 +592,7 @@
   .av-note { max-width: 520px; margin: 10px auto; padding: 0 18px; font-size: 13px; color: #CFCCF0; text-align: center; }
 
   /* le chemin d'îles */
-  .av-chemin { display: flex; flex-direction: column; align-items: center; padding: 6px 0 calc(110px + env(safe-area-inset-bottom, 0px)); }
+  .av-chemin { display: flex; flex-direction: column; align-items: center; padding: 6px 0 calc(110px + env(safe-area-inset-bottom, 0px)); overflow-x: clip; }
   .av-unite {
     position: sticky; top: calc(62px + env(safe-area-inset-top, 0px)); z-index: 4;
     width: calc(100% - 32px); max-width: 520px; margin: 22px 0 8px; padding: 9px 16px; border-radius: 16px; text-align: center;
@@ -648,6 +648,8 @@
   .av-coeurs { display: flex; gap: 2px; }
   .av-coeurs .av-sym { width: 23px; height: 23px; }
   .av-coeurs.perd { animation: secousse .4s; }
+  .av-coeurs.sans { justify-content: center; margin-bottom: 8px; }
+  .av-coeurs.sans .av-sym { width: 30px; height: 30px; }
   .jeu-vies-reste { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; font-weight: 800; color: #FFB4B4; }
   .jeu-vies-reste span { display: inline-flex; }
   .jeu-vies-reste .av-sym { width: 20px; height: 20px; }
@@ -734,6 +736,9 @@
     position: absolute; top: 0; transform: translateX(-50%); padding: 4px 2px; border: 0; background: transparent; color: #C9C6EA;
     font-weight: 800; font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums;
   }
+  /* les dates des bouts de la frise restent dans l'écran, même longues (« 2050 (projection) ») */
+  .jeu-frise-date:first-child { transform: translateX(-20px); }
+  .jeu-frise-date:last-child { transform: translateX(calc(-100% + 20px)); }
   .jeu-frise-date.choisi { color: #FFD34D; }
   .jeu-frise-date.bien { color: #4ADE80; }
   .jeu-frise-date.mal { color: #F87171; text-decoration: line-through; }
@@ -999,7 +1004,8 @@
   .av-btn-quetes { position: relative; background: #3A2F6E; }
   .av-btn-quetes .av-sym { width: 24px; height: 24px; }
   .av-pastille-num { position: absolute; top: -5px; right: -5px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: #EF4444; color: #fff; font-size: 11.5px; font-weight: 800; line-height: 19px; text-align: center; box-shadow: 0 0 0 2px #1E2050; }
-  .av-haut .av-compteurs { gap: 5px; }
+  .av-haut .av-compteurs { gap: 4px; flex-wrap: nowrap; }
+  @media (max-width: 440px) { .av-haut .av-compteur { padding: 4px 8px 4px 5px; font-size: 14px; gap: 3px; } .av-haut .av-compteur .av-sym { width: 17px; height: 17px; } .av-haut { gap: 6px; padding-left: 10px; padding-right: 10px; } }
   .av-haut .av-compteur { padding: 4px 9px 4px 6px; font-size: 14px; }
   .av-route.annee { background: linear-gradient(135deg, #0E9384, #0B6F64); box-shadow: 0 5px 0 #08544C; }
   .av-route.reperes { background: linear-gradient(135deg, #D9702A, #B5561C); box-shadow: 0 5px 0 #8C4214; }
@@ -5088,9 +5094,6 @@
   // pour des collègues : toutes les étapes ouvertes, sans aucun accès à l'espace professeur).
   var CLE_AV = "reviser-aventure-v1";
   var VIES_DEFI = 3;
-  // comme dans Duolingo : chaque niveau donne 3 vies ; chaque erreur en coûte une, même sur une question revue à la fin ;
-  // plus de vies, le niveau s'arrête et il faut le rejouer (3 erreurs empêchent de toute façon de débloquer la suite)
-  var VIES_NIVEAU = 3;
   var ETOILES_POUR_PASSER = 2; // un niveau débloque l'étape suivante à partir de 2 étoiles (2 erreurs au plus)
   // La difficulté suit la classe : nombre de propositions, dates plus ou moins proches, points sur la carte,
   // réponses à écrire, carte « experte » sans points.
@@ -5101,6 +5104,28 @@
   };
   function difficulte(ch) { return DIFFICULTES[ch.n] || DIFFICULTES["2nde"]; }
   var av;
+  // Comme dans Duolingo : une réserve de 5 cœurs pour tous les niveaux ; chaque erreur en coûte un, et un cœur revient
+  // toutes les heures. Sans cœur, on attend, ou l'on en regagne un en réussissant une petite révision (5 questions).
+  var COEURS_MAX = 5, COEUR_DELAI = 60 * 60 * 1000;
+  function coeurs() {
+    var c = av.coeurs, maintenant = Date.now();
+    if (c.n >= COEURS_MAX) { c.n = COEURS_MAX; c.t = maintenant; return c.n; }
+    var gagnes = Math.floor((maintenant - c.t) / COEUR_DELAI);
+    if (gagnes > 0) { c.n = Math.min(COEURS_MAX, c.n + gagnes); c.t = c.n >= COEURS_MAX ? maintenant : c.t + gagnes * COEUR_DELAI; }
+    return c.n;
+  }
+  function perdreCoeur() { var n = coeurs(); if (n >= COEURS_MAX) av.coeurs.t = Date.now(); av.coeurs.n = Math.max(0, n - 1); }
+  function gagnerCoeur() { var n = coeurs(); av.coeurs.n = Math.min(COEURS_MAX, n + 1); if (av.coeurs.n >= COEURS_MAX) av.coeurs.t = Date.now(); }
+  function avantProchainCoeur() { coeurs(); return av.coeurs.n >= COEURS_MAX ? 0 : Math.max(0, av.coeurs.t + COEUR_DELAI - Date.now()); }
+  function dureeCoeur(ms) { var m = Math.max(1, Math.ceil(ms / 60000)); return m >= 60 ? "1 h" : m + " min"; }
+  function coeursIllimites() { return toutOuvert(); }
+  function compteurCoeurs() {
+    var n = coeursIllimites() ? COEURS_MAX : coeurs(), reste = avantProchainCoeur();
+    var c = avecSymbole("coeur", coeursIllimites() ? "∞" : String(n));
+    c.setAttribute("title", coeursIllimites() ? "Cœurs illimités (professeur)" : n >= COEURS_MAX ? "Réserve de cœurs pleine" : "Prochain cœur dans " + dureeCoeur(reste));
+    c.setAttribute("aria-label", coeursIllimites() ? "Cœurs illimités" : pluriel(n, "cœur") + (n < COEURS_MAX ? ", prochain dans " + dureeCoeur(reste) : ""));
+    return c;
+  }
   function chargerAventure() {
     av = lire(CLE_AV, null);
     if (!av || typeof av !== "object") av = {};
@@ -5115,6 +5140,7 @@
     if (!av.jour || typeof av.jour !== "object") av.jour = { date: "" };
     if (typeof av.son !== "boolean") av.son = true;
     if (!av.perso || typeof av.perso !== "object") av.perso = null;
+    if (!av.coeurs || typeof av.coeurs !== "object" || typeof av.coeurs.n !== "number") av.coeurs = { n: COEURS_MAX, t: Date.now() };
   }
   chargerAventure();
   function sauverAventure() { ecrire(CLE_AV, av); }
@@ -6004,16 +6030,24 @@
     var date = function (r) { return r.date; }, txt = function (r) { return r.txt; };
     // d'autres dates plausibles : au collège, prises au hasard dans le bloc puis le chapitre ;
     // au lycée, les plus proches dans le temps (plus difficile)
+    // les dates du même chapitre d'abord ; celles des autres chapitres seulement s'il en manque
+    var memeChap = [];
+    blocs(ch.parent || ch).forEach(function (x) { memeChap = memeChap.concat(liste(x.data, "reperes")); });
+    var loin = autresDuNiveau(ch, "reperes");
     function autresDates(r) {
       var vus = {};
       vus[r.date] = true; vus["v" + valeurDate(r.a)] = true;
-      var c = melanger(reps).concat(melanger(autresR)).filter(function (x) {
-        if (vus[x.date] || vus["v" + valeurDate(x.a)]) return false;
-        vus[x.date] = true; vus["v" + valeurDate(x.a)] = true;
-        return true;
-      });
-      if (diff.proches) c.sort(function (x, y) { return Math.abs(valeurDate(x.a) - valeurDate(r.a)) - Math.abs(valeurDate(y.a) - valeurDate(r.a)); });
-      return c;
+      function nouveaux(liste_) {
+        return liste_.filter(function (x) {
+          if (vus[x.date] || vus["v" + valeurDate(x.a)]) return false;
+          vus[x.date] = true; vus["v" + valeurDate(x.a)] = true;
+          return true;
+        });
+      }
+      var proches = function (x, y) { return Math.abs(valeurDate(x.a) - valeurDate(r.a)) - Math.abs(valeurDate(y.a) - valeurDate(r.a)); };
+      var c = nouveaux(melanger(reps).concat(melanger(memeChap)));
+      if (diff.proches) c.sort(proches);
+      return c.length >= diff.dates ? c : c.concat(nouveaux(melanger(loin)));
     }
     reps.forEach(function (r, i) {
       var expl = r.date + " : " + r.txt, t = i % 3, o;
@@ -6360,6 +6394,7 @@
   function etoilesRoute(route) { return route.noeuds.reduce(function (s, n) { return s + etoilesDe(n); }, 0); }
   function poolNoeud(ch, route, n) {
     if (n.poolDe) return n.poolDe();
+    if (n.type === "recharge" && n.m) return n.m.pool(ch, n.unite.bloc);
     if (n.type === "niveau") return n.m.pool(ch, n.unite.bloc);
     var tout = [];
     (n.type === "revision" ? route.unites.slice(0, n.jusque + 1) : route.unites).forEach(function (u) {
@@ -6515,6 +6550,11 @@
     if (!av.perso) { vueCreation(ch); return; }
     var route = routeAventure(ch);
     if (sous === "erreurs" && erreursDues().length) { vueNiveau(ch, route, { type: "erreurs", cle: "erreurs", nom: "L'île des erreurs" }); return; }
+    if (sous === "recharge") {
+      var base = route.noeuds[Number(x)];
+      var source = base && base.type === "niveau" ? base : route.noeuds.filter(function (y) { return y.type === "niveau" && noeudOuvert(route, y); })[0];
+      if (source) { vueNiveau(ch, route, { type: "recharge", cle: "recharge", nom: "Regagner un cœur", poolDe: source.poolDe, m: source.m, unite: source.unite, retour: x !== undefined && x !== "" ? lienAventure(ch, "jeu/" + x) : null }); return; }
+    }
     if (sous === "jeu") {
       var n = route.noeuds[Number(x)];
       if (n && n.type !== "coffre" && noeudOuvert(route, n)) { vueNiveau(ch, route, n); return; }
@@ -6565,6 +6605,7 @@
     ecran.appendChild(el("div", { class: "av-haut" }, [
       lien,
       el("div", { class: "av-compteurs" }, [
+        compteurCoeurs(),
         avecSymbole("flamme", String(serieActuelle())),
         avecSymbole("ducat", String(av.ducats)),
         avecSymbole("etoile", String(etoilesRoute(route)))
@@ -6681,7 +6722,7 @@
         info = n.type === "defi" ? nb.defi + " questions sur tout " + (route.parties ? "le chapitre" : "le parcours") + ", et " + VIES_DEFI + " vies."
           : n.partie ? nb.nb + " questions sur cette partie du cours : son vocabulaire, ses dates, ses acteurs et ses lieux."
           : n.type === "revision" ? (nb.nb + 2) + " questions qui mélangent les chapitres déjà vus." : nb.nb + " questions variées.";
-        if (n.type === "niveau" || n.type === "revision") info += " Tu as " + VIES_NIVEAU + " vies : chaque erreur en coûte une.";
+        if ((n.type === "niveau" || n.type === "revision") && !coeursIllimites()) info += " Chaque erreur coûte un cœur (il t'en reste " + coeurs() + ").";
         var rec = etoilesDe(n), aPasser = n.type !== "defi" && !fait;
         if (rec) info += " Ton record : " + rec + " étoile" + (rec > 1 ? "s" : "") + " sur 3.";
         if (aPasser) info += rec ? " Il en faut " + ETOILES_POUR_PASSER + " pour débloquer la suite." : " Il faut " + ETOILES_POUR_PASSER + " étoiles pour débloquer la suite.";
@@ -6809,21 +6850,25 @@
     // sur la carte de l'année, le personnage se tient devant le dernier chapitre joué
     if (!ch.special && n.type !== "controle" && n.type !== "erreurs") { av.ici = av.ici || {}; av.ici[ch.n] = ch.id; }
     var qs = n.questions ? n.questions : ileErreurs ? melanger(erreursDues()).slice(0, 8).map(restaurerErreur).filter(Boolean)
-      : composer(poolNoeud(ch, route, n), defi ? diff.defi : n.type === "revision" ? diff.nb + 2 : diff.nb, diff);
+      : composer(poolNoeud(ch, route, n), n.type === "recharge" ? 5 : defi ? diff.defi : n.type === "revision" ? diff.nb + 2 : diff.nb, diff);
     // le guide : Ératosthène pour une unité de géographie, Hérodote sinon
     var guide = { d: (n.unite && n.unite.bloc.data.d) || ch.d };
-    var avecVies = defi || n.type === "niveau" || n.type === "revision";
-    var viesMax = defi ? VIES_DEFI : VIES_NIVEAU;
-    var file = qs.slice(), pos = 0, finies = 0, premiersEssais = 0, erreurs = 0, xp = 0, vies = viesMax, combo = 0, corrigees = 0;
+    var recharge = n.type === "recharge";
+    var avecVies = defi || ((n.type === "niveau" || n.type === "revision") && !coeursIllimites());
+    var reserve = avecVies && !defi;
+    var viesMax = defi ? VIES_DEFI : COEURS_MAX;
+    var file = qs.slice(), pos = 0, finies = 0, premiersEssais = 0, erreurs = 0, xp = 0, vies = reserve ? coeurs() : viesMax, combo = 0, corrigees = 0;
+    // plus de cœur : on ne commence pas le niveau
+    if (reserve && vies <= 0) { vueSansCoeur(ch, n, retour); return; }
     annonces = [];
     var ecran = ecranAventure("av-nuit jeu");
     var barre = barreProgres(0);
     var quitter = el("a", { class: "av-btn-rond", href: retour, "aria-label": "Quitter le niveau" });
     quitter.innerHTML = icone("fermer");
     var compteurXp = avecSymbole("eclair", "0");
-    var coeurs = el("span", { class: "av-coeurs", "aria-label": vies + " vies" });
+    var coeursH = el("span", { class: "av-coeurs", "aria-label": vies + " vies" });
     var serieQ = el("span", { class: "jeu-combo", "aria-live": "polite" });
-    var haut = el("div", { class: "jeu-haut" }, [quitter, barre, serieQ, avecVies ? coeurs : compteurXp]);
+    var haut = el("div", { class: "jeu-haut" }, [quitter, barre, serieQ, avecVies ? coeursH : compteurXp]);
     var corps = el("div", { class: "jeu-corps" });
     var pied = el("div", { class: "jeu-pied" });
     ajouter(ecran, [haut, corps, pied]);
@@ -6832,9 +6877,9 @@
     function majHaut() {
       barre.firstChild.style.width = Math.round(finies / qs.length * 100) + "%";
       compteurXp.lastChild.textContent = String(xp);
-      coeurs.innerHTML = "";
-      for (var k = 0; k < viesMax; k++) coeurs.innerHTML += symbole(k < vies ? "coeur" : "coeurVide");
-      coeurs.setAttribute("aria-label", vies + " vie" + (vies > 1 ? "s" : ""));
+      coeursH.innerHTML = "";
+      for (var k = 0; k < viesMax; k++) coeursH.innerHTML += symbole(k < vies ? "coeur" : "coeurVide");
+      coeursH.setAttribute("aria-label", vies + " " + (reserve ? "cœur" : "vie") + (vies > 1 ? "s" : ""));
       serieQ.innerHTML = "";
       if (combo >= 3) { serieQ.innerHTML = symbole("flamme"); serieQ.appendChild(document.createTextNode("× " + combo)); serieQ.classList.remove("pop"); void serieQ.offsetWidth; serieQ.classList.add("pop"); }
     }
@@ -6872,7 +6917,10 @@
       } else {
         combo = 0;
         if (!q.revue) erreurs++;
-        if (avecVies) { vies--; coeurs.classList.remove("perd"); void coeurs.offsetWidth; coeurs.classList.add("perd"); }
+        if (avecVies) {
+          if (reserve) { perdreCoeur(); vies = av.coeurs.n; } else vies--;
+          coeursH.classList.remove("perd"); void coeursH.offsetWidth; coeursH.classList.add("perd");
+        }
         if (q.erreur && !q.revue) noterErreur(q.erreur, false);
         else if (!q.revue && !q.erreur) ajouterErreur(q);
         // on revoit l'erreur à la fin du niveau (une fois), sauf pour les paires, déjà corrigées sur place
@@ -6901,7 +6949,8 @@
       if (!juste && avecVies) {
         var cv = el("span");
         cv.innerHTML = symbole(vies > 0 ? "coeur" : "coeurVide");
-        feuille.appendChild(el("p", { class: "jeu-vies-reste" }, [cv, vies > 0 ? " Il te reste " + pluriel(vies, "vie") + "." : " Plus de vies !"]));
+        feuille.appendChild(el("p", { class: "jeu-vies-reste" }, [cv, reserve ? (vies > 0 ? " Il te reste " + pluriel(vies, "cœur") + "." : " Plus de cœurs !")
+          : (vies > 0 ? " Il te reste " + pluriel(vies, "vie") + "." : " Plus de vies !")]));
       }
       if (!juste && !defi && !q.revue && q.type !== "paires" && vies > 0) feuille.appendChild(el("p", { class: "jeu-aide", text: ileErreurs ? "Elle reviendra à la fin, puis demain sur l'île des erreurs." : "Cette question reviendra à la fin du niveau, puis sur l'île des erreurs." }));
       var fini = avecVies ? vies <= 0 : false;
@@ -6923,6 +6972,17 @@
       btn.focus({ preventScroll: true });
     }
     function bilan() {
+      if (recharge) {
+        var gagne = erreurs <= 1;
+        if (gagne) gagnerCoeur();
+        av.xp += xp;
+        majSerie();
+        sauverAventure();
+        son("fin");
+        finEcran(gagne ? "Un cœur de plus !" : "Pas encore…", 0, [avecSymbole("coeur", pluriel(coeurs(), "cœur"), "jeu-stat"), avecSymbole("eclair", "+" + xp, "jeu-stat")], false,
+          gagne ? "Bravo : tu peux reprendre le chemin." : "Il faut 4 bonnes réponses sur 5 pour regagner un cœur. Relis l'essentiel, puis réessaie.", gagne);
+        return;
+      }
       if (ileErreurs) {
         var gainE = corrigees * 3;
         av.ducats += gainE;
@@ -6973,8 +7033,8 @@
       sauverAventure();
       if (defi) finEcran("Le défi t'a eu… cette fois !", 0, [avecSymbole("eclair", "+" + xp, "jeu-stat")], false,
         "Revois les niveaux du parcours, puis retente ta chance : il faut garder au moins une vie jusqu'au bout.", false);
-      else finEcran("Plus de vies !", 0, [avecSymbole("eclair", "+" + xp, "jeu-stat")], false,
-        "Trois erreurs : le niveau s'arrête. Relis la fiche du chapitre, puis rejoue : les questions changent à chaque fois.", false, true);
+      else finEcran("Plus de cœurs !", 0, [avecSymbole("eclair", "+" + xp, "jeu-stat")], false,
+        "Un cœur revient dans " + dureeCoeur(avantProchainCoeur()) + ". En attendant, relis l'essentiel du chapitre, ou regagne un cœur en réussissant une petite révision.", false, true);
     }
     // gagne : le niveau est allé au bout (on montre les étoiles) ; reussi : il débloque la suite
     function finEcran(titre, etoiles, stats, gagne, message, reussi, relire) {
@@ -7014,7 +7074,9 @@
       }
       var chemin = el("a", { class: reussi ? "jeu-continuer" : "jeu-secondaire", href: suite ? suite.href : retour,
         text: suite ? suite.texte : route && route.haltes ? (reussi ? "Retour à la carte" : "Revenir à la carte") : reussi ? "Continuer" : "Revenir au chemin" });
-      var encore = ileErreurs ? null : el("button", { class: reussi ? "jeu-secondaire" : "jeu-continuer", type: "button", text: defi ? "Retenter le défi" : seance ? "Refaire une séance" : "Rejouer ce niveau", onclick: function () { rendre(); } });
+      var sansCoeur = reserve && !coeursIllimites() && coeurs() <= 0;
+      var encore = ileErreurs || recharge ? null : sansCoeur ? el("a", { class: "jeu-continuer", href: lienAventure(ch, "recharge/" + (typeof n.i === "number" ? n.i : "")), text: "Regagner un cœur" })
+        : el("button", { class: reussi ? "jeu-secondaire" : "jeu-continuer", type: "button", text: defi ? "Retenter le défi" : seance ? "Refaire une séance" : "Rejouer ce niveau", onclick: function () { rendre(); } });
       var boutons = reussi ? [chemin, encore] : [encore, chemin];
       if (suite && !defi) boutons.push(el("a", { class: "jeu-lien", href: retour, text: "Revenir au chemin du chapitre" }));
       if (relire && !ch.special) boutons.splice(1, 0, el("a", { class: "jeu-secondaire", href: lienChapitre(ch, "essentiel"), text: "Relire l'essentiel du chapitre" }));
@@ -7026,6 +7088,31 @@
     if (!qs.length) { location.hash = retour; return; }
     majHaut();
     poser();
+  }
+
+  // ----- Plus de cœur : attendre, relire, ou regagner un cœur -----
+  function vueSansCoeur(ch, n, retour) {
+    var ecran = ecranAventure("av-nuit jeu");
+    var quitter = el("a", { class: "av-btn-rond", href: retour, "aria-label": "Revenir au chemin" });
+    quitter.innerHTML = icone("fermer");
+    ecran.appendChild(el("div", { class: "jeu-haut" }, [quitter]));
+    var compte = el("strong", { class: "dx-gain" });
+    function maj() { compte.textContent = "Prochain cœur dans " + dureeCoeur(avantProchainCoeur()); if (coeurs() > 0 && ecran.isConnected) rendre(); }
+    maj();
+    var minuterie = setInterval(function () { if (!ecran.isConnected) { clearInterval(minuterie); return; } maj(); }, 20000);
+    var fig = el("div", { class: "jeu-fin-perso" });
+    fig.innerHTML = dessinPerso(av.perso);
+    var coeursV = el("div", { class: "av-coeurs sans" });
+    for (var k = 0; k < COEURS_MAX; k++) coeursV.innerHTML += symbole("coeurVide");
+    ecran.appendChild(el("div", { class: "jeu-fin" }, [coeursV, fig, el("h2", { text: "Plus de cœurs !" }), compte,
+      el("p", { text: "Un cœur revient toutes les heures, jusqu'à 5. Tu peux aussi en regagner un tout de suite : réussis une petite révision de 5 questions." })]));
+    var pied = el("div", { class: "jeu-pied" });
+    pied.appendChild(el("div", { class: "jeu-fin-btns" }, [
+      el("a", { class: "jeu-continuer", href: lienAventure(ch, "recharge/" + (typeof n.i === "number" ? n.i : "")), text: "Regagner un cœur" }),
+      ch.special ? null : el("a", { class: "jeu-secondaire", href: lienChapitre(ch, "essentiel"), text: "Relire l'essentiel du chapitre" }),
+      el("a", { class: "jeu-lien", href: retour, text: "Revenir au chemin" })
+    ]));
+    ecran.appendChild(pied);
   }
 
   // ----- Les types de questions -----
@@ -8170,7 +8257,7 @@
     m.ouverts.forEach(function (l) { etoiles += l.etat.etoiles; max += l.etat.max; if (l.etat.fini) finis++; });
     var serie = serieActuelle();
     var compteurs = el("div", { class: "av-compteurs", role: "group", "aria-label": (serie ? pluriel(serie, "jour") + " de suite, " : "") + pluriel(av.ducats, "ducat") + ", " + pluriel(etoiles, "étoile") }, [
-      avecSymbole("flamme", String(serie)), avecSymbole("ducat", String(av.ducats)), avecSymbole("etoile", String(etoiles))
+      compteurCoeurs(), avecSymbole("flamme", String(serie)), avecSymbole("ducat", String(av.ducats)), avecSymbole("etoile", String(etoiles))
     ]);
     ecran.appendChild(el("div", { class: "av-haut" }, [lien, compteurs, boutonQuetes(), moi]));
     ecran.appendChild(el("div", { class: "av-route md-bilan" }, [
