@@ -2861,6 +2861,17 @@ function importerFichier(f) {
   r.readAsText(f);
 }
 
+/* ================= Application installable ================= */
+function installerAppli() {
+  if (!window.APPLI) return;
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(() => {});
+  let invite = null;
+  const bouton = el("button", { class: "lien", hidden: true, onclick: async () => { if (!invite) return; invite.prompt(); const r = await invite.userChoice.catch(() => null); invite = null; bouton.hidden = true; if (r && r.outcome === "accepted") toast("Application installée : son icône est sur le bureau."); } }, ico("plus"), "Installer l'application");
+  $(".accueil-pied").prepend(bouton);
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); invite = e; bouton.hidden = false; });
+  window.addEventListener("appinstalled", () => { bouton.hidden = true; });
+}
+
 /* ================= Scènes animées ================= */
 const SCENES_ETAPE = { 6: "hippogriffe", 9: "saule", 10: "calmar", 12: "plongee", 13: "vif" };
 const NOMS_SCENES = { express: ["L'arrivée en Poudlard Express", 0], hippogriffe: ["Le vol de l'hippogriffe", 6], saule: ["La colère du Saule cogneur", 9], calmar: ["Le monstre du lac", 10], plongee: ["Plongée sous le lac noir", 12], vif: ["La chasse au Vif d'or", 13], feux: ["Les feux de la victoire", 17] };
@@ -2945,6 +2956,7 @@ function demarrer() {
   $("#btn-ajouter-classe").addEventListener("click", () => fenetreNomClasse(null));
   $("#btn-aide-accueil").addEventListener("click", fenetreAide);
   $("#hud-sync").addEventListener("click", fenetreEtatSauvegarde);
+  installerAppli();
   Store.brancher();
 }
 demarrer();

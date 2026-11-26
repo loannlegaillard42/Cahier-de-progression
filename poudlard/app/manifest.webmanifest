@@ -1,0 +1,30 @@
+{
+ "name": "Les Reliques des Fondateurs",
+ "short_name": "Reliques",
+ "description": "Jeu de quêtes Harry Potter pour la classe : carte 3D du domaine de Poudlard.",
+ "lang": "fr",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "landscape",
+ "background_color": "#0E1124",
+ "theme_color": "#0E1124",
+ "icons": [
+  {
+   "src": "icones/icone-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icones/icone-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icones/icone-masque-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}

@@ -52,4 +52,58 @@ full = f'''<!DOCTYPE html>
 '''
 open(repo_out, "w", encoding="utf-8").write(full)
 open(art_out, "w", encoding="utf-8").write(frag)
+
+# ---------- Versions autonomes : tout est dans le fichier (moteur 3D, polices), fonctionnent sans Internet ----------
+import base64, shutil
+SORTIE = os.path.dirname(os.path.abspath(repo_out))
+LIBS_LOCALES = "\n".join(f"<script>\n{lire(os.path.join('vendor', f))}\n</script>" for f in ["three.min.js", "OrbitControls.js", "Sky.js", "Water.js"])
+def polices_integrees():
+    css = lire(os.path.join("polices", "polices.css"))
+    for f in os.listdir(os.path.join(D, "polices")):
+        if f.endswith(".woff2"):
+            css = css.replace(f"url(polices/{f})", "url(data:font/woff2;base64," + base64.b64encode(open(os.path.join(D, "polices", f), "rb").read()).decode() + ")")
+    return "<style>\n" + css + "</style>"
+def autonome(tete_en_plus="", script_en_plus=""):
+    corps_local = lire("body.html") + "\n" + LIBS_LOCALES + "\n<script>\n" + script_en_plus + script + "\n</script>\n"
+    return f'''<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>{TITLE}</title>
+<meta name="description" content="Jeu de quêtes Harry Potter pour une classe de 6e : carte 3D du domaine de Poudlard, 4 héros, 16 étapes." />
+<meta name="theme-color" content="#0E1124" />
+{tete_en_plus}
+{polices_integrees()}
+<style>
+{lire('style.css')}
+</style>
+</head>
+<body>
+{corps_local}
+</body>
+</html>
+'''
+open(os.path.join(SORTIE, "hors-ligne.html"), "w", encoding="utf-8").write(autonome())
+# Application installable (à servir en https, par exemple GitHub Pages)
+APP = os.path.join(SORTIE, "app"); os.makedirs(os.path.join(APP, "icones"), exist_ok=True)
+for f in os.listdir(os.path.join(D, "icones")): shutil.copy(os.path.join(D, "icones", f), os.path.join(APP, "icones", f))
+version = __import__("hashlib").sha1((script + lire("style.css") + lire("body.html")).encode()).hexdigest()[:10]
+tete = '<link rel="manifest" href="manifest.webmanifest" />\n<link rel="icon" href="icones/icone-192.png" />\n<link rel="apple-touch-icon" href="icones/icone-apple-180.png" />\n<meta name="apple-mobile-web-app-capable" content="yes" />'
+open(os.path.join(APP, "index.html"), "w", encoding="utf-8").write(autonome(tete, "window.APPLI = true;\n"))
+json.dump({"name": TITLE, "short_name": "Reliques", "description": "Jeu de quêtes Harry Potter pour la classe : carte 3D du domaine de Poudlard.", "lang": "fr", "start_url": "./", "scope": "./", "display": "standalone", "orientation": "landscape", "background_color": "#0E1124", "theme_color": "#0E1124",
+  "icons": [{"src": "icones/icone-192.png", "sizes": "192x192", "type": "image/png"}, {"src": "icones/icone-512.png", "sizes": "512x512", "type": "image/png"}, {"src": "icones/icone-masque-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}]},
+  open(os.path.join(APP, "manifest.webmanifest"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+open(os.path.join(APP, "sw.js"), "w", encoding="utf-8").write(f'''/* Garde le jeu dans l'ordinateur : il s'ouvre même sans Internet, et se met à jour quand une nouvelle version est en ligne. */
+const CACHE = "reliques-{version}";
+const FICHIERS = ["./", "index.html", "manifest.webmanifest", "icones/icone-192.png", "icones/icone-512.png", "icones/icone-masque-512.png", "icones/icone-apple-180.png"];
+self.addEventListener("install", (e) => {{ e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FICHIERS))); self.skipWaiting(); }});
+self.addEventListener("activate", (e) => {{ e.waitUntil(caches.keys().then((l) => Promise.all(l.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); }});
+self.addEventListener("fetch", (e) => {{
+  if (e.request.method !== "GET" || new URL(e.request.url).origin !== location.origin) return;
+  // réseau d'abord (pour recevoir les mises à jour), sinon la copie gardée
+  e.respondWith(fetch(e.request).then((r) => {{ if (r.ok) {{ const c = r.clone(); caches.open(CACHE).then((k) => k.put(e.request, c)); }} return r; }}).catch(() => caches.match(e.request, {{ ignoreSearch: true }}).then((r) => r || caches.match("index.html"))));
+}});
+''')
+print("autonomes ok", os.path.getsize(os.path.join(SORTIE, "hors-ligne.html")), "version", version)
 print("ok", len(full), "quetes:", "réelles" if os.path.exists(qf) else "provisoires")
