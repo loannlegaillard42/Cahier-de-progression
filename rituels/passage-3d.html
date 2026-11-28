@@ -1,0 +1,1278 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1C1F4A">
+<title>Le passage 3D · Réviser</title>
+<link rel="icon" href="../icon-192.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap');
+  /* Le passage en 3D (version test) : le personnage se dirige au joystick ou au clavier,
+     d'île en île ; à chaque point de passage, il saute sur la plateforme de la bonne réponse.
+     Page à part : elle lit les fiches (cours.js) et le personnage de l'élève, sans rien modifier de sa progression. */
+  :root {
+    --nuit: #1C1F4A; --nuit2: #14173F; --carte: #2A2E6B; --bord: #3B4090; --texte: #EDEBFF; --doux: #C9C6F2;
+    --violet: #6C4CF1; --violet2: #8B6CFF; --or: #FFC83D; --coeur: #FF5A6E; --vert: #3FCF7A; --rouge: #FF6B6B;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    font-family: Inter, system-ui, sans-serif; color: var(--texte); font-size: 15px; line-height: 1.4;
+    background: linear-gradient(180deg, #EEF3FF 0%, #D5E0FA 55%, #C3D2F5 100%);
+    touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
+  [hidden] { display: none !important; }
+
+  /* ----- en haut : quitter, étapes, ducats, cœurs ----- */
+  #haut { position: fixed; left: 0; right: 0; top: 0; padding: calc(10px + env(safe-area-inset-top)) 12px 0; display: flex; align-items: center; gap: 10px; pointer-events: none; }
+  #haut > * { pointer-events: auto; }
+  .rond { flex: none; width: 44px; height: 44px; border-radius: 14px; border: 0; background: var(--nuit); box-shadow: 0 4px 0 var(--nuit2); display: grid; place-items: center; color: #fff; }
+  .rond svg { width: 20px; height: 20px; }
+  #etapes { flex: 1; display: flex; justify-content: center; gap: 6px; }
+  #etapes i { width: 16px; height: 16px; border-radius: 50%; background: rgba(28, 31, 74, .35); border: 2px solid rgba(255, 255, 255, .7); }
+  #etapes i.fait { background: var(--or); border-color: #fff; }
+  #etapes i.ici { background: #fff; border-color: var(--violet); box-shadow: 0 0 0 3px rgba(108, 76, 241, .35); }
+  .pastille { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px 0 8px; border-radius: 17px; background: var(--nuit); box-shadow: 0 3px 0 var(--nuit2); font-weight: 800; color: #fff; }
+  .piece { width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #FFE58A, #F2B21B 70%); box-shadow: inset 0 -2px 0 #C98A0B; display: inline-block; }
+  #coeurs { display: inline-flex; gap: 2px; }
+  #coeurs svg { width: 24px; height: 24px; }
+
+  /* ----- la question ----- */
+  #carte {
+    position: fixed; left: 12px; right: 12px; top: calc(64px + env(safe-area-inset-top)); max-width: 560px; margin: 0 auto;
+    background: rgba(28, 31, 74, .94); border-radius: 20px; padding: 12px 14px 12px; box-shadow: 0 5px 0 var(--nuit2);
+    max-height: 46vh; overflow: auto; touch-action: pan-y;
+  }
+  #carte .surtitre { font-size: 12px; font-weight: 700; color: var(--or); text-transform: uppercase; letter-spacing: .06em; }
+  #carte h2 { font-size: 17px; margin: 2px 0 2px; font-weight: 800; }
+  #carte p { margin: 0 0 8px; font-weight: 600; font-size: 14px; color: var(--doux); }
+  .reps { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .reps.long { grid-template-columns: 1fr; }
+  .rep { display: flex; align-items: center; gap: 8px; text-align: left; background: var(--carte); border: 2px solid var(--bord); border-radius: 12px; padding: 7px 9px; font-weight: 600; font-size: 14px; color: #fff; }
+  .rep i, .lettre { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--violet); display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: 13px; color: #fff; }
+  .rep.bien { border-color: var(--vert); } .rep.bien i { background: var(--vert); }
+  .rep.mal { border-color: var(--rouge); } .rep.mal i { background: var(--rouge); }
+  .astuce { margin: 8px 0 0; font-size: 12px; color: var(--doux); font-weight: 600; }
+  #carte.ok { box-shadow: 0 5px 0 #1E8C4C, inset 0 0 0 2px var(--vert); }
+  #carte.ko { box-shadow: 0 5px 0 #C23636, inset 0 0 0 2px var(--rouge); }
+  .verdict { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+  .verdict svg { width: 30px; height: 30px; flex: none; }
+  .ok .verdict { color: var(--vert); } .ko .verdict { color: var(--rouge); }
+  .correction { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+  .correction b { color: #fff; }
+  .bouton { display: block; width: 100%; margin-top: 10px; border: 0; border-radius: 16px; padding: 13px 16px; font-weight: 800; font-size: 17px; color: #fff; background: var(--violet); box-shadow: 0 5px 0 #4A2FC4; text-align: center; text-decoration: none; }
+  .bouton.rouge { background: #EF4444; box-shadow: 0 5px 0 #B91C1C; }
+  .bouton:active { transform: translateY(3px); box-shadow: 0 2px 0 #4A2FC4; }
+  .lien { display: block; text-align: center; margin-top: 14px; color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; width: 100%; }
+
+  /* ----- bulle d'information ----- */
+  #bulle { position: fixed; left: 50%; top: 42%; transform: translate(-50%, -50%); background: rgba(28, 31, 74, .88); color: #fff; padding: 9px 16px; border-radius: 16px; font-weight: 800; font-size: 16px; pointer-events: none; text-align: center; max-width: 86vw; animation: bulle .25s ease-out; }
+  @keyframes bulle { from { transform: translate(-50%, -30%); opacity: 0; } }
+
+  /* ----- commandes tactiles ----- */
+  #joy { position: fixed; width: 124px; height: 124px; margin: -62px 0 0 -62px; border-radius: 50%; background: rgba(28, 31, 74, .22); border: 3px solid rgba(255, 255, 255, .75); pointer-events: none; transition: opacity .2s; }
+  #joy.repos { opacity: .55; }
+  #manche { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px; border-radius: 50%; background: rgba(255, 255, 255, .95); box-shadow: 0 4px 0 rgba(28, 31, 74, .35); }
+  #saut { position: fixed; right: 18px; bottom: calc(26px + env(safe-area-inset-bottom)); width: 88px; height: 88px; border-radius: 50%; border: 0; background: var(--violet); color: #fff; box-shadow: 0 6px 0 #4A2FC4; font-weight: 800; font-size: 13px; display: grid; place-items: center; gap: 0; padding-top: 6px; }
+  #saut svg { width: 30px; height: 30px; margin-bottom: -6px; }
+  #saut:active, #saut.appui { transform: translateY(4px); box-shadow: 0 2px 0 #4A2FC4; }
+  #aide { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: rgba(28, 31, 74, .8); color: #fff; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 12px; white-space: nowrap; pointer-events: none; }
+  #aide kbd { font: 800 12px Inter, sans-serif; background: #fff; color: var(--nuit); border-radius: 5px; padding: 1px 6px; margin: 0 1px; }
+
+  /* ----- écrans d'accueil et de fin ----- */
+  .ecran { position: fixed; inset: 0; overflow: auto; touch-action: pan-y; background: radial-gradient(120% 80% at 50% 0%, #2B2F78 0%, var(--nuit) 60%); padding: calc(18px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom)); }
+  .ecran .boite { max-width: 520px; margin: 0 auto; }
+  .badge { display: inline-block; background: var(--or); color: var(--nuit); font-weight: 800; font-size: 12px; padding: 3px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: .05em; }
+  .ecran h1 { font-size: 30px; line-height: 1.1; margin: 10px 0 6px; font-weight: 800; letter-spacing: -.02em; }
+  .ecran .intro { color: var(--doux); font-weight: 600; margin: 0 0 14px; }
+  .illu { display: block; width: 100%; max-width: 360px; margin: 4px auto 10px; }
+  .regles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 18px; }
+  .regle { background: var(--carte); border-radius: 16px; padding: 10px 8px; text-align: center; font-size: 12.5px; font-weight: 700; line-height: 1.25; }
+  .regle svg { display: block; width: 40px; height: 40px; margin: 0 auto 6px; }
+  .champ { margin: 0 0 14px; }
+  .champ > b { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); margin-bottom: 6px; }
+  .segments { display: flex; flex-wrap: wrap; gap: 6px; }
+  .segments button, .liste button { border: 2px solid var(--bord); background: var(--carte); border-radius: 12px; padding: 8px 14px; font-weight: 700; }
+  .segments button[aria-pressed="true"], .liste button[aria-pressed="true"] { border-color: var(--violet2); background: #3A2F8F; box-shadow: 0 0 0 3px rgba(139, 108, 255, .3); }
+  .liste { display: grid; gap: 6px; }
+  .liste button { text-align: left; display: flex; gap: 10px; align-items: baseline; }
+  .liste button small { color: var(--doux); font-weight: 600; flex: none; min-width: 26px; }
+  .liste.chapitres button { flex-direction: column; gap: 0; align-items: flex-start; }
+  .liste.chapitres button small { font-size: 12px; }
+  .liste button:disabled { opacity: .45; cursor: default; }
+  .vide { color: var(--doux); font-weight: 600; }
+  #fin { background: linear-gradient(180deg, rgba(28, 31, 74, 0) 0%, rgba(28, 31, 74, 0) 36%, rgba(28, 31, 74, .96) 55%); display: flex; flex-direction: column; justify-content: flex-end; }
+  #fin.echec { background: radial-gradient(120% 80% at 50% 0%, #2B2F78 0%, var(--nuit) 60%); justify-content: flex-start; }
+  #fin h1 { text-align: center; }
+  .stats { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 6px 0 14px; }
+  .stats span { display: inline-flex; align-items: center; gap: 6px; background: var(--carte); border-radius: 999px; padding: 7px 14px; font-weight: 800; }
+  .revoir { background: var(--carte); border-radius: 16px; padding: 10px 14px; margin: 0 0 6px; }
+  .revoir h2 { font-size: 15px; margin: 0 0 6px; }
+  .revoir li { margin: 0 0 6px; font-size: 14px; color: var(--doux); font-weight: 600; }
+  .revoir li b { color: #fff; }
+  .revoir ul { margin: 0; padding-left: 18px; }
+  .erreur3d { background: var(--carte); border-radius: 16px; padding: 14px; font-weight: 600; }
+  @media (max-width: 380px) { .ecran h1 { font-size: 26px; } .regle { font-size: 11.5px; } }
+</style>
+</head>
+<body>
+<canvas id="scene" tabindex="-1" aria-label="Le jeu en 3D"></canvas>
+
+<div id="haut" hidden>
+  <button id="quitter" class="rond" type="button" aria-label="Revenir au menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div id="etapes" aria-label="Points de passage"></div>
+  <span class="pastille" title="Ducats ramassés"><i class="piece"></i><b id="ducats">0</b></span>
+  <span id="coeurs" aria-label="Cœurs"></span>
+  <button id="son" class="rond" type="button" aria-label="Couper le son"></button>
+</div>
+<div id="carte" hidden aria-live="polite"></div>
+<div id="bulle" hidden></div>
+<div id="commandes" hidden>
+  <div id="joy" class="repos"><div id="manche"></div></div>
+  <button id="saut" type="button" aria-label="Sauter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 11l6-6 6 6"/></svg>Sauter</button>
+</div>
+<div id="aide" hidden><kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> ou flèches : avancer · <kbd>Espace</kbd> : sauter · clic sur une plateforme : y sauter</div>
+
+<section id="accueil" class="ecran"><div class="boite" id="accueil-boite"></div></section>
+<section id="fin" class="ecran" hidden><div class="boite" id="fin-boite"></div></section>
+
+<script src="cours.js"></script>
+<script type="module">
+import * as THREE from "../vendor/three-0.160.0.module.min.js";
+
+// =====================================================================
+//  Petits outils
+// =====================================================================
+const $ = (s) => document.querySelector(s);
+const rnd = (a, b) => a + Math.random() * (b - a);
+const borne = (v, a, b) => Math.max(a, Math.min(b, v));
+const melanger = (t) => { t = t.slice(); for (let i = t.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [t[i], t[j]] = [t[j], t[i]]; } return t; };
+const normaliser = (s) => String(s == null ? "" : s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
+const lire = (cle, defaut) => { try { const v = localStorage.getItem(cle); return v ? JSON.parse(v) : defaut; } catch (e) { return defaut; } };
+const ecrire = (cle, v) => { try { localStorage.setItem(cle, JSON.stringify(v)); } catch (e) {} };
+function el(tag, attrs, enfants) {
+  const n = document.createElement(tag);
+  Object.entries(attrs || {}).forEach(([k, v]) => {
+    if (v == null || v === false) return;
+    if (k === "text") n.textContent = v; else if (k === "html") n.innerHTML = v; else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v === true ? "" : v);
+  });
+  (enfants || []).forEach((e) => { if (e != null) n.appendChild(typeof e === "string" ? document.createTextNode(e) : e); });
+  return n;
+}
+const SVG_COEUR = (plein) => '<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.2 0 3.6 1.2 5.2 3 1.6-1.8 3-3 5.2-3 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21z" fill="' + (plein ? "#FF5A6E" : "#3B4090") + '" stroke="' + (plein ? "#E23C52" : "#2A2E6B") + '" stroke-width="1.5"/></svg>';
+const SVG_OK = '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#3FCF7A"/><path d="M9 16.5l4.5 4.5L23 11.5" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const SVG_KO = '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#FF6B6B"/><path d="M11 11l10 10M21 11L11 21" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/></svg>';
+const SVG_SON = (on) => on
+  ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>'
+  : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+const COLLEGE = ["6e", "5e", "4e", "3e"];
+const CLE_CHOIX = "reviser-passage3d-v1";
+const CLE_SON = "reviser-passage3d-son";
+
+// =====================================================================
+//  Les questions : tirées des fiches du chapitre (et de la partie du cours choisie)
+// =====================================================================
+function banque(ch, pi) {
+  const part = pi >= 0 && Array.isArray(ch.parties) ? ch.parties[pi] : null;
+  const garde = (liste, champ, cle) => (part && Array.isArray(part[cle])) ? liste.filter((x) => part[cle].indexOf(String(x[champ])) >= 0) : (part ? [] : liste);
+  const T = {
+    notions: (ch.notions || []).filter((x) => x && x.mot && x.def),
+    reperes: (ch.reperes || []).filter((x) => x && x.date && x.txt),
+    lieux: (ch.lieux || []).filter((x) => x && x.nom && x.txt),
+    perso: (ch.personnages || []).filter((x) => x && x.nom && Array.isArray(x.txt) && x.txt.length)
+  };
+  const P = { notions: garde(T.notions, "mot", "notions"), reperes: garde(T.reperes, "date", "reperes"), lieux: garde(T.lieux, "nom", "lieux"), perso: garde(T.perso, "nom", "personnages") };
+  const qs = (ch.questions || []).filter((q) => q && q.q && q.r && Array.isArray(q.faux) && q.faux.length && (!part || q.p === pi + 1));
+  // les personnages des autres chapitres de la classe, pour avoir assez de propositions
+  const persoClasse = COURS.filter((c) => c.n === ch.n && c !== ch).flatMap((c) => (c.personnages || []).map((x) => x.nom)).filter(Boolean);
+  // les fausses réponses : celles de la partie d'abord, puis celles du reste du chapitre
+  function pioche(cle, champ, bonne, extra) {
+    const vus = new Set([normaliser(bonne)]), out = [];
+    [melanger(P[cle]), melanger(T[cle])].forEach((l) => l.forEach((x) => { const v = String(x[champ]); const k = normaliser(v); if (!vus.has(k)) { vus.add(k); out.push(v); } }));
+    melanger(extra || []).forEach((v) => { const k = normaliser(v); if (!vus.has(k)) { vus.add(k); out.push(v); } });
+    return out;
+  }
+  const autre = (liste, x) => melanger(liste.filter((y) => y !== x))[0];
+  const items = [];
+  const qcm = (cle, type, bonne, autres, faire) => { if (autres.length) items.push({ cle, type, max: Math.min(4, 1 + autres.length), faire: (nb) => faire(melanger([bonne].concat(autres.slice(0, nb - 1)))) }); };
+  const vf = (cle, type, faire) => items.push({ cle, type, vf: true, max: 2, faire });
+
+  P.reperes.forEach((r) => {
+    if (T.reperes.length > 1) vf("vf-r-" + r.date, "date", () => {
+      const vrai = Math.random() < .5, a = autre(T.reperes, r);
+      return { consigne: "Vrai ou faux ?", texte: r.date + " : " + (vrai ? r.txt : a.txt), options: ["Vrai", "Faux"], bonne: vrai ? "Vrai" : "Faux", expl: r.date + " : " + r.txt };
+    });
+    qcm("r-" + r.date, "date", r.date, pioche("reperes", "date", r.date), (options) => ({ consigne: "En quelle année ?", texte: r.txt, options, bonne: r.date, expl: r.date + " : " + r.txt }));
+  });
+  P.notions.forEach((n) => {
+    if (T.notions.length > 1) vf("vf-n-" + n.mot, "notion", () => {
+      const vrai = Math.random() < .5, a = autre(T.notions, n);
+      return { consigne: "Vrai ou faux ?", texte: n.mot + " : " + (vrai ? n.def : a.def), options: ["Vrai", "Faux"], bonne: vrai ? "Vrai" : "Faux", expl: n.mot + " : " + n.def };
+    });
+    qcm("n-" + n.mot, "notion", n.mot, pioche("notions", "mot", n.mot), (options) => ({ consigne: "Quel mot correspond à cette définition ?", texte: n.def, options, bonne: n.mot, expl: n.mot + " : " + n.def }));
+  });
+  P.lieux.forEach((x) => {
+    if (T.lieux.length > 1) vf("vf-l-" + x.nom, "lieu", () => {
+      const vrai = Math.random() < .5, a = autre(T.lieux, x);
+      return { consigne: "Vrai ou faux ?", texte: (vrai ? x.nom : a.nom) + " : " + x.txt, options: ["Vrai", "Faux"], bonne: vrai ? "Vrai" : "Faux", expl: x.nom + " : " + x.txt };
+    });
+    qcm("l-" + x.nom, "lieu", x.nom, pioche("lieux", "nom", x.nom), (options) => ({ consigne: "De quel lieu s'agit-il ?", texte: x.txt, options, bonne: x.nom, expl: x.nom + " : " + x.txt }));
+  });
+  P.perso.forEach((x) => {
+    qcm("p-" + x.nom, "perso", x.nom, pioche("perso", "nom", x.nom, persoClasse), (options) => ({ consigne: "Qui suis-je ?", texte: x.txt.slice(-2).join(" "), options, bonne: x.nom, expl: x.nom + (x.dates ? " (" + x.dates + ")" : "") + " : " + x.txt[x.txt.length - 1] }));
+  });
+  qs.forEach((q, i) => qcm("q-" + i, "cours", q.r, melanger(q.faux.filter((f) => normaliser(f) !== normaliser(q.r))), (options) => ({ consigne: q.q, texte: "", options, bonne: q.r, expl: q.expl || "" })));
+  return items;
+}
+function assez(items) { return items.some((i) => i.vf) && items.filter((i) => !i.vf && i.max >= 3).length >= 2; }
+function tirerQuestion(nb) {
+  const items = etat.items, deja = etat.utilises;
+  let cands = nb <= 2 ? items.filter((i) => i.vf) : items.filter((i) => !i.vf && i.max >= nb);
+  if (!cands.length && nb > 2) { const m = Math.max(2, ...items.filter((i) => !i.vf).map((i) => i.max)); cands = items.filter((i) => !i.vf && i.max >= Math.min(nb, m)); nb = Math.min(nb, m); }
+  if (!cands.length) cands = items;
+  let neufs = cands.filter((i) => !deja.has(i.cle));
+  if (!neufs.length) { cands.forEach((i) => deja.delete(i.cle)); neufs = cands; }
+  // d'abord un type au hasard (dates, mots, lieux, personnages, questions du cours), puis une question de ce type
+  const types = [...new Set(neufs.map((i) => i.type))];
+  const type = types[Math.floor(Math.random() * types.length)];
+  const it = melanger(neufs.filter((i) => i.type === type))[0];
+  deja.add(it.cle);
+  const q = it.faire(Math.min(nb, it.max));
+  q.options = q.options.map(String);
+  return q;
+}
+
+// =====================================================================
+//  La scène 3D
+// =====================================================================
+const canvas = $("#scene");
+let renderer = null;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+} catch (e) { renderer = null; }
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog("#D3DDF7", 30, 90);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.5, 220);
+const hemi = new THREE.HemisphereLight("#FFFFFF", "#8C9BD0", 1.55);
+const soleil = new THREE.DirectionalLight("#FFF6E8", 2.1);
+soleil.castShadow = true;
+soleil.shadow.mapSize.set(1024, 1024);
+Object.assign(soleil.shadow.camera, { left: -11, right: 11, top: 11, bottom: -11, near: 1, far: 50 });
+soleil.shadow.bias = -0.0006; soleil.shadow.normalBias = 0.03;
+scene.add(hemi, soleil, soleil.target);
+if (renderer) {
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setClearColor(0x000000, 0);
+}
+// Le monde est tourné d'un quart de tour sur la diagonale : le chemin « monte » au milieu de l'écran, en vue isométrique.
+// Dans le jeu, on raisonne en (s, l, y) : s = avancer sur le chemin, l = à gauche ou à droite, y = la hauteur.
+const monde = new THREE.Group();
+monde.rotation.y = Math.PI / 4;
+scene.add(monde);
+const R2 = Math.SQRT1_2;
+const versMonde = (s, l, y, v = new THREE.Vector3()) => v.set((l - s) * R2, y, -(l + s) * R2);
+const AVANT = new THREE.Vector3(-R2, 0, -R2), DROITE = new THREE.Vector3(R2, 0, -R2), HAUT = new THREE.Vector3(0, 1, 0);
+
+const COULEURS = {
+  bleu: ["#4C86FF", "#2F63E0", "#2553C2"], gris: ["#EEEFF4", "#D5D7E2", "#C3C6D4"], vert: ["#3FCF7A", "#25A85C", "#1E8C4C"],
+  rouge: ["#FF7A7A", "#E04848", "#C23636"], or: ["#FFD66B", "#F2B21B", "#D9962B"], violet: ["#9B7BFF", "#6C4CF1", "#5A3BD6"]
+};
+const matiere = (c, extra) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: .82, metalness: 0 }, extra || {}));
+const geos = new Map();
+// une dalle aux bords arrondis, comme modelée : le dessus à y = 0, l'épaisseur vers le bas
+function geoDalle(w, d, h) {
+  const cle = [w, d, h].join("|");
+  if (geos.has(cle)) return geos.get(cle);
+  const b = Math.min(.14, h * .28), x = w / 2 - b, z = d / 2 - b, r = Math.min(.32, x * .6, z * .6);
+  const f = new THREE.Shape();
+  f.moveTo(-x + r, -z); f.lineTo(x - r, -z); f.quadraticCurveTo(x, -z, x, -z + r); f.lineTo(x, z - r); f.quadraticCurveTo(x, z, x - r, z);
+  f.lineTo(-x + r, z); f.quadraticCurveTo(-x, z, -x, z - r); f.lineTo(-x, -z + r); f.quadraticCurveTo(-x, -z, -x + r, -z);
+  const g = new THREE.ExtrudeGeometry(f, { depth: h - 2 * b, bevelEnabled: true, bevelThickness: b, bevelSize: b, bevelSegments: 3, curveSegments: 5 });
+  g.rotateX(-Math.PI / 2);
+  g.translate(0, -(h - b), 0);
+  g.computeVertexNormals();
+  geos.set(cle, g);
+  return g;
+}
+const geoBoule = new THREE.SphereGeometry(1, 12, 9);
+// les bosses sous la dalle (la « pâte à modeler » des captures)
+function bosses(w, d, h, m) {
+  const pts = [];
+  const nx = Math.max(2, Math.round(w / .5)), nz = Math.max(2, Math.round(d / .5));
+  for (let i = 0; i <= nx; i++) { const x = -w / 2 + .2 + (w - .4) * i / nx; pts.push([x, d / 2 - .2], [x, -d / 2 + .2]); }
+  for (let j = 1; j < nz; j++) { const z = -d / 2 + .2 + (d - .4) * j / nz; pts.push([w / 2 - .2, z], [-w / 2 + .2, z]); }
+  const im = new THREE.InstancedMesh(geoBoule, m, pts.length + 3);
+  const o = new THREE.Object3D();
+  pts.forEach(([x, z], i) => { o.position.set(x, -h + .02, z); const r = rnd(.2, .27); o.scale.set(r, r * .9, r); o.updateMatrix(); im.setMatrixAt(i, o.matrix); });
+  for (let k = 0; k < 3; k++) { o.position.set(rnd(-w / 4, w / 4), -h - .02, rnd(-d / 4, d / 4)); const r = rnd(.28, .4); o.scale.set(r, r * .8, r); o.updateMatrix(); im.setMatrixAt(pts.length + k, o.matrix); }
+  im.castShadow = true;
+  return im;
+}
+
+// ----- les plateformes -----
+const plateformes = [];
+const PAS = 1.8;
+function dalle(o) {
+  const c = COULEURS[o.c || "bleu"], w = o.w || PAS, d = o.d || PAS, h = o.h || .55;
+  const g = new THREE.Group();
+  const mats = [matiere(c[0]), matiere(c[1])], mb = matiere(c[2]);
+  const m = new THREE.Mesh(geoDalle(w, d, h), mats);
+  m.castShadow = true; m.receiveShadow = true;
+  g.add(m, bosses(w, d, h, mb));
+  if (o.ile) {
+    // une île : un rocher sous la dalle
+    const roc = new THREE.Mesh(new THREE.ConeGeometry(Math.min(w, d) * .42, 2.6, 7), matiere("#B9BED2", { flatShading: true }));
+    roc.rotation.x = Math.PI; roc.position.y = -h - 1.2; roc.castShadow = true;
+    g.add(roc);
+  }
+  const p = { s: o.s, l: o.l || 0, y: o.y || 0, w, d, h, type: o.type || "pas", stable: !!o.stable, g, mats, mb, c: o.c || "bleu", actif: true, ds: 0, dl: 0, secousse: 0, losange: o.losange !== false };
+  m.userData.p = p;
+  // posée en losange (un quart de tour sur la diagonale) : vue de la caméra, c'est la plateforme isométrique des captures
+  if (p.losange) g.rotation.y = Math.PI / 4;
+  g.position.set(p.l, p.y, -p.s);
+  monde.add(g);
+  plateformes.push(p);
+  if (o.monte != null) { p.actif = false; p.monte = { t: -o.monte }; g.scale.setScalar(.01); g.position.y = p.y - 2; }
+  return p;
+}
+function recolorer(p, nom) { const c = COULEURS[nom]; p.mats[0].color.set(c[0]); p.mats[1].color.set(c[1]); p.mb.color.set(c[2]); p.c = nom; }
+function retirerPlateforme(p) {
+  const i = plateformes.indexOf(p); if (i >= 0) plateformes.splice(i, 1);
+  monde.remove(p.g);
+  p.g.traverse((x) => { if (x.material) [].concat(x.material).forEach((m) => { if (m.map) m.map.dispose(); m.dispose(); }); });
+  p.actif = false;
+}
+function couler(p) { p.actif = false; p.coule = { t: 0 }; }
+// les coordonnées d'un point dans le repère de la plateforme (x en largeur, z en profondeur), et le retour
+function versLocal(p, s, l) { const ds = s - p.s, dl = l - p.l; return p.losange ? [(dl + ds) * R2, (dl - ds) * R2] : [dl, -ds]; }
+function versChemin(p, x, z) { return p.losange ? [p.s + (x - z) * R2, p.l + (x + z) * R2] : [p.s - z, p.l + x]; }
+const dessus = (p, s, l, m) => { const [x, z] = versLocal(p, s, l); return Math.abs(x) <= p.w / 2 + m && Math.abs(z) <= p.d / 2 + m; };
+// la demi-longueur d'une plateforme le long du chemin (de son centre à sa pointe)
+const demi = (p) => p.losange ? (p.w + p.d) / 2 * R2 : p.d / 2;
+const easeBack = (t) => { const c = 1.6; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+function majPlateformes(dt, temps) {
+  for (const p of plateformes.slice()) {
+    p.ds = 0; p.dl = 0;
+    if (p.monte) {
+      p.monte.t += dt;
+      const t = borne(p.monte.t / .45, 0, 1);
+      p.g.scale.setScalar(Math.max(.01, easeBack(t)));
+      p.g.position.y = p.y - 2 * (1 - t);
+      if (t >= 1) { delete p.monte; p.actif = true; p.g.scale.setScalar(1); }
+      p.g.position.x = p.l; p.g.position.z = -p.s;
+      continue;
+    }
+    if (p.mobile) { const nl = p.l0 + Math.sin(temps * p.vit + p.phase) * p.amp; p.dl = nl - p.l; p.l = nl; }
+    let dx = 0;
+    if (p.chute) {
+      p.chute.t += dt;
+      if (p.chute.t < .4) dx = Math.sin(p.chute.t * 70) * .07;
+      else { p.chute.vy -= 22 * dt; p.y += p.chute.vy * dt; }
+      if (p.y < -9 && !p.chute.fini) { p.chute.fini = true; if (p.chute.fin) p.chute.fin(); }
+    }
+    if (p.coule) {
+      p.coule.t += dt;
+      p.y -= dt * (2 + p.coule.t * 14);
+      p.g.scale.setScalar(Math.max(.01, 1 - p.coule.t * 1.4));
+      if (p.coule.t > .7) { retirerPlateforme(p); continue; }
+    }
+    if (p.secousse > 0) { p.secousse -= dt; dx = Math.sin(p.secousse * 60) * .05; }
+    p.g.position.set(p.l + dx, p.y, -p.s);
+    if (p.jeton) { p.jeton.position.y = 2.1 + Math.sin(temps * 3) * .15; }
+  }
+}
+
+// ----- étiquettes (lettres et réponses au-dessus des plateformes) -----
+function etiquette(texte, hauteur, fond, encre) {
+  const cv = document.createElement("canvas"), ctx = cv.getContext("2d");
+  const fs = 64, police = "800 " + fs + "px Inter, system-ui, sans-serif";
+  ctx.font = police;
+  const W = Math.ceil(ctx.measureText(texte).width + fs * 1.1), H = Math.ceil(fs * 1.55);
+  cv.width = W; cv.height = H;
+  ctx.font = police;
+  ctx.fillStyle = fond || "#FFFFFF";
+  const r = H / 2;
+  ctx.beginPath(); ctx.moveTo(r, 0); ctx.lineTo(W - r, 0); ctx.arc(W - r, r, r, -Math.PI / 2, Math.PI / 2); ctx.lineTo(r, H); ctx.arc(r, r, r, Math.PI / 2, Math.PI * 1.5); ctx.fill();
+  ctx.fillStyle = encre || "#1C1F4A"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(texte, W / 2, H / 2 + 3);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+  sp.renderOrder = 10;
+  sp.scale.set(hauteur * W / H, hauteur, 1);
+  return sp;
+}
+
+// ----- décors -----
+function buisson(x, z) {
+  const g = new THREE.Group();
+  [[-.22, .2, 0, .28, "#5E9C7A"], [.2, .22, .05, .32, "#6FAE8A"], [0, .42, -.05, .26, "#7FBE98"]].forEach(([a, b, c, r, col]) => {
+    const m = new THREE.Mesh(geoBoule, matiere(col)); m.position.set(a, b, c); m.scale.setScalar(r); m.castShadow = true; g.add(m);
+  });
+  g.position.set(x, 0, z);
+  return g;
+}
+function lampadaire(x, z) {
+  const g = new THREE.Group();
+  const mat = matiere("#3A3D52");
+  const pied = new THREE.Mesh(new THREE.CylinderGeometry(.05, .07, 1.6, 8), mat); pied.position.y = .8; pied.castShadow = true;
+  const bras = new THREE.Mesh(new THREE.BoxGeometry(.4, .06, .06), mat); bras.position.set(.18, 1.58, 0);
+  const lan = new THREE.Mesh(new THREE.BoxGeometry(.2, .26, .2), matiere("#F5A623", { emissive: "#F5A623", emissiveIntensity: .5 })); lan.position.set(.34, 1.42, 0);
+  g.add(pied, bras, lan); g.position.set(x, 0, z);
+  return g;
+}
+function nuages(longueur) {
+  const puffs = [];
+  for (let s = -16; s < longueur; s += 4.5) {
+    [-1, 1].forEach((cote) => {
+      if (Math.random() < .25) return;
+      const cl = cote * rnd(9.5, 16), cy = rnd(-8, -3), cs = s + rnd(-2, 2), n = 3 + Math.floor(Math.random() * 3);
+      for (let k = 0; k < n; k++) puffs.push([cs + rnd(-1.4, 1.4), cl + rnd(-1.6, 1.6), cy + rnd(-.3, .5), rnd(.7, 1.3)]);
+    });
+    if (Math.random() < .4) { const cl = rnd(-5, 5), cy = rnd(-11, -8); for (let k = 0; k < 4; k++) puffs.push([s + rnd(-1.5, 1.5), cl + rnd(-1.8, 1.8), cy + rnd(-.3, .3), rnd(.9, 1.5)]); }
+  }
+  const im = new THREE.InstancedMesh(geoBoule, matiere("#FFFFFF", { roughness: 1, emissive: "#FFFFFF", emissiveIntensity: .15 }), puffs.length);
+  const o = new THREE.Object3D();
+  puffs.forEach(([s, l, y, r], i) => { o.position.set(l, y, -s); o.scale.set(r * 1.3, r * .75, r); o.updateMatrix(); im.setMatrixAt(i, o.matrix); });
+  return im;
+}
+
+// ----- les pièces (ducats) -----
+const pieces = [];
+const geoPiece = new THREE.CylinderGeometry(.24, .24, .07, 22);
+const matPiece = matiere("#FFC83D", { metalness: .35, roughness: .35, emissive: "#B07A00", emissiveIntensity: .25 });
+function piece(s, l, y) {
+  const m = new THREE.Mesh(geoPiece, matPiece);
+  m.rotation.x = Math.PI / 2; m.castShadow = true;
+  const g = new THREE.Group(); g.add(m); g.position.set(l, y, -s);
+  monde.add(g);
+  pieces.push({ s, l, y, g, prise: false, t: 0 });
+}
+function majPieces(dt, temps) {
+  for (const p of pieces.slice()) {
+    if (!p.prise) {
+      p.g.rotation.y = temps * 3 + p.s;
+      p.g.position.y = p.y + Math.sin(temps * 2.5 + p.s) * .08;
+      if (etat.phase !== "fin" && Math.hypot(J.s - p.s, J.l - p.l) < .6 && J.y + 1 > p.y - .3 && J.y < p.y + .4) {
+        p.prise = true; etat.ducats++; majDucats(); son("piece");
+      }
+    } else {
+      p.t += dt;
+      p.g.position.y = p.y + p.t * 3;
+      p.g.scale.setScalar(Math.max(.01, 1 - p.t * 2.5));
+      p.g.rotation.y += dt * 20;
+      if (p.t > .4) { monde.remove(p.g); pieces.splice(pieces.indexOf(p), 1); }
+    }
+  }
+}
+// pièces qui jaillissent du coffre
+const gerbe = [];
+function jaillir(s, l, y) {
+  for (let i = 0; i < 14; i++) {
+    const m = new THREE.Mesh(geoPiece, matPiece);
+    m.rotation.x = Math.PI / 2;
+    const g = new THREE.Group(); g.add(m); g.position.set(l, y, -s); monde.add(g);
+    const a = Math.random() * Math.PI * 2, v = rnd(1.2, 2.6);
+    gerbe.push({ g, vx: Math.cos(a) * v, vz: Math.sin(a) * v, vy: rnd(5, 8), t: 0 });
+  }
+}
+function majGerbe(dt) {
+  for (const p of gerbe.slice()) {
+    p.t += dt; p.vy -= 14 * dt;
+    p.g.position.x += p.vx * dt; p.g.position.z += p.vz * dt; p.g.position.y += p.vy * dt;
+    p.g.rotation.y += dt * 12;
+    if (p.t > 1.6) { monde.remove(p.g); gerbe.splice(gerbe.indexOf(p), 1); }
+  }
+}
+
+// ----- le monument du chapitre, sur l'île d'arrivée -----
+function monument3D(type) {
+  const g = new THREE.Group();
+  const add = (geo, c, x, y, z, ry) => { const m = new THREE.Mesh(geo, matiere(c)); m.position.set(x, y, z); if (ry) m.rotation.y = ry; m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+  const boite = (w, h, d, c, x, y, z) => add(new THREE.BoxGeometry(w, h, d), c, x, y + h / 2, z);
+  const cyl = (r1, r2, h, c, x, y, z, n) => add(new THREE.CylinderGeometry(r1, r2, h, n || 16), c, x, y + h / 2, z);
+  const dome = (r, c, x, y, z) => add(new THREE.SphereGeometry(r, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), c, x, y, z);
+  const cone = (r, h, c, x, y, z, n) => add(new THREE.ConeGeometry(r, h, n || 12), c, x, y + h / 2, z);
+  const t = type || "temple";
+  if (/basilique|coupole|mosquee/.test(t)) {
+    boite(2.3, .9, 1.5, "#E8C9A0", 0, 0, 0);
+    for (let i = -2; i <= 2; i++) boite(.16, .28, .04, "#5B4A6E", i * .4, .35, .76);
+    cyl(.55, .55, .3, "#E8C9A0", 0, .9, 0);
+    dome(.58, "#8FA3C7", 0, 1.2, 0);
+    dome(.32, "#8FA3C7", -.8, .9, 0); dome(.32, "#8FA3C7", .8, .9, 0);
+    if (t === "mosquee") { cyl(.12, .14, 1.9, "#F1E3C6", 1.35, 0, -.4); cone(.16, .4, "#2E7D5B", 1.35, 1.9, -.4); }
+    else cyl(.03, .03, .35, "#D9A300", 0, 1.75, 0);
+  } else if (/chateau|bastille/.test(t)) {
+    boite(2, .9, 1.4, "#C9C2B5", 0, 0, 0);
+    boite(.5, .4, .06, "#5B4A3A", 0, 0, .72);
+    [[-1, -.7], [1, -.7], [-1, .7], [1, .7]].forEach(([x, z]) => { cyl(.3, .32, 1.4, "#BDB5A6", x, 0, z); cone(.38, .6, t === "bastille" ? "#7B7F8C" : "#3E5BA9", x, 1.4, z); });
+  } else if (/beffroi|horloge|cathedrale/.test(t)) {
+    if (t === "cathedrale") { boite(1.4, 1, 1.6, "#D8CDB8", 0, 0, -.2); boite(.5, 1.7, .5, "#D8CDB8", -.45, 0, .6); boite(.5, 1.7, .5, "#D8CDB8", .45, 0, .6); cone(.3, .7, "#7B7F8C", -.45, 1.7, .6, 4); cone(.3, .7, "#7B7F8C", .45, 1.7, .6, 4); add(new THREE.CircleGeometry(.18, 20), "#5B4A9E", 0, .8, .86); }
+    else { boite(1.8, .8, 1.2, "#E2C9A6", 0, 0, 0); boite(.7, 2, .7, "#E2C9A6", 0, 0, 0); cone(.55, .7, "#3E5BA9", 0, 2, 0, 4); add(new THREE.CircleGeometry(.2, 24), "#FFFFFF", 0, 1.6, .36); }
+  } else if (/metropole|villedense|contrastes/.test(t)) {
+    [[-.7, -.3, 1.6, "#7FA3D9"], [0, -.5, 2.4, "#5D86C9"], [.7, -.2, 1.2, "#A9C1E8"], [-.3, .5, .9, "#C9D6EF"], [.5, .5, .7, "#E8C9A0"]].forEach(([x, z, h, c]) => boite(.55, h, .55, c, x, 0, z));
+  } else if (/caravelle|galere/.test(t)) {
+    boite(2, .45, .8, "#8C5A33", 0, .05, 0); boite(.5, .3, .8, "#8C5A33", -.85, .4, 0);
+    cyl(.05, .05, 1.8, "#5B3E25", .1, .4, 0);
+    const voile = boite(.06, .9, .9, "#F4F1E8", .1, .8, 0); voile.rotation.y = Math.PI / 2;
+    boite(.08, .5, .1, "#C0392B", .1, 1, .46);
+  } else if (/foret|littoral/.test(t)) {
+    if (t === "littoral") { cyl(.28, .36, 1.8, "#F4F1E8", .6, 0, -.2); cyl(.29, .29, .25, "#D64545", .6, .6, -.2); cyl(.29, .29, .25, "#D64545", .6, 1.2, -.2); cyl(.2, .2, .3, "#FFD66B", .6, 1.8, -.2); }
+    [[-.7, .1], [-.2, -.5], [.3, .4], [-.8, -.6]].forEach(([x, z]) => { cyl(.06, .08, .5, "#7A5534", x, 0, z); cone(.38, .9, "#2E7D5B", x, .4, z, 8); });
+  } else {
+    // temple, palais, parlement, Versailles, hôtel de ville : des colonnes et un fronton
+    const large = /palais|versailles|hoteldeville/.test(t);
+    boite(large ? 2.8 : 2.2, .22, 1.4, "#EDE6D6", 0, 0, 0);
+    if (large) { boite(.8, 1.1, 1.2, "#EDE0C8", -1.05, .22, -.05); boite(.8, 1.1, 1.2, "#EDE0C8", 1.05, .22, -.05); boite(.9, .25, 1.25, "#7C8FB8", -1.05, 1.32, -.05); boite(.9, .25, 1.25, "#7C8FB8", 1.05, 1.32, -.05); }
+    const n = large ? 4 : 6, larg = large ? 1.2 : 1.9;
+    for (let i = 0; i < n; i++) cyl(.08, .09, 1, "#F6F1E6", -larg / 2 + larg * i / (n - 1), .22, .5);
+    boite(larg + .4, .7, .9, "#E8DFC9", 0, .22, -.1);
+    boite(larg + .4, .14, 1.25, "#EDE6D6", 0, 1.22, 0);
+    // le fronton : un prisme à base triangulaire, pointe en haut
+    const prisme = new THREE.CylinderGeometry(1, 1, 1.25, 3);
+    prisme.rotateX(-Math.PI / 2);
+    const fr = add(prisme, "#E9E0CC", 0, 1.36 + .5 * .3, 0);
+    fr.scale.set((larg + .4) / 1.732, .3, 1);
+  }
+  return g;
+}
+function coffre3D() {
+  const g = new THREE.Group();
+  const bois = matiere("#A0602F"), bois2 = matiere("#B8733A", { side: THREE.DoubleSide }), or = matiere("#FFC83D", { metalness: .3, roughness: .4 });
+  const base = new THREE.Mesh(new THREE.BoxGeometry(.9, .48, .62), bois); base.position.y = .24; base.castShadow = true; base.receiveShadow = true;
+  const bande = new THREE.Mesh(new THREE.BoxGeometry(.94, .08, .66), or); bande.position.y = .38;
+  const tresor = new THREE.Mesh(geoBoule, matiere("#FFD24A", { metalness: .4, roughness: .3, emissive: "#B07A00", emissiveIntensity: .35 })); tresor.scale.set(.38, .1, .24); tresor.position.y = .47;
+  const couvercle = new THREE.Group(); couvercle.position.set(0, .48, -.31);
+  const dessusC = new THREE.Mesh(new THREE.CylinderGeometry(.31, .31, .9, 18, 1, false, 0, Math.PI), bois2);
+  dessusC.rotation.z = Math.PI / 2; dessusC.position.z = .31; dessusC.castShadow = true;
+  const serrure = new THREE.Mesh(new THREE.BoxGeometry(.16, .18, .06), or); serrure.position.set(0, .02, .63);
+  couvercle.add(dessusC, serrure);
+  g.add(base, bande, tresor, couvercle);
+  return { g, couvercle };
+}
+// (ds, dl) : en avant sur le chemin et à droite, depuis le centre de l'île ; l'île est tournée en losange
+const surIle = (objet, ds, dl) => { objet.position.x = (dl + ds) * R2; objet.position.z = (dl - ds) * R2; return objet; };
+function decorerIle(p, arrivee) {
+  const g = p.g;
+  if (!arrivee) {
+    g.add(surIle(buisson(0, 0), -1.2, -2), surIle(buisson(0, 0), .4, 2.2), surIle(buisson(0, 0), -2.3, .6), surIle(lampadaire(0, 0), 1, -1.9));
+    return;
+  }
+  const mon = surIle(monument3D(etat.ch.monument && etat.ch.monument.type), 1.5, 0);
+  g.add(mon, surIle(buisson(0, 0), -.5, -2.4), surIle(buisson(0, 0), -.3, 2.4), surIle(buisson(0, 0), 2.1, -1.2), surIle(buisson(0, 0), 2, 1.3));
+  const c = coffre3D();
+  surIle(c.g, -1.15, 0);
+  c.g.rotation.y = -Math.PI / 4;
+  g.add(c.g);
+  etat.coffre = c;
+}
+function jetonQuestion() {
+  const sp = etiquette("?", .9, "#6C4CF1", "#FFFFFF");
+  sp.position.y = 2.1;
+  return sp;
+}
+
+// ----- le personnage de l'élève -----
+const TEINTES = { "#3E7CB1": "#24527A", "#B03A2E": "#78281F", "#2E7D5B": "#1D5240", "#7D3C98": "#512E5F", "#D68910": "#9C640C", "#34495E": "#1F2D3A" };
+const TENUES = {
+  toge: ["#F3EEE2", "#7B2D5B"], byzantin: ["#6A2C8C", "#E8C547"], moine: ["#7A5534", "#5B3E25"], paysan: ["#8C7A5B", "#5B4A2C"], chevalier: ["#2F5DA8", "#E8C547"],
+  savant: ["#2E7D5B", "#F4F1E8"], pelerin: ["#8C6A45", "#E3D3B4"], marchand: ["#B3262E", "#F1E3C6"], humaniste: ["#2B2B33", "#F4F1E8"], explorateur: ["#A88B5A", "#5B4A2C"],
+  sansculotte: ["#2F5DA8", "#F4F1E8"], redingote: ["#1F2A44", "#F4F1E8"], poilu: ["#7C93B5", "#4A5A73"], guide: ["#6E4BB5", "#F3EEE2"], "guide-geo": ["#2B8C8C", "#F3EEE2"]
+};
+function persoEleve() {
+  const av = lire("reviser-aventure-v1", null), p = av && av.perso && typeof av.perso === "object" ? av.perso : {};
+  const hex = (v, d) => (typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v)) ? v : d;
+  const couleur = hex(p.couleur, "#3E7CB1");
+  const tenue = TENUES[p.tenue] || [couleur, TEINTES[couleur] || "#24527A"];
+  return { peau: hex(p.peau, "#EDB98A"), cheveux: hex(p.cheveux, "#6B4226"), coiffure: String(p.coiffure || "court"), barbe: String(p.barbe || ""), c1: tenue[0], c2: tenue[1] };
+}
+function construirePerso(p) {
+  const g = new THREE.Group(), corps = new THREE.Group();
+  g.add(corps);
+  const ombre = (m) => { m.castShadow = true; return m; };
+  const peau = matiere(p.peau), c1 = matiere(p.c1), c2 = matiere(p.c2), chev = matiere(p.cheveux), noir = matiere("#1C1F2E", { roughness: .4 });
+  const jambe = new THREE.CapsuleGeometry(.085, .16, 4, 10);
+  const jambes = [-1, 1].map((cote) => { const pivot = new THREE.Group(); pivot.position.set(cote * .1, .3, 0); const m = ombre(new THREE.Mesh(jambe, c2)); m.position.y = -.17; pivot.add(m); corps.add(pivot); return pivot; });
+  const tunique = ombre(new THREE.Mesh(new THREE.CylinderGeometry(.21, .31, .44, 18), c1)); tunique.position.y = .5;
+  const ceinture = new THREE.Mesh(new THREE.CylinderGeometry(.235, .245, .06, 18), c2); ceinture.position.y = .5;
+  corps.add(tunique, ceinture);
+  const brasGeo = new THREE.CapsuleGeometry(.065, .2, 4, 10);
+  const bras = [-1, 1].map((cote) => {
+    const pivot = new THREE.Group(); pivot.position.set(cote * .27, .68, 0);
+    const m = ombre(new THREE.Mesh(brasGeo, c1)); m.position.y = -.14;
+    const main = new THREE.Mesh(geoBoule, peau); main.scale.setScalar(.075); main.position.y = -.3;
+    pivot.add(m, main); pivot.rotation.z = cote * .12; corps.add(pivot); return pivot;
+  });
+  const tete = new THREE.Group(); tete.position.y = .98; corps.add(tete);
+  const crane = ombre(new THREE.Mesh(geoBoule, peau)); crane.scale.setScalar(.26); tete.add(crane);
+  [-1, 1].forEach((cote) => {
+    const oeil = new THREE.Mesh(geoBoule, noir); oeil.scale.set(.036, .046, .03); oeil.position.set(cote * .09, .02, .235); tete.add(oeil);
+    const joue = new THREE.Mesh(geoBoule, matiere("#F29C93")); joue.scale.set(.045, .03, .02); joue.position.set(cote * .15, -.06, .21); tete.add(joue);
+  });
+  const sourire = new THREE.Mesh(new THREE.TorusGeometry(.05, .012, 6, 12, Math.PI), noir); sourire.rotation.z = Math.PI; sourire.position.set(0, -.07, .245); tete.add(sourire);
+  // les cheveux, selon la coiffure choisie dans le mode aventure
+  const calotte = new THREE.Mesh(new THREE.SphereGeometry(.275, 20, 12, 0, Math.PI * 2, 0, Math.PI * .52), chev);
+  calotte.rotation.x = -.35; calotte.position.set(0, .015, -.01); calotte.castShadow = true;
+  if (p.coiffure === "rase") calotte.scale.set(.98, .9, .98);
+  tete.add(calotte);
+  const cheveu = (sx, sy, sz, x, y, z) => { const m = new THREE.Mesh(geoBoule, chev); m.scale.set(sx, sy, sz); m.position.set(x, y, z); m.castShadow = true; tete.add(m); return m; };
+  if (p.coiffure === "long") { cheveu(.27, .3, .14, 0, -.12, -.15); }
+  if (p.coiffure === "boucles") { for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; cheveu(.1, .1, .1, Math.cos(a) * .22, .14 + Math.sin(a * 2) * .03, Math.sin(a) * .2 - .02); } }
+  if (p.coiffure === "chignon") cheveu(.12, .12, .12, 0, .2, -.22);
+  if (p.coiffure === "tresses") { cheveu(.06, .18, .06, -.23, -.2, -.05); cheveu(.06, .18, .06, .23, -.2, -.05); }
+  if (p.barbe) cheveu(.18, p.barbe === "longue" ? .17 : .1, .12, 0, -.17, .13);
+  return { g, corps, jambes, bras, tete };
+}
+let perso = null;
+const ombrePerso = new THREE.Mesh(new THREE.CircleGeometry(.36, 24), new THREE.MeshBasicMaterial({ color: "#1C1F4A", transparent: true, opacity: .22, depthWrite: false }));
+ombrePerso.rotation.x = -Math.PI / 2;
+
+// =====================================================================
+//  Le joueur : déplacements, sauts, atterrissages
+// =====================================================================
+const GRAVITE = 26, IMPULSION = 8.6, VITESSE = 4.6;
+const J = { s: 0, l: 0, y: 0, vs: 0, vl: 0, vy: 0, sol: null, repli: null, coyote: 0, tampon: 0, angle: 0, auto: null, cap: null, marche: 0, ecrase: 0, clignote: 0 };
+const etat = { phase: "accueil", ch: null, pi: -1, items: [], utilises: new Set(), paliers: [], k: 0, porte: null, q: null, reponses: [], bloque: false, coeurs: 3, ducats: 0, erreurs: [], premiers: 0, essai: 0, chutes: 0, ile: null, coffre: null, chemin: [], longueur: 100 };
+
+function poser(p) {
+  const choc = Math.min(1, Math.max(.3, -J.vy / 10));
+  J.sol = p; J.vy = 0; J.ecrase = choc;
+  if (p.stable) J.repli = p;
+  if (p.type === "porte" && p === etat.porte && etat.phase === "course") ouvrirQuestion();
+  else if (p.type === "reponse" && etat.phase === "question") verdict(p);
+  else if (p.ile && p === etat.ile) bulle("Ouvre le coffre !", 1600);
+}
+// le point visé sur une plateforme : le plus proche du personnage, un peu en retrait du bord (le centre, sur les petites)
+function pointVise(p) {
+  const [x, z] = versLocal(p, J.s, J.l), mx = Math.max(0, p.w / 2 - .6), mz = Math.max(0, p.d / 2 - .6);
+  return [borne(x, -mx, mx), borne(z, -mz, mz)];
+}
+const distanceVise = (p) => { const [x, z] = pointVise(p), [ts, tl] = versChemin(p, x, z); return Math.hypot(ts - J.s, tl - J.l); };
+function sauterVers(p) {
+  if (!p || J.auto || !J.sol || etat.bloque || !p.actif) return false;
+  const [x, z] = pointVise(p), [ts, tl] = versChemin(p, x, z);
+  const dist = Math.hypot(ts - J.s, tl - J.l);
+  if (dist > 4.6 || p.y - J.y > 1.4) { bulle("Trop loin : approche-toi du bord", 1300); return false; }
+  J.auto = { p, x, z, s0: J.s, l0: J.l, y0: J.y, t: 0, dur: .34 + dist * .07, haut: 1 + dist * .12 };
+  J.sol = null;
+  son("saut");
+  return true;
+}
+// toucher une plateforme : le personnage marche jusqu'au bord s'il le faut, puis il saute
+function allerVers(p) {
+  if (!p || !p.actif || etat.bloque || J.auto || p === J.sol) return false;
+  if (!J.sol) return false;
+  if (distanceVise(p) <= 3) return sauterVers(p);
+  J.cap = p;
+  return true;
+}
+function entree() {
+  let s = 0, l = 0;
+  if (touches.has("ArrowUp") || touches.has("KeyW")) s += 1;
+  if (touches.has("ArrowDown") || touches.has("KeyS")) s -= 1;
+  if (touches.has("ArrowLeft") || touches.has("KeyA")) l -= 1;
+  if (touches.has("ArrowRight") || touches.has("KeyD")) l += 1;
+  s += joy.s; l += joy.l;
+  const n = Math.hypot(s, l);
+  return n > 1 ? { s: s / n, l: l / n } : { s, l };
+}
+function majJoueur(dt) {
+  if (J.clignote > 0) J.clignote -= dt;
+  if (J.auto) {
+    const a = J.auto; a.t += dt / a.dur;
+    const t = Math.min(1, a.t), [ts, tl] = versChemin(a.p, a.x, a.z);
+    J.vs = (ts - a.s0) / a.dur; J.vl = (tl - a.l0) / a.dur;
+    J.s = a.s0 + (ts - a.s0) * t; J.l = a.l0 + (tl - a.l0) * t;
+    J.y = a.y0 + (a.p.y - a.y0) * t + Math.sin(Math.PI * t) * a.haut;
+    if (t >= 1) { J.auto = null; J.vs = 0; J.vl = 0; if (a.p.actif || a.p.chute) { J.y = a.p.y; poser(a.p); } }
+    return;
+  }
+  let e = etat.bloque ? { s: 0, l: 0 } : entree();
+  if (J.cap) {
+    if (e.s || e.l || !J.sol || !J.cap.actif || etat.bloque) J.cap = null;
+    else {
+      const [x, z] = pointVise(J.cap), [ts, tl] = versChemin(J.cap, x, z);
+      const ds = ts - J.s, dl = tl - J.l, dist = Math.hypot(ds, dl) || 1;
+      if (dist < 2.8 || !dessus(J.sol, J.s + ds / dist * .4, J.l + dl / dist * .4, -.1)) { const c = J.cap; J.cap = null; sauterVers(c); return; }
+      e = { s: ds / dist, l: dl / dist };
+    }
+  }
+  const acc = J.sol ? 14 : 5;
+  J.vs += (e.s * VITESSE - J.vs) * Math.min(1, acc * dt);
+  J.vl += (e.l * VITESSE - J.vl) * Math.min(1, acc * dt);
+  J.tampon -= dt; J.coyote -= dt;
+  if (J.sol) J.coyote = .12;
+  if (J.tampon > 0 && J.coyote > 0 && !etat.bloque) { J.vy = IMPULSION; J.sol = null; J.coyote = 0; J.tampon = 0; J.ecrase = -.5; son("saut"); }
+  if (J.sol) { J.s += J.sol.ds; J.l += J.sol.dl; }
+  const avantY = J.y;
+  J.s += J.vs * dt; J.l += J.vl * dt;
+  if (J.sol) {
+    if (!(J.sol.actif || J.sol.chute) || !dessus(J.sol, J.s, J.l, .12)) { J.sol = null; J.vy = 0; }
+    else J.y = J.sol.y;
+  }
+  if (!J.sol) { J.vy -= GRAVITE * dt; J.y += J.vy * dt; }
+  // on ne traverse pas une plateforme par le côté ; une petite marche se monte d'elle-même
+  for (const p of plateformes) {
+    if (!p.actif || p === J.sol || !dessus(p, J.s, J.l, 0)) continue;
+    if (J.y < p.y - .02 && J.y + 1.05 > p.y - p.h) {
+      if (p.y - J.y < .34 && J.vy <= .5) { J.y = p.y; poser(p); continue; }
+      // repoussé par le bord le plus proche, dans le repère de la plateforme
+      let [x, z] = versLocal(p, J.s, J.l);
+      if (p.w / 2 - Math.abs(x) < p.d / 2 - Math.abs(z)) x = Math.sign(x || 1) * (p.w / 2 + .001); else z = Math.sign(z || 1) * (p.d / 2 + .001);
+      [J.s, J.l] = versChemin(p, x, z);
+      J.vs *= .3; J.vl *= .3;
+    }
+  }
+  if (!J.sol && J.vy <= 0) {
+    let mieux = null;
+    for (const p of plateformes) if (p.actif && avantY >= p.y - .06 && J.y <= p.y && dessus(p, J.s, J.l, .15) && (!mieux || p.y > mieux.y)) mieux = p;
+    if (mieux) { J.y = mieux.y; poser(mieux); }
+  }
+  if (J.y < -12) {
+    if (etat.phase === "verdict" || etat.phase === "fin") J.y = Math.max(J.y, -30);
+    else retourAuSur();
+  }
+}
+function retourAuSur() {
+  etat.chutes++;
+  const p = J.repli && plateformes.indexOf(J.repli) >= 0 ? J.repli : etat.chemin[0];
+  J.s = p.s; J.l = p.l; J.y = p.y + 2.2; J.vs = J.vl = J.vy = 0; J.sol = null; J.clignote = 1;
+  son("tombe");
+  bulle("Oups ! Retour sur la dernière plateforme", 1400);
+}
+function majPerso(dt, temps) {
+  if (!perso) return;
+  const v = Math.hypot(J.vs, J.vl);
+  if (v > .4) {
+    const cible = Math.atan2(J.vl, -J.vs);
+    let d = cible - J.angle; d = Math.atan2(Math.sin(d), Math.cos(d));
+    J.angle += d * Math.min(1, dt * 14);
+  } else if (etat.phase === "fin") {
+    let d = -J.angle; d = Math.atan2(Math.sin(d), Math.cos(d)); J.angle += d * Math.min(1, dt * 6);
+  }
+  perso.g.position.set(J.l, J.y, -J.s);
+  perso.g.rotation.y = J.angle;
+  perso.g.visible = J.clignote <= 0 || Math.floor(J.clignote * 12) % 2 === 0;
+  const auSol = !!J.sol && !J.auto, k = Math.min(1, v / VITESSE);
+  if (auSol) J.marche += dt * v * 3.4;
+  const balance = auSol ? Math.sin(J.marche) * .75 * k : 0;
+  perso.jambes[0].rotation.x = auSol ? balance : .55; perso.jambes[1].rotation.x = auSol ? -balance : -.25;
+  perso.bras[0].rotation.x = auSol ? -balance * .8 : -.4; perso.bras[1].rotation.x = auSol ? balance * .8 : -.4;
+  perso.bras[0].rotation.z = auSol ? -.12 : -.9; perso.bras[1].rotation.z = auSol ? .12 : .9;
+  if (etat.phase === "fin" && auSol) { perso.bras[0].rotation.z = -2.6 + Math.sin(temps * 8) * .2; perso.bras[1].rotation.z = 2.6 - Math.sin(temps * 8) * .2; }
+  const respire = auSol && v < .4 ? Math.sin(temps * 3) * .015 : 0;
+  J.ecrase += (0 - J.ecrase) * Math.min(1, dt * 9);
+  const e = J.ecrase;
+  perso.corps.scale.set(1 + e * .14, 1 - e * .2 + respire, 1 + e * .14);
+  perso.corps.position.y = auSol ? Math.abs(Math.sin(J.marche)) * .05 * k : 0;
+  // l'ombre ronde sous les pieds : elle aide à viser la plateforme pendant le saut
+  let sous = null;
+  for (const p of plateformes) if ((p.actif || p.chute) && p.y <= J.y + .05 && dessus(p, J.s, J.l, 0) && (!sous || p.y > sous.y)) sous = p;
+  ombrePerso.visible = !!sous && perso.g.visible;
+  if (sous) { ombrePerso.position.set(J.l, sous.y + .015, -J.s); ombrePerso.scale.setScalar(borne(1 - (J.y - sous.y) * .22, .35, 1)); }
+}
+
+// =====================================================================
+//  Le parcours : des sections de plateformes, un point de passage, les réponses
+// =====================================================================
+const ESPACE = { 2: 2.8, 3: 2.6, 4: 2.4 }, COTE_REP = { 2: 1.8, 3: 1.7, 4: 1.5 }, COTE_PORTE = 3.2;
+const largeurRang = (nb) => ESPACE[nb] * (nb - 1) + COTE_REP[nb] * Math.SQRT2;
+function viderMonde() {
+  plateformes.slice().forEach(retirerPlateforme);
+  pieces.length = 0; gerbe.length = 0;
+  while (monde.children.length) monde.remove(monde.children[0]);
+}
+function construireNiveau() {
+  viderMonde();
+  etat.k = 0; etat.reponses = []; etat.q = null; etat.ile = null; etat.coffre = null; etat.chemin = [];
+  etat.coeurs = 3; etat.ducats = 0; etat.erreurs = []; etat.premiers = 0; etat.essai = 0; etat.chutes = 0; etat.utilises = new Set();
+  etat.bloque = false; etat.phase = "course";
+  monde.add(nuages(130));
+  perso = construirePerso(persoEleve());
+  monde.add(perso.g, ombrePerso);
+  const depart = dalle({ s: 0, l: 0, w: 5, d: 5, h: 1, c: "gris", type: "ile", stable: true, ile: true });
+  decorerIle(depart, false);
+  etat.chemin.push(depart);
+  Object.assign(J, { s: -.6, l: 0, y: 0, vs: 0, vl: 0, vy: 0, sol: depart, repli: depart, auto: null, angle: 0, clignote: 0, ecrase: 0 });
+  construireSection(0, depart.s + demi(depart), 0, .3);
+  majEtapes(); majCoeurs(); majDucats();
+  cam.instant = true;
+}
+function construireSection(k, bord, l0, delai) {
+  const nbPas = [2, 3, 3, 4, 4][k] || 3;
+  let l = l0, prec = null, d = delai || 0;
+  for (let i = 0; i < nbPas; i++) {
+    const s = bord + rnd(.75, 1.05) + PAS * R2, dernier = i === nbPas - 1;
+    l = borne(l + rnd(-1.3, 1.3), -2.2, 2.2);
+    if (dernier) l *= .5;
+    const mobile = k >= 2 && i === 1 && !dernier;
+    const y = i === 0 ? 0 : [0, .2, .4, -.2][Math.floor(Math.random() * 4)];
+    const p = dalle({ s, l, y, c: mobile ? "violet" : "bleu", type: "pas", stable: !mobile, monte: d });
+    if (mobile) Object.assign(p, { mobile: true, l0: l, amp: 1.1, vit: 1.9, phase: rnd(0, 6) });
+    else if (Math.random() < .7) piece(s, l, y + .75);
+    if (prec && k >= 1 && Math.random() < .6) piece((prec.s + s) / 2, ((prec.l0 ?? prec.l) + l) / 2, Math.max(prec.y, y) + 1.25);
+    etat.chemin.push(p);
+    prec = p; bord = s + PAS * R2; d += .12;
+  }
+  const porte = dalle({ s: bord + .95 + COTE_PORTE * R2, l: 0, w: COTE_PORTE, d: COTE_PORTE, c: "or", type: "porte", stable: true, monte: d });
+  porte.k = k;
+  porte.jeton = jetonQuestion();
+  porte.g.add(porte.jeton);
+  etat.porte = porte;
+  etat.chemin.push(porte);
+}
+function construireFinale(bord, l0) {
+  let l = l0, d = .35;
+  for (let i = 0; i < 2; i++) {
+    const s = bord + rnd(.8, 1) + PAS * R2; l *= .45;
+    const p = dalle({ s, l, c: "bleu", type: "pas", stable: true, monte: d });
+    piece(s, l, .75);
+    etat.chemin.push(p); bord = s + PAS * R2; d += .12;
+  }
+  const ile = dalle({ s: bord + 1 + 5.6 * R2, l: 0, w: 5.6, d: 5.6, h: 1.1, c: "gris", type: "ile", stable: true, ile: true, monte: d });
+  etat.ile = ile;
+  decorerIle(ile, true);
+  etat.chemin.push(ile);
+}
+function ouvrirQuestion() {
+  const porte = etat.porte;
+  etat.phase = "question";
+  etat.q = tirerQuestion(etat.paliers[porte.k]);
+  if (porte.jeton) { porte.g.remove(porte.jeton); porte.jeton.material.map.dispose(); porte.jeton.material.dispose(); porte.jeton = null; }
+  son("porte");
+  poserReponses();
+  afficherQuestion();
+  majEtapes();
+}
+function poserReponses() {
+  const porte = etat.porte, q = etat.q, nb = q.options.length, cote = COTE_REP[nb];
+  const ecrites = nb <= 3 && q.options.every((o) => o.length <= 14);
+  // en éventail devant le point de passage : chaque plateforme est à un saut du grand losange doré
+  etat.reponses = q.options.map((o, i) => {
+    const dl = (i - (nb - 1) / 2) * ESPACE[nb];
+    const p = dalle({ s: porte.s + 4.3 - .4 * Math.abs(dl), l: porte.l + dl, w: cote, d: cote, c: "bleu", type: "reponse", monte: .1 + .08 * i });
+    p.option = o; p.index = i;
+    p.etiq = etiquette("ABCD".charAt(i) + (ecrites ? " · " + o : ""), ecrites ? .6 : .72);
+    p.etiq.position.y = 1.55;
+    p.g.add(p.etiq);
+    return p;
+  });
+}
+function verdict(p) {
+  const q = etat.q, juste = normaliser(p.option) === normaliser(q.bonne);
+  if (juste) {
+    son("ok");
+    if (etat.essai === 0) etat.premiers++;
+    etat.essai = 0;
+    recolorer(p, "vert");
+    p.type = "pas"; p.stable = true; J.repli = p;
+    if (p.etiq) { p.g.remove(p.etiq); p.etiq.material.map.dispose(); p.etiq.material.dispose(); p.etiq = null; }
+    etat.reponses.forEach((x) => { if (x !== p) couler(x); });
+    etat.reponses = [];
+    etat.chemin.push(p);
+    afficherVerdict(true, q, p.option);
+    etat.k++;
+    etat.phase = "course";
+    majEtapes();
+    if (etat.k >= etat.paliers.length) construireFinale(p.s + demi(p), p.l);
+    else construireSection(etat.k, p.s + demi(p), p.l, .35);
+  } else {
+    son("ko");
+    if (navigator.vibrate) try { navigator.vibrate(120); } catch (e) {}
+    etat.phase = "verdict"; etat.bloque = true; etat.essai++;
+    etat.coeurs = Math.max(0, etat.coeurs - 1); majCoeurs();
+    etat.erreurs.push({ consigne: q.consigne, texte: q.texte, bonne: q.bonne, choix: p.option, expl: q.expl, vf: q.options[0] === "Vrai" });
+    recolorer(p, "rouge");
+    marquerReponse(p.index, false);
+    p.chute = { t: 0, vy: 0, fin: () => afficherVerdict(false, q, p.option) };
+  }
+}
+function reessayer() {
+  if (etat.coeurs <= 0) { terminer(false); return; }
+  etat.reponses.forEach(retirerPlateforme);
+  etat.reponses = [];
+  const porte = etat.porte;
+  Object.assign(J, { s: porte.s - .4, l: porte.l, y: porte.y + 1.6, vs: 0, vl: 0, vy: 0, sol: null, auto: null, clignote: .8 });
+  etat.bloque = false;
+  etat.phase = "question";
+  etat.q = tirerQuestion(etat.paliers[porte.k]);
+  poserReponses();
+  afficherQuestion();
+}
+function verifierCoffre() {
+  if (etat.phase !== "course" || !etat.ile || J.sol !== etat.ile) return;
+  if (Math.hypot(J.s - (etat.ile.s - 1.15), J.l - etat.ile.l) < 1.15) victoire();
+}
+function victoire() {
+  etat.phase = "fin"; etat.bloque = true;
+  J.vs = J.vl = 0; J.cap = null;
+  son("coffre");
+  const c = etat.coffre, ile = etat.ile;
+  // le personnage se range à côté du coffre, face à la caméra
+  J.s = ile.s - .9; J.l = ile.l + 1;
+  let t = 0;
+  const ouvrir = () => { t += 1 / 30; c.couvercle.rotation.x = -Math.min(1.9, t * 5); if (t < .4) setTimeout(ouvrir, 33); };
+  ouvrir();
+  jaillir(ile.s - 1.15, ile.l, ile.y + .7);
+  majEtapes();
+  $("#carte").hidden = true;
+  setTimeout(() => terminer(true), 1500);
+}
+
+// =====================================================================
+//  La caméra : elle suit le personnage et recule pour montrer toutes les réponses
+// =====================================================================
+const cam = { cible: new THREE.Vector3(), dist: 16, decal: 0, instant: true };
+const vCible = new THREE.Vector3(), vTmp = new THREE.Vector3(), DIR_CAM = AVANT.clone().multiplyScalar(-1).add(HAUT.clone().multiplyScalar(1.15)).normalize();
+function majCamera(dt) {
+  const W = window.innerWidth, H = window.innerHeight, aspect = W / H, tanv = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  let ts, tl, ty, largeur, hauteur;
+  const porte = etat.porte;
+  if (etat.phase === "question" || (etat.phase === "verdict" && porte)) {
+    ts = porte.s + 2.1; tl = porte.l * .6 + J.l * .2; ty = porte.y;
+    largeur = largeurRang(etat.q ? etat.q.options.length : 3) + 2.8; hauteur = 10;
+  } else if (etat.phase === "fin" && etat.ile) {
+    ts = etat.ile.s - .2; tl = etat.ile.l; ty = etat.ile.y + .5; largeur = 7.4; hauteur = 6.5;
+  } else {
+    ts = J.s + 1.4; tl = J.l * .7; ty = J.sol ? J.y : Math.max(-1, Math.min(J.y, cam.cible.y + .4)); largeur = 6.8; hauteur = 7.6;
+  }
+  ty = Math.max(-1.2, ty);
+  versMonde(ts, tl, ty, vCible);
+  const dist = borne(Math.max((largeur / 2) / (tanv * aspect), (hauteur / 2) / tanv), 8.5, 34);
+  const k = cam.instant ? 1 : 1 - Math.exp(-dt * 3.2);
+  cam.cible.lerp(vCible, k);
+  cam.dist += (dist - cam.dist) * (cam.instant ? 1 : 1 - Math.exp(-dt * 2.4));
+  // la carte de la question cache le haut de l'écran : on descend l'image d'autant
+  const carte = $("#carte");
+  const voulu = etat.phase === "fin" ? -H * .2 : carte.hidden ? 0 : Math.max(0, carte.getBoundingClientRect().bottom - 50) * .55;
+  cam.decal += (voulu - cam.decal) * (cam.instant ? 1 : 1 - Math.exp(-dt * 5));
+  cam.instant = false;
+  camera.position.copy(cam.cible).addScaledVector(DIR_CAM, cam.dist);
+  camera.lookAt(cam.cible);
+  if (Math.abs(cam.decal) > .5) camera.setViewOffset(W, H, 0, -cam.decal, W, H); else camera.clearViewOffset();
+  scene.fog.near = cam.dist + 8; scene.fog.far = cam.dist + 60;
+  // le soleil suit : ses ombres restent nettes autour du personnage
+  versMonde(J.s + 1, J.l, Math.max(J.y, -1), vTmp);
+  soleil.target.position.copy(vTmp);
+  soleil.position.copy(vTmp).addScaledVector(DROITE, -5).addScaledVector(AVANT, -2.5).add(new THREE.Vector3(0, 13, 0));
+}
+function redimensionner() {
+  if (!renderer) return;
+  const W = window.innerWidth, H = window.innerHeight;
+  renderer.setSize(W, H, false);
+  camera.aspect = W / H;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener("resize", redimensionner);
+
+// =====================================================================
+//  Commandes : clavier, joystick, bouton « Sauter », toucher une plateforme
+// =====================================================================
+const touches = new Set();
+const joy = { s: 0, l: 0, id: null, x0: 0, y0: 0 };
+const CODES = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyW", "KeyA", "KeyS", "KeyD", "Space"];
+window.addEventListener("keydown", (e) => {
+  if (etat.phase === "accueil" || !$("#fin").hidden) return;
+  if (CODES.indexOf(e.code) < 0) return;
+  e.preventDefault();
+  if (e.code === "Space") { if (!e.repeat) J.tampon = .14; return; }
+  touches.add(e.code);
+  J.cap = null;
+  $("#aide").hidden = true;
+});
+window.addEventListener("keyup", (e) => touches.delete(e.code));
+window.addEventListener("blur", () => touches.clear());
+const boutonSaut = $("#saut");
+boutonSaut.addEventListener("pointerdown", (e) => { e.preventDefault(); e.stopPropagation(); J.tampon = .14; boutonSaut.classList.add("appui"); });
+["pointerup", "pointercancel", "pointerleave"].forEach((t) => boutonSaut.addEventListener(t, () => boutonSaut.classList.remove("appui")));
+const joyEl = $("#joy"), manche = $("#manche");
+function placerJoyRepos() { joyEl.style.left = "86px"; joyEl.style.top = (window.innerHeight - 110) + "px"; joyEl.classList.add("repos"); manche.style.transform = ""; }
+const geste = new Map();
+const raycaster = new THREE.Raycaster(), pointeur = new THREE.Vector2();
+canvas.addEventListener("pointerdown", (e) => {
+  if (etat.phase === "accueil") return;
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+  geste.set(e.pointerId, { x: e.clientX, y: e.clientY, t: performance.now(), bouge: false });
+  if (joy.id == null && e.clientX < window.innerWidth * .55 && e.pointerType !== "mouse") {
+    joy.id = e.pointerId; joy.x0 = e.clientX; joy.y0 = e.clientY;
+    joyEl.style.left = e.clientX + "px"; joyEl.style.top = e.clientY + "px"; joyEl.classList.remove("repos");
+  }
+});
+canvas.addEventListener("pointermove", (e) => {
+  const g = geste.get(e.pointerId);
+  if (g && Math.hypot(e.clientX - g.x, e.clientY - g.y) > 12) g.bouge = true;
+  if (e.pointerId !== joy.id) return;
+  const dx = e.clientX - joy.x0, dy = e.clientY - joy.y0, n = Math.hypot(dx, dy), r = 46, f = n > r ? r / n : 1;
+  manche.style.transform = "translate(" + (dx * f) + "px," + (dy * f) + "px)";
+  const morte = 8;
+  joy.l = n > morte ? (dx * f) / r : 0; joy.s = n > morte ? -(dy * f) / r : 0;
+});
+function finGeste(e) {
+  const g = geste.get(e.pointerId);
+  geste.delete(e.pointerId);
+  if (e.pointerId === joy.id) { joy.id = null; joy.s = joy.l = 0; placerJoyRepos(); }
+  if (g && !g.bouge && performance.now() - g.t < 350 && e.type === "pointerup") toucherScene(e.clientX, e.clientY);
+}
+canvas.addEventListener("pointerup", finGeste);
+canvas.addEventListener("pointercancel", finGeste);
+// toucher une plateforme : le personnage y saute (s'il est assez près)
+function toucherScene(x, y) {
+  if (etat.bloque || (etat.phase !== "course" && etat.phase !== "question")) return;
+  const r = canvas.getBoundingClientRect();
+  pointeur.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
+  raycaster.setFromCamera(pointeur, camera);
+  const cibles = plateformes.filter((p) => p.actif).map((p) => p.g.children[0]);
+  const hit = raycaster.intersectObjects(cibles, false)[0];
+  if (hit && hit.object.userData.p && hit.object.userData.p !== J.sol) allerVers(hit.object.userData.p);
+}
+
+// =====================================================================
+//  L'interface : en-tête, question, verdict, bulles, écrans
+// =====================================================================
+function majEtapes() {
+  const box = $("#etapes"); box.innerHTML = "";
+  etat.paliers.forEach((_, i) => box.appendChild(el("i", { class: i < etat.k ? "fait" : i === etat.k && etat.phase !== "fin" ? "ici" : "" })));
+}
+function majCoeurs() { $("#coeurs").innerHTML = [0, 1, 2].map((i) => SVG_COEUR(i < etat.coeurs)).join(""); $("#coeurs").setAttribute("aria-label", etat.coeurs + " cœur" + (etat.coeurs > 1 ? "s" : "")); }
+function majDucats() { $("#ducats").textContent = etat.ducats; }
+let minuterieBulle = null;
+function bulle(txt, ms) {
+  const b = $("#bulle"); b.textContent = txt; b.hidden = false;
+  b.style.animation = "none"; void b.offsetWidth; b.style.animation = "";
+  clearTimeout(minuterieBulle); minuterieBulle = setTimeout(() => { b.hidden = true; }, ms || 1400);
+}
+let minuterieCarte = null;
+function afficherQuestion() {
+  clearTimeout(minuterieCarte);
+  const q = etat.q, carte = $("#carte");
+  carte.className = ""; carte.innerHTML = "";
+  const long = q.options.some((o) => o.length > 22);
+  const reps = el("div", { class: "reps" + (long ? " long" : "") });
+  q.options.forEach((o, i) => reps.appendChild(el("button", { class: "rep", type: "button", "data-i": i, onclick: () => { const p = etat.reponses[i]; if (p) allerVers(p); } }, [el("i", { text: "ABCD".charAt(i) }), el("span", { text: o })])));
+  carte.append(...[
+    el("div", { class: "surtitre", text: "Point de passage " + (etat.porte.k + 1) + " / " + etat.paliers.length }),
+    el("h2", { text: q.consigne }),
+    q.texte ? el("p", { text: q.texte }) : null,
+    reps,
+    etat.porte.k === 0 && etat.essai === 0 ? el("p", { class: "astuce", text: "Saute sur la plateforme de ta réponse (ou touche-la ici)." }) : null
+  ].filter(Boolean));
+  carte.hidden = false;
+  carte.scrollTop = 0;
+}
+function marquerReponse(i, bien) { const b = $('#carte .rep[data-i="' + i + '"]'); if (b) b.classList.add(bien ? "bien" : "mal"); }
+function afficherVerdict(juste, q, choix) {
+  clearTimeout(minuterieCarte);
+  const carte = $("#carte");
+  carte.className = juste ? "ok" : "ko";
+  carte.innerHTML = "";
+  if (juste) {
+    carte.append(el("div", { class: "verdict", html: SVG_OK + "<span>" + ["Bien sauté !", "Bravo !", "Exact !", "Parfait !", "Encore bravo !"][Math.floor(Math.random() * 5)] + "</span>" }));
+    if (q.expl) carte.append(el("p", { text: q.expl }));
+    carte.hidden = false;
+    minuterieCarte = setTimeout(() => { if (etat.phase === "course") carte.hidden = true; }, q.expl ? 2600 : 1300);
+    bulle(etat.k >= etat.paliers.length ? "Dernier passage franchi !" : "La suite du chemin apparaît…", 1300);
+  } else {
+    const fin = etat.coeurs <= 0;
+    carte.append(...[
+      el("div", { class: "verdict", html: SVG_KO + "<span>La plateforme s'effondre !</span>" }),
+      el("p", { class: "correction" }, ["Réponse\u00a0: ", el("b", { text: q.bonne })]),
+      q.expl ? el("p", { text: q.expl }) : null,
+      el("p", { class: "correction", text: fin ? "Tu n'as plus de cœur." : "Il te reste " + etat.coeurs + " cœur" + (etat.coeurs > 1 ? "s" : "") + "." }),
+      el("button", { class: "bouton" + (fin ? "" : " rouge"), type: "button", text: fin ? "Voir le bilan" : "Réessayer", onclick: reessayer })
+    ].filter(Boolean));
+    carte.hidden = false;
+    carte.scrollTop = 0;
+    const btn = carte.querySelector(".bouton"); if (btn) btn.focus({ preventScroll: true });
+  }
+}
+function terminer(reussi) {
+  etat.phase = "fin"; etat.bloque = true;
+  $("#carte").hidden = true; $("#commandes").hidden = true; $("#aide").hidden = true;
+  const fin = $("#fin"), boite = $("#fin-boite");
+  fin.classList.toggle("echec", !reussi);
+  boite.innerHTML = "";
+  const nb = etat.paliers.length;
+  boite.append(
+    el("h1", { text: reussi ? "Passage réussi !" : "Plus de cœurs…" }),
+    el("p", { class: "intro", style: "text-align:center", text: reussi ? (etat.premiers === nb ? "Sans faute : " + nb + " bonnes réponses du premier coup !" : etat.premiers + " point" + (etat.premiers > 1 ? "s" : "") + " de passage sur " + nb + " franchis du premier coup.") : "Relis la fiche du chapitre, puis retente le passage." }),
+    el("div", { class: "stats" }, [
+      el("span", { html: '<i class="piece"></i>' + etat.ducats + " ducat" + (etat.ducats > 1 ? "s" : "") }),
+      el("span", { text: "✓ " + etat.premiers + " / " + nb }),
+      etat.erreurs.length ? el("span", { text: "✗ " + etat.erreurs.length + " erreur" + (etat.erreurs.length > 1 ? "s" : "") }) : null
+    ])
+  );
+  if (etat.erreurs.length) {
+    boite.append(el("div", { class: "revoir" }, [el("h2", { text: "À revoir" }), el("ul", {}, etat.erreurs.slice(0, 6).map((x) => el("li", {}, x.vf ? ["« " + x.texte + " » : ", el("b", { text: x.bonne.toLowerCase() }), x.bonne === "Faux" && x.expl ? ". " + x.expl : ""] : [(x.texte ? x.texte : x.consigne) + " → ", el("b", { text: x.bonne })])))]));
+  }
+  boite.append(
+    el("button", { class: "bouton", type: "button", text: "Rejouer", onclick: () => lancer() }),
+    el("button", { class: "lien", type: "button", text: "Changer de chapitre", onclick: () => montrerAccueil() }),
+    el("a", { class: "lien", href: "reviser.html#/" + etat.ch.id, text: "Relire la fiche du chapitre" })
+  );
+  fin.hidden = false;
+  fin.scrollTop = 0;
+}
+
+// ----- les sons (courts, synthétisés) -----
+let actx = null, muet = !!lire(CLE_SON, false);
+function bip(f1, f2, debut, duree, type, vol) {
+  const t = actx.currentTime + debut, o = actx.createOscillator(), g = actx.createGain();
+  o.type = type || "sine"; o.frequency.setValueAtTime(f1, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + duree);
+  g.gain.setValueAtTime(vol || .06, t); g.gain.exponentialRampToValueAtTime(.0001, t + duree);
+  o.connect(g).connect(actx.destination); o.start(t); o.stop(t + duree + .02);
+}
+const SONS = {
+  saut: () => bip(360, 700, 0, .14, "sine", .05),
+  piece: () => { bip(988, 0, 0, .07, "square", .025); bip(1319, 0, .07, .12, "square", .025); },
+  porte: () => { bip(440, 0, 0, .1, "triangle", .05); bip(660, 0, .09, .14, "triangle", .05); },
+  ok: () => { bip(523, 0, 0, .12, "triangle", .07); bip(659, 0, .1, .12, "triangle", .07); bip(784, 0, .2, .22, "triangle", .07); },
+  ko: () => bip(300, 80, 0, .5, "sawtooth", .045),
+  tombe: () => bip(500, 120, 0, .35, "sine", .05),
+  coffre: () => { [523, 659, 784, 1047].forEach((f, i) => bip(f, 0, i * .09, .25, "triangle", .06)); }
+};
+function son(nom) {
+  if (muet || !SONS[nom]) return;
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); SONS[nom](); } catch (e) {}
+}
+function majSon() { const b = $("#son"); b.innerHTML = SVG_SON(!muet); b.setAttribute("aria-label", muet ? "Remettre le son" : "Couper le son"); }
+$("#son").addEventListener("click", () => { muet = !muet; ecrire(CLE_SON, muet); majSon(); });
+$("#quitter").addEventListener("click", () => montrerAccueil());
+
+// =====================================================================
+//  L'accueil : choisir sa classe, son chapitre, la partie du cours
+// =====================================================================
+const ROMAINS = ["I", "II", "III", "IV", "V", "VI"];
+const choix = Object.assign({ n: null, ch: null, p: 0 }, lire(CLE_CHOIX, {}));
+let chapitres = [];
+const params = new URLSearchParams(location.search);
+async function chargerChapitres() {
+  let visibles = null;
+  const prof = !!(lire("reviser-prof-v1", null) || {}).token;
+  if (!prof) {
+    try { const r = await fetch("activation.json?t=" + Date.now(), { cache: "no-store" }); if (r.ok) { const j = await r.json(); if (Array.isArray(j.visibles)) visibles = j.visibles; } } catch (e) {}
+  }
+  const demande = params.get("ch");
+  chapitres = COURS.filter((c) => (!visibles || visibles.indexOf(c.id) >= 0 || c.id === demande) && assez(banque(c, -1)));
+  if (demande && chapitres.some((c) => c.id === demande)) { choix.ch = demande; choix.n = chapitres.find((c) => c.id === demande).n; choix.p = Number(params.get("p") || 0) || 0; }
+  if (!chapitres.some((c) => c.id === choix.ch)) choix.ch = null;
+  if (!choix.n || !chapitres.some((c) => c.n === choix.n)) choix.n = chapitres.length ? chapitres[0].n : null;
+}
+const nomClasse = (n) => { const c = (typeof CLASSES !== "undefined" ? CLASSES : []).find((x) => x.id === n); return c ? c.nom : n; };
+function illustration() {
+  const bloc = (x, y, c1, c2, c3) => '<g transform="translate(' + x + " " + y + ')"><path d="M0 0 L34 -17 L68 0 L34 17 Z" fill="' + c1 + '"/><path d="M0 0 L34 17 L34 33 L0 16 Z" fill="' + c2 + '"/><path d="M68 0 L34 17 L34 33 L68 16 Z" fill="' + c3 + '"/></g>';
+  return '<svg class="illu" viewBox="0 0 360 150" aria-hidden="true">' +
+    '<ellipse cx="70" cy="122" rx="60" ry="10" fill="#fff" opacity=".12"/><ellipse cx="290" cy="40" rx="50" ry="9" fill="#fff" opacity=".12"/>' +
+    bloc(30, 110, "#EEEFF4", "#D5D7E2", "#C3C6D4") + bloc(105, 84, "#4C86FF", "#2F63E0", "#2553C2") + bloc(180, 60, "#FFD66B", "#F2B21B", "#D9962B") +
+    bloc(220, 28, "#4C86FF", "#2F63E0", "#2553C2") + bloc(265, 50, "#4C86FF", "#2F63E0", "#2553C2") +
+    '<g transform="translate(139 56)"><ellipse cx="0" cy="26" rx="12" ry="4" fill="#1C1F4A" opacity=".25"/><rect x="-8" y="2" width="16" height="18" rx="7" fill="#3E7CB1"/><circle cx="0" cy="-6" r="10" fill="#EDB98A"/><path d="M-10 -8 a10 10 0 0 1 20 0 z" fill="#6B4226"/><circle cx="-3.5" cy="-5" r="1.4" fill="#1C1F2E"/><circle cx="3.5" cy="-5" r="1.4" fill="#1C1F2E"/></g>' +
+    '<g font-family="Inter, sans-serif" font-weight="800" font-size="13" text-anchor="middle"><rect x="235" y="0" width="38" height="20" rx="10" fill="#fff"/><text x="254" y="14" fill="#1C1F4A">A</text><rect x="280" y="22" width="38" height="20" rx="10" fill="#fff"/><text x="299" y="36" fill="#1C1F4A">B</text></g>' +
+    '<circle cx="214" cy="30" r="13" fill="#6C4CF1"/><text x="214" y="35" font-family="Inter, sans-serif" font-weight="800" font-size="15" fill="#fff" text-anchor="middle">?</text></svg>';
+}
+const ICONES = {
+  joy: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="#C9C6F2" stroke-width="3"/><circle cx="24" cy="16" r="8" fill="#fff"/><path d="M20 4v4M20 32v4M4 20h4M32 20h4" stroke="#C9C6F2" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  saut: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#6C4CF1"/><path d="M20 28V13M13 19l7-7 7 7" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  coeur: '<svg viewBox="0 0 40 40"><path d="M8 14 L20 8 L32 14 L20 20Z" fill="#3FCF7A"/><path d="M8 14 L20 20 L20 25 L8 19Z" fill="#25A85C"/><path d="M32 14 L20 20 L20 25 L32 19Z" fill="#1E8C4C"/><path d="M8 27 L20 21 L32 27 L20 33Z" fill="#FF7A7A" transform="translate(0 2)"/><path d="M29 6.5c-1.2-1.6-3.6-1.3-4 .8-.4-2.1-2.8-2.4-4-.8-1.4 1.9.6 4.2 4 6.2 3.4-2 5.4-4.3 4-6.2z" fill="#FF5A6E"/></svg>'
+};
+function montrerAccueil() {
+  etat.phase = "accueil"; etat.bloque = true;
+  ["#haut", "#carte", "#commandes", "#aide", "#bulle", "#fin"].forEach((s) => { $(s).hidden = true; });
+  const acc = $("#accueil"), boite = $("#accueil-boite");
+  acc.hidden = false;
+  boite.innerHTML = "";
+  boite.append(el("span", { class: "badge", text: "Version test" }), el("h1", { text: "Le passage en 3D" }),
+    el("p", { class: "intro", text: "Dirige ton personnage d'île en île. À chaque point de passage, saute sur la plateforme de la bonne réponse : la mauvaise s'effondre !" }));
+  boite.insertAdjacentHTML("beforeend", illustration());
+  boite.append(el("div", { class: "regles" }, [
+    el("div", { class: "regle", html: ICONES.joy + "Avance avec le joystick (ou ZQSD)" }),
+    el("div", { class: "regle", html: ICONES.saut + "Saute d'une plateforme à l'autre" }),
+    el("div", { class: "regle", html: ICONES.coeur + "La bonne plateforme tient, la mauvaise tombe" })
+  ]));
+  if (!renderer) { boite.append(el("p", { class: "erreur3d", text: "Cet appareil ne peut pas afficher la 3D. Essaie avec un autre navigateur, ou utilise le mode aventure des révisions." })); }
+  else if (!chapitres.length) { boite.append(el("p", { class: "vide", text: "Aucun chapitre n'est encore ouvert pour ce jeu." })); }
+  else {
+    const classes = [...new Set(chapitres.map((c) => c.n))];
+    const zoneCh = el("div", { class: "liste chapitres" }), zonePartie = el("div", { class: "liste" });
+    const seg = el("div", { class: "segments" });
+    classes.forEach((n) => seg.appendChild(el("button", { type: "button", "aria-pressed": String(n === choix.n), text: nomClasse(n), onclick: () => { choix.n = n; choix.ch = null; choix.p = 0; montrerAccueil(); } })));
+    const liste = chapitres.filter((c) => c.n === choix.n);
+    if (!liste.some((c) => c.id === choix.ch)) { choix.ch = liste[0].id; choix.p = 0; }
+    liste.forEach((c) => zoneCh.appendChild(el("button", { type: "button", "aria-pressed": String(c.id === choix.ch), onclick: () => { choix.ch = c.id; choix.p = 0; montrerAccueil(); } }, [el("small", { text: c.num || "" }), el("span", { text: c.titre })])));
+    const ch = liste.find((c) => c.id === choix.ch);
+    const parts = Array.isArray(ch.parties) && Array.isArray(ch.plan) ? ch.plan.slice(0, ch.parties.length) : [];
+    if (choix.p > parts.length || (choix.p > 0 && !assez(banque(ch, choix.p - 1)))) choix.p = 0;
+    parts.forEach((titre, i) => { const ok = assez(banque(ch, i)); zonePartie.appendChild(el("button", { type: "button", disabled: !ok, "aria-pressed": String(choix.p === i + 1), onclick: () => { choix.p = i + 1; montrerAccueil(); } }, [el("small", { text: ROMAINS[i] + "." }), el("span", { text: titre })])); });
+    zonePartie.appendChild(el("button", { type: "button", "aria-pressed": String(choix.p === 0), onclick: () => { choix.p = 0; montrerAccueil(); } }, [el("small", { text: "★" }), el("span", { text: "Tout le chapitre" })]));
+    boite.append(
+      el("div", { class: "champ" }, [el("b", { text: "Classe" }), seg]),
+      el("div", { class: "champ" }, [el("b", { text: "Chapitre" }), zoneCh]),
+      el("div", { class: "champ" }, [el("b", { text: "Partie du cours" }), zonePartie]),
+      el("button", { class: "bouton", id: "jouer", type: "button", text: "C'est parti !", onclick: () => lancer() })
+    );
+    ecrire(CLE_CHOIX, choix);
+  }
+  boite.append(el("a", { class: "lien", href: "reviser.html", text: "Retour aux révisions" }));
+}
+async function lancer() {
+  const ch = COURS.find((c) => c.id === choix.ch);
+  if (!ch || !renderer) return;
+  etat.ch = ch; etat.pi = choix.p - 1;
+  etat.items = banque(ch, etat.pi);
+  if (!assez(etat.items)) { etat.pi = -1; etat.items = banque(ch, -1); }
+  etat.paliers = COLLEGE.indexOf(ch.n) >= 0 ? [2, 2, 3, 3, 3] : [2, 2, 3, 3, 4];
+  try { await document.fonts.load("800 64px Inter"); } catch (e) {}
+  $("#accueil").hidden = true; $("#fin").hidden = true;
+  $("#haut").hidden = false; $("#commandes").hidden = false; $("#carte").hidden = true;
+  const souris = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  $("#aide").hidden = !souris; joyEl.hidden = souris;
+  placerJoyRepos();
+  touches.clear(); joy.s = joy.l = 0; joy.id = null;
+  construireNiveau();
+  redimensionner();
+  bulle(souris ? "Avance jusqu'au point de passage !" : "Joystick à gauche, saut à droite !", 2200);
+  canvas.focus({ preventScroll: true });
+}
+
+// =====================================================================
+//  La boucle
+// =====================================================================
+let avant = performance.now(), temps = 0;
+function boucle(maintenant) {
+  requestAnimationFrame(boucle);
+  // sur un appareil lent, la physique avance par petits pas : le jeu garde la même vitesse
+  const dt = Math.min(.1, Math.max(0, (maintenant - avant) / 1000));
+  avant = maintenant;
+  if (etat.phase === "accueil" || !renderer) return;
+  const n = Math.max(1, Math.ceil(dt / (1 / 60))), pas = dt / n;
+  for (let i = 0; i < n; i++) {
+    temps += pas;
+    majPlateformes(pas, temps);
+    majJoueur(pas);
+    majPieces(pas, temps);
+    majGerbe(pas);
+  }
+  majPerso(dt, temps);
+  verifierCoffre();
+  majCamera(dt);
+  renderer.render(scene, camera);
+}
+requestAnimationFrame(boucle);
+
+// pour les tests automatiques
+window.__p3d = {
+  etat: () => ({ phase: etat.phase, k: etat.k, coeurs: etat.coeurs, ducats: etat.ducats, premiers: etat.premiers, q: etat.q && { options: etat.q.options.slice(), bonne: etat.q.bonne }, J: { s: +J.s.toFixed(2), l: +J.l.toFixed(2), y: +J.y.toFixed(2), sol: J.sol ? J.sol.type : null, i: etat.chemin.indexOf(J.sol), occupe: !!(J.auto || J.cap) } }),
+  reponse: (i) => allerVers(etat.reponses[i]),
+  suivant: () => { const i = etat.chemin.indexOf(J.sol); const p = etat.chemin[i + 1]; return p ? allerVers(p) : false; },
+  coffre: () => { if (etat.ile && J.sol === etat.ile) { J.s = etat.ile.s - 1; J.l = etat.ile.l; } }
+};
+
+majSon();
+await chargerChapitres();
+montrerAccueil();
+</script>
+</body>
+</html>
