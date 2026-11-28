@@ -1157,7 +1157,8 @@ async function chargerChapitres() {
     try { const r = await fetch("activation.json?t=" + Date.now(), { cache: "no-store" }); if (r.ok) { const j = await r.json(); if (Array.isArray(j.visibles)) visibles = j.visibles; } } catch (e) {}
   }
   const demande = params.get("ch");
-  chapitres = COURS.filter((c) => (!visibles || visibles.indexOf(c.id) >= 0 || c.id === demande) && assez(banque(c, -1)));
+  // un jeu pensé pour le collège : les chapitres du lycée n'y figurent pas
+  chapitres = COURS.filter((c) => COLLEGE.indexOf(c.n) >= 0 && (!visibles || visibles.indexOf(c.id) >= 0 || c.id === demande) && assez(banque(c, -1)));
   if (demande && chapitres.some((c) => c.id === demande)) { choix.ch = demande; choix.n = chapitres.find((c) => c.id === demande).n; choix.p = Number(params.get("p") || 0) || 0; }
   if (!chapitres.some((c) => c.id === choix.ch)) choix.ch = null;
   if (!choix.n || !chapitres.some((c) => c.n === choix.n)) choix.n = chapitres.length ? chapitres[0].n : null;
