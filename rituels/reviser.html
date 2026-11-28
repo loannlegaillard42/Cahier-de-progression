@@ -702,6 +702,18 @@
   .jeu-carte small { display: block; font-size: 22px; font-weight: 800; color: #FFD34D; margin-bottom: 8px; }
   .jeu-carte p { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.45; }
   .jeu-carte.texte p { text-align: left; font-weight: 600; font-size: 16px; line-height: 2.15; }
+  .err-carte { min-height: 0; margin-bottom: 4px; }
+  .err-texte .err-mot { font: inherit; color: inherit; background: none; border: 0; border-bottom: 2px dotted rgba(244, 242, 255, .35); padding: 0 1px; border-radius: 4px; cursor: pointer; }
+  .err-texte .err-mot:hover:not(:disabled) { background: rgba(108, 112, 200, .35); }
+  .err-texte .err-mot.choisi { background: #FFD34D; color: #1C1F4A; border-bottom-color: transparent; }
+  .err-texte .err-mot.trouve, .err-texte .err-mot.vise { background: #45192A; color: #FFB4B4; text-decoration: line-through; border-bottom-color: transparent; }
+  .err-texte .err-mot.corrige { background: #16402F; color: #9AF5BC; text-decoration: none; }
+  .err-texte .err-mot.mal { background: #3E4384; color: #F4F2FF; border-bottom-color: transparent; }
+  .err-texte .err-mot:disabled { cursor: default; opacity: 1; }
+  .jeu-chrono { height: 8px; border-radius: 4px; background: #2A2E64; overflow: hidden; margin: 0 0 12px; }
+  .jeu-chrono i { display: block; height: 100%; width: 100%; background: #FFD34D; border-radius: 4px; transition: width .1s linear; }
+  .jeu-chrono.presse i { background: #FF6B6B; }
+  .jeu-question.expire .jeu-option, .jeu-question.expire .err-mot { opacity: .6; }
   .jeu-carte.vers-vrai, .jeu-carte.bien { border-color: #22C55E; }
   .jeu-carte.vers-faux, .jeu-carte.mal { border-color: #EF4444; }
   .jeu-tampon { position: absolute; top: 10px; right: 12px; padding: 2px 8px; border: 3px solid #FFD34D; border-radius: 8px; color: #FFD34D; font-weight: 900; font-size: 14px; letter-spacing: .08em; transform: rotate(8deg); }
@@ -5127,13 +5139,21 @@
   var VIES_DEFI = 3;
   var ETOILES_POUR_PASSER = 2; // un niveau débloque l'étape suivante à partir de 2 étoiles (2 erreurs au plus)
   // La difficulté suit la classe : nombre de propositions, dates plus ou moins proches, points sur la carte,
-  // réponses à écrire, carte « experte » sans points.
+  // réponses à écrire (et leur indice : 2 = première lettre et longueur, 1 = longueur seule, 0 = aucun), carte « experte » sans points.
+  // tolerance : erreurs permises pour garder 2 étoiles (et débloquer la suite) ; viesDefi, chrono : vies et secondes par question
+  // dans le défi de fin de chapitre ; erreurs, plan : « Trouve l'erreur » et « Dans quelle partie du cours ? » par niveau ;
+  // chronoPassage : secondes ajoutées (ou retirées) au compte à rebours du passage entre les îles.
   var DIFFICULTES = {
-    "5e":   { nom: "Collège", nb: 7, defi: 8, options: 3, dates: 4, ordre: 3, points: 3, carte: 3, experte: 0, saisie: 0, indices: 2, proches: false, aide: 0, legende: 3 },
-    "2nde": { nom: "Lycée", nb: 8, defi: 10, options: 4, dates: 5, ordre: 4, points: 5, carte: 3, experte: 0, saisie: 1, indices: 1, proches: true, aide: 2, legende: 4 },
-    "1ere": { nom: "Lycée +", nb: 8, defi: 12, options: 4, dates: 5, ordre: 5, points: 6, carte: 2, experte: 1, saisie: 2, indices: 1, proches: true, aide: 1, legende: 4 }
+    "5e":   { nom: "Collège", nb: 7, defi: 8, options: 3, dates: 4, ordre: 3, points: 3, carte: 3, experte: 0, saisie: 0, indices: 2, proches: false, aide: 0, legende: 3,
+              tolerance: 2, viesDefi: 3, chrono: 0, erreurs: 0, plan: 0, chronoPassage: 4 },
+    "2nde": { nom: "Lycée", nb: 8, defi: 10, options: 4, dates: 5, ordre: 4, points: 5, carte: 3, experte: 0, saisie: 3, indices: 1, proches: true, aide: 1, legende: 4,
+              tolerance: 1, viesDefi: 2, chrono: 30, erreurs: 2, plan: 2, chronoPassage: 0 },
+    "1ere": { nom: "Lycée +", nb: 8, defi: 12, options: 4, dates: 5, ordre: 5, points: 6, carte: 2, experte: 1, saisie: 3, indices: 1, proches: true, aide: 0, legende: 4,
+              tolerance: 1, viesDefi: 2, chrono: 25, erreurs: 2, plan: 2, chronoPassage: -2 }
   };
   function difficulte(ch) { return DIFFICULTES[ch.n] || DIFFICULTES["2nde"]; }
+  function viesDefi(ch) { return difficulte(ch).viesDefi || VIES_DEFI; }
+  function erreursPermises(ch) { var t = difficulte(ch).tolerance; return typeof t === "number" ? t : 2; }
   var av;
   // Comme dans Duolingo : une réserve de 5 cœurs pour tous les niveaux ; chaque erreur en coûte un, et un cœur revient
   // toutes les heures. Sans cœur, on attend, ou l'on en regagne un en réussissant une petite révision (5 questions).
@@ -5995,6 +6015,7 @@
     return { ok: false };
   }
   function aideSaisie(mot, diff) {
+    if (!diff.aide) return null;
     var lettres = mot.replace(/[^A-Za-zÀ-ÿ]/g, "").length, mots = mot.trim().split(/\s+/).length;
     var taille = mots > 1 ? mots + " mots, " + lettres + " lettres" : lettres + " lettres";
     return diff.aide >= 2 ? "Indice : « " + mot.charAt(0).toUpperCase() + "… », " + taille + "." : "Indice : " + taille + ".";
@@ -6018,6 +6039,48 @@
         res.push({ type: "glisser", consigne: "Complète la phrase", avant: propre(ph.slice(0, k)).replace(/^\s+/, ""),
           apres: propre(ph.slice(k + w.length + 2)).replace(/\s+$/, ""), options: melanger([w].concat(faux)), bonne: w,
           expl: propre(ph).trim() });
+      });
+    });
+    return res;
+  }
+  // « Trouve l'erreur » (lycée) : une phrase d'un texte à trous du cours, où un mot a été remplacé par un autre du chapitre.
+  // On touche le mot faux, puis on choisit le bon. Le remplaçant est du même genre : une année pour une année, un nom propre
+  // pour un nom propre ; jamais après une élision (« l'… »), qui trahirait le piège.
+  function questionsErreur(ch, d, diff) {
+    var res = [], racine = ch.parent || ch, reserve = [];
+    blocs(racine).forEach(function (x) {
+      liste(x.data, "trous").forEach(function (t) { String(t.texte).replace(/\[([^\]]+)\]/g, function (m, w) { reserve.push(w); return m; }); });
+      liste(x.data, "notions").forEach(function (n) { reserve.push(n.mot); });
+      liste(x.data, "reperes").forEach(function (r) { if (/^\d{3,4}$/.test(r.date)) reserve.push(r.date); });
+    });
+    reserve = uniquesPar(reserve.filter(function (w) { return w && w.length <= 40; }), function (w) { return normaliser(w); });
+    function genre(w) { return /^-?\d{3,4}$/.test(w) ? "annee" : /^\d/.test(w) ? "nombre" : /^[A-ZÀ-Ý]/.test(w) ? "propre" : "mot"; }
+    liste(d, "trous").forEach(function (t) {
+      (String(t.texte).match(/[^.!?]+[.!?]*/g) || []).forEach(function (ph) {
+        var ici = [];
+        ph.replace(/\[([^\]]+)\]/g, function (m, w) { if (!/['’]$/.test(ph.slice(0, ph.indexOf(m)))) ici.push(w); return m; });
+        if (!ici.length) return;
+        var w = ici[Math.floor(Math.random() * ici.length)], g = genre(w);
+        var propre = ph.replace(/\[([^\]]+)\]/g, "$1").trim(), dejaLa = normaliser(propre);
+        var cands = reserve.filter(function (x) { return normaliser(x) !== normaliser(w) && dejaLa.indexOf(normaliser(x)) < 0; });
+        var memes = cands.filter(function (x) { return genre(x) === g; });
+        if (memes.length >= 3 || g === "annee" || g === "nombre") cands = memes;
+        else cands = memes.concat(cands.filter(function (x) { return genre(x) !== g && genre(x) !== "annee" && genre(x) !== "nombre"; }));
+        if (cands.length < 3) return;
+        var accorder = function (x) { return g === "mot" && /^[A-ZÀ-Ý][a-zà-ÿ]/.test(x) ? x.charAt(0).toLowerCase() + x.slice(1) : x; };
+        cands = melanger(cands).map(accorder);
+        var faux = cands[0], k = ph.indexOf("[" + w + "]");
+        var avant = ph.slice(0, k).replace(/\[([^\]]+)\]/g, "$1").trim(), apres = ph.slice(k + w.length + 2).replace(/\[([^\]]+)\]/g, "$1");
+        // la ponctuation collée au mot reste avec lui (« 476, »)
+        var colle = (/^[,;:.!?)»]+/.exec(apres) || [""])[0];
+        apres = apres.slice(colle.length).trim();
+        var mots = avant ? avant.split(/\s+/) : [], cible = mots.length;
+        mots.push(faux + colle);
+        if (apres) mots = mots.concat(apres.split(/\s+/));
+        if (mots.length < 5 || mots.length > 45) return;
+        res.push({ type: "erreur", consigne: "Trouve l'erreur", mots: mots, cible: cible, faux: faux, bonne: w,
+          options: melanger([w].concat(cands.slice(1, diff.options))), enonce: mots.join(" "),
+          bonneTexte: "«\u00a0" + faux + "\u00a0» → «\u00a0" + w + "\u00a0»", expl: propre });
       });
     });
     return res;
@@ -6050,6 +6113,7 @@
       if (diff.saisie && n.mot.length <= 28) qs.push({ type: "saisie", consigne: "Écris le mot qui correspond", bulle: n.def, bonne: n.mot, aide: aideSaisie(n.mot, diff), expl: expl });
     });
     qs = qs.concat(phrasesATrous(d, diff));
+    if (diff.erreurs) qs = qs.concat(questionsErreur(ch, d, diff));
     var intrus = intrusMots(ch, b, notions);
     if (intrus) qs.push(intrus);
     // un même mot peut être défini deux fois (cours et point de passage) : une seule fois dans les paires
@@ -6179,6 +6243,34 @@
     });
     return qs;
   }
+  // « Dans quelle partie du cours ? » (lycée) : ranger une notion, une date, un acteur ou un lieu dans le plan du chapitre,
+  // comme pour préparer une composition. Dans une partie, seulement ce qui a déjà été étudié (cette partie et les précédentes).
+  function questionsPlan(ch, b, diff) {
+    var racine = ch.parent || ch, parties = liste(racine, "parties"), plan = liste(racine, "plan");
+    if (parties.length < 2 || plan.length < parties.length || blocs(ch)[0].id !== b.id) return [];
+    var jusque = ch.parent ? ch.partie : parties.length - 1;
+    if (!(jusque >= 1)) return [];
+    var titres = plan.slice(0, parties.length).map(function (t, k) { return romain(k + 1) + ". " + titreCourt(t); });
+    var sources = [["notions", "mot", function (n) { return "Notion\u00a0: " + n.mot; }], ["reperes", "date", function (r) { return r.date + "\u00a0: " + r.txt; }],
+      ["personnages", "nom", function (x) { return "Personnage\u00a0: " + x.nom; }], ["lieux", "nom", function (x) { return "Lieu\u00a0: " + x.nom; }]];
+    var compte = {}, items = [];
+    parties.forEach(function (spec) { sources.forEach(function (src) { liste(spec, src[0]).forEach(function (c) { var k = src[0] + "|" + c; compte[k] = (compte[k] || 0) + 1; }); }); });
+    parties.slice(0, jusque + 1).forEach(function (spec, k) {
+      sources.forEach(function (src) {
+        liste(spec, src[0]).forEach(function (c) {
+          if (compte[src[0] + "|" + c] > 1) return; // un élément étudié dans deux parties : la question serait ambiguë
+          var x = liste(racine, src[0]).filter(function (y) { return String(y[src[1]]) === String(c); })[0];
+          if (x) items.push({ txt: src[2](x), k: k });
+        });
+      });
+    });
+    return melanger(items).slice(0, 6).map(function (it) {
+      var options = [titres[it.k]].concat(melanger(titres.filter(function (t, j) { return j !== it.k; })).slice(0, diff.options - 1));
+      options.sort(function (a, c) { return titres.indexOf(a) - titres.indexOf(c); });
+      return { type: "plan", consigne: "Dans quelle partie du cours\u00a0?", bulle: it.txt, options: options, bonne: titres[it.k],
+        expl: "Partie " + titres[it.k] + " (" + it.txt + ")." };
+    });
+  }
   function poolQuiz(ch, b) {
     var diff = difficulte(ch);
     var source = b.data.siecles ? questionsSiecles() : liste(b.data, "questions");
@@ -6186,6 +6278,7 @@
       return { type: "choix", consigne: "Choisis la bonne réponse", bulle: x.q, options: choisirOptions([x.r].concat(melanger(x.faux)), x.r, diff.options), bonne: x.r, expl: x.expl };
     });
     if (b.data.siecles) for (var k = 0; k < 3; k++) qs.push(intrusSiecle());
+    if (diff.plan) qs = qs.concat(questionsPlan(ch, b, diff));
     return qs.concat(questionsTri(b.data), questionsSuite(b.data));
   }
   // « Classe dans le bon tableau » : { consigne, categories: [..], items: [[texte, n° de catégorie], …], expl }
@@ -6218,11 +6311,14 @@
   // un niveau : des types variés, à tour de rôle, sans trop de questions longues ; le nombre de réponses
   // écrites et de cartes « expertes » dépend de la classe
   function composer(pool, nb, diff) {
-    var max = { tri: 2, paires: 1, ordre: 1, curseur: 2, carte: diff.carte, experte: diff.experte, detail: 2, quisuisje: 2, saisie: diff.saisie, graphique: 4, legende: 2, intrus: 3 };
+    var max = { tri: 2, paires: 1, ordre: 1, curseur: 2, carte: diff.carte, experte: diff.experte, detail: 2, quisuisje: 2, saisie: diff.saisie, graphique: 4, legende: 2, intrus: 3,
+      erreur: diff.erreurs || 0, plan: diff.plan || 0 };
     var parType = {};
     melanger(pool).forEach(function (q) { (parType[q.type] = parType[q.type] || []).push(q); });
     Object.keys(parType).forEach(function (t) { if (t in max) parType[t] = parType[t].slice(0, max[t]); });
-    var types = melanger(Object.keys(parType)), out = [];
+    // au lycée, les exercices qui font retrouver (et pas seulement reconnaître) passent en premier : chaque niveau en a un de chaque
+    var prio = diff.erreurs ? ["erreur", "plan", "saisie"].filter(function (t) { return parType[t] && parType[t].length; }) : [];
+    var types = prio.concat(melanger(Object.keys(parType).filter(function (t) { return prio.indexOf(t) < 0; }))), out = [];
     while (out.length < nb && types.some(function (t) { return parType[t].length; })) {
       types.forEach(function (t) { if (out.length < nb && parType[t].length) out.push(parType[t].shift()); });
     }
@@ -6300,7 +6396,7 @@
     });
     v.intrus = spec.intrus ? liste(ch, "intrus") : [];
     ["questions", "tris", "suites"].forEach(function (champ) { v[champ] = liste(ch, champ).filter(function (x) { return x.p === k + 1; }); });
-    v.periodes = []; v.ppo = []; v.parties = null; v.parent = ch;
+    v.periodes = []; v.ppo = []; v.parties = null; v.parent = ch; v.partie = k;
     return v;
   }
   function poolTout(ch, b) {
@@ -6768,13 +6864,13 @@
         info = fait ? "Passage déjà franchi : tu peux le refaire pour t'entraîner." : ouvert ? "Saute de plateforme en plateforme jusqu'à l'île suivante : chaque plateforme est une réponse sur la partie que tu viens de finir. 6 sauts, de plus en plus durs ; la mauvaise plateforme s'effondre !" : "Termine d'abord l'île d'avant.";
         if (ouvert) action = el("a", { class: "av-bulle-btn", href: lienAventure(ch, "jeu/" + n.i), text: fait ? "Refaire le passage" : "Sauter !" });
       } else {
-        info = n.type === "defi" ? nb.defi + " questions sur tout " + (route.parties ? "le chapitre" : "le parcours") + ", et " + VIES_DEFI + " vies."
+        info = n.type === "defi" ? nb.defi + " questions sur tout " + (route.parties ? "le chapitre" : "le parcours") + ", et " + viesDefi(ch) + " vies" + (nb.chrono ? ", avec un chrono." : ".")
           : n.partie ? nb.nb + " questions sur cette partie du cours : son vocabulaire, ses dates, ses acteurs et ses lieux."
           : n.type === "revision" ? (nb.nb + 2) + " questions qui mélangent les chapitres déjà vus." : nb.nb + " questions variées.";
         if ((n.type === "niveau" || n.type === "revision") && !coeursIllimites()) info += " Chaque erreur coûte un cœur (il t'en reste " + coeurs() + ").";
         var rec = etoilesDe(n), aPasser = n.type !== "defi" && !fait;
         if (rec) info += " Ton record : " + rec + " étoile" + (rec > 1 ? "s" : "") + " sur 3.";
-        if (aPasser) info += rec ? " Il en faut " + ETOILES_POUR_PASSER + " pour débloquer la suite." : " Il faut " + ETOILES_POUR_PASSER + " étoiles pour débloquer la suite.";
+        if (aPasser) info += (rec ? " Il en faut " + ETOILES_POUR_PASSER : " Il faut " + ETOILES_POUR_PASSER + " étoiles") + " pour débloquer la suite (" + pluriel(erreursPermises(ch), "erreur") + " au plus).";
         if (!ouvert) info = "Termine d'abord l'étape précédente.";
         if (ouvert) action = el("a", { class: "av-bulle-btn", href: lienAventure(ch, "jeu/" + n.i), text: fait ? "Rejouer" : rec ? "Retenter" : n.type === "defi" ? "Relever le défi" : "Commencer" });
       }
@@ -6905,7 +7001,10 @@
     var recharge = n.type === "recharge";
     var avecVies = defi || ((n.type === "niveau" || n.type === "revision") && !coeursIllimites());
     var reserve = avecVies && !defi;
-    var viesMax = defi ? VIES_DEFI : COEURS_MAX;
+    var viesMax = defi ? viesDefi(ch) : COEURS_MAX;
+    // au lycée, le défi est chronométré (sauf avec la lecture à voix haute) ; les exercices longs ont plus de temps
+    var chrono = defi && diff.chrono && !acces.auto ? diff.chrono * (acces.grand ? 1.3 : 1) : 0, minuterie = null;
+    var FACTEURS_CHRONO = { tri: 2.2, ordre: 1.8, paires: 2, legende: 2.2, erreur: 1.8, saisie: 1.4, carte: 1.3, experte: 1.5, graphique: 1.5, detail: 1.3, quisuisje: 1.3 };
     var file = qs.slice(), pos = 0, finies = 0, premiersEssais = 0, erreurs = 0, xp = 0, vies = reserve ? coeurs() : viesMax, combo = 0, corrigees = 0;
     // plus de cœur : on ne commence pas le niveau
     if (reserve && vies <= 0) { vueSansCoeur(ch, n, retour); return; }
@@ -6941,12 +7040,34 @@
       var zone = el("div", { class: "jeu-question" });
       corps.appendChild(zone);
       arreterLecture();
-      RENDUS[q.type](guide, q, zone, pied, function (juste, extra) { repondre(q, juste, extra || {}); });
+      var repondu = false;
+      RENDUS[q.type](guide, q, zone, pied, function (juste, extra) {
+        if (repondu) return;
+        repondu = true; clearInterval(minuterie);
+        repondre(q, juste, extra || {});
+      });
       zone.__question = q; // pour les tests automatiques
+      if (chrono) {
+        var duree = chrono * (FACTEURS_CHRONO[q.type] || 1) * 1000, debut = Date.now();
+        var sablier = el("div", { class: "jeu-chrono", role: "timer", "aria-label": "Temps restant" }, [el("i")]);
+        zone.insertBefore(sablier, zone.firstChild);
+        clearInterval(minuterie);
+        minuterie = setInterval(function () {
+          if (!zone.isConnected) { clearInterval(minuterie); return; }
+          var r = Math.max(0, 1 - (Date.now() - debut) / duree);
+          sablier.firstChild.style.width = (r * 100).toFixed(1) + "%";
+          sablier.classList.toggle("presse", r < .25);
+          if (r > 0 || repondu) return;
+          repondu = true; clearInterval(minuterie);
+          zone.querySelectorAll("button, input, select, textarea").forEach(function (x) { x.disabled = true; });
+          zone.classList.add("expire");
+          repondre(q, false, { titre: "Temps écoulé !" });
+        }, 100);
+      }
       var ecoute = boutonLire(zone, "Écouter la question");
       zone.insertBefore(ecoute, zone.firstChild);
       if (acces.auto) setTimeout(function () { if (ecoute.isConnected && !zone.querySelector(".bien, .mal")) ecoute.click(); }, 300);
-      var focus = zone.querySelector("input:not([type=range]), button:not(.jeu-lire), input, [tabindex]");
+      var focus = zone.querySelector("input:not([type=range]), button:not(.jeu-lire):not(.err-mot), input, [tabindex]");
       if (focus) focus.focus({ preventScroll: true });
     }
     function repondre(q, juste, extra) {
@@ -7046,7 +7167,7 @@
         ], false, corrigees ? "Chaque question bien corrigée revient plus tard pour vérifier qu'elle est sue." : "Ces questions reviendront demain : relis bien les corrections.", true);
         return;
       }
-      var etoiles = defi ? Math.max(1, vies) : erreurs === 0 ? 3 : erreurs <= 2 ? 2 : 1;
+      var etoiles = defi ? Math.min(3, Math.max(1, vies + (viesMax < 3 ? 1 : 0))) : erreurs === 0 ? 3 : erreurs <= erreursPermises(ch) ? 2 : 1;
       var reussi = defi || seance || etoiles >= ETOILES_POUR_PASSER;
       if (erreurs === 0) xp += 15;
       if (seance) n.enregistrer(etoiles, Math.round(premiersEssais / qs.length * 100));
@@ -7068,7 +7189,7 @@
       son("fin");
       var titre = etoiles === 3 ? (defi ? "Défi relevé haut la main !" : "Parfait !") : etoiles === 2 ? "Bien joué !" : defi ? "Défi relevé !" : seance ? "Séance faite !" : "Encore un effort !";
       var message = seance ? (n.derniere ? "Dernière séance faite : le jour du contrôle, relis simplement l'essentiel de chaque chapitre." : "Rendez-vous demain pour la séance suivante.")
-        : reussi ? null : "Il faut au moins " + ETOILES_POUR_PASSER + " étoiles, soit 2 erreurs au plus, pour débloquer l'étape suivante. Rejoue le niveau\u00a0: les questions changent à chaque fois.";
+        : reussi ? null : "Il faut au moins " + ETOILES_POUR_PASSER + " étoiles, soit " + pluriel(erreursPermises(ch), "erreur") + " au plus, pour débloquer l'étape suivante. Rejoue le niveau\u00a0: les questions changent à chaque fois.";
       finEcran(titre, etoiles, [
         avecSymbole("ducat", "+" + gain, "jeu-stat"),
         avecSymbole("eclair", "+" + xp, "jeu-stat"),
@@ -7308,7 +7429,7 @@
       zone.appendChild(reps);
       corps.appendChild(zone);
       actif = true;
-      duree = [15, 14, 13, 12, 11, 12][rang] + (diff.nom === "Collège" ? 4 : 0);
+      duree = [15, 14, 13, 12, 11, 12][rang] + (diff.chronoPassage || 0);
       debut = Date.now();
       if (minuterie) clearInterval(minuterie);
       minuterie = setInterval(function () {
@@ -7534,6 +7655,8 @@
   }
 
   var RENDUS = {
+    // « Dans quelle partie du cours ? » se présente comme un choix
+    plan: function () { return RENDUS.choix.apply(null, arguments); },
     choix: function (ch, q, zone, pied, fin) {
       zone.appendChild(consigne(q.consigne));
       if (q.image) {
@@ -7875,6 +7998,59 @@
       }
     },
     experte: function (ch, q, zone, pied, fin) { RENDUS.carte(ch, q, zone, pied, fin); },
+
+    // « Trouve l'erreur » : toucher le mot faux, valider, puis choisir le bon mot
+    erreur: function (ch, q, zone, pied, fin) {
+      zone.appendChild(consigne(q.consigne || "Trouve l'erreur"));
+      var texte = el("p", { class: "err-texte" }), choisi = -1, fait = false;
+      var mots = q.mots.map(function (m, i) {
+        var b = el("button", { class: "err-mot", type: "button", text: m, "aria-pressed": "false" });
+        b.addEventListener("click", function () {
+          if (fait) return;
+          choisi = i;
+          mots.forEach(function (x, j) { x.classList.toggle("choisi", j === i); x.setAttribute("aria-pressed", String(j === i)); });
+          valider.disabled = false;
+          son("clic");
+        });
+        texte.appendChild(b);
+        if (i < q.mots.length - 1) texte.appendChild(document.createTextNode(" "));
+        return b;
+      });
+      zone.appendChild(el("div", { class: "jeu-carte texte err-carte" }, texte));
+      var aide = el("p", { class: "jeu-aide", text: "Un mot de ce passage du cours est faux\u00a0: touche-le, puis valide." });
+      zone.appendChild(aide);
+      var valider = boutonValider(pied, function () {
+        fait = true;
+        mots.forEach(function (x) { x.disabled = true; });
+        if (choisi !== q.cible) {
+          mots[choisi].classList.add("mal");
+          mots[q.cible].classList.add("vise");
+          fin(false, { titre: "Non\u00a0: l'erreur était «\u00a0" + q.faux + "\u00a0»." });
+          return;
+        }
+        mots[q.cible].classList.add("trouve");
+        pied.innerHTML = "";
+        aide.textContent = "Bien vu\u00a0! Par quoi faut-il remplacer «\u00a0" + q.faux + "\u00a0»\u00a0?";
+        var court = q.options.every(function (o) { return String(o).length <= 14; });
+        var g = el("div", { class: "jeu-options" + (court ? " court" : "") }), boutons = [], fini = false;
+        q.options.forEach(function (o) {
+          var b = el("button", { class: "jeu-option" + (court ? "" : " long"), type: "button", text: o });
+          b.addEventListener("click", function () {
+            if (fini) return;
+            fini = true;
+            var juste = normaliser(o) === normaliser(q.bonne);
+            b.classList.add(juste ? "bien" : "mal");
+            boutons.forEach(function (x) { if (!juste && normaliser(x.textContent) === normaliser(q.bonne)) x.classList.add("bien"); x.disabled = true; });
+            if (juste) { mots[q.cible].textContent = q.mots[q.cible].replace(q.faux, q.bonne); mots[q.cible].classList.add("corrige"); }
+            fin(juste, { titre: juste ? "Erreur trouvée et corrigée\u00a0!" : "Bien repérée, mais ce n'est pas la bonne correction." });
+          });
+          boutons.push(b);
+          g.appendChild(b);
+        });
+        zone.appendChild(g);
+        if (boutons[0]) boutons[0].focus({ preventScroll: true });
+      });
+    },
 
     saisie: function (ch, q, zone, pied, fin) {
       zone.appendChild(consigne(q.consigne || "Écris la réponse"));
@@ -8710,7 +8886,7 @@
       ajouter(a, [figure({ type: "sommet" }, fait ? '<span class="md-coche">' + symbole("coche") + "</span>" : ""), el("span", { class: "md-plaque" }, [
         el("span", { class: "md-num" }, [el("span", { text: "Pour finir" }), fait ? el("i", { class: "md-chip", text: "Relevé" }) : null]),
         el("strong", { class: "md-titre", text: x.nom }),
-        el("em", { class: "md-nom", text: ouvert ? "Des questions sur tous les chapitres ouverts, et " + VIES_DEFI + " vies." : "Termine tous les chapitres ouverts pour l'affronter." })
+        el("em", { class: "md-nom", text: ouvert ? "Des questions sur tous les chapitres ouverts, et " + viesDefi(pseudo) + " vies." : "Termine tous les chapitres ouverts pour l'affronter." })
       ])]);
       return a;
     }
@@ -10086,7 +10262,7 @@
       RENDUS[q.type]({ d: "histoire" }, q, zone, pied, function (juste, extra) { repondre(q, juste, extra || {}); });
       zone.__question = q; // pour les tests automatiques
       zone.insertBefore(boutonLire(zone, "Écouter la question"), zone.firstChild);
-      var focus = zone.querySelector("input:not([type=range]), button:not(.jeu-lire), input, [tabindex]");
+      var focus = zone.querySelector("input:not([type=range]), button:not(.jeu-lire):not(.err-mot), input, [tabindex]");
       if (focus) focus.focus({ preventScroll: true });
     }
     function repondre(q, juste, extra) {
@@ -10399,7 +10575,8 @@
   function versProjection(q) {
     var lettres = ["A", "B", "C", "D", "E", "F", "G", "H"];
     switch (q.type) {
-      case "choix": return { consigne: q.consigne, enonce: q.bulle || "", grand: q.grand, image: q.image, options: q.options, bonne: q.bonne, expl: q.expl };
+      case "choix": case "plan": return { consigne: q.consigne, enonce: q.bulle || "", grand: q.grand, image: q.image, options: q.options, bonne: q.bonne, expl: q.expl };
+      case "erreur": return { consigne: "Trouvez l'erreur : par quoi remplacer « " + q.faux + " » ?", enonce: q.enonce, options: q.options, bonne: q.bonne, expl: q.expl };
       case "vf": return { consigne: "Vrai ou faux ?", enonce: (q.titre ? q.titre + " : " : "") + q.texte, options: ["Vrai", "Faux"], bonne: q.vrai ? "Vrai" : "Faux", expl: q.expl };
       case "glisser": return { consigne: "Quel mot manque ?", enonce: q.avant + "……" + q.apres, options: q.options, bonne: q.bonne, expl: q.expl };
       case "curseur": return { consigne: "À quelle date ?", enonce: q.enonce, options: q.dates, bonne: q.dates[q.bonne], expl: q.expl };
